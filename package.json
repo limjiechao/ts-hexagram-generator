@@ -1,20 +1,23 @@
 {
-  "name": "ts-starter",
+  "name": "ts-hexagram-generator",
   "version": "0.0.0",
   "packageManager": "pnpm@10.11.0",
-  "description": "My awesome typescript library",
+  "description": "Pipeline-style hexagram generator modeling the yarrow stalk method",
   "type": "module",
+  "keywords": [
+    "hexagram",
+    "i ching",
+    "yarrow stalks",
+    "yarrow stalk method",
+    "yijing"
+  ],
   "license": "MIT",
-  "homepage": "https://github.com/sxzz/ts-starter#readme",
-  "bugs": {
-    "url": "https://github.com/sxzz/ts-starter/issues"
-  },
+  "homepage": "https://github.com/limjiechao/ts-hexagram-generator#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/sxzz/ts-starter.git"
+    "url": "git+https://github.com/limjiechao/ts-hexagram-generator.git"
   },
-  "author": "三咲智子 Kevin Deng <sxzz@sxzz.moe>",
-  "funding": "https://github.com/sponsors/sxzz",
+  "author": "Lim Jiechao <jiechao.lim@gmail.com>",
   "files": [
     "dist"
   ],
