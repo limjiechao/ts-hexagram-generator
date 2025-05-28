@@ -1,41 +1,23 @@
-# ts-starter [![npm](https://img.shields.io/npm/v/ts-starter.svg)](https://npmjs.com/package/ts-starter)
+# ts-hexagram-generator
 
-[![Unit Test](https://github.com/sxzz/ts-starter/actions/workflows/unit-test.yml/badge.svg)](https://github.com/sxzz/ts-starter/actions/workflows/unit-test.yml)
+[![Unit Test](https://github.com/limjiechao/ts-hexagram-generator/actions/workflows/unit-test.yml/badge.svg)](https://github.com/limjiechao/ts-hexagram-generator/actions/workflows/unit-test.yml)
 
-My awesome typescript library
+A TypeScript library that implements the Yarrow Stalk Method for generating I Ching (Yijing) hexagrams. It provides a pipeline-style implementation that models the traditional Chinese divination method using 49 yarrow stalks.
 
-<!-- Remove belows -->
+## Features
 
-Forked from [egoist/ts-starter](https://github.com/egoist/ts-starter)
+- Accurate simulation of the yarrow stalk method
+- A random hexagram generation in CLI
+- An interactive hexagram generation in CLI
+- Unit test to validate the statistical analysis of line distributions
+- Type-safe implementation in TypeScript
 
-## Using this template
+---
 
-- Search `ts-starter` and replace it with your custom package name.
-- Search `sxzz` and replace it with your name.
-- Remove sponsors below.
+## Tech Stack
 
-Features:
+Scaffolded with [sxzz/ts-starter](https://github.com/sxzz/ts-starter)
 
 - Package manager [pnpm](https://pnpm.js.org/), safe and fast
 - Bundle with blazing fast [tsdown](https://github.com/sxzz/tsdown)
 - Test with [Vitest](https://vitest.dev)
-
-<!-- Remove aboves -->
-
-## Install
-
-```bash
-npm i ts-starter
-```
-
-## Sponsors
-
-<p align="center">
-  <a href="https://cdn.jsdelivr.net/gh/sxzz/sponsors/sponsors.svg">
-    <img src='https://cdn.jsdelivr.net/gh/sxzz/sponsors/sponsors.svg'/>
-  </a>
-</p>
-
-## License
-
-[MIT](./LICENSE) License © 2025 [三咲智子 Kevin Deng](https://github.com/sxzz)
