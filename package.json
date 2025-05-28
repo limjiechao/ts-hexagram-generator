@@ -28,6 +28,10 @@
     ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
+  "bin": {
+    "hexagram-random": "./dist/cli-random.js",
+    "hexagram-interactive": "./dist/cli-interactive.js"
+  },
   "publishConfig": {
     "access": "public"
   },
@@ -41,6 +45,7 @@
     "format": "prettier --cache --write .",
     "release": "bumpp && pnpm publish",
     "prepublishOnly": "pnpm run build",
+    "postinstall": "chmod +x ./dist/cli-random.js ./dist/cli-interactive.js",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts"
   },

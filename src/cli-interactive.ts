@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import { main } from './interactive'
 
 export function isDirectExecution(): boolean {
