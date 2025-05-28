@@ -42,6 +42,7 @@
     "release": "bumpp && pnpm publish",
     "prepublishOnly": "pnpm run build",
     "hexagram-random": "tsx src/cli-random.ts",
+    "hexagram-interactive": "tsx src/cli-interactive.ts"
   },
   "devDependencies": {
     "@inquirer/prompts": "^7.5.3",
