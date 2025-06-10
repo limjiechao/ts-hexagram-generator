@@ -4,7 +4,7 @@ import {
   BOLD_GREY,
   BOLD_WHITE,
   getUserQuery,
-  logConsultationOutput,
+  logAndSaveConsultationOutput,
   NORMAL,
 } from './cli-utils'
 import {
@@ -138,7 +138,7 @@ export async function main(): Promise<void> {
   try {
     const { query, hexagram } = await getHexagramViaInteraction()
 
-    logConsultationOutput(query, hexagram)
+    await logAndSaveConsultationOutput(query, hexagram)
 
     process.exit(0)
   } catch (error) {
