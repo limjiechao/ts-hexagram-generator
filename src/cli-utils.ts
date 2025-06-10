@@ -49,10 +49,10 @@ function getHexagramRecord(hexagram: Hexagram): GenericHexagramRecord {
 }
 
 const hexagramLineDiagramMap = {
-  6: '=== X ===',
-  7: '=========',
-  8: '===   ===',
-  9: '====O====',
+  6: '━━━ × ━━━',
+  7: '━━━━━━━━━',
+  8: '━━━   ━━━',
+  9: '━━━━○━━━━',
 } as const satisfies Record<Line, string>
 
 function isMovingLine(line: Line): line is Extract<Line, 6 | 9> {
