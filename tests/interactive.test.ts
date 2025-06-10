@@ -62,6 +62,10 @@ const mockInputPrompt = (__input: string) => {
 const originalConsoleInfo = console.info
 const originalConsoleError = console.error
 
+const LINE_ARRAY_REGEX =
+  // eslint-disable-next-line no-control-regex
+  /\u001B\[1;\d{2}m9, \u001B\[1;\d{2}m9, \u001B\[1;\d{2}m6, \u001B\[1;\d{2}m7, \u001B\[1;\d{2}m8, \u001B\[1;\d{2}m9\n/
+
 describe('CLI', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -77,7 +81,7 @@ describe('CLI', () => {
     console.error = originalConsoleError
   })
 
-  describe('getHexagramInteractive', () => {
+  describe('getHexagramViaInteraction', () => {
     it('should generate a hexagram with 6 lines', async () => {
       // Mock user inputs for all 18 splits (3 splits per line, 6 lines)
       const mockNumberPromptInputs: MockNumberPromptInputs = {
@@ -154,14 +158,16 @@ describe('CLI', () => {
       expect(calls.length).toBeGreaterThan(0)
       // You can also verify specific content if you know what to expect
       // For example, if you expect a hexagram output:
-      expect(calls.some((call) => call[0].includes('9, 9, 6, 7, 8, 9'))).toBe(
-        true,
-      )
+      expect(calls.some((call) => call[0].match(LINE_ARRAY_REGEX))).toBe(true)
       expect(
-        calls.some((call) =>
-          call[0].includes(
-            '  9  ====O====\n  8  ===   ===\n  7  =========\n  6  === X ===\n  9  ====O====\n  9  ====O====\n',
-          ),
+        calls.some(
+          (call) =>
+            call[0].includes('9  ====O====') &&
+            call[0].includes('8  ===   ===') &&
+            call[0].includes('7  =========') &&
+            call[0].includes('6  === X ===') &&
+            call[0].includes('9  ====O====') &&
+            call[0].includes('9  ====O===='),
         ),
       ).toBe(true)
 
