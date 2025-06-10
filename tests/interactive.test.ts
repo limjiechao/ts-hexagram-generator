@@ -173,12 +173,12 @@ describe('CLI', () => {
       expect(
         calls.some(
           (call) =>
-            call[0].includes('9  ====O====') &&
-            call[0].includes('8  ===   ===') &&
-            call[0].includes('7  =========') &&
-            call[0].includes('6  === X ===') &&
-            call[0].includes('9  ====O====') &&
-            call[0].includes('9  ====O===='),
+            call[0].includes('9  ━━━━○━━━━') &&
+            call[0].includes('8  ━━━   ━━━') &&
+            call[0].includes('7  ━━━━━━━━━') &&
+            call[0].includes('6  ━━━ × ━━━') &&
+            call[0].includes('9  ━━━━○━━━━') &&
+            call[0].includes('9  ━━━━○━━━━'),
         ),
       ).toBe(true)
 
