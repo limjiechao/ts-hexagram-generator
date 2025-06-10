@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto'
 import process from 'node:process'
-import { getUserQuery, logConsultationOutput } from './cli-utils'
+import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils'
 import {
   assertIsFourOperationsResult,
   assertIsHexagram,
@@ -119,7 +119,7 @@ export async function main(): Promise<void> {
     const query = await getUserQuery()
     const hexagram = generateRandomHexagram()
 
-    logConsultationOutput(query, hexagram)
+    await logAndSaveConsultationOutput(query, hexagram)
 
     process.exit(0)
   } catch (error) {

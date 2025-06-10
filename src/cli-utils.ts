@@ -1,3 +1,4 @@
+import fs from 'node:fs/promises'
 import { input } from '@inquirer/prompts'
 import { HEXAGRAM_RECORDS } from './models/hexagrams'
 import { TRIGRAM_RECORDS } from './models/trigrams'
@@ -191,7 +192,7 @@ ${NORMAL_GREY}[English, James Legge]
 `.trim()
 }
 
-function consultationOutput(
+function consultationConsoleOutput(
   _: TemplateStringsArray,
   query: string,
   hexagram: Hexagram,
@@ -263,10 +264,25 @@ ${NORMAL}
 `
 }
 
-export function logConsultationOutput(
+const CONSULTATIONS_OUTPUT_DIRECTORY = './consultations'
+
+export async function logAndSaveConsultationOutput(
   question: string,
   hexagram: Hexagram,
-): void {
+): Promise<void> {
+  const consoleOutput = consultationConsoleOutput`Question: ${question}, Hexagram: ${hexagram}`
+
   console.clear()
-  console.info(consultationOutput`Question: ${question}, Hexagram: ${hexagram}`)
+  console.info(consoleOutput)
+
+  // eslint-disable-next-line no-control-regex
+  const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
+
+  // Ensure "./consultants" directory exists (create if needed)
+  await fs.mkdir(CONSULTATIONS_OUTPUT_DIRECTORY, { recursive: true })
+  await fs.writeFile(
+    `${CONSULTATIONS_OUTPUT_DIRECTORY}/consultation-${new Date().toISOString()}.txt`,
+    textOutput,
+    { encoding: 'utf-8' },
+  )
 }

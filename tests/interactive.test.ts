@@ -1,7 +1,11 @@
+import fs from 'node:fs/promises'
 import process from 'node:process'
 import { input, number } from '@inquirer/prompts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { getHexagramViaInteraction, main } from '../src/interactive'
+
+vi.mock('node:fs/promises')
+const mockedFs = vi.mocked(fs)
 
 // Mock process.exit
 vi.mock('node:process', () => ({
@@ -70,6 +74,10 @@ describe('CLI', () => {
   beforeEach(() => {
     vi.clearAllMocks()
 
+    // Mock the current time to get predictable timestamps
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2024-01-15T10:30:00.000Z'))
+
     // Mock console.info to prevent output during tests
     console.info = vi.fn()
     console.error = vi.fn()
@@ -79,6 +87,9 @@ describe('CLI', () => {
     // Restore console.info
     console.info = originalConsoleInfo
     console.error = originalConsoleError
+
+    // Restore real timers
+    vi.useRealTimers()
   })
 
   describe('getHexagramViaInteraction', () => {
@@ -170,6 +181,15 @@ describe('CLI', () => {
             call[0].includes('9  ====O===='),
         ),
       ).toBe(true)
+
+      expect(mockedFs.mkdir).toHaveBeenCalledWith('./consultations', {
+        recursive: true,
+      })
+      expect(mockedFs.writeFile).toHaveBeenCalledWith(
+        './consultations/consultation-2024-01-15T10:30:00.000Z.txt',
+        expect.any(String),
+        { encoding: 'utf-8' },
+      )
 
       expect(process.exit).toHaveBeenCalledWith(0)
     })
