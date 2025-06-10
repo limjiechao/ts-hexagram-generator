@@ -1,0 +1,370 @@
+{
+  "T111": {
+    "Key": "T111",
+    "Name": {
+      "Chinese": {
+        "Traditional": "乾",
+        "Simplified": "乾"
+      },
+      "English": {
+        "WilhelmBaynes": "Ch’ien / the Creative",
+        "Legge": "khien"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "天",
+        "Simplified": "天"
+      },
+      "English": {
+        "WilhelmBaynes": "heaven",
+        "Legge": "Heaven, the Sky"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 1,
+        "WenWang": 4
+      },
+      "Binary": "0b111",
+      "Pronunciation": {
+        "Pinyin": "qián",
+        "Zhuyin": "ㄑㄧㄢˊ"
+      },
+      "Unicode": {
+        "Character": "☰",
+        "Name": "Trigram For Heaven",
+        "Decimal": {
+          "CodePoint": 9776,
+          "UTF8": [226, 152, 176]
+        },
+        "Hex": {
+          "CodePoint": "U+2630",
+          "UTF8": "0xe298b0"
+        }
+      }
+    }
+  },
+  "T112": {
+    "Key": "T112",
+    "Name": {
+      "Chinese": {
+        "Traditional": "兌",
+        "Simplified": "兑"
+      },
+      "English": {
+        "WilhelmBaynes": "Tui / the Joyous",
+        "Legge": "tui"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "澤",
+        "Simplified": "泽"
+      },
+      "English": {
+        "WilhelmBaynes": "lake",
+        "Legge": "Water, collected as in a marsh or lake"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 2,
+        "WenWang": 5
+      },
+      "Binary": "0b110",
+      "Pronunciation": {
+        "Pinyin": "duì",
+        "Zhuyin": "ㄉㄨㄟˋ"
+      },
+      "Unicode": {
+        "Character": "☱",
+        "Name": "Trigram For Lake",
+        "Decimal": {
+          "CodePoint": 9777,
+          "UTF8": [226, 152, 177]
+        },
+        "Hex": {
+          "CodePoint": "U+2631",
+          "UTF8": "0xe29801"
+        }
+      }
+    }
+  },
+  "T121": {
+    "Key": "T121",
+    "Name": {
+      "Chinese": {
+        "Traditional": "離",
+        "Simplified": "离"
+      },
+      "English": {
+        "WilhelmBaynes": "Li / the Clinging",
+        "Legge": "lî"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "火",
+        "Simplified": "火"
+      },
+      "English": {
+        "WilhelmBaynes": "fire",
+        "Legge": "Fire, as in lightning; the sun"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 3,
+        "WenWang": 3
+      },
+      "Binary": "0b101",
+      "Pronunciation": {
+        "Pinyin": "lí",
+        "Zhuyin": "ㄌㄧˊ"
+      },
+      "Unicode": {
+        "Character": "☲",
+        "Name": "Trigram For Fire",
+        "Decimal": {
+          "CodePoint": 9778,
+          "UTF8": [226, 152, 178]
+        },
+        "Hex": {
+          "CodePoint": "U+2632",
+          "UTF8": "0xe29802"
+        }
+      }
+    }
+  },
+  "T122": {
+    "Key": "T122",
+    "Name": {
+      "Chinese": {
+        "Traditional": "震",
+        "Simplified": "震"
+      },
+      "English": {
+        "WilhelmBaynes": "Chên / the Arousing",
+        "Legge": "kăn"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "雷",
+        "Simplified": "雷"
+      },
+      "English": {
+        "WilhelmBaynes": "thunder",
+        "Legge": "Thunder"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 4,
+        "WenWang": 8
+      },
+      "Binary": "0b100",
+      "Pronunciation": {
+        "Pinyin": "zhèn",
+        "Zhuyin": "ㄓㄣˋ"
+      },
+      "Unicode": {
+        "Character": "☳",
+        "Name": "Trigram For Thunder",
+        "Decimal": {
+          "CodePoint": 9779,
+          "UTF8": [226, 152, 179]
+        },
+        "Hex": {
+          "CodePoint": "U+2633",
+          "UTF8": "0xe29803"
+        }
+      }
+    }
+  },
+  "T211": {
+    "Key": "T211",
+    "Name": {
+      "Chinese": {
+        "Traditional": "巽",
+        "Simplified": "巽"
+      },
+      "English": {
+        "WilhelmBaynes": "Sun / the Gentle",
+        "Legge": "sun"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "風",
+        "Simplified": "风"
+      },
+      "English": {
+        "WilhelmBaynes": "wind, wood",
+        "Legge": "The wind, wood"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 5,
+        "WenWang": 2
+      },
+      "Binary": "0b011",
+      "Pronunciation": {
+        "Pinyin": "xùn",
+        "Zhuyin": "ㄒㄩㄣˋ"
+      },
+      "Unicode": {
+        "Character": "☴",
+        "Name": "Trigram For Wind",
+        "Decimal": {
+          "CodePoint": 9780,
+          "UTF8": [226, 152, 180]
+        },
+        "Hex": {
+          "CodePoint": "U+2634",
+          "UTF8": "0xe29804"
+        }
+      }
+    }
+  },
+  "T212": {
+    "Key": "T212",
+    "Name": {
+      "Chinese": {
+        "Traditional": "坎",
+        "Simplified": "坎"
+      },
+      "English": {
+        "WilhelmBaynes": "K’an / the Abysmal",
+        "Legge": "khân"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "水",
+        "Simplified": "水"
+      },
+      "English": {
+        "WilhelmBaynes": "water",
+        "Legge": "Water, as in rain, clouds, springs, streams and defiles. The moon"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 6,
+        "WenWang": 1
+      },
+      "Binary": "0b010",
+      "Pronunciation": {
+        "Pinyin": "kǎn",
+        "Zhuyin": "ㄎㄢˇ"
+      },
+      "Unicode": {
+        "Character": "☵",
+        "Name": "Trigram For Water",
+        "Decimal": {
+          "CodePoint": 9781,
+          "UTF8": [226, 152, 181]
+        },
+        "Hex": {
+          "CodePoint": "U+2635",
+          "UTF8": "0xe29805"
+        }
+      }
+    }
+  },
+  "T221": {
+    "Key": "T221",
+    "Name": {
+      "Chinese": {
+        "Traditional": "艮",
+        "Simplified": "艮"
+      },
+      "English": {
+        "WilhelmBaynes": "Kên / Keeping Still",
+        "Legge": "kân"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "山",
+        "Simplified": "山"
+      },
+      "English": {
+        "WilhelmBaynes": "mountain",
+        "Legge": "Hills, or mountains"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 7,
+        "WenWang": 6
+      },
+      "Binary": "0b001",
+      "Pronunciation": {
+        "Pinyin": "gèn",
+        "Zhuyin": "ㄍㄣˋ"
+      },
+      "Unicode": {
+        "Character": "☶",
+        "Name": "Trigram For Mountain",
+        "Decimal": {
+          "CodePoint": 9782,
+          "UTF8": [226, 152, 182]
+        },
+        "Hex": {
+          "CodePoint": "U+2636",
+          "UTF8": "0xe29806"
+        }
+      }
+    }
+  },
+  "T222": {
+    "Key": "T222",
+    "Name": {
+      "Chinese": {
+        "Traditional": "坤",
+        "Simplified": "坤"
+      },
+      "English": {
+        "WilhelmBaynes": "K’un / the Receptive",
+        "Legge": "khwăn"
+      }
+    },
+    "Imagery": {
+      "Chinese": {
+        "Traditional": "地",
+        "Simplified": "地"
+      },
+      "English": {
+        "WilhelmBaynes": "earth",
+        "Legge": "The earth"
+      }
+    },
+    "Metadata": {
+      "Order": {
+        "Fuxi": 8,
+        "WenWang": 7
+      },
+      "Binary": "0b000",
+      "Pronunciation": {
+        "Pinyin": "kūn",
+        "Zhuyin": "ㄎㄨㄣ"
+      },
+      "Unicode": {
+        "Character": "☷",
+        "Name": "Trigram For Earth",
+        "Decimal": {
+          "CodePoint": 9783,
+          "UTF8": [226, 152, 183]
+        },
+        "Hex": {
+          "CodePoint": "U+2637",
+          "UTF8": "0xe29807"
+        }
+      }
+    }
+  }
+}

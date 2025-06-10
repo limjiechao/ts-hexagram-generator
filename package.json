@@ -48,7 +48,7 @@
     "postinstall": "chmod +x ./dist/cli-random.js ./dist/cli-interactive.js",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
-    "hexagrams-generate-json": "tsx src/models/hexagrams-generate-json.ts"
+    "generate-json-files": "tsx src/models/generate-json-files.ts && prettier --write src/models/*.json"
   },
   "devDependencies": {
     "@inquirer/prompts": "^7.5.3",
