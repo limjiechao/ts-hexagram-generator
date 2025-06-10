@@ -1,21 +1,10 @@
-/* eslint-disable unused-imports/no-unused-vars */
 type Yin = '1'
 type Yang = '2'
 type Line = Yin | Yang
 type Trigram = `${Line}${Line}${Line}`
 export type Hexagram = `${Trigram}${Trigram}`
 
-const TRIGRAM_KEYS: `T${Trigram}`[] = [
-  'T111',
-  'T112',
-  'T121',
-  'T122',
-  'T211',
-  'T212',
-  'T221',
-  'T222',
-] as const
-
+// eslint-disable-next-line unused-imports/no-unused-vars
 const LOWER_TRIGRAM_KEYS = {
   1: 'T111',
   2: 'T222',
@@ -86,6 +75,7 @@ const LOWER_TRIGRAM_KEYS = {
 export type LowerTrigramKey<Order extends WenWangOrder = WenWangOrder> =
   (typeof LOWER_TRIGRAM_KEYS)[Order]
 
+// eslint-disable-next-line unused-imports/no-unused-vars
 const UPPER_TRIGRAM_KEYS = {
   1: 'T111',
   2: 'T222',
@@ -156,8 +146,7 @@ const UPPER_TRIGRAM_KEYS = {
 export type UpperTrigramKey<Order extends WenWangOrder = WenWangOrder> =
   (typeof UPPER_TRIGRAM_KEYS)[Order]
 
-export type TrigramKey = (typeof TRIGRAM_KEYS)[number]
-
+// eslint-disable-next-line unused-imports/no-unused-vars
 const HEXAGRAM_KEYS = {
   1: 'H111111',
   2: 'H222222',
