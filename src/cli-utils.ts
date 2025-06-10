@@ -220,12 +220,12 @@ ${BOLD_GREY}HEXAGRAM ${Metadata.Order.WenWang}:
 
 ${NORMAL}(Line at bottom is first)
 
-  ${getLineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}──┐
-  ${getLineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}──┼── ${UpperTrigramImageryChinese}【上卦】
-  ${getLineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}──┘   ${UpperTrigramImageryEnglish} (upper trigram)
-  ${getLineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}──┐
-  ${getLineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}──┼── ${LowerTrigramImageryChinese}【下卦】
-  ${getLineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}──┘   ${LowerTrigramImageryEnglish} (lower trigram)
+  ${getLineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}（六, 6th）──┐
+  ${getLineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}（五, 5th）──┼── ${UpperTrigramImageryChinese}（上卦）
+  ${getLineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}（四, 4th）──┘   ${UpperTrigramImageryEnglish} (upper trigram)
+  ${getLineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}（三, 3rd）──┐
+  ${getLineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}（二, 2nd）──┼── ${LowerTrigramImageryChinese}（下卦）
+  ${getLineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}（初, 1st）──┘   ${LowerTrigramImageryEnglish} (lower trigram)
 
 ${NORMAL}(First is line at bottom)
 
