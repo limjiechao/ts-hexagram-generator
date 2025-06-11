@@ -7,6 +7,7 @@ export default defineConfig({
     './src/cli-random.ts',
     './src/models/hexagrams.ts',
     './src/models/trigrams.ts',
+    './src/getters.ts',
   ],
   platform: 'node',
 })

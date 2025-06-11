@@ -182,11 +182,16 @@ describe('CLI', () => {
         ),
       ).toBe(true)
 
-      expect(mockedFs.mkdir).toHaveBeenCalledWith('./consultations', {
-        recursive: true,
-      })
+      expect(mockedFs.mkdir).toHaveBeenCalledWith(
+        expect.stringMatching(
+          /.*(\/|\\)ts-hexagram-generator(\/|\\)consultations$/,
+        ),
+        { recursive: true },
+      )
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
-        './consultations/consultation-2024-01-15T10:30:00.000Z.txt',
+        expect.stringMatching(
+          /.*(\/|\\)ts-hexagram-generator(\/|\\)consultations(\/|\\)consultation-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[+-]\d{4}\.txt$/,
+        ),
         expect.any(String),
         { encoding: 'utf-8' },
       )
