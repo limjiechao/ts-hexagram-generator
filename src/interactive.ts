@@ -6,7 +6,7 @@ import {
   getUserQuery,
   logAndSaveConsultationOutput,
   NORMAL,
-} from './cli-utils'
+} from './cli-utils-output'
 import {
   assertIsFourOperationsResult,
   assertIsHexagram,

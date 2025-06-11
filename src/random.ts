@@ -1,6 +1,6 @@
 import { randomInt } from 'node:crypto'
 import process from 'node:process'
-import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils'
+import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils-output'
 import {
   assertIsFourOperationsResult,
   assertIsHexagram,

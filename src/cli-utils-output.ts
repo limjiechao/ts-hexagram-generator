@@ -1,10 +1,14 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
 import { input } from '@inquirer/prompts'
-import { HEXAGRAM_RECORDS } from './models/hexagrams'
-import { TRIGRAM_RECORDS } from './models/trigrams'
-import type { HexagramKey } from './models/foundation'
-import type { GenericHexagramRecord } from './models/hexagram'
-import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
+import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
+import { getHexagramRecord, getTrigramRecord } from './getters.js'
+import {
+  assertLine1ToLine6,
+  isLineIndex,
+  isMovingLine,
+} from './cli-utils-validators.js'
 import type { Hexagram, Line } from './types'
 
 export async function getUserQuery(): Promise<string> {
@@ -20,34 +24,6 @@ export const BOLD_RED = '\u001B[1;91m'
 export const NORMAL = '\u001B[0m'
 export const NORMAL_GREY = '\u001B[90m'
 
-const HexagramLineToKey = {
-  6: 2,
-  7: 1,
-  8: 2,
-  9: 1,
-} as const
-
-function getHexagramKey([
-  line1,
-  line2,
-  line3,
-  line4,
-  line5,
-  line6,
-]: Hexagram): HexagramKey {
-  return `H${HexagramLineToKey[line1]}${HexagramLineToKey[line2]}${HexagramLineToKey[line3]}${HexagramLineToKey[line4]}${HexagramLineToKey[line5]}${HexagramLineToKey[line6]}` as const
-}
-
-function getTrigramRecord(trigram: TrigramKey): GenericTrigramRecord {
-  return TRIGRAM_RECORDS[trigram]
-}
-
-function getHexagramRecord(hexagram: Hexagram): GenericHexagramRecord {
-  const hexagramKey = getHexagramKey(hexagram)
-
-  return HEXAGRAM_RECORDS[hexagramKey]
-}
-
 const hexagramLineDiagramMap = {
   6: '━━━ × ━━━',
   7: '━━━━━━━━━',
@@ -55,36 +31,8 @@ const hexagramLineDiagramMap = {
   9: '━━━━○━━━━',
 } as const satisfies Record<Line, string>
 
-function isMovingLine(line: Line): line is Extract<Line, 6 | 9> {
-  return line === 6 || line === 9
-}
-
 function getLineColor(line: Line): typeof BOLD_RED | typeof BOLD_WHITE {
   return isMovingLine(line) ? BOLD_RED : BOLD_WHITE
-}
-
-type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
-function isLineIndex(maybeLineIndex: unknown): maybeLineIndex is LineIndex {
-  return (
-    typeof maybeLineIndex === 'number' &&
-    maybeLineIndex !== -1 &&
-    maybeLineIndex >= 0 &&
-    maybeLineIndex <= 5
-  )
-}
-
-type LineKey = 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6'
-function isLine1ToLine6(maybeLineKey: unknown): maybeLineKey is LineKey {
-  return (
-    typeof maybeLineKey === 'string' &&
-    ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].includes(maybeLineKey)
-  )
-}
-
-function assertLine1ToLine6(maybeLine: unknown): asserts maybeLine is LineKey {
-  if (!isLine1ToLine6(maybeLine)) {
-    throw new Error('Line is not between 1 and 6')
-  }
 }
 
 function queryOutput(_: TemplateStringsArray, query: string): string {
@@ -264,7 +212,39 @@ ${NORMAL}
 `
 }
 
-const CONSULTATIONS_OUTPUT_DIRECTORY = './consultations'
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
+const CONSULTATIONS_OUTPUT_DIRECTORY = path.join(
+  __dirname,
+  '..',
+  'consultations',
+)
+
+/**
+ * Save consultation output to a timestamped file
+ * @param consoleOutput - The formatted console output with ANSI color codes
+ * @param outputDirectory - Directory to save the file (optional, defaults to consultations directory)
+ * @returns The full path of the created file
+ */
+export async function consultationFileOutput(
+  consoleOutput: string,
+  outputDirectory: string = CONSULTATIONS_OUTPUT_DIRECTORY,
+): Promise<string> {
+  // Strip ANSI color codes for file output
+  // eslint-disable-next-line no-control-regex
+  const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
+
+  // Ensure output directory exists (create if needed)
+  await fs.mkdir(outputDirectory, { recursive: true })
+
+  // Generate filesystem-safe, timezone-aware timestamp
+  const timestamp = getFilesystemSafeTimestamp()
+  const filePath = path.join(outputDirectory, `consultation-${timestamp}.txt`)
+
+  await fs.writeFile(filePath, textOutput, { encoding: 'utf-8' })
+
+  return filePath
+}
 
 export async function logAndSaveConsultationOutput(
   question: string,
@@ -275,14 +255,9 @@ export async function logAndSaveConsultationOutput(
   console.clear()
   console.info(consoleOutput)
 
-  // eslint-disable-next-line no-control-regex
-  const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
+  const filePath = await consultationFileOutput(consoleOutput)
 
-  // Ensure "./consultants" directory exists (create if needed)
-  await fs.mkdir(CONSULTATIONS_OUTPUT_DIRECTORY, { recursive: true })
-  await fs.writeFile(
-    `${CONSULTATIONS_OUTPUT_DIRECTORY}/consultation-${new Date().toISOString()}.txt`,
-    textOutput,
-    { encoding: 'utf-8' },
-  )
+  console.info('')
+  console.info(`${BOLD_GREY}Consultation output saved to ${filePath}.${NORMAL}`)
+  console.info('')
 }

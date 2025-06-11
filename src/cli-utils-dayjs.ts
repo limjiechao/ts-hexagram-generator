@@ -12,5 +12,5 @@ dayjs.extend(timezone)
  * @returns A timestamp string safe for use in filenames
  */
 export function getFilesystemSafeTimestamp(): string {
-  return dayjs().format('YYYY-MM-DD_HH-mm-ss_ZZ')
+  return dayjs().format('YYYY-MM-DDTHH-mm-ssZZ')
 }
