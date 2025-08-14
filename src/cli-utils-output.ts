@@ -203,6 +203,7 @@ ${
     : movingLines.length === 1
       ? oneMovingLineOutput`(One moving line): ${hexagram}`
       : `${BOLD_GREY}LINES:
+
 ${NORMAL}(Multiple moving lines)
 
 ${BOLD_WHITE}No available reference scripture or exegesis for multiple moving lines.
