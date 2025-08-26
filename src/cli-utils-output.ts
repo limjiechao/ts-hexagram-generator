@@ -3,12 +3,12 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { input } from '@inquirer/prompts'
 import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
-import { getHexagramRecord, getTrigramRecord } from './getters.js'
 import {
   assertLine1ToLine6,
   isLineIndex,
   isMovingLine,
 } from './cli-utils-validators.js'
+import { getHexagramRecord, getTrigramRecord } from './getters.js'
 import type { Hexagram, Line } from './types'
 
 export async function getUserQuery(): Promise<string> {
