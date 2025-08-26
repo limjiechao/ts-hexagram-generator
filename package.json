@@ -1,7 +1,7 @@
 {
   "name": "ts-hexagram-generator",
   "version": "0.0.0",
-  "packageManager": "pnpm@10.11.0",
+  "packageManager": "pnpm@10.15.0",
   "description": "Pipeline-style hexagram generator modeling the yarrow stalk method",
   "type": "module",
   "keywords": [
@@ -51,21 +51,21 @@
     "generate-json-files": "tsx src/models/generate-json-files.ts && prettier --write src/models/*.json"
   },
   "devDependencies": {
-    "@inquirer/prompts": "^7.5.3",
-    "@sxzz/eslint-config": "^7.0.1",
-    "@sxzz/prettier-config": "^2.2.1",
-    "@types/node": "^22.15.21",
-    "bumpp": "^10.1.1",
+    "@inquirer/prompts": "^7.8.4",
+    "@sxzz/eslint-config": "^7.1.4",
+    "@sxzz/prettier-config": "^2.2.4",
+    "@types/node": "^24.3.0",
+    "bumpp": "^10.2.3",
     "dayjs": "^1.11.13",
-    "eslint": "^9.27.0",
-    "prettier": "^3.5.3",
-    "tsdown": "^0.12.3",
-    "tsx": "^4.19.4",
-    "typescript": "^5.8.3",
-    "vitest": "^3.1.4"
+    "eslint": "^9.34.0",
+    "prettier": "^3.6.2",
+    "tsdown": "^0.14.2",
+    "tsx": "^4.20.5",
+    "typescript": "^5.9.2",
+    "vitest": "^3.2.4"
   },
   "engines": {
-    "node": ">=20.18.0"
+    "node": ">=24.6.0"
   },
   "prettier": "@sxzz/prettier-config"
 }
