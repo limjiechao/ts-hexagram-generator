@@ -8,7 +8,11 @@ import {
   isLineIndex,
   isMovingLine,
 } from './cli-utils-validators.js'
-import { getHexagramRecord, getTrigramRecord } from './getters.js'
+import {
+  getHexagramRecord,
+  getResultantHexagram,
+  getTrigramRecord,
+} from './getters.js'
 import type { Hexagram, Line } from './types'
 
 export async function getUserQuery(): Promise<string> {
@@ -140,13 +144,12 @@ ${NORMAL_GREY}[English, James Legge]
 `.trim()
 }
 
-function consultationConsoleOutput(
-  _: TemplateStringsArray,
-  query: string,
+function hexagramOutput(
   hexagram: Hexagram,
+  label: string,
+  lineColor: (line: Line) => string,
 ): string {
   const [line1, line2, line3, line4, line5, line6] = hexagram
-  const movingLines = hexagram.filter((line) => line === 6 || line === 9)
   const { Name, Metadata } = getHexagramRecord(hexagram)
   const {
     Imagery: {
@@ -162,24 +165,22 @@ function consultationConsoleOutput(
   } = getTrigramRecord(Metadata.Trigram.Lower)
 
   return `
-${queryOutput`QUERY: ${query}`}
-
-${BOLD_GREY}HEXAGRAM ${Metadata.Order.WenWang}:
+${BOLD_GREY}${label} HEXAGRAM ${Metadata.Order.WenWang}:
 
 ${NORMAL}(Line at bottom is first)
 
-  ${getLineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}（六, 6th）──┐
-  ${getLineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}（五, 5th）──┼── ${UpperTrigramImageryChinese}（上卦）
-  ${getLineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}（四, 4th）──┘   ${UpperTrigramImageryEnglish} (upper trigram)
-  ${getLineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}（三, 3rd）──┐
-  ${getLineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}（二, 2nd）──┼── ${LowerTrigramImageryChinese}（下卦）
-  ${getLineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}（初, 1st）──┘   ${LowerTrigramImageryEnglish} (lower trigram)
+  ${lineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}（六, 6th）──┐
+  ${lineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}（五, 5th）──┼── ${UpperTrigramImageryChinese}（上卦）
+  ${lineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}（四, 4th）──┘   ${UpperTrigramImageryEnglish} (upper trigram)
+  ${lineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}（三, 3rd）──┐
+  ${lineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}（二, 2nd）──┼── ${LowerTrigramImageryChinese}（下卦）
+  ${lineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}（初, 1st）──┘   ${LowerTrigramImageryEnglish} (lower trigram)
 
 ${NORMAL}(First is line at bottom)
 
-  ${getLineColor(line1)}${line1}, ${getLineColor(line2)}${line2}, ${getLineColor(line3)}${line3}, ${getLineColor(line4)}${line4}, ${getLineColor(line5)}${line5}, ${getLineColor(line6)}${line6}
+  ${lineColor(line1)}${line1}, ${lineColor(line2)}${line2}, ${lineColor(line3)}${line3}, ${lineColor(line4)}${line4}, ${lineColor(line5)}${line5}, ${lineColor(line6)}${line6}
 
-${BOLD_GREY}HEXAGRAM NAME AND PRONUNCIATION:
+${BOLD_GREY}${label} HEXAGRAM NAME AND PRONUNCIATION:
 
 ${NORMAL_GREY}[Traditional Chinese]
 
@@ -194,8 +195,40 @@ ${NORMAL_GREY}[English, Wilhelm-Baynes]
   ${BOLD_WHITE}${Name.English.WilhelmBaynes}
 
 ${NORMAL_GREY}[English, James Legge]
-  
+
   ${BOLD_WHITE}${Name.English.Legge}
+`
+}
+
+function originatingHexagramOutput(
+  _: TemplateStringsArray,
+  originatingHexagram: Hexagram,
+): string {
+  return hexagramOutput(originatingHexagram, 'ORIGINATING', getLineColor)
+}
+
+function resultantHexagramOutput(
+  _: TemplateStringsArray,
+  originatingHexagram: Hexagram,
+): string {
+  return hexagramOutput(
+    getResultantHexagram(originatingHexagram),
+    'RESULTANT',
+    () => BOLD_WHITE,
+  )
+}
+
+function consultationConsoleOutput(
+  _: TemplateStringsArray,
+  query: string,
+  hexagram: Hexagram,
+): string {
+  const movingLines = hexagram.filter((line) => line === 6 || line === 9)
+
+  return `
+${queryOutput`QUERY: ${query}`}
+
+${originatingHexagramOutput`Originating: ${hexagram}`}
 
 ${
   movingLines.length === 0
@@ -210,6 +243,10 @@ ${BOLD_WHITE}No available reference scripture or exegesis for multiple moving li
 ${NORMAL}
 `
 }
+
+${movingLines.length > 0 ? resultantHexagramOutput`Resultant: ${hexagram}` : ''}
+
+${movingLines.length > 0 ? noMovingLineOutput`(Resultant hexagram): ${getResultantHexagram(hexagram)}` : ''}
 `
 }
 

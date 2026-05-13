@@ -32,3 +32,9 @@ export function getHexagramRecord(hexagram: Hexagram): GenericHexagramRecord {
 
   return HEXAGRAM_RECORDS[hexagramKey]
 }
+
+export function getResultantHexagram(hexagram: Hexagram): Hexagram {
+  return hexagram.map((line) =>
+    line === 6 ? 7 : line === 9 ? 8 : line,
+  ) as Hexagram
+}
