@@ -39,13 +39,14 @@
     "node": ">=24.6.0"
   },
   "scripts": {
-    "lint": "oxlint && eslint --cache .",
+    "lint:check": "oxlint && eslint --cache .",
     "lint:fix": "oxlint --fix && eslint --cache . --fix",
     "build": "tsdown",
     "dev": "tsdown --watch",
     "test": "vitest",
-    "typecheck": "tsc --noEmit",
-    "format": "oxfmt --write",
+    "type:check": "tsc --noEmit",
+    "format:fix": "oxfmt --write",
+    "format:check": "oxfmt --check",
     "release": "bumpp && pnpm publish",
     "prepublishOnly": "pnpm run build",
     "postinstall": "chmod +x ./dist/cli-random.mjs ./dist/cli-interactive.mjs",
