@@ -16,10 +16,10 @@ jobs:
       - name: Install pnpm
         uses: pnpm/action-setup@v4.1.0
 
-      - name: Set node LTS
+      - name: Set node 24
         uses: actions/setup-node@v4
         with:
-          node-version: lts/*
+          node-version: '>=24.6.0'
           cache: pnpm
 
       - name: Install
@@ -37,7 +37,7 @@ jobs:
     strategy:
       matrix:
         os: [ubuntu-latest, windows-latest]
-        node: [20, 22, 24]
+        node: ['>=24.6.0']
       fail-fast: false
 
     steps:
