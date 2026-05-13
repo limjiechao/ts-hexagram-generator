@@ -1,7 +1,9 @@
 import fs from 'node:fs/promises'
 import process from 'node:process'
+
 import { input, number } from '@inquirer/prompts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
+
 import { getHexagramViaInteraction, main } from '../src/interactive'
 
 vi.mock('node:fs/promises')

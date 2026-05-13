@@ -1,5 +1,7 @@
 import { randomInt } from 'node:crypto'
 import process from 'node:process'
+
+import { makeLineGenerator, stalksBeforeParting } from '.'
 import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils-output'
 import {
   assertIsFourOperationsResult,
@@ -10,7 +12,6 @@ import {
   type Line,
   type LineGeneratorResult,
 } from './types'
-import { makeLineGenerator, stalksBeforeParting } from '.'
 
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
 export const splitStalksRandomly = (unpartedStalks: number[]): number =>

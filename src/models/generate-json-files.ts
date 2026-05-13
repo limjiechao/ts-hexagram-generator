@@ -1,4 +1,5 @@
 import fs from 'node:fs/promises'
+
 import { HEXAGRAM_RECORDS } from './hexagrams'
 import { TRIGRAM_RECORDS } from './trigrams.js'
 

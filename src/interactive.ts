@@ -1,5 +1,8 @@
 import process from 'node:process'
+
 import { number } from '@inquirer/prompts'
+
+import { makeLineGenerator, stalksBeforeParting } from '.'
 import {
   BOLD_GREY,
   BOLD_WHITE,
@@ -14,7 +17,6 @@ import {
   type Hexagram,
   type LineGeneratorResult,
 } from './types'
-import { makeLineGenerator, stalksBeforeParting } from '.'
 
 async function getSplitIndex(unpartedStalks: number[]): Promise<number> {
   const min = 1

@@ -1,8 +1,8 @@
-import { HEXAGRAM_RECORDS } from './models/hexagrams'
-import { TRIGRAM_RECORDS } from './models/trigrams'
 import type { HexagramKey } from './models/foundation'
 import type { GenericHexagramRecord } from './models/hexagram'
+import { HEXAGRAM_RECORDS } from './models/hexagrams'
 import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
+import { TRIGRAM_RECORDS } from './models/trigrams'
 import type { Hexagram } from './types'
 
 const HexagramLineToKey = {
