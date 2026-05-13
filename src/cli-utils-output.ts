@@ -252,10 +252,10 @@ ${movingLines.length > 0 ? noMovingLineOutput`(Resultant hexagram): ${getResulta
 `
 }
 
-const __filename = fileURLToPath(import.meta.url)
-const __dirname = path.dirname(__filename)
+const currentFilename = fileURLToPath(import.meta.url)
+const currentDirname = path.dirname(currentFilename)
 const CONSULTATIONS_OUTPUT_DIRECTORY = path.join(
-  __dirname,
+  currentDirname,
   '..',
   'consultations',
 )
@@ -271,7 +271,6 @@ export async function consultationFileOutput(
   outputDirectory: string = CONSULTATIONS_OUTPUT_DIRECTORY,
 ): Promise<string> {
   // Strip ANSI color codes for file output
-  // eslint-disable-next-line no-control-regex
   const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
 
   // Ensure output directory exists (create if needed)

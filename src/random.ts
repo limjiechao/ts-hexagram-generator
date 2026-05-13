@@ -92,11 +92,12 @@ export const generateRandomHexagrams = (
     () => generateRandomHexagram(),
   )
 
+const roundToPrecision = (number: number, precision = 4) =>
+  number.toPrecision(precision)
+
 export const generateRandomLines = (
   lineCount = 1_000,
 ): Record<string, string> => {
-  const roundToPrecision = (number: number, precision = 4) =>
-    number.toPrecision(precision)
   const runs = Array.from({ length: lineCount }, () => getOneRandomLine).map(
     (getOneLine) => getOneLine().next(),
   )

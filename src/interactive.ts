@@ -115,8 +115,7 @@ function welcomeOutput(
   epilogueStyle: Style,
 ): string {
   const [prologue, text, epilogue] = strings.reduce<string[]>(
-    (strings, string) =>
-      string.trim() ? [...strings, string.trim()] : strings,
+    (acc, string) => (string.trim() ? [...acc, string.trim()] : acc),
     [],
   )
 
