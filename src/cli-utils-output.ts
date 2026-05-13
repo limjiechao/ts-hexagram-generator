@@ -45,14 +45,14 @@ function getLineColor(line: Line): typeof BOLD_RED | typeof BOLD_WHITE {
 //
 //   left line = 2 indent + 1 value + 2 sp + 9 diagram + 2 sp + 11 pos = 27 cols
 //   gap/arrow = 17×─ + ▶ + 1 space                                    = 19 cols
-//   right col starts at                                                  col 46
+//   right column starts at                                               col 46
 //
-// pos labels like （六, 6th）: （(2) + CJK(2) + ", "(2) + "6th"(3) + ）(2) = 11 cols
-const RIGHT_COL = 46
+// position labels like （六, 6th）: （(2) + CJK(2) + ", "(2) + "6th"(3) + ）(2) = 11 cols
+const RIGHT_COLUMN = 46
 const MOVING_ARROW = '─────────────────▶ ' // 17×─ + ▶ + 1 space = 19 cols
 const STATIC_GAP = '                   ' // 19 spaces
 
-const POS_LABELS = [
+const POSITION_LABELS = [
   '（六, 6th）',
   '（五, 5th）',
   '（四, 4th）',
@@ -62,22 +62,22 @@ const POS_LABELS = [
 ] as const
 
 // Returns the terminal display width of a string, counting CJK/fullwidth chars as 2.
-function visualWidth(str: string): number {
+function visualWidth(text: string): number {
   let width = 0
-  for (const char of str) {
-    const cp = char.codePointAt(0) ?? 0
+  for (const character of text) {
+    const codePoint = character.codePointAt(0) ?? 0
     if (
-      (cp >= 0x1100 && cp <= 0x115f) ||
-      (cp >= 0x2e80 && cp <= 0x303e) ||
-      (cp >= 0x3041 && cp <= 0x33ff) ||
-      (cp >= 0x3400 && cp <= 0x4dbf) ||
-      (cp >= 0x4e00 && cp <= 0x9fff) ||
-      (cp >= 0xa000 && cp <= 0xa4cf) ||
-      (cp >= 0xac00 && cp <= 0xd7af) ||
-      (cp >= 0xf900 && cp <= 0xfaff) ||
-      (cp >= 0xfe10 && cp <= 0xfe6f) ||
-      (cp >= 0xff01 && cp <= 0xff60) ||
-      (cp >= 0xffe0 && cp <= 0xffe6)
+      (codePoint >= 0x1100 && codePoint <= 0x115f) ||
+      (codePoint >= 0x2e80 && codePoint <= 0x303e) ||
+      (codePoint >= 0x3041 && codePoint <= 0x33ff) ||
+      (codePoint >= 0x3400 && codePoint <= 0x4dbf) ||
+      (codePoint >= 0x4e00 && codePoint <= 0x9fff) ||
+      (codePoint >= 0xa000 && codePoint <= 0xa4cf) ||
+      (codePoint >= 0xac00 && codePoint <= 0xd7af) ||
+      (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
+      (codePoint >= 0xfe10 && codePoint <= 0xfe6f) ||
+      (codePoint >= 0xff01 && codePoint <= 0xff60) ||
+      (codePoint >= 0xffe0 && codePoint <= 0xffe6)
     ) {
       width += 2
     } else {
@@ -87,9 +87,9 @@ function visualWidth(str: string): number {
   return width
 }
 
-// Pad str to targetCol with at least minGap spaces.
-function padToCol(str: string, targetCol: number, minGap = 1): string {
-  return str + ' '.repeat(Math.max(minGap, targetCol - visualWidth(str)))
+// Pad text to targetColumn with at least minGap spaces.
+function padToColumn(text: string, targetColumn: number, minGap = 1): string {
+  return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
 
 function transformationSectionOutput(hexagram: Hexagram): string {
@@ -97,43 +97,43 @@ function transformationSectionOutput(hexagram: Hexagram): string {
   if (movingLines.length === 0) return ''
 
   const resultant = getResultantHexagram(hexagram)
-  const { Name: origName, Metadata: origMeta } = getHexagramRecord(hexagram)
-  const { Name: resName, Metadata: resMeta } = getHexagramRecord(resultant)
+  const { Name: originatingName, Metadata: originatingMetadata } = getHexagramRecord(hexagram)
+  const { Name: resultantName, Metadata: resultantMetadata } = getHexagramRecord(resultant)
 
-  const [o1, o2, o3, o4, o5, o6] = hexagram
-  const [r1, r2, r3, r4, r5, r6] = resultant
+  const [originatingLine1, originatingLine2, originatingLine3, originatingLine4, originatingLine5, originatingLine6] = hexagram
+  const [resultantLine1, resultantLine2, resultantLine3, resultantLine4, resultantLine5, resultantLine6] = resultant
 
-  const pairs: [Line, Line, (typeof POS_LABELS)[number]][] = [
-    [o6, r6, POS_LABELS[0]],
-    [o5, r5, POS_LABELS[1]],
-    [o4, r4, POS_LABELS[2]],
-    [o3, r3, POS_LABELS[3]],
-    [o2, r2, POS_LABELS[4]],
-    [o1, r1, POS_LABELS[5]],
+  const pairs: [Line, Line, (typeof POSITION_LABELS)[number]][] = [
+    [originatingLine6, resultantLine6, POSITION_LABELS[0]],
+    [originatingLine5, resultantLine5, POSITION_LABELS[1]],
+    [originatingLine4, resultantLine4, POSITION_LABELS[2]],
+    [originatingLine3, resultantLine3, POSITION_LABELS[3]],
+    [originatingLine2, resultantLine2, POSITION_LABELS[4]],
+    [originatingLine1, resultantLine1, POSITION_LABELS[5]],
   ]
 
-  const headerLine = `${padToCol('  Originating', RIGHT_COL)}Resultant`
+  const headerLine = `${padToColumn('  Originating', RIGHT_COLUMN)}Resultant`
 
   const lineRows = pairs
-    .map(([origLine, resLine, pos]) => {
-      const moving = isMovingLine(origLine)
-      const origColor = moving ? BOLD_RED : BOLD_WHITE
+    .map(([originatingLine, resultantLine, pos]) => {
+      const moving = isMovingLine(originatingLine)
+      const originatingColor = moving ? BOLD_RED : BOLD_WHITE
       const gap = moving ? MOVING_ARROW : STATIC_GAP
-      const left = `  ${origColor}${origLine}${NORMAL}  ${origColor}${hexagramLineDiagramMap[origLine]}${NORMAL}  ${pos}`
-      const right = `${BOLD_WHITE}${resLine}${NORMAL}  ${BOLD_WHITE}${hexagramLineDiagramMap[resLine]}${NORMAL}  ${pos}`
+      const left = `  ${originatingColor}${originatingLine}${NORMAL}  ${originatingColor}${hexagramLineDiagramMap[originatingLine]}${NORMAL}  ${pos}`
+      const right = `${BOLD_WHITE}${resultantLine}${NORMAL}  ${BOLD_WHITE}${hexagramLineDiagramMap[resultantLine]}${NORMAL}  ${pos}`
       return `${left}${gap}${right}`
     })
     .join('\n')
 
-  // Footer line 1: #N Chinese（pinyin）  — aligned to RIGHT_COL
-  const origF1 = `  #${origMeta.Order.WenWang} ${origName.Chinese.Traditional}（${origMeta.Pronunciation.Pinyin}）`
-  const resF1 = `#${resMeta.Order.WenWang} ${resName.Chinese.Traditional}（${resMeta.Pronunciation.Pinyin}）`
-  const footer1 = `${BOLD_WHITE}${padToCol(origF1, RIGHT_COL)}${resF1}${NORMAL}`
+  // Footer line 1: #N Chinese（pinyin）  — aligned to RIGHT_COLUMN
+  const originatingFooter1 = `  #${originatingMetadata.Order.WenWang} ${originatingName.Chinese.Traditional}（${originatingMetadata.Pronunciation.Pinyin}）`
+  const resultantFooter1 = `#${resultantMetadata.Order.WenWang} ${resultantName.Chinese.Traditional}（${resultantMetadata.Pronunciation.Pinyin}）`
+  const footer1 = `${BOLD_WHITE}${padToColumn(originatingFooter1, RIGHT_COLUMN)}${resultantFooter1}${NORMAL}`
 
   // Footer line 2: English — exactly 6 spaces after originating name
-  const origF2 = `  ${origName.English.WilhelmBaynes}`
-  const resF2 = resName.English.WilhelmBaynes
-  const footer2 = `${NORMAL_GREY}${padToCol(origF2, RIGHT_COL, 6)}${resF2}${NORMAL}`
+  const originatingFooter2 = `  ${originatingName.English.WilhelmBaynes}`
+  const resultantFooter2 = resultantName.English.WilhelmBaynes
+  const footer2 = `${NORMAL_GREY}${padToColumn(originatingFooter2, RIGHT_COLUMN, 6)}${resultantFooter2}${NORMAL}`
 
   return `
 ${BOLD_GREY}TRANSFORMATION:
