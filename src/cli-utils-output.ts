@@ -271,6 +271,7 @@ export async function consultationFileOutput(
   outputDirectory: string = CONSULTATIONS_OUTPUT_DIRECTORY,
 ): Promise<string> {
   // Strip ANSI color codes for file output
+  // oxlint-disable-next-line no-control-regex
   const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
 
   // Ensure output directory exists (create if needed)
