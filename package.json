@@ -1,9 +1,16 @@
 {
   "name": "ts-hexagram-generator",
-  "version": "0.0.0",
-  "packageManager": "pnpm@10.15.0",
-  "description": "Pipeline-style hexagram generator modeling the yarrow stalk method",
   "type": "module",
+  "version": "0.0.0",
+  "packageManager": "pnpm@10.33.4",
+  "description": "Pipeline-style hexagram generator modeling the yarrow stalk method",
+  "author": "Lim Jiechao <jiechao.lim@gmail.com>",
+  "license": "MIT",
+  "homepage": "https://github.com/limjiechao/ts-hexagram-generator#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/limjiechao/ts-hexagram-generator.git"
+  },
   "keywords": [
     "hexagram",
     "i ching",
@@ -11,29 +18,25 @@
     "yarrow stalk method",
     "yijing"
   ],
-  "license": "MIT",
-  "homepage": "https://github.com/limjiechao/ts-hexagram-generator#readme",
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/limjiechao/ts-hexagram-generator.git"
-  },
-  "author": "Lim Jiechao <jiechao.lim@gmail.com>",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.js",
-  "types": "./dist/index.d.ts",
   "exports": {
     ".": "./dist/index.js",
     "./package.json": "./package.json"
   },
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
   "bin": {
-    "hexagram-random": "./dist/cli-random.js",
-    "hexagram-interactive": "./dist/cli-interactive.js"
+    "hexagram-random": "./dist/cli-random.mjs",
+    "hexagram-interactive": "./dist/cli-interactive.mjs"
   },
+  "files": [
+    "dist"
+  ],
   "publishConfig": {
     "access": "public"
+  },
+  "engines": {
+    "node": ">=24.6.0"
   },
   "scripts": {
     "lint": "oxlint && eslint --cache .",
@@ -45,27 +48,24 @@
     "format": "oxfmt --write",
     "release": "bumpp && pnpm publish",
     "prepublishOnly": "pnpm run build",
-    "postinstall": "chmod +x ./dist/cli-random.js ./dist/cli-interactive.js",
+    "postinstall": "chmod +x ./dist/cli-random.mjs ./dist/cli-interactive.mjs",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
     "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json"
   },
   "devDependencies": {
-    "@inquirer/prompts": "^7.8.4",
-    "@sxzz/eslint-config": "^7.1.4",
-    "@types/node": "^24.3.0",
-    "bumpp": "^10.2.3",
-    "dayjs": "^1.11.13",
-    "eslint": "^9.34.0",
+    "@inquirer/prompts": "^8.4.3",
+    "@sxzz/eslint-config": "^8.1.0",
+    "@types/node": "^24.12.4",
+    "bumpp": "^11.1.0",
+    "dayjs": "^1.11.20",
+    "eslint": "^10.3.0",
     "eslint-plugin-oxlint": "^1.64.0",
     "oxfmt": "^0.49.0",
     "oxlint": "^1.64.0",
-    "tsdown": "^0.14.2",
-    "tsx": "^4.20.5",
-    "typescript": "^5.9.2",
-    "vitest": "^3.2.4"
-  },
-  "engines": {
-    "node": ">=24.6.0"
+    "tsdown": "^0.22.0",
+    "tsx": "^4.21.0",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.6"
   }
 }
