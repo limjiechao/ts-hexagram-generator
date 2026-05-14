@@ -92,9 +92,16 @@ function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
 
-function transformationSectionOutput(hexagram: Hexagram): string {
+function transformationSectionOutput(
+  _: TemplateStringsArray,
+  hexagram: Hexagram,
+): string {
   const movingLines = hexagram.filter(isMovingLine)
-  if (movingLines.length === 0) return ''
+  if (movingLines.length === 0)
+    return `
+${BOLD_GREY}TRANSFORMATION:
+${NORMAL}(No transformation)
+`.trim()
 
   const resultant = getResultantHexagram(hexagram)
   const { Name: originatingName, Metadata: originatingMetadata } =
@@ -168,12 +175,9 @@ ${footer2}
 }
 
 function queryOutput(_: TemplateStringsArray, query: string): string {
-  return query
-    ? `
-${BOLD_GREY}QUERY:
+  return `${BOLD_GREY}QUERY:
 
-  ${BOLD_WHITE}${query}`
-    : ''
+  ${BOLD_WHITE}${query || '(Query not provided)'}`
 }
 
 function noMovingLineOutput(
@@ -353,18 +357,19 @@ function consultationConsoleOutput(
 ): string {
   const movingLines = hexagram.filter((line) => line === 6 || line === 9)
 
-  const transformationSection = transformationSectionOutput(hexagram)
   return `
-${transformationSection ? `${transformationSection}\n` : ''}
+
 ${queryOutput`QUERY: ${query}`}
 
-${originatingHexagramOutput`Originating: ${hexagram}`}
+${transformationSectionOutput`Transformation: ${hexagram}`}
+
+${originatingHexagramOutput`Originating hexagram: ${hexagram}`}
 
 ${
   movingLines.length === 0
-    ? noMovingLineOutput`(No moving line): ${hexagram}`
+    ? noMovingLineOutput`(No moving line information): ${hexagram}`
     : movingLines.length === 1
-      ? oneMovingLineOutput`(One moving line): ${hexagram}`
+      ? oneMovingLineOutput`(One moving line information): ${hexagram}`
       : `${BOLD_GREY}LINES:
 
 ${NORMAL}(Multiple moving lines)
@@ -374,9 +379,9 @@ ${NORMAL}
 `
 }
 
-${movingLines.length > 0 ? resultantHexagramOutput`Resultant: ${hexagram}` : ''}
+${movingLines.length > 0 ? resultantHexagramOutput`Resultant hexagram: ${hexagram}` : ''}
 
-${movingLines.length > 0 ? noMovingLineOutput`(Resultant hexagram): ${getResultantHexagram(hexagram)}` : ''}
+${movingLines.length > 0 ? noMovingLineOutput`(Resultant hexagram information): ${getResultantHexagram(hexagram)}` : ''}
 `
 }
 
