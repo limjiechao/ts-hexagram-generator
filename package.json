@@ -49,7 +49,6 @@
     "format:check": "oxfmt --check",
     "release": "bumpp && pnpm publish",
     "prepublishOnly": "pnpm run build",
-    "postinstall": "chmod +x ./dist/cli-random.mjs ./dist/cli-interactive.mjs",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
     "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json"
