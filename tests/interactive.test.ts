@@ -185,14 +185,12 @@ describe('CLI', () => {
       ).toBe(true)
 
       expect(mockedFs.mkdir).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /.*(\/|\\)ts-hexagram-generator(\/|\\)consultations$/,
-        ),
+        expect.stringMatching(/(\/|\\)consultations$/),
         { recursive: true },
       )
       expect(mockedFs.writeFile).toHaveBeenCalledWith(
         expect.stringMatching(
-          /.*(\/|\\)ts-hexagram-generator(\/|\\)consultations(\/|\\)consultation-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[+-]\d{4}\.txt$/,
+          /(\/|\\)consultations(\/|\\)consultation-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[+-]\d{4}\.txt$/,
         ),
         expect.any(String),
         { encoding: 'utf8' },

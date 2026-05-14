@@ -9,6 +9,7 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 - Accurate simulation of the yarrow stalk method
 - A random hexagram generation in CLI
 - An interactive hexagram generation in CLI
+- A full-screen tabbed terminal UI for reading the consultation (with a `--plain` fallback)
 - Unit test to validate the statistical analysis of line distributions
 - Type-safe implementation in TypeScript
 
@@ -20,6 +21,8 @@ The package exposes two CLI bins via the [`bin` field in `package.json`](./packa
 
 - `hexagram-random` — generate a random hexagram
 - `hexagram-interactive` — drive the yarrow stalk method by entering each split index
+
+Both CLIs present the reading in a full-screen tabbed viewer by default (Transformation / Originating / Resultant tabs). Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
 Until the package is published to npm, you can still install it globally from your local clone. Three options, in order of how closely they mirror a published install.
 

@@ -92,10 +92,7 @@ function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
 
-function transformationSectionOutput(
-  _: TemplateStringsArray,
-  hexagram: Hexagram,
-): string {
+function transformationSection(hexagram: Hexagram): string {
   const movingLines = hexagram.filter(isMovingLine)
   if (movingLines.length === 0)
     return `
@@ -174,16 +171,13 @@ ${footer2}
 `.trim()
 }
 
-function queryOutput(_: TemplateStringsArray, query: string): string {
+function querySection(query: string): string {
   return `${BOLD_GREY}QUERY:
 
   ${BOLD_WHITE}${query || '(Query not provided)'}`
 }
 
-function noMovingLineOutput(
-  _: TemplateStringsArray,
-  hexagram: Hexagram,
-): string {
+function noMovingLinesSection(hexagram: Hexagram): string {
   const { Text } = getHexagramRecord(hexagram)
 
   return `
@@ -224,10 +218,7 @@ ${NORMAL_GREY}[English, James Legge]
 `.trim()
 }
 
-function oneMovingLineOutput(
-  _: TemplateStringsArray,
-  hexagram: Hexagram,
-): string {
+function oneMovingLineSection(hexagram: Hexagram): string {
   const movingLineIndex = hexagram.findIndex(isMovingLine)
 
   if (!isLineIndex(movingLineIndex)) return ''
@@ -276,7 +267,24 @@ ${NORMAL_GREY}[English, James Legge]
 `.trim()
 }
 
-function hexagramOutput(
+// LINES block for a hexagram: scripture/exegesis keyed off how many moving
+// lines it has (none / one / multiple).
+function linesBlock(hexagram: Hexagram): string {
+  const movingLines = hexagram.filter(isMovingLine)
+
+  if (movingLines.length === 0) return noMovingLinesSection(hexagram)
+  if (movingLines.length === 1) return oneMovingLineSection(hexagram)
+
+  return `${BOLD_GREY}LINES:
+
+${NORMAL}(Multiple moving lines)
+
+${BOLD_WHITE}No available reference scripture or exegesis for multiple moving lines.
+${NORMAL}
+`
+}
+
+function hexagramSection(
   hexagram: Hexagram,
   label: string,
   lineColor: (line: Line) => string,
@@ -332,56 +340,81 @@ ${NORMAL_GREY}[English, James Legge]
 `
 }
 
-function originatingHexagramOutput(
-  _: TemplateStringsArray,
-  originatingHexagram: Hexagram,
-): string {
-  return hexagramOutput(originatingHexagram, 'ORIGINATING', getLineColor)
+function originatingHexagramSection(hexagram: Hexagram): string {
+  return hexagramSection(hexagram, 'ORIGINATING', getLineColor)
 }
 
-function resultantHexagramOutput(
-  _: TemplateStringsArray,
-  originatingHexagram: Hexagram,
-): string {
-  return hexagramOutput(
-    getResultantHexagram(originatingHexagram),
+function resultantHexagramSection(hexagram: Hexagram): string {
+  return hexagramSection(
+    getResultantHexagram(hexagram),
     'RESULTANT',
     () => BOLD_WHITE,
   )
 }
 
-function consultationConsoleOutput(
-  _: TemplateStringsArray,
+/**
+ * The consultation broken into its presentational sections, each a
+ * pre-formatted ANSI string. Consumed both by `consultationConsoleOutput`
+ * (the plain composer) and by the Ink tabbed viewer.
+ *
+ * - `transformation` always renders (it shows "(No transformation)" when
+ *   there are no moving lines).
+ * - `resultant` is `null` when there are no moving lines — the resultant
+ *   hexagram is identical to the originating one, so there is no third tab.
+ */
+export interface ConsultationSections {
+  query: string
+  transformation: string
+  originating: string
+  resultant: string | null
+}
+
+/**
+ * Build the consultation's presentational sections. This is the
+ * content-generation layer shared by the plain output and the Ink viewer.
+ */
+export function buildConsultationSections(
+  query: string,
+  hexagram: Hexagram,
+): ConsultationSections {
+  const movingLines = hexagram.filter(isMovingLine)
+
+  return {
+    query: querySection(query),
+    transformation: transformationSection(hexagram),
+    originating:
+      `${originatingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
+    resultant:
+      movingLines.length > 0
+        ? `${resultantHexagramSection(hexagram)}\n\n${noMovingLinesSection(getResultantHexagram(hexagram))}`.trim()
+        : null,
+  }
+}
+
+/**
+ * Compose the full plain console output. Kept as a thin composer over the
+ * same section builders that feed `buildConsultationSections`, so the
+ * `--plain` output (and the saved file) stays byte-identical.
+ */
+export function consultationConsoleOutput(
   query: string,
   hexagram: Hexagram,
 ): string {
-  const movingLines = hexagram.filter((line) => line === 6 || line === 9)
+  const movingLines = hexagram.filter(isMovingLine)
 
   return `
 
-${queryOutput`QUERY: ${query}`}
+${querySection(query)}
 
-${transformationSectionOutput`Transformation: ${hexagram}`}
+${transformationSection(hexagram)}
 
-${originatingHexagramOutput`Originating hexagram: ${hexagram}`}
+${originatingHexagramSection(hexagram)}
 
-${
-  movingLines.length === 0
-    ? noMovingLineOutput`(No moving line information): ${hexagram}`
-    : movingLines.length === 1
-      ? oneMovingLineOutput`(One moving line information): ${hexagram}`
-      : `${BOLD_GREY}LINES:
+${linesBlock(hexagram)}
 
-${NORMAL}(Multiple moving lines)
+${movingLines.length > 0 ? resultantHexagramSection(hexagram) : ''}
 
-${BOLD_WHITE}No available reference scripture or exegesis for multiple moving lines.
-${NORMAL}
-`
-}
-
-${movingLines.length > 0 ? resultantHexagramOutput`Resultant hexagram: ${hexagram}` : ''}
-
-${movingLines.length > 0 ? noMovingLineOutput`(Resultant hexagram information): ${getResultantHexagram(hexagram)}` : ''}
+${movingLines.length > 0 ? noMovingLinesSection(getResultantHexagram(hexagram)) : ''}
 `
 }
 
@@ -419,11 +452,32 @@ export async function consultationFileOutput(
   return filePath
 }
 
+/**
+ * Build the consultation sections and persist the plain output to a
+ * timestamped file, without printing anything. Used by the Ink viewer path,
+ * which owns the screen — the file is saved up front so the viewer can show
+ * the saved path in its footer.
+ */
+export async function saveConsultation(
+  query: string,
+  hexagram: Hexagram,
+): Promise<{
+  sections: ConsultationSections
+  savedPath: string
+  plainOutput: string
+}> {
+  const sections = buildConsultationSections(query, hexagram)
+  const plainOutput = consultationConsoleOutput(query, hexagram)
+  const savedPath = await consultationFileOutput(plainOutput)
+
+  return { sections, savedPath, plainOutput }
+}
+
 export async function logAndSaveConsultationOutput(
   question: string,
   hexagram: Hexagram,
 ): Promise<void> {
-  const consoleOutput = consultationConsoleOutput`Question: ${question}, Hexagram: ${hexagram}`
+  const consoleOutput = consultationConsoleOutput(question, hexagram)
 
   console.clear()
   console.info(consoleOutput)

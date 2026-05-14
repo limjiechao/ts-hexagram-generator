@@ -53,14 +53,21 @@
     "hexagram-interactive": "tsx src/cli-interactive.ts",
     "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json"
   },
+  "dependencies": {
+    "ink": "^7.0.3",
+    "react": "^19.2.6",
+    "wrap-ansi": "^10.0.0"
+  },
   "devDependencies": {
     "@inquirer/prompts": "^8.4.3",
     "@sxzz/eslint-config": "^8.1.0",
     "@types/node": "^24.12.4",
+    "@types/react": "^19.2.14",
     "bumpp": "^11.1.0",
     "dayjs": "^1.11.20",
     "eslint": "^10.3.0",
     "eslint-plugin-oxlint": "^1.64.0",
+    "ink-testing-library": "^4.0.0",
     "oxfmt": "^0.49.0",
     "oxlint": "^1.64.0",
     "tsdown": "^0.22.0",

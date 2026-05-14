@@ -1,0 +1,167 @@
+
+
+[1;90mQUERY:
+
+  [1;97mShould I take the new position?
+
+[1;90mTRANSFORMATION:
+
+[0m  Originating                                 Resultant
+
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （六, 6th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （六, 6th）
+  [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）
+  [1;97m8[0m  [1;97m━━━   ━━━[0m  （三, 3rd）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （三, 3rd）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）
+  [1;91m6[0m  [1;91m━━━ × ━━━[0m  （初, 1st）─────────────────▶ [1;97m7[0m  [1;97m━━━━━━━━━[0m  （初, 1st）
+
+[1;97m  #64 未濟（wèi jì）                          #38 睽（kuí）[0m
+[90m  Wei Chi / Before Completion                 K’uei / Opposition[0m
+
+
+[1;90mORIGINATING HEXAGRAM 64:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（六, 6th）──┐
+  [1;97m8  ━━━   ━━━  [0m（五, 5th）──┼── 火（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   fire (upper trigram)
+  [1;97m8  ━━━   ━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 水（下卦）
+  [1;91m6  ━━━ × ━━━  [0m（初, 1st）──┘   water (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;91m6, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
+
+[1;90mORIGINATING HEXAGRAM NAME AND PRONUNCIATION:
+
+[90m[Traditional Chinese]
+
+  [1;97m未濟（ㄨㄟˋ ㄐㄧˋ）
+
+[90m[Simplified Chinese]
+
+  [1;97m未济（wèi jì）
+
+[90m[English, Wilhelm-Baynes]
+
+  [1;97mWei Chi / Before Completion
+
+[90m[English, James Legge]
+
+  [1;97mLXIV. The Wei Žî Hexagram
+
+
+[1;90mLINES:
+[0m(One moving line)
+
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m初六：濡其尾，吝。
+
+  [0m(Exegesis)
+  [1;97m濡其尾，亦不知極也。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m初六：濡其尾，吝。
+
+  [0m(Exegesis)
+  [1;97m濡其尾，亦不知极也。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mSix at the beginning means:
+  He gets his tail in the water.
+  Humiliating.
+
+  [0m(Exegesis)
+  [1;97mSix at the beginning:
+  a) He gets his tail in the water.
+  Humiliating.
+  b) “He gets his tail in the water.” For he cannot take the end into view.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97m1. The first SIX, divided, shows its subject (like a fox) whose tail gets immersed. There will be occasion for regret.
+
+  [0m(Exegesis)
+  [1;97m1. 'His tail gets immersed:'--this is the very height of ignorance.
+
+
+[1;90mRESULTANT HEXAGRAM 38:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（六, 6th）──┐
+  [1;97m8  ━━━   ━━━  [0m（五, 5th）──┼── 火（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   fire (upper trigram)
+  [1;97m8  ━━━   ━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 澤（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   lake (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
+
+[1;90mRESULTANT HEXAGRAM NAME AND PRONUNCIATION:
+
+[90m[Traditional Chinese]
+
+  [1;97m睽（ㄎㄨㄟˊ）
+
+[90m[Simplified Chinese]
+
+  [1;97m睽（kuí）
+
+[90m[English, Wilhelm-Baynes]
+
+  [1;97mK’uei / Opposition
+
+[90m[English, James Legge]
+
+  [1;97mXXXVIII. The Khwei Hexagram
+
+
+[1;90mLINES:
+[0m(No moving lines)
+
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m睽：小事吉。
+
+  [0m(Exegesis)
+  [1;97m上火下澤，睽；君子以同而異。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m睽：小事吉。
+
+  [0m(Exegesis)
+  [1;97m上火下泽，睽；君子以同而异。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mOPPOSITION. In small matters, good fortune.
+
+  [0m(Exegesis)
+  [1;97mAbove, fire; below, the lake:
+  The image of OPPOSITION.
+  Thus amid all fellowship
+  The superior man retains his individuality.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97mKhwei indicates that, (notwithstanding the condition of things which it denotes), in small matters there will (still) be good success.
+
+  [0m(Exegesis)
+  [1;97mXXXVIII. (The trigram representing) fire above, and that for (the waters of) a marsh below, form Khwei. The superior man, in accordance with this, where there is a general agreement, yet admits diversity.

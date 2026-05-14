@@ -3,13 +3,16 @@ import process from 'node:process'
 import { number } from '@inquirer/prompts'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
+import { resolveOutputMode } from './cli-utils-mode'
 import {
   BOLD_GREY,
   BOLD_WHITE,
   getUserQuery,
   logAndSaveConsultationOutput,
   NORMAL,
+  saveConsultation,
 } from './cli-utils-output'
+import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsFourOperationsResult,
   assertIsHexagram,
@@ -139,7 +142,12 @@ export async function main(): Promise<void> {
   try {
     const { query, hexagram } = await getHexagramViaInteraction()
 
-    await logAndSaveConsultationOutput(query, hexagram)
+    if (resolveOutputMode() === 'plain') {
+      await logAndSaveConsultationOutput(query, hexagram)
+    } else {
+      const { sections, savedPath } = await saveConsultation(query, hexagram)
+      await runConsultationViewer(sections, savedPath)
+    }
 
     process.exit(0)
   } catch (error) {

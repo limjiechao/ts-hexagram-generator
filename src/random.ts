@@ -2,7 +2,13 @@ import { randomInt } from 'node:crypto'
 import process from 'node:process'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
-import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils-output'
+import { resolveOutputMode } from './cli-utils-mode'
+import {
+  getUserQuery,
+  logAndSaveConsultationOutput,
+  saveConsultation,
+} from './cli-utils-output'
+import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsFourOperationsResult,
   assertIsHexagram,
@@ -121,7 +127,12 @@ export async function main(): Promise<void> {
     const query = await getUserQuery()
     const hexagram = generateRandomHexagram()
 
-    await logAndSaveConsultationOutput(query, hexagram)
+    if (resolveOutputMode() === 'plain') {
+      await logAndSaveConsultationOutput(query, hexagram)
+    } else {
+      const { sections, savedPath } = await saveConsultation(query, hexagram)
+      await runConsultationViewer(sections, savedPath)
+    }
 
     process.exit(0)
   } catch (error) {

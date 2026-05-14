@@ -19,6 +19,9 @@ pnpm format:fix         # oxfmt write
 pnpm hexagram-random        # Random hexagram (via tsx)
 pnpm hexagram-interactive   # Interactive hexagram (via tsx)
 
+# Both CLIs default to a full-screen tabbed viewer; append `-- --plain`
+# (or `-- --no-ui`) for the classic scrolling console output
+
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files
 ```
@@ -51,7 +54,12 @@ Lines 6 and 9 are "moving lines". The resultant hexagram is obtained by flipping
 - `src/random.ts` — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library
 - `src/interactive.ts` — same generator wired to `@inquirer/prompts` so the user manually enters each split index
 
-Both CLIs collect a query string, then call `logAndSaveConsultationOutput()` which prints the formatted reading and saves it as a timestamped `.txt` file under `consultations/`.
+Both CLIs collect a query string, then present the consultation in one of two modes, decided by `resolveOutputMode()` in `src/cli-utils-mode.ts`:
+
+- **Ink viewer (default)** — a full-screen tabbed viewer (`src/cli-viewer.tsx`) with up to three tabs (Transformation / Originating / Resultant), the query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer()` renders it on the alternate screen.
+- **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — `logAndSaveConsultationOutput()` prints the classic formatted reading to the console.
+
+Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering in `src/cli-utils-output.ts`: `buildConsultationSections()` produces the per-tab strings, and `consultationConsoleOutput()` composes the plain output from the same section builders — so `--plain` output (and the saved file) stays byte-identical to the pre-Ink behaviour (locked by fixtures in `tests/fixtures/`).
 
 ### Data model (`src/models/`)
 

@@ -1,8 +1,19 @@
 {
   "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["typescript", "unicorn", "import", "node", "jsdoc"],
+  "plugins": [
+    "typescript",
+    "unicorn",
+    "import",
+    "node",
+    "jsdoc",
+    "react",
+    "react-hooks"
+  ],
   "categories": {
     "correctness": "error",
     "suspicious": "warn"
+  },
+  "rules": {
+    "react/react-in-jsx-scope": "off"
   }
 }
