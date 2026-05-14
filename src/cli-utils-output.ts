@@ -281,7 +281,7 @@ export async function consultationFileOutput(
   const timestamp = getFilesystemSafeTimestamp()
   const filePath = path.join(outputDirectory, `consultation-${timestamp}.txt`)
 
-  await fs.writeFile(filePath, textOutput, { encoding: 'utf-8' })
+  await fs.writeFile(filePath, textOutput, { encoding: 'utf8' })
 
   return filePath
 }

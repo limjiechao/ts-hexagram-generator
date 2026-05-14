@@ -8,10 +8,7 @@ type SortedStalks =
 
 // Helper functions
 const consolidateSortedStalks = (sortedStalks: SortedStalks[]): number[] =>
-  sortedStalks.reduce<number[]>(
-    (consolidated, remainder) => [...consolidated, ...remainder],
-    [],
-  )
+  sortedStalks.flat()
 
 const sortIntoFours = (stalks: number[]): SortedStalks[] => {
   const stalksCount = stalks.length
@@ -30,9 +27,9 @@ const sortIntoFours = (stalks: number[]): SortedStalks[] => {
   const sliceIndices = [0, ...allFours.map((fours, index) => index * 4 + fours)]
   const sliceArguments = sliceIndices.reduce<[number, number][]>(
     (result, sliceIndex, index) =>
-      sliceIndices.length !== index + 1
-        ? [...result, [sliceIndex, sliceIndices[index + 1]]]
-        : result,
+      sliceIndices.length === index + 1
+        ? result
+        : [...result, [sliceIndex, sliceIndices[index + 1]]],
     [],
   )
 

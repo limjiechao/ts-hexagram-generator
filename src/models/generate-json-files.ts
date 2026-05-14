@@ -3,6 +3,7 @@ import fs from 'node:fs/promises'
 import { HEXAGRAM_RECORDS } from './hexagrams'
 import { TRIGRAM_RECORDS } from './trigrams.js'
 
+// eslint-disable-next-line baseline-js/use-baseline
 await Promise.all([
   fs.writeFile(
     './src/models/hexagrams.json',

@@ -69,7 +69,7 @@ const originalConsoleInfo = console.info
 const originalConsoleError = console.error
 
 const LINE_ARRAY_REGEX =
-  // eslint-disable-next-line no-control-regex
+  // oxlint-disable-next-line no-control-regex
   /\u001B\[1;\d{2}m9, \u001B\[1;\d{2}m9, \u001B\[1;\d{2}m6, \u001B\[1;\d{2}m7, \u001B\[1;\d{2}m8, \u001B\[1;\d{2}m9\n/
 
 describe('CLI', () => {
@@ -195,7 +195,7 @@ describe('CLI', () => {
           /.*(\/|\\)ts-hexagram-generator(\/|\\)consultations(\/|\\)consultation-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[+-]\d{4}\.txt$/,
         ),
         expect.any(String),
-        { encoding: 'utf-8' },
+        { encoding: 'utf8' },
       )
 
       expect(process.exit).toHaveBeenCalledWith(0)
