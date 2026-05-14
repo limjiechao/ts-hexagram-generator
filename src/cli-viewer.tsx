@@ -8,6 +8,8 @@ import {
   type Instance,
 } from 'ink'
 import { useMemo, useState, type ReactElement } from 'react'
+import sliceAnsi from 'slice-ansi'
+import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
 import {
@@ -31,9 +33,10 @@ interface ConsultationViewerProps {
 const TAB_BAR_HEIGHT = 1
 const FOOTER_HEIGHT = 2
 const QUERY_BORDER_HEIGHT = 2
+const ELLIPSIS = '…'
 
 const KEY_HINTS =
-  'Tab/←→: switch   ↑↓/PgUp/PgDn: scroll   g/G: top/bottom   q: quit'
+  'Tab: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   q: quit'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
@@ -45,6 +48,24 @@ function wrapToWidth(content: string, width: number): string {
   return wrapAnsi(content, Math.max(1, width), { hard: true, trim: false })
 }
 
+// Truncate `text` to `width` display columns, appending an ellipsis when cut.
+// ANSI-aware: embedded SGR codes are preserved and never counted as width.
+export function truncateEnd(text: string, width: number): string {
+  if (width <= 0) return ''
+  if (stringWidth(text) <= width) return text
+  return `${sliceAnsi(text, 0, Math.max(0, width - 1))}${ELLIPSIS}`
+}
+
+// Truncate `text` to `width` display columns from the right — keeps the tail
+// and prefixes an ellipsis, so the saved-path filename (the useful part) always
+// survives. ANSI-aware (see truncateEnd).
+export function truncateStart(text: string, width: number): string {
+  if (width <= 0) return ''
+  const total = stringWidth(text)
+  if (total <= width) return text
+  return `${ELLIPSIS}${sliceAnsi(text, total - Math.max(0, width - 1), total)}`
+}
+
 function QueryBox({
   query,
   width,
@@ -53,7 +74,7 @@ function QueryBox({
   width: number
 }): ReactElement {
   return (
-    <Box borderStyle="round" width={width}>
+    <Box borderStyle="round" width={width} flexShrink={0}>
       {/*
         Raw ANSI content: this <Text> (and its ancestors) must carry no color
         props, or Ink would emit its own SGR codes and override the embedded
@@ -67,12 +88,29 @@ function QueryBox({
 function TabBar({
   tabs,
   activeIndex,
+  cols,
 }: {
   tabs: TabDescriptor[]
   activeIndex: number
+  cols: number
 }): ReactElement {
+  // Each cell renders as ` label ` — two padding spaces around the label.
+  const fullRowWidth = tabs.reduce((sum, tab) => sum + tab.label.length + 2, 0)
+
+  // Below the width the full label row needs, collapse to a compact indicator
+  // so the tab bar always stays exactly one row tall.
+  if (fullRowWidth > cols) {
+    const active = tabs[activeIndex]
+    return (
+      <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
+        <Text bold inverse>{` ${active.label} `}</Text>
+        <Text dimColor>{` (${activeIndex + 1}/${tabs.length})`}</Text>
+      </Box>
+    )
+  }
+
   return (
-    <Box flexDirection="row">
+    <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
       {tabs.map((tab, index) => {
         const active = index === activeIndex
         return (
@@ -87,46 +125,45 @@ function TabBar({
 
 function ScrollableSection({
   rows,
-  offset,
   viewportHeight,
 }: {
   rows: string[]
-  offset: number
   viewportHeight: number
 }): ReactElement {
-  const visible = rows.slice(offset, offset + viewportHeight).join('\n')
   return (
     <Box height={viewportHeight} flexDirection="column">
       {/* Raw ANSI content — no color props (see QueryBox). */}
-      <Text>{visible}</Text>
+      <Text>{rows.join('\n')}</Text>
     </Box>
   )
 }
 
 function FooterBar({
   savedPath,
-  canScroll,
-  offset,
-  total,
-  viewportHeight,
+  cols,
+  verticalStatus,
+  horizontalStatus,
 }: {
   savedPath: string
-  canScroll: boolean
-  offset: number
-  total: number
-  viewportHeight: number
+  cols: number
+  verticalStatus: string | null
+  horizontalStatus: string | null
 }): ReactElement {
-  const from = total === 0 ? 0 : offset + 1
-  const to = Math.min(offset + viewportHeight, total)
-  const status = canScroll
-    ? `▲ ${from}–${to} of ${total} ▼   ${KEY_HINTS}`
-    : KEY_HINTS
+  const segments: string[] = []
+  if (verticalStatus) segments.push(verticalStatus)
+  if (horizontalStatus) segments.push(horizontalStatus)
+  segments.push(KEY_HINTS)
+  const status = truncateEnd(segments.join('   '), cols)
+  const savedLine = truncateStart(
+    `Consultation output saved to ${savedPath}.`,
+    cols,
+  )
 
   return (
-    <Box flexDirection="column">
+    <Box flexDirection="column" flexShrink={0}>
       <Text dimColor>{status}</Text>
       {/* Raw ANSI constants for parity with the plain-mode "saved to" line. */}
-      <Text>{`${BOLD_GREY}Consultation output saved to ${savedPath}.${NORMAL}`}</Text>
+      <Text>{`${BOLD_GREY}${savedLine}${NORMAL}`}</Text>
     </Box>
   )
 }
@@ -153,6 +190,9 @@ export function ConsultationViewer({
 
   const [activeIndex, setActiveIndex] = useState(0)
   const [offsets, setOffsets] = useState<number[]>(() => tabs.map(() => 0))
+  const [horizontalOffsets, setHorizontalOffsets] = useState<number[]>(() =>
+    tabs.map(() => 0),
+  )
 
   const wrappedQuery = useMemo(
     () => wrapToWidth(sections.query, cols - 2),
@@ -172,13 +212,38 @@ export function ConsultationViewer({
         ? sections.originating
         : (sections.resultant ?? '')
 
-  const contentRows = useMemo(
-    () => wrapToWidth(activeContent, cols).split('\n'),
-    [activeContent, cols],
+  // Wrap to a floor of the content's intrinsic width so fixed-width diagrams
+  // are never hard-broken mid-art; anything wider than the terminal stays
+  // reachable through horizontal scrolling instead.
+  const intrinsicWidth = useMemo(
+    () =>
+      activeContent
+        .split('\n')
+        .reduce((widest, line) => Math.max(widest, stringWidth(line)), 1),
+    [activeContent],
   )
+  const wrapWidth = Math.max(cols, intrinsicWidth)
+  const contentRows = useMemo(
+    () => wrapToWidth(activeContent, wrapWidth).split('\n'),
+    [activeContent, wrapWidth],
+  )
+  const contentWidth = wrapWidth
+
   const maxOffset = Math.max(0, contentRows.length - viewportHeight)
   const offset = clamp(offsets[activeIndex] ?? 0, 0, maxOffset)
-  const canScroll = contentRows.length > viewportHeight
+  const canScrollVertically = contentRows.length > viewportHeight
+
+  const maxHorizontalOffset = Math.max(0, contentWidth - cols)
+  const horizontalOffset = clamp(
+    horizontalOffsets[activeIndex] ?? 0,
+    0,
+    maxHorizontalOffset,
+  )
+  const canScrollHorizontally = maxHorizontalOffset > 0
+
+  const visibleRows = contentRows
+    .slice(offset, offset + viewportHeight)
+    .map((row) => sliceAnsi(row, horizontalOffset, horizontalOffset + cols))
 
   const scrollActiveBy = (delta: number): void => {
     setOffsets((previous) => {
@@ -191,6 +256,17 @@ export function ConsultationViewer({
     setOffsets((previous) => {
       const next = [...previous]
       next[activeIndex] = clamp(target, 0, maxOffset)
+      return next
+    })
+  }
+  const panActiveBy = (delta: number): void => {
+    setHorizontalOffsets((previous) => {
+      const next = [...previous]
+      next[activeIndex] = clamp(
+        (next[activeIndex] ?? 0) + delta,
+        0,
+        maxHorizontalOffset,
+      )
       return next
     })
   }
@@ -207,12 +283,20 @@ export function ConsultationViewer({
       stepToTab(-1)
       return
     }
-    if (key.tab || key.rightArrow) {
+    if (key.tab || input === ']') {
       stepToTab(1)
       return
     }
-    if (key.leftArrow) {
+    if (input === '[') {
       stepToTab(-1)
+      return
+    }
+    if (key.leftArrow) {
+      panActiveBy(key.shift ? -(cols - 1) : -1)
+      return
+    }
+    if (key.rightArrow) {
+      panActiveBy(key.shift ? cols - 1 : 1)
       return
     }
     if (key.upArrow) {
@@ -240,21 +324,30 @@ export function ConsultationViewer({
     }
   })
 
+  const verticalStatus = canScrollVertically
+    ? `▲ ${offset + 1}–${Math.min(offset + viewportHeight, contentRows.length)} of ${contentRows.length} ▼`
+    : null
+  const horizontalStatus = canScrollHorizontally
+    ? `◀ ${horizontalOffset + 1}–${Math.min(horizontalOffset + cols, contentWidth)} of ${contentWidth} ▶`
+    : null
+
   return (
     <Box flexDirection="column" width={cols} height={termRows}>
       <QueryBox query={wrappedQuery} width={cols} />
-      <TabBar tabs={tabs} activeIndex={activeIndex} />
-      <ScrollableSection
-        rows={contentRows}
-        offset={offset}
-        viewportHeight={viewportHeight}
-      />
+      <TabBar tabs={tabs} activeIndex={activeIndex} cols={cols} />
+      {/*
+        Chrome (query/tabs/footer) is flexShrink={0}; this content box absorbs
+        the remainder. overflow="hidden" clips rather than overflows if the
+        computed viewportHeight is ever a row too tall — chrome never collides.
+      */}
+      <Box flexGrow={1} flexShrink={1} flexDirection="column" overflow="hidden">
+        <ScrollableSection rows={visibleRows} viewportHeight={viewportHeight} />
+      </Box>
       <FooterBar
         savedPath={savedPath}
-        canScroll={canScroll}
-        offset={offset}
-        total={contentRows.length}
-        viewportHeight={viewportHeight}
+        cols={cols}
+        verticalStatus={verticalStatus}
+        horizontalStatus={horizontalStatus}
       />
     </Box>
   )

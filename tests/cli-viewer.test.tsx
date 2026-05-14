@@ -1,11 +1,29 @@
 import { render } from 'ink-testing-library'
-import { describe, expect, it } from 'vitest'
+import stringWidth from 'string-width'
+import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { buildConsultationSections } from '../src/cli-utils-output'
-import { ConsultationViewer } from '../src/cli-viewer'
+import {
+  ConsultationViewer,
+  truncateEnd,
+  truncateStart,
+} from '../src/cli-viewer'
+
+// `useWindowSize` reads stdout dimensions; ink-testing-library's fake stdout
+// is fixed at 100 columns with no rows. Mock the hook so tests can exercise
+// narrow terminals.
+const windowSize = vi.hoisted(() => ({
+  current: { columns: 100, rows: 24 },
+}))
+vi.mock('ink', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ink')>()
+  return { ...actual, useWindowSize: () => windowSize.current }
+})
 
 const SAVED_PATH = '/tmp/consultation-test.txt'
 const ARROW_DOWN = '\u001B[B'
+const ARROW_LEFT = '\u001B[D'
+const ARROW_RIGHT = '\u001B[C'
 
 // Let Ink process the simulated keypress and re-render.
 const tick = (ms = 50): Promise<void> =>
@@ -21,6 +39,10 @@ const staticSections = buildConsultationSections(
   'Will the harvest be plentiful?',
   [7, 8, 7, 8, 7, 8],
 )
+
+beforeEach(() => {
+  windowSize.current = { columns: 100, rows: 24 }
+})
 
 describe('ConsultationViewer', () => {
   it('renders the query, tab bar and saved path on the first frame', () => {
@@ -86,6 +108,22 @@ describe('ConsultationViewer', () => {
     unmount()
   })
 
+  it('does not switch tabs on the arrow keys (they pan instead)', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+
+    stdin.write(ARROW_RIGHT)
+    await tick()
+    const frame = lastFrame() ?? ''
+
+    // Still on the Transformation tab — the arrow did not advance the tab.
+    expect(frame).toContain('TRANSFORMATION:')
+    expect(frame).not.toContain('ORIGINATING HEXAGRAM')
+
+    unmount()
+  })
+
   it('exits without throwing when q is pressed', async () => {
     const { stdin, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
@@ -97,5 +135,103 @@ describe('ConsultationViewer', () => {
     await tick()
 
     unmount()
+  })
+
+  describe('narrow terminal', () => {
+    it('does not overflow the terminal height', () => {
+      windowSize.current = { columns: 40, rows: 20 }
+      const { lastFrame, unmount } = render(
+        <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+      )
+      const frame = lastFrame() ?? ''
+
+      expect(frame.split('\n').length).toBeLessThanOrEqual(20)
+      // Chrome is still intact: the saved-path line and tab bar both render.
+      expect(frame).toContain('Transformation')
+      expect(frame).toContain('consultation-test.txt')
+
+      unmount()
+    })
+
+    it('collapses the tab bar to a compact indicator when too narrow', async () => {
+      windowSize.current = { columns: 30, rows: 20 }
+      const { lastFrame, stdin, unmount } = render(
+        <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+      )
+
+      expect(lastFrame() ?? '').toContain('(1/3)')
+
+      stdin.write('\t')
+      await tick()
+      expect(lastFrame() ?? '').toContain('(2/3)')
+
+      unmount()
+    })
+
+    it('pans wide content horizontally with the arrow keys', async () => {
+      windowSize.current = { columns: 40, rows: 20 }
+      const { lastFrame, stdin, unmount } = render(
+        <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+      )
+      const before = lastFrame() ?? ''
+
+      stdin.write(ARROW_RIGHT)
+      await tick()
+      const afterRight = lastFrame() ?? ''
+      expect(afterRight).not.toBe(before)
+
+      stdin.write(ARROW_LEFT)
+      await tick()
+      const afterLeft = lastFrame() ?? ''
+      expect(afterLeft).toBe(before)
+
+      unmount()
+    })
+
+    it('keeps the saved-path line within the terminal width', () => {
+      windowSize.current = { columns: 40, rows: 20 }
+      const { lastFrame, unmount } = render(
+        <ConsultationViewer
+          sections={movingSections}
+          savedPath="/Users/someone/Documents/ts-hexagram-generator/consultations/consultation.txt"
+        />,
+      )
+      const frame = lastFrame() ?? ''
+      const savedLine = frame
+        .split('\n')
+        .find((line) => line.includes('consultation.txt'))
+
+      expect(savedLine).toBeDefined()
+      // Leading-ellipsis truncation keeps the filename, drops the prefix, and
+      // the rendered line fits within the terminal width.
+      expect(savedLine).toContain('…')
+      expect(stringWidth(savedLine ?? '')).toBeLessThanOrEqual(40)
+
+      unmount()
+    })
+  })
+})
+
+describe('truncateEnd', () => {
+  it('returns the text unchanged when it fits', () => {
+    expect(truncateEnd('hello', 10)).toBe('hello')
+  })
+
+  it('truncates with a trailing ellipsis when too long', () => {
+    expect(truncateEnd('hello world', 8)).toBe('hello w…')
+  })
+
+  it('returns an empty string for a non-positive width', () => {
+    expect(truncateEnd('hello', 0)).toBe('')
+  })
+})
+
+describe('truncateStart', () => {
+  it('returns the text unchanged when it fits', () => {
+    expect(truncateStart('/a/b/file.txt', 20)).toBe('/a/b/file.txt')
+  })
+
+  it('keeps the tail with a leading ellipsis when too long', () => {
+    expect(truncateStart('/very/long/path/file.txt', 10)).toBe('…/file.txt')
   })
 })
