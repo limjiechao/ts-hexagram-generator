@@ -52,14 +52,14 @@ const RIGHT_COLUMN = 46
 const MOVING_ARROW = '─────────────────▶ ' // 17×─ + ▶ + 1 space = 19 cols
 const STATIC_GAP = '                   ' // 19 spaces
 
-const POSITION_LABELS = [
-  '（六, 6th）',
-  '（五, 5th）',
-  '（四, 4th）',
-  '（三, 3rd）',
-  '（二, 2nd）',
-  '（初, 1st）',
-] as const
+const POSITION_LABELS = {
+  1: '（初, 1st）',
+  2: '（二, 2nd）',
+  3: '（三, 3rd）',
+  4: '（四, 4th）',
+  5: '（五, 5th）',
+  6: '（六, 6th）',
+} as const
 
 // Returns the terminal display width of a string, counting CJK/fullwidth chars as 2.
 function visualWidth(text: string): number {
@@ -97,19 +97,39 @@ function transformationSectionOutput(hexagram: Hexagram): string {
   if (movingLines.length === 0) return ''
 
   const resultant = getResultantHexagram(hexagram)
-  const { Name: originatingName, Metadata: originatingMetadata } = getHexagramRecord(hexagram)
-  const { Name: resultantName, Metadata: resultantMetadata } = getHexagramRecord(resultant)
+  const { Name: originatingName, Metadata: originatingMetadata } =
+    getHexagramRecord(hexagram)
+  const { Name: resultantName, Metadata: resultantMetadata } =
+    getHexagramRecord(resultant)
 
-  const [originatingLine1, originatingLine2, originatingLine3, originatingLine4, originatingLine5, originatingLine6] = hexagram
-  const [resultantLine1, resultantLine2, resultantLine3, resultantLine4, resultantLine5, resultantLine6] = resultant
+  const [
+    originatingLine1,
+    originatingLine2,
+    originatingLine3,
+    originatingLine4,
+    originatingLine5,
+    originatingLine6,
+  ] = hexagram
+  const [
+    resultantLine1,
+    resultantLine2,
+    resultantLine3,
+    resultantLine4,
+    resultantLine5,
+    resultantLine6,
+  ] = resultant
 
-  const pairs: [Line, Line, (typeof POSITION_LABELS)[number]][] = [
-    [originatingLine6, resultantLine6, POSITION_LABELS[0]],
-    [originatingLine5, resultantLine5, POSITION_LABELS[1]],
-    [originatingLine4, resultantLine4, POSITION_LABELS[2]],
+  const pairs: [
+    Line,
+    Line,
+    (typeof POSITION_LABELS)[keyof typeof POSITION_LABELS],
+  ][] = [
+    [originatingLine6, resultantLine6, POSITION_LABELS[6]],
+    [originatingLine5, resultantLine5, POSITION_LABELS[5]],
+    [originatingLine4, resultantLine4, POSITION_LABELS[4]],
     [originatingLine3, resultantLine3, POSITION_LABELS[3]],
-    [originatingLine2, resultantLine2, POSITION_LABELS[4]],
-    [originatingLine1, resultantLine1, POSITION_LABELS[5]],
+    [originatingLine2, resultantLine2, POSITION_LABELS[2]],
+    [originatingLine1, resultantLine1, POSITION_LABELS[1]],
   ]
 
   const headerLine = `${padToColumn('  Originating', RIGHT_COLUMN)}Resultant`
@@ -277,12 +297,12 @@ ${BOLD_GREY}${label} HEXAGRAM ${Metadata.Order.WenWang}:
 
 ${NORMAL}(Line at bottom is first)
 
-  ${lineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}（六, 6th）──┐
-  ${lineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}（五, 5th）──┼── ${UpperTrigramImageryChinese}（上卦）
-  ${lineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}（四, 4th）──┘   ${UpperTrigramImageryEnglish} (upper trigram)
-  ${lineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}（三, 3rd）──┐
-  ${lineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}（二, 2nd）──┼── ${LowerTrigramImageryChinese}（下卦）
-  ${lineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}（初, 1st）──┘   ${LowerTrigramImageryEnglish} (lower trigram)
+  ${lineColor(line6)}${line6}  ${hexagramLineDiagramMap[line6]}  ${NORMAL}${POSITION_LABELS[6]}──┐
+  ${lineColor(line5)}${line5}  ${hexagramLineDiagramMap[line5]}  ${NORMAL}${POSITION_LABELS[5]}──┼── ${UpperTrigramImageryChinese}（上卦）
+  ${lineColor(line4)}${line4}  ${hexagramLineDiagramMap[line4]}  ${NORMAL}${POSITION_LABELS[4]}──┘   ${UpperTrigramImageryEnglish} (upper trigram)
+  ${lineColor(line3)}${line3}  ${hexagramLineDiagramMap[line3]}  ${NORMAL}${POSITION_LABELS[3]}──┐
+  ${lineColor(line2)}${line2}  ${hexagramLineDiagramMap[line2]}  ${NORMAL}${POSITION_LABELS[2]}──┼── ${LowerTrigramImageryChinese}（下卦）
+  ${lineColor(line1)}${line1}  ${hexagramLineDiagramMap[line1]}  ${NORMAL}${POSITION_LABELS[1]}──┘   ${LowerTrigramImageryEnglish} (lower trigram)
 
 ${NORMAL}(First is line at bottom)
 
