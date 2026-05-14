@@ -27,3 +27,37 @@ export function resolveOutputMode(): OutputMode {
 
   return 'ink'
 }
+
+export const DEFAULT_MAX_WRAP_WIDTH = 120
+
+/**
+ * Parse the `--wrap-width <n>` / `--wrap-width=<n>` flag. Pure — takes `argv`
+ * explicitly so it can be unit-tested without `process`. Falls back to
+ * `DEFAULT_MAX_WRAP_WIDTH` when the flag is absent or the value is not a
+ * positive integer.
+ */
+export function parseWrapWidth(argv: string[]): number {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === '--wrap-width') {
+      value = argv[index + 1]
+    } else if (argument.startsWith('--wrap-width=')) {
+      value = argument.slice('--wrap-width='.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number(value)
+      if (parsed > 0) return parsed
+    }
+  }
+  return DEFAULT_MAX_WRAP_WIDTH
+}
+
+/**
+ * Resolve the Ink viewer's maximum wrap width for this run from `process.argv`.
+ * `process.argv` is read defensively (some test environments mock `process`
+ * without it).
+ */
+export function resolveWrapWidth(): number {
+  return parseWrapWidth(process.argv?.slice(2) ?? [])
+}

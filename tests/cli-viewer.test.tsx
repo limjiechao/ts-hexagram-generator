@@ -4,6 +4,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { buildConsultationSections } from '../src/cli-utils-output'
 import {
+  computeWrapWidth,
   ConsultationViewer,
   truncateEnd,
   truncateStart,
@@ -209,6 +210,54 @@ describe('ConsultationViewer', () => {
 
       unmount()
     })
+  })
+
+  it('renders within the terminal height on a wide terminal', async () => {
+    windowSize.current = { columns: 200, rows: 40 }
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        sections={movingSections}
+        savedPath={SAVED_PATH}
+        maxWrapWidth={120}
+      />,
+    )
+
+    // Switch to the prose-heavy Originating tab.
+    stdin.write('\t')
+    await tick()
+    const frame = lastFrame() ?? ''
+
+    expect(frame.length).toBeGreaterThan(0)
+    expect(frame.split('\n').length).toBeLessThanOrEqual(40)
+
+    unmount()
+  })
+})
+
+describe('computeWrapWidth', () => {
+  it('caps wrapping at maxWrapWidth on a wide terminal', () => {
+    expect(computeWrapWidth(200, 120, 483)).toBe(120)
+  })
+
+  it('wraps to the terminal width when it is below the cap', () => {
+    expect(computeWrapWidth(110, 120, 483)).toBe(110)
+  })
+
+  it('never wraps below the structural floor', () => {
+    expect(computeWrapWidth(90, 120, 483)).toBe(100)
+    expect(computeWrapWidth(40, 120, 483)).toBe(100)
+    // A user cap below the floor is clamped up so diagrams stay intact.
+    expect(computeWrapWidth(200, 80, 483)).toBe(100)
+  })
+
+  it('lets a large cap widen wrapping', () => {
+    expect(computeWrapWidth(200, 500, 483)).toBe(200)
+  })
+
+  it('does not floor higher than the section actually needs', () => {
+    // Transformation tab: intrinsic width ~92, below the 100 floor constant.
+    expect(computeWrapWidth(200, 120, 92)).toBe(120)
+    expect(computeWrapWidth(40, 120, 92)).toBe(92)
   })
 })
 

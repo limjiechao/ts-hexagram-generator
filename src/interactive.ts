@@ -3,7 +3,7 @@ import process from 'node:process'
 import { number } from '@inquirer/prompts'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
-import { resolveOutputMode } from './cli-utils-mode'
+import { resolveOutputMode, resolveWrapWidth } from './cli-utils-mode'
 import {
   BOLD_GREY,
   BOLD_WHITE,
@@ -146,7 +146,7 @@ export async function main(): Promise<void> {
       await logAndSaveConsultationOutput(query, hexagram)
     } else {
       const { sections, savedPath } = await saveConsultation(query, hexagram)
-      await runConsultationViewer(sections, savedPath)
+      await runConsultationViewer(sections, savedPath, resolveWrapWidth())
     }
 
     process.exit(0)

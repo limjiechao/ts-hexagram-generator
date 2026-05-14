@@ -24,6 +24,8 @@ The package exposes two CLI bins via the [`bin` field in `package.json`](./packa
 
 Both CLIs present the reading in a full-screen tabbed viewer by default (Transformation / Originating / Resultant tabs). Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
+In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
+
 Until the package is published to npm, you can still install it globally from your local clone. Three options, in order of how closely they mirror a published install.
 
 ### Option 1 — `pnpm link --global` (live development)

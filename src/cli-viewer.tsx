@@ -12,6 +12,7 @@ import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
+import { DEFAULT_MAX_WRAP_WIDTH } from './cli-utils-mode.js'
 import {
   BOLD_GREY,
   NORMAL,
@@ -28,12 +29,18 @@ interface TabDescriptor {
 interface ConsultationViewerProps {
   sections: ConsultationSections
   savedPath: string
+  maxWrapWidth?: number
 }
 
 const TAB_BAR_HEIGHT = 1
 const FOOTER_HEIGHT = 2
 const QUERY_BORDER_HEIGHT = 2
 const ELLIPSIS = '…'
+
+// Widest fixed-width structural line (the transformation tab's side-by-side
+// diagram + hexagram-name footer) is ~92 display columns; never wrap content
+// below this or the ASCII art shreds. Small margin over the measured worst case.
+const MIN_CONTENT_WIDTH = 100
 
 const KEY_HINTS =
   'Tab: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   q: quit'
@@ -46,6 +53,20 @@ function clamp(value: number, min: number, max: number): number {
 // existing indentation; `hard: true` breaks words longer than the viewport.
 function wrapToWidth(content: string, width: number): string {
   return wrapAnsi(content, Math.max(1, width), { hard: true, trim: false })
+}
+
+// Resolve the column width to wrap content at: wrap to fit the terminal but
+// never wider than `maxWrapWidth`, and never narrower than the section's
+// structural floor — so prose hard-wraps while fixed-width diagrams stay intact.
+export function computeWrapWidth(
+  cols: number,
+  maxWrapWidth: number,
+  intrinsicWidth: number,
+): number {
+  return Math.max(
+    Math.min(intrinsicWidth, MIN_CONTENT_WIDTH),
+    Math.min(cols, maxWrapWidth),
+  )
 }
 
 // Truncate `text` to `width` display columns, appending an ellipsis when cut.
@@ -171,6 +192,7 @@ function FooterBar({
 export function ConsultationViewer({
   sections,
   savedPath,
+  maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   const { columns, rows: windowRows } = useWindowSize()
@@ -222,12 +244,14 @@ export function ConsultationViewer({
         .reduce((widest, line) => Math.max(widest, stringWidth(line)), 1),
     [activeContent],
   )
-  const wrapWidth = Math.max(cols, intrinsicWidth)
+  const wrapWidth = computeWrapWidth(cols, maxWrapWidth, intrinsicWidth)
   const contentRows = useMemo(
     () => wrapToWidth(activeContent, wrapWidth).split('\n'),
     [activeContent, wrapWidth],
   )
-  const contentWidth = wrapWidth
+  // After wrapping, no row exceeds min(wrapWidth, intrinsicWidth) — keeps the
+  // horizontal-scroll extent and the `◀ … of N ▶` indicator accurate.
+  const contentWidth = Math.min(wrapWidth, intrinsicWidth)
 
   const maxOffset = Math.max(0, contentRows.length - viewportHeight)
   const offset = clamp(offsets[activeIndex] ?? 0, 0, maxOffset)
@@ -361,9 +385,14 @@ export function ConsultationViewer({
 export async function runConsultationViewer(
   sections: ConsultationSections,
   savedPath: string,
+  maxWrapWidth: number = DEFAULT_MAX_WRAP_WIDTH,
 ): Promise<void> {
   const instance: Instance = render(
-    <ConsultationViewer sections={sections} savedPath={savedPath} />,
+    <ConsultationViewer
+      sections={sections}
+      savedPath={savedPath}
+      maxWrapWidth={maxWrapWidth}
+    />,
     { alternateScreen: true },
   )
   await instance.waitUntilExit()
