@@ -19,7 +19,7 @@ import {
   type ConsultationSections,
 } from './cli-utils-output.js'
 
-type TabId = 'transformation' | 'originating' | 'resultant'
+type TabId = 'casting' | 'transformation' | 'originating' | 'resultant'
 
 interface TabDescriptor {
   id: TabId
@@ -201,6 +201,7 @@ export function ConsultationViewer({
 
   const tabs = useMemo<TabDescriptor[]>(() => {
     const base: TabDescriptor[] = [
+      { id: 'casting', label: 'Casting' },
       { id: 'transformation', label: 'Transformation' },
       { id: 'originating', label: 'Originating' },
     ]
@@ -228,11 +229,13 @@ export function ConsultationViewer({
 
   const activeTab = tabs[activeIndex]
   const activeContent =
-    activeTab.id === 'transformation'
-      ? sections.transformation
-      : activeTab.id === 'originating'
-        ? sections.originating
-        : (sections.resultant ?? '')
+    activeTab.id === 'casting'
+      ? sections.casting
+      : activeTab.id === 'transformation'
+        ? sections.transformation
+        : activeTab.id === 'originating'
+          ? sections.originating
+          : (sections.resultant ?? '')
 
   // Wrap to a floor of the content's intrinsic width so fixed-width diagrams
   // are never hard-broken mid-art; anything wider than the terminal stays

@@ -14,18 +14,22 @@ import {
 } from './cli-utils-output'
 import { runConsultationViewer } from './cli-viewer'
 import {
+  assertIsCastingRecord,
   assertIsFourOperationsResult,
   assertIsHexagram,
   assertIsLine,
+  type CastingRecord,
   type Hexagram,
+  type LineCasting,
   type LineGeneratorResult,
+  type SplitRecord,
 } from './types'
 
-async function getSplitIndex(unpartedStalks: number[]): Promise<number> {
+async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
   const min = 1
   const max = unpartedStalks.length - 1
 
-  const result = await number({
+  const pick = await number({
     message: `Divide the stalks. Pick a number from ${min} to ${max}.`,
     min,
     max,
@@ -33,7 +37,7 @@ async function getSplitIndex(unpartedStalks: number[]): Promise<number> {
     required: true,
   })
 
-  return result
+  return { pick, max }
 }
 
 export async function* getOneLineViaInteraction(): AsyncGenerator<
@@ -45,7 +49,7 @@ export async function* getOneLineViaInteraction(): AsyncGenerator<
   const roundOneArguments = {
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],
-    partStalksAtIndex: firstSplit,
+    partStalksAtIndex: firstSplit.pick,
   }
 
   const lineGenerator = makeLineGenerator(roundOneArguments)
@@ -54,12 +58,12 @@ export async function* getOneLineViaInteraction(): AsyncGenerator<
   assertIsFourOperationsResult(roundOneResults)
 
   const secondSplit = await getSplitIndex(roundOneResults.unpartedStalks)
-  const roundTwoResults = lineGenerator.next(secondSplit).value
+  const roundTwoResults = lineGenerator.next(secondSplit.pick).value
 
   assertIsFourOperationsResult(roundTwoResults)
 
   const thirdSplit = await getSplitIndex(roundTwoResults.unpartedStalks)
-  const roundThreeResults = lineGenerator.next(thirdSplit).value
+  const roundThreeResults = lineGenerator.next(thirdSplit.pick).value
 
   assertIsFourOperationsResult(roundThreeResults)
 
@@ -70,6 +74,7 @@ export async function* getOneLineViaInteraction(): AsyncGenerator<
   yield {
     line,
     rounds: [roundOneResults, roundTwoResults, roundThreeResults],
+    splits: [firstSplit, secondSplit, thirdSplit],
   }
 }
 
@@ -92,21 +97,25 @@ ${BOLD_GREY}Line ${index}:${NORMAL}
 export async function getHexagramViaInteraction(): Promise<{
   query: string
   hexagram: Hexagram
+  casting: CastingRecord
 }> {
   const query = await getUserQuery()
 
   const getHexagram = makeInteractiveHexagramGenerator()
   const maybeHexagram: number[] = []
+  const maybeCasting: LineCasting[] = []
 
-  for await (const { line } of getHexagram) {
+  for await (const { line, splits } of getHexagram) {
     assertIsLine(line)
 
     maybeHexagram.push(line)
+    maybeCasting.push(splits)
   }
 
   assertIsHexagram(maybeHexagram)
+  assertIsCastingRecord(maybeCasting)
 
-  return { query, hexagram: maybeHexagram }
+  return { query, hexagram: maybeHexagram, casting: maybeCasting }
 }
 
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
@@ -140,12 +149,16 @@ export async function main(): Promise<void> {
   `)
 
   try {
-    const { query, hexagram } = await getHexagramViaInteraction()
+    const { query, hexagram, casting } = await getHexagramViaInteraction()
 
     if (resolveOutputMode() === 'plain') {
-      await logAndSaveConsultationOutput(query, hexagram)
+      await logAndSaveConsultationOutput(query, hexagram, casting)
     } else {
-      const { sections, savedPath } = await saveConsultation(query, hexagram)
+      const { sections, savedPath } = await saveConsultation(
+        query,
+        hexagram,
+        casting,
+      )
       await runConsultationViewer(sections, savedPath, resolveWrapWidth())
     }
 

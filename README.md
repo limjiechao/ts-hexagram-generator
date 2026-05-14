@@ -10,6 +10,7 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 - A random hexagram generation in CLI
 - An interactive hexagram generation in CLI
 - A full-screen tabbed terminal UI for reading the consultation (with a `--plain` fallback)
+- A casting record of all eighteen stalk divisions, shown in the UI and the saved reading
 - Unit test to validate the statistical analysis of line distributions
 - Type-safe implementation in TypeScript
 
@@ -22,7 +23,7 @@ The package exposes two CLI bins via the [`bin` field in `package.json`](./packa
 - `hexagram-random` — generate a random hexagram
 - `hexagram-interactive` — drive the yarrow stalk method by entering each split index
 
-Both CLIs present the reading in a full-screen tabbed viewer by default (Transformation / Originating / Resultant tabs). Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
+Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Originating / Resultant tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 

@@ -51,7 +51,8 @@
     "prepublishOnly": "pnpm run build",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
-    "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json"
+    "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json",
+    "generate-fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
     "ink": "^7.0.3",

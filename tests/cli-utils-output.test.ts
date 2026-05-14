@@ -8,70 +8,71 @@ import {
   buildConsultationSections,
   consultationConsoleOutput,
 } from '../src/cli-utils-output'
-import type { Hexagram } from '../src/types'
+import { cases } from './fixtures/cases'
 
 const fixturesDirectory = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
   'fixtures',
 )
 
-const cases: { name: string; query: string; hexagram: Hexagram }[] = [
-  {
-    name: 'no-moving',
-    query: 'Will the harvest be plentiful?',
-    hexagram: [7, 8, 7, 8, 7, 8],
-  },
-  {
-    name: 'one-moving',
-    query: 'Should I take the new position?',
-    hexagram: [6, 7, 8, 7, 8, 7],
-  },
-  {
-    name: 'multi-moving',
-    query: 'How will the journey unfold?',
-    hexagram: [6, 9, 7, 8, 7, 8],
-  },
-  { name: 'empty-query', query: '', hexagram: [7, 7, 7, 7, 7, 7] },
-]
+// A casting record reused by the `buildConsultationSections` shape tests below.
+const sampleCasting = cases[0].casting
 
-// Guards that the refactor into section builders kept the plain console
-// output (and therefore the saved consultation file) byte-for-byte identical.
-// The fixtures were captured from the pre-refactor implementation.
+// Guards that the plain console output (and therefore the saved consultation
+// file) stays byte-for-byte identical. Regenerate with `pnpm generate-fixtures`
+// after intentionally changing a section builder.
 describe('consultationConsoleOutput', () => {
-  for (const { name, query, hexagram } of cases) {
+  for (const { name, query, hexagram, casting } of cases) {
     it(`is byte-identical to the captured fixture (${name})`, () => {
       const expected = readFileSync(
         path.join(fixturesDirectory, `plain-output-${name}.txt`),
         'utf8',
       )
-      expect(consultationConsoleOutput(query, hexagram)).toBe(expected)
+      expect(consultationConsoleOutput(query, hexagram, casting)).toBe(expected)
     })
   }
 })
 
 describe('buildConsultationSections', () => {
   it('omits the resultant section when there are no moving lines', () => {
-    const sections = buildConsultationSections('q', [7, 8, 7, 8, 7, 8])
+    const sections = buildConsultationSections(
+      'q',
+      [7, 8, 7, 8, 7, 8],
+      sampleCasting,
+    )
     expect(sections.resultant).toBeNull()
     expect(sections.transformation).toContain('(No transformation)')
   })
 
   it('includes the resultant section for one moving line', () => {
-    const sections = buildConsultationSections('q', [6, 7, 8, 7, 8, 7])
+    const sections = buildConsultationSections(
+      'q',
+      [6, 7, 8, 7, 8, 7],
+      sampleCasting,
+    )
     expect(sections.resultant).not.toBeNull()
     expect(sections.originating).toContain('(One moving line)')
   })
 
   it('includes the resultant section for multiple moving lines', () => {
-    const sections = buildConsultationSections('q', [6, 9, 7, 8, 7, 8])
+    const sections = buildConsultationSections(
+      'q',
+      [6, 9, 7, 8, 7, 8],
+      sampleCasting,
+    )
     expect(sections.resultant).not.toBeNull()
     expect(sections.originating).toContain('(Multiple moving lines)')
   })
 
-  it('always populates the query and transformation sections', () => {
-    const sections = buildConsultationSections('', [7, 7, 7, 7, 7, 7])
+  it('always populates the query, casting and transformation sections', () => {
+    const sections = buildConsultationSections(
+      '',
+      [7, 7, 7, 7, 7, 7],
+      sampleCasting,
+    )
     expect(sections.query).toContain('QUERY:')
     expect(sections.query).toContain('(Query not provided)')
+    expect(sections.casting).toContain('CASTING:')
     expect(sections.transformation).toContain('TRANSFORMATION:')
   })
 })

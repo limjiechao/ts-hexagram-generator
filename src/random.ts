@@ -10,10 +10,12 @@ import {
 } from './cli-utils-output'
 import { runConsultationViewer } from './cli-viewer'
 import {
+  assertIsCastingRecord,
   assertIsFourOperationsResult,
   assertIsHexagram,
   assertIsLine,
   assertIsLineGeneratorResult,
+  type CastingRecord,
   type Hexagram,
   type Line,
   type LineGeneratorResult,
@@ -28,6 +30,10 @@ export const getOneRandomLine = function* (): Generator<
   /* Return */ void,
   /* Next */ void
 > {
+  // `max` mirrors the selectable range an interactive prompt would show for
+  // this round ("Pick a number from 1 to max"), so RNG castings replay the
+  // same way as interactive ones.
+  const firstMax = stalksBeforeParting.length - 1
   const firstSplit = splitStalksRandomly(stalksBeforeParting)
   const roundOneArguments = {
     unpartedStalks: stalksBeforeParting,
@@ -40,12 +46,14 @@ export const getOneRandomLine = function* (): Generator<
 
   assertIsFourOperationsResult(roundOneResults)
 
+  const secondMax = roundOneResults.unpartedStalks.length - 1
   const secondSplit = splitStalksRandomly(roundOneResults.unpartedStalks)
   const roundTwoResults = lineGenerator.next(secondSplit).value
   // console.log('roundTwoResults', roundTwoResults)
 
   assertIsFourOperationsResult(roundTwoResults)
 
+  const thirdMax = roundTwoResults.unpartedStalks.length - 1
   const thirdSplit = splitStalksRandomly(roundTwoResults.unpartedStalks)
   const roundThreeResults = lineGenerator.next(thirdSplit).value
   // console.log('roundThreeResults', roundThreeResults)
@@ -60,6 +68,11 @@ export const getOneRandomLine = function* (): Generator<
   yield {
     line,
     rounds: [roundOneResults, roundTwoResults, roundThreeResults] as const,
+    splits: [
+      { pick: firstSplit, max: firstMax },
+      { pick: secondSplit, max: secondMax },
+      { pick: thirdSplit, max: thirdMax },
+    ],
   }
 }
 
@@ -89,6 +102,32 @@ export const generateRandomHexagram = (): Hexagram => {
   assertIsHexagram(hexagram)
 
   return hexagram
+}
+
+// Like `generateRandomHexagram`, but also returns the eighteen RNG-chosen
+// stalk divisions (the casting record) so the CLI can show how the hexagram
+// was cast. `generateRandomHexagram` is kept untouched as the library API.
+export const generateRandomConsultation = (): {
+  hexagram: Hexagram
+  casting: CastingRecord
+} => {
+  const getHexagram = makeRandomHexagramGenerator()
+
+  const results = Array.from({ length: 6 }, () => getHexagram.next()).map(
+    ({ value }) => {
+      assertIsLineGeneratorResult(value)
+
+      return value
+    },
+  )
+
+  const hexagram = results.map((result) => result.line)
+  assertIsHexagram(hexagram)
+
+  const casting = results.map((result) => result.splits)
+  assertIsCastingRecord(casting)
+
+  return { hexagram, casting }
 }
 
 export const generateRandomHexagrams = (
@@ -125,12 +164,16 @@ export const generateRandomLines = (
 export async function main(): Promise<void> {
   try {
     const query = await getUserQuery()
-    const hexagram = generateRandomHexagram()
+    const { hexagram, casting } = generateRandomConsultation()
 
     if (resolveOutputMode() === 'plain') {
-      await logAndSaveConsultationOutput(query, hexagram)
+      await logAndSaveConsultationOutput(query, hexagram, casting)
     } else {
-      const { sections, savedPath } = await saveConsultation(query, hexagram)
+      const { sections, savedPath } = await saveConsultation(
+        query,
+        hexagram,
+        casting,
+      )
       await runConsultationViewer(sections, savedPath, resolveWrapWidth())
     }
 

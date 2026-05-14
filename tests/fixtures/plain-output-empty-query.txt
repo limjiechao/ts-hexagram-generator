@@ -4,6 +4,44 @@
 
   [1;97m(Query not provided)
 
+[1;90mCASTING:
+
+[0m(Line 6 at top; three divisions per line)
+
+  [90mLine 6:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+  [90mLine 5:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+  [90mLine 4:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+  [90mLine 3:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+  [90mLine 2:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+  [90mLine 1:  [1;97m24 [90m/ [1;97m20 [90m/ [1;97m16[0m
+
+[0m(18 divisions in casting order)
+
+  [1;90mLine 1:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+  [1;90mLine 2:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+  [1;90mLine 3:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+  [1;90mLine 4:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+  [1;90mLine 5:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+  [1;90mLine 6:[0m
+    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m24[0m
+    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m20[0m
+    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m16[0m
+
 [1;90mTRANSFORMATION:
 [0m(No transformation)
 

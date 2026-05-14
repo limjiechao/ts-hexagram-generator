@@ -15,7 +15,7 @@ import {
   getResultantHexagram,
   getTrigramRecord,
 } from './getters.js'
-import type { Hexagram, Line } from './types'
+import type { CastingRecord, Hexagram, Line } from './types'
 
 export async function getUserQuery(): Promise<string> {
   return await input({
@@ -175,6 +175,44 @@ function querySection(query: string): string {
   return `${BOLD_GREY}QUERY:
 
   ${BOLD_WHITE}${query || '(Query not provided)'}`
+}
+
+// The eighteen stalk divisions (十有八變) that produced the hexagram, rendered
+// two ways: a compact grid in hexagram order (line 6 at top, matching the
+// diagram sections) and a chronological replay in casting order (line 1 first,
+// the order the divisions were actually made). The query is not repeated here —
+// it has its own section.
+function castingSection(casting: CastingRecord): string {
+  const grid = [6, 5, 4, 3, 2, 1]
+    .map((lineNumber) => {
+      const [first, second, third] = casting[lineNumber - 1]
+      return `  ${NORMAL_GREY}Line ${lineNumber}:  ${BOLD_WHITE}${first.pick} ${NORMAL_GREY}/ ${BOLD_WHITE}${second.pick} ${NORMAL_GREY}/ ${BOLD_WHITE}${third.pick}${NORMAL}`
+    })
+    .join('\n')
+
+  const replay = casting
+    .map((lineCasting, index) => {
+      const divisions = lineCasting
+        .map(
+          ({ pick, max }) =>
+            `    ${NORMAL}Divide the stalks. Pick a number from 1 to ${max} ${NORMAL_GREY}→ ${BOLD_WHITE}${pick}${NORMAL}`,
+        )
+        .join('\n')
+      return `  ${BOLD_GREY}Line ${index + 1}:${NORMAL}\n${divisions}`
+    })
+    .join('\n')
+
+  return `
+${BOLD_GREY}CASTING:
+
+${NORMAL}(Line 6 at top; three divisions per line)
+
+${grid}
+
+${NORMAL}(18 divisions in casting order)
+
+${replay}
+`.trim()
 }
 
 function noMovingLinesSection(hexagram: Hexagram): string {
@@ -357,13 +395,15 @@ function resultantHexagramSection(hexagram: Hexagram): string {
  * pre-formatted ANSI string. Consumed both by `consultationConsoleOutput`
  * (the plain composer) and by the Ink tabbed viewer.
  *
+ * - `casting` always renders — every consultation has eighteen divisions.
  * - `transformation` always renders (it shows "(No transformation)" when
  *   there are no moving lines).
  * - `resultant` is `null` when there are no moving lines — the resultant
- *   hexagram is identical to the originating one, so there is no third tab.
+ *   hexagram is identical to the originating one, so there is no resultant tab.
  */
 export interface ConsultationSections {
   query: string
+  casting: string
   transformation: string
   originating: string
   resultant: string | null
@@ -376,11 +416,13 @@ export interface ConsultationSections {
 export function buildConsultationSections(
   query: string,
   hexagram: Hexagram,
+  casting: CastingRecord,
 ): ConsultationSections {
   const movingLines = hexagram.filter(isMovingLine)
 
   return {
     query: querySection(query),
+    casting: castingSection(casting),
     transformation: transformationSection(hexagram),
     originating:
       `${originatingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
@@ -399,12 +441,15 @@ export function buildConsultationSections(
 export function consultationConsoleOutput(
   query: string,
   hexagram: Hexagram,
+  casting: CastingRecord,
 ): string {
   const movingLines = hexagram.filter(isMovingLine)
 
   return `
 
 ${querySection(query)}
+
+${castingSection(casting)}
 
 ${transformationSection(hexagram)}
 
@@ -461,13 +506,14 @@ export async function consultationFileOutput(
 export async function saveConsultation(
   query: string,
   hexagram: Hexagram,
+  casting: CastingRecord,
 ): Promise<{
   sections: ConsultationSections
   savedPath: string
   plainOutput: string
 }> {
-  const sections = buildConsultationSections(query, hexagram)
-  const plainOutput = consultationConsoleOutput(query, hexagram)
+  const sections = buildConsultationSections(query, hexagram, casting)
+  const plainOutput = consultationConsoleOutput(query, hexagram, casting)
   const savedPath = await consultationFileOutput(plainOutput)
 
   return { sections, savedPath, plainOutput }
@@ -476,8 +522,9 @@ export async function saveConsultation(
 export async function logAndSaveConsultationOutput(
   question: string,
   hexagram: Hexagram,
+  casting: CastingRecord,
 ): Promise<void> {
-  const consoleOutput = consultationConsoleOutput(question, hexagram)
+  const consoleOutput = consultationConsoleOutput(question, hexagram, casting)
 
   console.clear()
   console.info(consoleOutput)

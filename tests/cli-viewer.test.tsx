@@ -9,6 +9,7 @@ import {
   truncateEnd,
   truncateStart,
 } from '../src/cli-viewer'
+import type { CastingRecord } from '../src/types'
 
 // `useWindowSize` reads stdout dimensions; ink-testing-library's fake stdout
 // is fixed at 100 columns with no rows. Mock the hook so tests can exercise
@@ -32,13 +33,23 @@ const tick = (ms = 50): Promise<void> =>
     setTimeout(resolve, ms)
   })
 
+// A valid CastingRecord — the viewer only renders it, so the picks need not
+// algorithmically reproduce the hexagrams under test.
+const sampleCasting = Array.from({ length: 6 }, () => [
+  { pick: 24, max: 48 },
+  { pick: 20, max: 43 },
+  { pick: 16, max: 35 },
+]) as CastingRecord
+
 const movingSections = buildConsultationSections(
   'Should I take the journey?',
   [6, 9, 7, 8, 7, 8],
+  sampleCasting,
 )
 const staticSections = buildConsultationSections(
   'Will the harvest be plentiful?',
   [7, 8, 7, 8, 7, 8],
+  sampleCasting,
 )
 
 beforeEach(() => {
@@ -53,6 +64,7 @@ describe('ConsultationViewer', () => {
     const frame = lastFrame() ?? ''
 
     expect(frame).toContain('Should I take the journey?')
+    expect(frame).toContain('Casting')
     expect(frame).toContain('Transformation')
     expect(frame).toContain('Originating')
     expect(frame).toContain('Resultant')
@@ -61,15 +73,26 @@ describe('ConsultationViewer', () => {
     unmount()
   })
 
-  it('shows only two tabs when there are no moving lines', () => {
+  it('shows three tabs when there are no moving lines', () => {
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
 
+    expect(frame).toContain('Casting')
     expect(frame).toContain('Transformation')
     expect(frame).toContain('Originating')
     expect(frame).not.toContain('Resultant')
+
+    unmount()
+  })
+
+  it('opens on the Casting tab', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+
+    expect(lastFrame() ?? '').toContain('CASTING:')
 
     unmount()
   })
@@ -84,8 +107,9 @@ describe('ConsultationViewer', () => {
     await tick()
     const after = lastFrame() ?? ''
 
+    // One Tab from the default Casting tab lands on Transformation.
     expect(after).not.toBe(before)
-    expect(after).toContain('ORIGINATING HEXAGRAM')
+    expect(after).toContain('TRANSFORMATION:')
 
     unmount()
   })
@@ -95,9 +119,7 @@ describe('ConsultationViewer', () => {
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
 
-    // Move to the (long) Originating tab, then scroll.
-    stdin.write('\t')
-    await tick()
+    // The default Casting tab (eighteen divisions) is long enough to scroll.
     const beforeScroll = lastFrame() ?? ''
 
     stdin.write(ARROW_DOWN)
@@ -118,9 +140,9 @@ describe('ConsultationViewer', () => {
     await tick()
     const frame = lastFrame() ?? ''
 
-    // Still on the Transformation tab — the arrow did not advance the tab.
-    expect(frame).toContain('TRANSFORMATION:')
-    expect(frame).not.toContain('ORIGINATING HEXAGRAM')
+    // Still on the default Casting tab — the arrow did not advance the tab.
+    expect(frame).toContain('CASTING:')
+    expect(frame).not.toContain('TRANSFORMATION:')
 
     unmount()
   })
@@ -148,7 +170,9 @@ describe('ConsultationViewer', () => {
 
       expect(frame.split('\n').length).toBeLessThanOrEqual(20)
       // Chrome is still intact: the saved-path line and tab bar both render.
-      expect(frame).toContain('Transformation')
+      // At 40 columns the tab bar collapses to the compact indicator, which
+      // shows the active tab's label — Casting, the default.
+      expect(frame).toContain('Casting')
       expect(frame).toContain('consultation-test.txt')
 
       unmount()
@@ -160,11 +184,11 @@ describe('ConsultationViewer', () => {
         <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
       )
 
-      expect(lastFrame() ?? '').toContain('(1/3)')
+      expect(lastFrame() ?? '').toContain('(1/4)')
 
       stdin.write('\t')
       await tick()
-      expect(lastFrame() ?? '').toContain('(2/3)')
+      expect(lastFrame() ?? '').toContain('(2/4)')
 
       unmount()
     })

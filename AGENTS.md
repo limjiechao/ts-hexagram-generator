@@ -25,6 +25,9 @@ pnpm hexagram-interactive   # Interactive hexagram (via tsx)
 
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files
+
+# Regenerate the plain-output test fixtures after changing a section builder
+pnpm generate-fixtures
 ```
 
 The statistical distribution test (`generateLines() should return valid report`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design.
@@ -52,15 +55,15 @@ Lines 6 and 9 are "moving lines". The resultant hexagram is obtained by flipping
 
 ### Random vs. interactive
 
-- `src/random.ts` — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library
+- `src/random.ts` — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record
 - `src/interactive.ts` — same generator wired to `@inquirer/prompts` so the user manually enters each split index
 
-Both CLIs collect a query string, then present the consultation in one of two modes, decided by `resolveOutputMode()` in `src/cli-utils-mode.ts`:
+Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`src/types.ts`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. The CLIs then collect a query string and present the consultation in one of two modes, decided by `resolveOutputMode()` in `src/cli-utils-mode.ts`:
 
-- **Ink viewer (default)** — a full-screen tabbed viewer (`src/cli-viewer.tsx`) with up to three tabs (Transformation / Originating / Resultant), the query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer()` renders it on the alternate screen. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `src/cli-utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
+- **Ink viewer (default)** — a full-screen tabbed viewer (`src/cli-viewer.tsx`) with up to four tabs (Casting / Transformation / Originating / Resultant), opening on Casting, the query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer()` renders it on the alternate screen. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `src/cli-utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — `logAndSaveConsultationOutput()` prints the classic formatted reading to the console. `--wrap-width` has no effect here.
 
-Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering in `src/cli-utils-output.ts`: `buildConsultationSections()` produces the per-tab strings, and `consultationConsoleOutput()` composes the plain output from the same section builders — so `--plain` output (and the saved file) stays byte-identical to the pre-Ink behaviour (locked by fixtures in `tests/fixtures/`).
+Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering in `src/cli-utils-output.ts`: `buildConsultationSections()` produces the per-tab strings, and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` output (and the saved file) is locked byte-for-byte by fixtures in `tests/fixtures/` — after intentionally changing a section builder, regenerate them with `pnpm generate-fixtures` (driven by the shared cases in `tests/fixtures/cases.ts`).
 
 ### Data model (`src/models/`)
 

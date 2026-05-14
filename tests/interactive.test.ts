@@ -103,13 +103,22 @@ describe('CLI', () => {
       }
       mockNumberPrompt(mockNumberPromptInputs)
 
-      const { hexagram } = await getHexagramViaInteraction()
+      const { hexagram, casting } = await getHexagramViaInteraction()
 
       // 18 prompts for the 6 lines
       expect(hexagram).toHaveLength(6)
       // 18 prompts for the 6 lines
       expect(number).toHaveBeenCalledTimes(18)
       expect(hexagram).toEqual([9, 9, 9, 9, 9, 9])
+
+      // The casting record captures all 18 splits: 6 lines × 3 divisions.
+      expect(casting).toHaveLength(6)
+      expect(casting.every((line) => line.length === 3)).toBe(true)
+      // Every mocked pick was 1; the first division always ranges 1–48.
+      expect(casting.flat().map((split) => split.pick)).toEqual(
+        Array.from({ length: 18 }, () => 1),
+      )
+      expect(casting[0][0]).toEqual({ pick: 1, max: 48 })
     })
 
     it('should handle different valid split indices', async () => {
@@ -122,7 +131,7 @@ describe('CLI', () => {
       }
       mockNumberPrompt(mockNumberPromptInputs)
 
-      const { hexagram } = await getHexagramViaInteraction()
+      const { hexagram, casting } = await getHexagramViaInteraction()
 
       // 18 prompts for the 6 lines
       expect(number).toHaveBeenCalledTimes(18)
@@ -130,6 +139,12 @@ describe('CLI', () => {
       // 6 lines in the hexagram
       expect(hexagram).toHaveLength(6)
       expect(hexagram).toEqual([9, 9, 6, 7, 8, 9])
+
+      // The casting record's picks mirror the 18 mocked inputs, in order.
+      expect(casting.flat().map((split) => split.pick)).toEqual([
+        48, 43, 39, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
+      ])
+      expect(casting[0][0].max).toBe(48)
     })
   })
 
