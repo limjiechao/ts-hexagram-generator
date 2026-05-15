@@ -19,7 +19,7 @@ import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
 import { CastingPromptBox, QueryEditor } from './cli-editors.js'
-import { DEFAULT_MAX_WRAP_WIDTH } from './cli-utils-mode.js'
+import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './cli-utils-mode.js'
 import {
   BOLD_GREY,
   buildConsultationSections,
@@ -59,6 +59,9 @@ type FlowMode = 'awaitingQuery' | 'casting' | 'computing' | 'done'
 interface ConsultationViewerProps {
   // Production callers pass a flowKind; the viewer then owns the entire flow.
   flowKind?: FlowKind
+  // Casting input mode: 'slider' (default) is the bouncing-slider prompt;
+  // 'number' restores the legacy typed input via `--numeric-input`.
+  inputMode?: InputMode
   // Test / pre-built callers pass sections + savedPath; the viewer mounts
   // straight into `done` mode and never runs the flow.
   sections?: ConsultationSections
@@ -85,13 +88,13 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 // 18 splits total (6 lines × 3 casts). Footer shows casting progress as
-// `■■■□□□…  N/18` to give a glanceable sense of flow completion. Filled
-// and empty squares read as discrete units (one per cast) and stay legible
-// across the fonts users are likely to have.
+// `Casting in progress ·  ■■■□□□…  N/18` to give a glanceable sense of flow
+// completion. Filled and empty squares read as discrete units (one per cast)
+// and stay legible across the fonts users are likely to have.
 function renderProgressBar(completed: number, total: number): string {
   const filled = '■'.repeat(completed)
   const empty = '□'.repeat(total - completed)
-  return `${filled}${empty}  ${completed}/${total}`
+  return `Casting in progress ·  ${filled}${empty}  ${completed}/${total}`
 }
 
 // Ink's <Text dimColor> wraps its child in [2m…[22m, but embedded [0m
@@ -463,6 +466,7 @@ const EMPTY_SECTIONS: ConsultationSections = {
 
 export function ConsultationViewer({
   flowKind = 'interactive',
+  inputMode = 'slider',
   sections: prebuiltSections,
   savedPath: prebuiltSavedPath,
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
@@ -641,6 +645,23 @@ export function ConsultationViewer({
   const [, forceRender] = useReducer((n: number) => n + 1, 0)
   const offsetsRef = useRef<number[]>([])
   const horizontalOffsetsRef = useRef<number[]>([])
+  // Horizontal pan offset for the casting prompt box itself (separate from
+  // the active tab's content pan). Slider-mode content can overflow narrow
+  // terminals — ←/→ during the casting flow pans this box. Reset to 0
+  // whenever a new cast begins (lineIndex/castIndex change) so the next
+  // cast's bar is visible from the start.
+  const castingHorizontalOffsetRef = useRef<number>(0)
+  const lastCastSlotRef = useRef<string>('')
+  if (state.mode === 'casting') {
+    const slot = `${state.lineIndex}.${state.castIndex}`
+    if (lastCastSlotRef.current !== slot) {
+      castingHorizontalOffsetRef.current = 0
+      lastCastSlotRef.current = slot
+    }
+  } else {
+    lastCastSlotRef.current = ''
+    castingHorizontalOffsetRef.current = 0
+  }
   // Resize the per-tab offset arrays when the tabs array changes.
   if (offsetsRef.current.length !== tabs.length) {
     offsetsRef.current = tabs.map((_, index) => offsetsRef.current[index] ?? 0)
@@ -689,9 +710,17 @@ export function ConsultationViewer({
   )
   const queryBoxHeight = wrappedQuery.split('\n').length + QUERY_BORDER_HEIGHT
 
-  // Casting prompt box height: 3 rows + 1 if there's an error to display.
+  // Casting prompt box height (border 2 + content rows):
+  //   slider mode → 3 content rows (title + bar + readout) → 5 total
+  //   number mode → 2 content rows + optional error → 5 normally, 6 with error
   const castingPromptHeight =
-    state.mode === 'casting' ? (state.error === null ? 5 : 6) : 0
+    state.mode === 'casting'
+      ? inputMode === 'slider'
+        ? 5
+        : state.error === null
+          ? 5
+          : 6
+      : 0
 
   // Permanent layout gaps: 1 row between QueryBox and TabBar, and 1 row
   // between either the content/prompt block and the footer (the gap collapses
@@ -785,16 +814,56 @@ export function ConsultationViewer({
     )
     forceRender()
   }
+  const panCastingPromptBy = (delta: number, ceiling: number): void => {
+    castingHorizontalOffsetRef.current = clamp(
+      castingHorizontalOffsetRef.current + delta,
+      0,
+      ceiling,
+    )
+    forceRender()
+  }
   const stepToTab = (delta: number): void => {
     activeIndexRef.current =
       (activeIndexRef.current + delta + tabs.length) % tabs.length
     forceRender()
   }
 
-  // Global input handler. Always handles Escape and Ctrl+C → exit. Reads
-  // Tab / arrows / digit jumps etc. ONLY when the flow is done — otherwise
-  // the editors own the keyboard. `q` is intentionally NOT a quit shortcut
-  // anymore (T3.8); the only exits are Esc and Ctrl+C.
+  // Intrinsic content width of the casting prompt box (inside its border).
+  // Used to drive ←/→ pan during the slider-mode casting flow; the box
+  // itself stays at `innerCols` so it never reflows.
+  const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
+  const currentMax = currentMaxRef.current
+  const castingPromptContentWidth =
+    state.mode === 'casting' && inputMode === 'slider'
+      ? Math.max(
+          stringWidth(
+            `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — Press SPACE to part the stalks`,
+          ),
+          currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
+          stringWidth(`pick: ${currentMax} / ${currentMax}`),
+        )
+      : 0
+  const castingInnerWidth = Math.max(1, innerCols - 2) // subtract round border
+  const maxCastingHorizontalOffset = Math.max(
+    0,
+    castingPromptContentWidth - castingInnerWidth,
+  )
+  const castingHorizontalOffset = clamp(
+    castingHorizontalOffsetRef.current,
+    0,
+    maxCastingHorizontalOffset,
+  )
+  // Keep the ref clamped so future deltas accumulate from a valid value.
+  if (castingHorizontalOffsetRef.current !== castingHorizontalOffset) {
+    castingHorizontalOffsetRef.current = castingHorizontalOffset
+  }
+
+  // Global input handler. Always handles Escape and Ctrl+C → exit. During
+  // the casting flow, ←/→ pan the casting prompt box (slider-mode only,
+  // matches the main viewport's panning convention); everything else is
+  // owned by the editor. After the flow is done, the full done-mode binding
+  // set applies. `q` is intentionally NOT a quit shortcut anymore (T3.8);
+  // the only exits are Esc and Ctrl+C.
   useInput((input, key) => {
     if (key.escape) {
       exit()
@@ -803,6 +872,23 @@ export function ConsultationViewer({
     if (key.ctrl && input === 'c') {
       exit()
       return
+    }
+    // Casting flow: pan the prompt box horizontally if it overflows.
+    if (state.mode === 'casting' && inputMode === 'slider') {
+      if (key.leftArrow) {
+        panCastingPromptBy(
+          key.shift ? -(castingInnerWidth - 1) : -1,
+          maxCastingHorizontalOffset,
+        )
+        return
+      }
+      if (key.rightArrow) {
+        panCastingPromptBy(
+          key.shift ? castingInnerWidth - 1 : 1,
+          maxCastingHorizontalOffset,
+        )
+        return
+      }
     }
     if (state.mode !== 'done') return // editors handle other keys
     if (key.tab && key.shift) {
@@ -887,9 +973,6 @@ export function ConsultationViewer({
     return null
   })()
 
-  const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
-  const currentMax = currentMaxRef.current
-
   return (
     <Box flexDirection="column" paddingX={1} width={cols} height={termRows}>
       <Text>{`${BOLD_GREY}QUERY:${NORMAL}`}</Text>
@@ -947,6 +1030,8 @@ export function ConsultationViewer({
             buffer={state.castingBuffer}
             error={state.error}
             width={innerCols}
+            inputMode={inputMode}
+            horizontalOffset={castingHorizontalOffset}
             onChange={(value) =>
               dispatch({ type: 'castingBufferChange', value })
             }
@@ -980,14 +1065,15 @@ export function ConsultationViewer({
  * contents are restored on exit.
  *
  * Two call shapes:
- *   - `runConsultationViewer({ flowKind, maxWrapWidth })` — production: the
- *     viewer owns the flow (collects the query and 18 picks in-tab).
+ *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` —
+ *     production: the viewer owns the flow (collects the query and 18 picks
+ *     in-tab).
  *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` — back-compat
  *     for callers that already built everything (currently just tests).
  */
 export async function runConsultationViewer(
   argsOrSections:
-    | { flowKind: FlowKind; maxWrapWidth?: number }
+    | { flowKind: FlowKind; inputMode?: InputMode; maxWrapWidth?: number }
     | ConsultationSections,
   maybeSavedPath?: string,
   maybeMaxWrapWidth?: number,
@@ -997,6 +1083,7 @@ export async function runConsultationViewer(
     instance = render(
       <ConsultationViewer
         flowKind={argsOrSections.flowKind}
+        inputMode={argsOrSections.inputMode}
         maxWrapWidth={argsOrSections.maxWrapWidth}
       />,
       { alternateScreen: true },

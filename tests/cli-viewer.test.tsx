@@ -307,7 +307,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('opens in awaitingQuery mode with an empty editable query box', () => {
     const { lastFrame, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const frame = lastFrame() ?? ''
     // T2's split-around-cursor placeholder breaks the literal sentence, so
@@ -324,7 +324,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('locks Tab while awaiting the query', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const before = lastFrame() ?? ''
     stdin.write('\t')
@@ -339,7 +339,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('reveals the casting prompt box once the query is submitted', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Hi')
     await tick()
@@ -355,7 +355,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('shows a validation error for out-of-range picks', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
     await tick()
@@ -380,7 +380,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     // the new "Line 2 · 1st Cast" title. Validate that the synchronous reset
     // in `submitSplit` brings the prompt back to 1..48 on the new line.
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
     await tick()
@@ -411,7 +411,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('locks Tab while the casting phase is in progress', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
     await tick()
@@ -470,7 +470,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('exits cleanly when Escape is pressed mid-query', async () => {
     const { stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write('')).not.toThrow()
     await tick()
@@ -479,7 +479,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('exits cleanly when Ctrl+C is pressed mid-query', async () => {
     const { stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write('')).not.toThrow()
     await tick()
@@ -488,7 +488,7 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('accepts q as a regular character during the query phase', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('quit?')
     await tick()
@@ -547,7 +547,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
 
   it('Tab bar shows only the active tab while in casting', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
     await tick()
@@ -602,7 +602,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
 
   it('Progress bar shows 0/18 at the start of casting', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
     await tick()
@@ -615,7 +615,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
 
   it('Progress bar advances after each split', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
     await tick()
@@ -671,7 +671,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     // T3.7 — in awaitingQuery mode the casting placeholder rows are wrapped
     // in Ink's `dimColor`, which emits `[2m` SGR pairs around the content.
     const { lastFrame, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const frame = lastFrame() ?? ''
     // The casting header still renders so the user sees the table that will
@@ -707,7 +707,7 @@ describe('ConsultationViewer (Pass #2)', () => {
 
   it('renders QUERY: header on its own row above the box (awaitingQuery)', () => {
     const { lastFrame, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const frame = lastFrame() ?? ''
     const lines = frame.split('\n')
@@ -749,7 +749,7 @@ describe('ConsultationViewer (Pass #2)', () => {
 
   it('query box height does not jump when the query is submitted', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Hi')
     await tick()
@@ -772,7 +772,7 @@ describe('ConsultationViewer (Pass #2)', () => {
 
   it('placeholder casting table renders without bold-grey accents', () => {
     const { lastFrame, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const frame = lastFrame() ?? ''
     // R2: stripAnsi removes all SGR codes from the dimmed casting region.
@@ -796,7 +796,7 @@ describe('ConsultationViewer (Pass #2)', () => {
 
   it('progress bar uses filled/empty squares (R6)', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" />,
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
     await tick()
@@ -822,6 +822,137 @@ describe('ConsultationViewer (Pass #2)', () => {
     expect(afterFrame).toContain('■■■')
     expect(afterFrame).not.toContain('▰')
     unmount()
+  })
+})
+
+describe('ConsultationViewer (slider mode)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('renders the slider prompt by default (no inputMode prop)', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(
+      'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
+    )
+    // No typed-number prompt anywhere on the frame.
+    expect(frame).not.toContain('Pick a number from 1 to 48')
+    unmount()
+  })
+
+  it('prefixes the casting progress hint verbatim', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Casting in progress ·  ')
+    expect(frame).toContain('0/18')
+    unmount()
+  })
+
+  it('commits one split per SPACE press and advances the progress bar', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    expect(lastFrame() ?? '').toContain('0/18')
+    stdin.write(' ')
+    await tick()
+    expect(lastFrame() ?? '').toContain('1/18')
+    stdin.write(' ')
+    await tick()
+    expect(lastFrame() ?? '').toContain('2/18')
+    stdin.write(' ')
+    await tick()
+    expect(lastFrame() ?? '').toContain('3/18')
+    // Three splits committed → progress bar shows three ■ followed by □s.
+    expect(lastFrame() ?? '').toContain('■■■□')
+    unmount()
+  })
+
+  it('drives the full 18-split flow to done with SPACE', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+    )
+    stdin.write('A question')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    for (let index = 0; index < 18; index += 1) {
+      stdin.write(' ')
+      await tick()
+    }
+    // Compute effect + mocked file write — give them a beat to settle.
+    await tick(150)
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+    expect(lastFrame() ?? '').toContain('saved to /tmp/consultation-mocked.txt')
+    unmount()
+  })
+
+  it('rewinds the slider to min on every new cast', async () => {
+    // With render-phase reset, each new cast starts at pick: 1. Pressing
+    // SPACE immediately commits 1 for every split — visible in the casting
+    // table after the first split lands.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write(' ')
+    await tick()
+    // After committing 1 for cast 1, the prompt should now show cast 2
+    // starting at pick: 1 again.
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Cast 2/3')
+    expect(frame).toContain('pick: 1 /')
+    unmount()
+  })
+
+  it('pans the casting prompt box horizontally with ←/→ on narrow terminals', async () => {
+    // 50-col terminal → innerCols 47 → box content 45 cols, but the title
+    // is 53 chars. The end of the title ("part the stalks") is initially
+    // clipped; → should pan it into view.
+    windowSize.current = { columns: 50, rows: 30 }
+    try {
+      const { lastFrame, stdin, unmount } = render(
+        <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+      )
+      stdin.write('Q')
+      await tick()
+      stdin.write('\r')
+      await tick()
+      // Right-arrow several times — sliceAnsi shifts the visible window.
+      const initialFrame = lastFrame() ?? ''
+      expect(initialFrame).toContain('Line 1/6')
+      // Pan right by a generous chunk so we see the right edge of the title.
+      for (let index = 0; index < 20; index += 1) {
+        stdin.write('[C') // right arrow
+        await tick()
+      }
+      const pannedFrame = lastFrame() ?? ''
+      // After heavy right-panning, "Line 1/6" should be off-screen.
+      expect(pannedFrame).not.toContain('Line 1/6')
+      unmount()
+    } finally {
+      windowSize.current = { columns: 100, rows: 24 }
+    }
   })
 })
 

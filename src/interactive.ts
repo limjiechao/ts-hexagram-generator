@@ -3,7 +3,11 @@ import process from 'node:process'
 import { number } from '@inquirer/prompts'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
-import { resolveOutputMode, resolveWrapWidth } from './cli-utils-mode'
+import {
+  resolveInputMode,
+  resolveOutputMode,
+  resolveWrapWidth,
+} from './cli-utils-mode'
 import {
   BOLD_GREY,
   BOLD_WHITE,
@@ -159,6 +163,7 @@ export async function main(): Promise<void> {
       // 18 split prompts live inside the Casting tab.
       await runConsultationViewer({
         flowKind: 'interactive',
+        inputMode: resolveInputMode(),
         maxWrapWidth: resolveWrapWidth(),
       })
     }
