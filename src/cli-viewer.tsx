@@ -50,6 +50,7 @@ type TabId = 'casting' | 'transformation' | 'originating' | 'resultant'
 interface TabDescriptor {
   id: TabId
   label: string
+  wrapMode: 'wrap' | 'never'
 }
 
 export type FlowKind = 'interactive' | 'random'
@@ -75,12 +76,20 @@ const ELLIPSIS = '…'
 // below this or the ASCII art shreds. Small margin over the measured worst case.
 const MIN_CONTENT_WIDTH = 100
 
-const KEY_HINTS =
-  'Tab: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   q: quit'
+const KEY_HINTS_TEMPLATE = (n: number): string =>
+  `Tab: switch   1-${n}: jump   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
 const KEY_HINTS_FLOW = 'Esc/Ctrl+C: quit'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
+}
+
+// 18 splits total (6 lines × 3 casts). Footer shows casting progress as
+// `▰▰▱▱…  N/18` to give a glanceable sense of flow completion.
+function renderProgressBar(completed: number, total: number): string {
+  const filled = '▰'.repeat(completed)
+  const empty = '▱'.repeat(total - completed)
+  return `${filled}${empty}  ${completed}/${total}`
 }
 
 // Wrap a pre-formatted ANSI string to `width` columns. `trim: false` keeps the
@@ -151,18 +160,28 @@ function TabBar({
   cols: number
   locked: boolean
 }): ReactElement {
-  // Each cell renders as ` label ` — two padding spaces around the label.
-  const fullRowWidth = tabs.reduce((sum, tab) => sum + tab.label.length + 2, 0)
-
-  // Below the width the full label row needs, collapse to a compact indicator
-  // so the tab bar always stays exactly one row tall.
-  if (fullRowWidth > cols) {
+  // Flow in progress: only the active tab shows, rendered with the same
+  // bold+inverse styling as done-mode — there's no agency to switch tabs.
+  if (locked) {
     const active = tabs[activeIndex]
     return (
       <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse={!locked} dimColor={locked}>
-          {` ${active.label} `}
-        </Text>
+        <Text bold inverse>{` ${active.label} `}</Text>
+      </Box>
+    )
+  }
+
+  // Done mode: all tabs visible, dim ` · ` separator between them.
+  // Each cell renders as ` label ` (label.length + 2); separators add 3 cols.
+  const renderedWidth = tabs.reduce(
+    (sum, t, i) => sum + t.label.length + 2 + (i > 0 ? 3 : 0),
+    0,
+  )
+  if (renderedWidth > cols) {
+    const active = tabs[activeIndex]
+    return (
+      <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
+        <Text bold inverse>{` ${active.label} `}</Text>
         <Text dimColor>{` (${activeIndex + 1}/${tabs.length})`}</Text>
       </Box>
     )
@@ -170,23 +189,21 @@ function TabBar({
 
   return (
     <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-      {tabs.map((tab, index) => {
+      {tabs.flatMap((tab, index) => {
         const active = index === activeIndex
-        // While the flow is running, non-active tabs are locked. The active
-        // tab (always Casting during the flow) stays highlighted but in
-        // `dimColor` instead of `inverse` so the locked state reads visually.
-        if (locked) {
-          return (
-            <Text key={tab.id} bold={active} dimColor>
-              {` ${tab.label} `}
-            </Text>
-          )
-        }
-        return (
+        const cells: ReactElement[] = [
           <Text key={tab.id} bold={active} inverse={active} dimColor={!active}>
             {` ${tab.label} `}
-          </Text>
-        )
+          </Text>,
+        ]
+        if (index < tabs.length - 1) {
+          cells.push(
+            <Text key={`sep-${tab.id}`} dimColor>
+              {' · '}
+            </Text>,
+          )
+        }
+        return cells
       })}
     </Box>
   )
@@ -207,25 +224,65 @@ function ScrollableSection({
   )
 }
 
+// 1-column vertical scrollbar gutter. When content overflows the viewport,
+// renders a proportional `█` handle over a `░` track; otherwise reserves the
+// column with whitespace so chrome above/below doesn't shift when overflow
+// state toggles.
+function ScrollbarTrack({
+  offset,
+  totalRows,
+  viewportHeight,
+}: {
+  offset: number
+  totalRows: number
+  viewportHeight: number
+}): ReactElement {
+  if (totalRows <= viewportHeight) {
+    return (
+      <Text>
+        {Array.from({ length: viewportHeight }, () => ' ').join('\n')}
+      </Text>
+    )
+  }
+  const handleHeight = Math.max(
+    1,
+    Math.floor((viewportHeight * viewportHeight) / totalRows),
+  )
+  const handleTop = Math.floor(
+    (offset * (viewportHeight - handleHeight)) /
+      Math.max(1, totalRows - viewportHeight),
+  )
+  const chars: string[] = []
+  for (let i = 0; i < viewportHeight; i += 1) {
+    chars.push(i >= handleTop && i < handleTop + handleHeight ? '█' : '░')
+  }
+  return <Text dimColor>{chars.join('\n')}</Text>
+}
+
 function FooterBar({
   savedPath,
   cols,
   verticalStatus,
   horizontalStatus,
+  wrapChip,
   flowHint,
   inFlow,
+  tabsLength,
 }: {
   savedPath: string
   cols: number
   verticalStatus: string | null
   horizontalStatus: string | null
+  wrapChip: string | null
   flowHint: string | null
   inFlow: boolean
+  tabsLength: number
 }): ReactElement {
   const segments: string[] = []
   if (verticalStatus) segments.push(verticalStatus)
   if (horizontalStatus) segments.push(horizontalStatus)
-  segments.push(inFlow ? KEY_HINTS_FLOW : KEY_HINTS)
+  if (wrapChip) segments.push(wrapChip)
+  segments.push(inFlow ? KEY_HINTS_FLOW : KEY_HINTS_TEMPLATE(tabsLength))
   const status = truncateEnd(segments.join('   '), cols)
   // During the flow, replace the saved-path line with a one-line progress
   // hint — there's no saved file yet.
@@ -532,19 +589,28 @@ export function ConsultationViewer({
 
   // ── Section selection + tab bar ─────────────────────────────────────────
 
-  // While the flow is running we display all four tab slots (even if the
-  // resultant won't ultimately appear) — there's no way to know yet. After
-  // `done`, the resultant slot is dropped when there are no moving lines.
+  // While the flow is running we don't yet know whether resultant will exist
+  // — show Transformation optimistically; the locked tab bar (T3.3) hides
+  // every non-active tab anyway. Once `done`, Transformation + Resultant are
+  // dropped whenever there are no moving lines.
   const tabs = useMemo<TabDescriptor[]>(() => {
-    const base: TabDescriptor[] = [
-      { id: 'casting', label: 'Casting' },
-      { id: 'transformation', label: 'Transformation' },
-      { id: 'originating', label: 'Originating' },
+    const hasMovingLines =
+      state.mode !== 'done' || state.sections?.resultant != null
+    const result: TabDescriptor[] = [
+      { id: 'casting', label: 'Casting', wrapMode: 'never' },
     ]
-    if (state.mode !== 'done' || state.sections?.resultant != null) {
-      base.push({ id: 'resultant', label: 'Resultant' })
+    if (hasMovingLines) {
+      result.push({
+        id: 'transformation',
+        label: 'Transformation',
+        wrapMode: 'never',
+      })
     }
-    return base
+    result.push({ id: 'originating', label: 'Originating', wrapMode: 'wrap' })
+    if (hasMovingLines) {
+      result.push({ id: 'resultant', label: 'Resultant', wrapMode: 'wrap' })
+    }
+    return result
   }, [state.mode, state.sections])
 
   // Tab index management. While the flow is running we hold the active tab at
@@ -583,9 +649,14 @@ export function ConsultationViewer({
           }
         })()
 
+  // Inner content width: terminal cols minus paddingX (2) and the scrollbar
+  // gutter (1). Every downstream width parameter routes through this so the
+  // chrome never collides with the gutter or padding.
+  const innerCols = Math.max(1, cols - 2 - 1)
+
   const wrappedQuery = useMemo(
-    () => wrapToWidth(effectiveSections.query, cols - 2),
-    [effectiveSections.query, cols],
+    () => wrapToWidth(effectiveSections.query, Math.max(1, innerCols - 2)),
+    [effectiveSections.query, innerCols],
   )
   const queryBoxHeight = wrappedQuery.split('\n').length + QUERY_BORDER_HEIGHT
 
@@ -593,12 +664,20 @@ export function ConsultationViewer({
   const castingPromptHeight =
     state.mode === 'casting' ? (state.error === null ? 5 : 6) : 0
 
+  // Permanent layout gaps: 1 row between QueryBox and TabBar, and 1 row
+  // between either the content/prompt block and the footer (the gap collapses
+  // into the prompt's own marginTop when casting is active).
+  const MARGIN_QUERY_TO_TABS = 1
+  const MARGIN_CONTENT_TO_NEXT = 1
+
   const viewportHeight = Math.max(
     1,
     termRows -
       queryBoxHeight -
+      MARGIN_QUERY_TO_TABS -
       TAB_BAR_HEIGHT -
       castingPromptHeight -
+      MARGIN_CONTENT_TO_NEXT -
       FOOTER_HEIGHT,
   )
 
@@ -619,18 +698,30 @@ export function ConsultationViewer({
         .reduce((widest, line) => Math.max(widest, stringWidth(line)), 1),
     [activeContent],
   )
-  const wrapWidth = computeWrapWidth(cols, maxWrapWidth, intrinsicWidth)
+  const wrapWidth =
+    activeTab.wrapMode === 'never'
+      ? intrinsicWidth
+      : computeWrapWidth(innerCols, maxWrapWidth, intrinsicWidth)
   const contentRows = useMemo(
     () => wrapToWidth(activeContent, wrapWidth).split('\n'),
     [activeContent, wrapWidth],
   )
   const contentWidth = Math.min(wrapWidth, intrinsicWidth)
 
-  const maxOffset = Math.max(0, contentRows.length - viewportHeight)
-  const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
-  const canScrollVertically = contentRows.length > viewportHeight
+  // Scrollable breathers: prepend + append a blank row so the first / last
+  // line never butt against the tab bar or the footer when scrolled to the
+  // extremes. All offset / slice maths run against `rowsWithBreathers`.
+  const rowsWithBreathers = useMemo(
+    () => ['', ...contentRows, ''],
+    [contentRows],
+  )
+  const totalRows = rowsWithBreathers.length
 
-  const maxHorizontalOffset = Math.max(0, contentWidth - cols)
+  const maxOffset = Math.max(0, totalRows - viewportHeight)
+  const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
+  const canScrollVertically = totalRows > viewportHeight
+
+  const maxHorizontalOffset = Math.max(0, contentWidth - innerCols)
   const horizontalOffset = clamp(
     horizontalOffsetsRef.current[activeIndex] ?? 0,
     0,
@@ -638,9 +729,11 @@ export function ConsultationViewer({
   )
   const canScrollHorizontally = maxHorizontalOffset > 0
 
-  const visibleRows = contentRows
+  const visibleRows = rowsWithBreathers
     .slice(offset, offset + viewportHeight)
-    .map((row) => sliceAnsi(row, horizontalOffset, horizontalOffset + cols))
+    .map((row) =>
+      sliceAnsi(row, horizontalOffset, horizontalOffset + innerCols),
+    )
 
   const scrollActiveBy = (delta: number): void => {
     offsetsRef.current[activeIndex] = clamp(
@@ -669,8 +762,9 @@ export function ConsultationViewer({
   }
 
   // Global input handler. Always handles Escape and Ctrl+C → exit. Reads
-  // `q`/Tab/arrows etc. ONLY when the flow is done — otherwise the editors
-  // own the keyboard.
+  // Tab / arrows / digit jumps etc. ONLY when the flow is done — otherwise
+  // the editors own the keyboard. `q` is intentionally NOT a quit shortcut
+  // anymore (T3.8); the only exits are Esc and Ctrl+C.
   useInput((input, key) => {
     if (key.escape) {
       exit()
@@ -681,10 +775,6 @@ export function ConsultationViewer({
       return
     }
     if (state.mode !== 'done') return // editors handle other keys
-    if (input === 'q') {
-      exit()
-      return
-    }
     if (key.tab && key.shift) {
       stepToTab(-1)
       return
@@ -697,12 +787,22 @@ export function ConsultationViewer({
       stepToTab(-1)
       return
     }
+    // Digit shortcuts 1-9 jump to that tab index (1-indexed). Range is
+    // defensive against future tab additions; the < tabs.length check gates.
+    if (input >= '1' && input <= '9') {
+      const target = Number.parseInt(input, 10) - 1
+      if (target >= 0 && target < tabs.length) {
+        activeIndexRef.current = target
+        forceRender()
+        return
+      }
+    }
     if (key.leftArrow) {
-      panActiveBy(key.shift ? -(cols - 1) : -1)
+      panActiveBy(key.shift ? -(innerCols - 1) : -1)
       return
     }
     if (key.rightArrow) {
-      panActiveBy(key.shift ? cols - 1 : 1)
+      panActiveBy(key.shift ? innerCols - 1 : 1)
       return
     }
     if (key.upArrow) {
@@ -731,18 +831,25 @@ export function ConsultationViewer({
   })
 
   const verticalStatus = canScrollVertically
-    ? `▲ ${offset + 1}–${Math.min(offset + viewportHeight, contentRows.length)} of ${contentRows.length} ▼`
+    ? `▲ ${offset + 1}–${Math.min(offset + viewportHeight, totalRows)} of ${totalRows} ▼`
     : null
   const horizontalStatus = canScrollHorizontally
-    ? `◀ ${horizontalOffset + 1}–${Math.min(horizontalOffset + cols, contentWidth)} of ${contentWidth} ▶`
+    ? `◀ ${horizontalOffset + 1}–${Math.min(horizontalOffset + innerCols, contentWidth)} of ${contentWidth} ▶`
     : null
+
+  // Wrap-width chip: only show when the active tab actually wraps AND the
+  // wrap is biting (i.e. wrapping below the section's intrinsic width).
+  const wrapChip =
+    activeTab.wrapMode === 'wrap' && wrapWidth < intrinsicWidth
+      ? `wrap ${wrapWidth}`
+      : null
 
   // Flow progress hint shown on the bottom line during the flow.
   const flowHint = (() => {
     if (state.mode === 'awaitingQuery')
       return 'Type your query and press Enter.'
     if (state.mode === 'casting')
-      return `Casting in progress · Line ${state.lineIndex + 1}/6 · Cast ${state.castIndex + 1}/3`
+      return renderProgressBar(state.lineIndex * 3 + state.castIndex, 18)
     if (state.mode === 'computing')
       return state.saveError === null
         ? 'Saving consultation…'
@@ -754,50 +861,84 @@ export function ConsultationViewer({
   const currentMax = currentMaxRef.current
 
   return (
-    <Box flexDirection="column" width={cols} height={termRows}>
+    <Box flexDirection="column" paddingX={1} width={cols} height={termRows}>
       {state.mode === 'awaitingQuery' ? (
         <QueryEditor
           value={state.queryBuffer}
           focused
           placeholder="Enter your query for the oracle."
-          width={cols}
+          width={innerCols}
           onChange={(next) => dispatch({ type: 'queryChange', value: next })}
           onSubmit={() => dispatch({ type: 'querySubmit' })}
         />
       ) : (
-        <QueryBox query={wrappedQuery} width={cols} />
+        <QueryBox query={wrappedQuery} width={innerCols} />
       )}
-      <TabBar
-        tabs={tabs}
-        activeIndex={activeIndex}
-        cols={cols}
-        locked={state.mode !== 'done'}
-      />
-      <Box flexGrow={1} flexShrink={1} flexDirection="column" overflow="hidden">
-        <ScrollableSection rows={visibleRows} viewportHeight={viewportHeight} />
+      <Box marginTop={MARGIN_QUERY_TO_TABS} flexShrink={0}>
+        <TabBar
+          tabs={tabs}
+          activeIndex={activeIndex}
+          cols={innerCols}
+          locked={state.mode !== 'done'}
+        />
+      </Box>
+      <Box flexGrow={1} flexShrink={1} flexDirection="row" overflow="hidden">
+        <Box flexDirection="column" flexGrow={1}>
+          {state.mode === 'awaitingQuery' ? (
+            // T3.7 — dim the placeholder casting table while the user is still
+            // typing the query. ANSI escapes inside the partial output (the
+            // grey `·`s) compose cleanly with Ink's emitted `[2m`.
+            <Box height={viewportHeight} flexDirection="column">
+              <Text dimColor>{visibleRows.join('\n')}</Text>
+            </Box>
+          ) : (
+            <ScrollableSection
+              rows={visibleRows}
+              viewportHeight={viewportHeight}
+            />
+          )}
+        </Box>
+        <Box width={1} flexShrink={0}>
+          <ScrollbarTrack
+            offset={offset}
+            totalRows={totalRows}
+            viewportHeight={viewportHeight}
+          />
+        </Box>
       </Box>
       {state.mode === 'casting' && (
-        <CastingPromptBox
-          lineNumber={lineNumber}
-          castIndex={state.castIndex}
-          min={1}
-          max={currentMax}
-          buffer={state.castingBuffer}
-          error={state.error}
-          width={cols}
-          onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
-          onSubmit={(parsed) => submitSplit(parsed)}
-          onError={(message) => dispatch({ type: 'castingError', message })}
-        />
+        <Box marginTop={MARGIN_CONTENT_TO_NEXT} flexShrink={0}>
+          <CastingPromptBox
+            lineNumber={lineNumber}
+            castIndex={state.castIndex}
+            min={1}
+            max={currentMax}
+            buffer={state.castingBuffer}
+            error={state.error}
+            width={innerCols}
+            onChange={(value) =>
+              dispatch({ type: 'castingBufferChange', value })
+            }
+            onSubmit={(parsed) => submitSplit(parsed)}
+            onError={(message) => dispatch({ type: 'castingError', message })}
+          />
+        </Box>
       )}
-      <FooterBar
-        savedPath={state.savedPath ?? prebuiltSavedPath ?? ''}
-        cols={cols}
-        verticalStatus={verticalStatus}
-        horizontalStatus={horizontalStatus}
-        flowHint={flowHint}
-        inFlow={state.mode !== 'done'}
-      />
+      <Box
+        marginTop={state.mode === 'casting' ? 0 : MARGIN_CONTENT_TO_NEXT}
+        flexShrink={0}
+      >
+        <FooterBar
+          savedPath={state.savedPath ?? prebuiltSavedPath ?? ''}
+          cols={innerCols}
+          verticalStatus={verticalStatus}
+          horizontalStatus={horizontalStatus}
+          wrapChip={wrapChip}
+          flowHint={flowHint}
+          inFlow={state.mode !== 'done'}
+          tabsLength={tabs.length}
+        />
+      </Box>
     </Box>
   )
 }

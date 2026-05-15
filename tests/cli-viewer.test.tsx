@@ -102,15 +102,17 @@ describe('ConsultationViewer', () => {
     unmount()
   })
 
-  it('shows three tabs when there are no moving lines', () => {
+  it('shows two tabs when there are no moving lines', () => {
+    // Static hexagrams collapse the tab bar to Casting + Originating —
+    // Transformation and Resultant are hidden.
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
 
     expect(frame).toContain('Casting')
-    expect(frame).toContain('Transformation')
     expect(frame).toContain('Originating')
+    expect(frame).not.toContain('Transformation')
     expect(frame).not.toContain('Resultant')
 
     unmount()
@@ -178,15 +180,23 @@ describe('ConsultationViewer', () => {
     unmount()
   })
 
-  it('exits without throwing when q is pressed', async () => {
-    const { stdin, unmount } = render(
+  it('does not exit when q is pressed', async () => {
+    // T3.8 — `q` is no longer a quit shortcut; only Esc / Ctrl+C exit. The
+    // testing-library instance has no `waitUntilExit`, so we observe the
+    // viewer is still alive by re-reading `lastFrame()` after `q` and
+    // confirming the saved-path chrome is still on screen.
+    const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
+    const before = lastFrame() ?? ''
+    expect(before).toContain(`saved to ${SAVED_PATH}`)
 
-    expect(() => {
-      stdin.write('q')
-    }).not.toThrow()
-    await tick()
+    stdin.write('q')
+    await tick(120)
+    const after = lastFrame() ?? ''
+    expect(after).toContain(`saved to ${SAVED_PATH}`)
+    // No `q` ever leaks into the rendered chrome.
+    expect(after).not.toContain('q: quit')
 
     unmount()
   })
@@ -300,7 +310,10 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" />,
     )
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Enter your query for the oracle.')
+    // T2's split-around-cursor placeholder breaks the literal sentence, so
+    // assert two surviving fragments instead.
+    expect(frame).toContain('Enter')
+    expect(frame).toContain('your query for the oracle.')
     // The empty casting table is visible in the content area.
     expect(frame).toContain('CASTING:')
     // The footer-bottom line shows the flow hint, not a saved-path line.
@@ -317,10 +330,10 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('\t')
     await tick()
     const after = lastFrame() ?? ''
-    expect(after).toContain('Enter your query for the oracle.')
+    expect(after).toContain('your query for the oracle.')
     expect(after).not.toContain('TRANSFORMATION:')
     // The query buffer should NOT have absorbed the tab character.
-    expect(before).toContain('Enter your query')
+    expect(before).toContain('your query')
     unmount()
   })
 
@@ -333,7 +346,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('\r')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Line 1 · 1st Cast')
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
     // Saved-path line still absent — casting hasn't completed.
     expect(frame).not.toContain('saved to')
@@ -356,7 +369,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Pick a number from 1 to 48.')
-    expect(frame).toContain('Line 1 · 1st Cast')
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
     unmount()
   })
 
@@ -389,7 +402,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('\r')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Line 2 · 1st Cast')
+    expect(frame).toContain('Line 2/6 · Cast 1/3')
     expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
     // And the previous line's intermediate max must not linger in the frame.
     expect(frame).not.toContain('Pick a number from 1 to 31')
@@ -407,8 +420,13 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('\t')
     await tick()
     const frame = lastFrame() ?? ''
-    // Tab must not have advanced the active tab — Casting prompt still shown.
-    expect(frame).toContain('Line 1 · 1st Cast')
+    // Tab must not have advanced the active tab — Casting prompt still shown
+    // and the locked tab bar renders ONLY the active tab.
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
+    expect(frame).toContain('Casting')
+    expect(frame).not.toContain('Transformation')
+    expect(frame).not.toContain('Originating')
+    expect(frame).not.toContain('Resultant')
     expect(frame).not.toContain('TRANSFORMATION:')
     unmount()
   })
@@ -433,6 +451,9 @@ describe('ConsultationViewer (interactive flow)', () => {
   })
 
   it('unlocks Tab once the random flow reaches done', async () => {
+    // The random-flow mock produces a static hexagram (no moving lines), so
+    // only Casting + Originating tabs exist in done mode. One Tab advance
+    // lands on Originating — proves the lock is released.
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="random" />,
     )
@@ -443,7 +464,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('\t')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('TRANSFORMATION:')
+    expect(frame).toContain('ORIGINATING HEXAGRAM')
     unmount()
   })
 
@@ -472,6 +493,205 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('quit?')
     await tick()
     expect(lastFrame() ?? '').toContain('quit?')
+    unmount()
+  })
+})
+
+describe('ConsultationViewer (T3 refinements)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('Casting tab does not wrap on narrow terminals', () => {
+    // T3.1 — `wrapMode: 'never'`. The casting table's intrinsic width (~59)
+    // must emerge verbatim even on a 40-col terminal; the right portion is
+    // reached via horizontal pan. Horizontal status pill must be present.
+    windowSize.current = { columns: 40, rows: 30 }
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    // The casting table header row is intact (no mid-row truncation that
+    // would leave a dangling `│` with no cell content after it).
+    expect(frame).toContain('│ Line │')
+    // The pan-status pill renders, proving the row is wider than the cols.
+    expect(frame).toContain('◀')
+    expect(frame).toContain('▶')
+    unmount()
+  })
+
+  it('Resultant tab wraps prose to wrap-width and shows wrap chip', async () => {
+    // T3.5 — `wrap N` chip in the status row when wrapMode='wrap' AND the
+    // content is actually being cut. The resultant section has prose lines
+    // ~188 cols wide, so a 60-col terminal definitely triggers wrap.
+    windowSize.current = { columns: 60, rows: 30 }
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        sections={movingSections}
+        savedPath={SAVED_PATH}
+        maxWrapWidth={120}
+      />,
+    )
+    // Jump directly to Resultant (tab #4).
+    stdin.write('4')
+    await tick()
+    const frame = lastFrame() ?? ''
+    // `wrap` chip is in the status row (e.g. `wrap 100`).
+    expect(frame).toMatch(/wrap \d+/)
+    unmount()
+  })
+
+  it('Tab bar shows only the active tab while in casting', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(' Casting ')
+    expect(frame).not.toContain('Transformation')
+    expect(frame).not.toContain('Originating')
+    expect(frame).not.toContain('Resultant')
+    unmount()
+  })
+
+  it('Tab bar separator appears between tabs in done mode', () => {
+    // T3.3 — ` · ` separator between cells when unlocked + wide enough.
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(' · ')
+    unmount()
+  })
+
+  it('Digit shortcut 2 jumps to the Transformation tab', async () => {
+    // T3.6 — done mode with moving lines = 4 tabs. Pressing `2` jumps to
+    // index 1, which is Transformation.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    stdin.write('2')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('TRANSFORMATION:')
+    unmount()
+  })
+
+  it('Digit shortcut beyond tabs.length is a no-op', async () => {
+    // Static hexagram → only 2 tabs (Casting + Originating). `5` is OOR
+    // and must not change anything.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
+    )
+    const before = lastFrame() ?? ''
+    stdin.write('5')
+    await tick()
+    const after = lastFrame() ?? ''
+    expect(after).toBe(before)
+    // Still on the default Casting tab.
+    expect(after).toContain('CASTING:')
+    unmount()
+  })
+
+  it('Progress bar shows 0/18 at the start of casting', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  0/18')
+    unmount()
+  })
+
+  it('Progress bar advances after each split', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    // Three valid picks that drive Line 1 to completion.
+    stdin.write('24')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('20')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('16')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('▰▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  3/18')
+    unmount()
+  })
+
+  it('Transformation tab is hidden when there are no moving lines', () => {
+    // Tab bar in done mode + static hexagram shows only Casting and
+    // Originating, separated by ` · `.
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(' Casting ')
+    expect(frame).toContain(' Originating ')
+    expect(frame).not.toContain('Transformation')
+    expect(frame).not.toContain('Resultant')
+    // Exactly one separator between the two tabs.
+    expect(frame.split(' · ').length - 1).toBeGreaterThanOrEqual(1)
+    unmount()
+  })
+
+  it('Scrollbar gutter renders proportional handle when content overflows', () => {
+    // T3.4 — narrow rows so the casting table (~16 rows incl. breathers)
+    // overflows. The `█` handle char must appear in the frame.
+    windowSize.current = { columns: 100, rows: 14 }
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('█')
+    unmount()
+  })
+
+  it('Awaiting-query renders the placeholder table dimmed', () => {
+    // T3.7 — in awaitingQuery mode the casting placeholder rows are wrapped
+    // in Ink's `dimColor`, which emits `[2m` SGR pairs around the content.
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    const frame = lastFrame() ?? ''
+    // The casting header still renders so the user sees the table that will
+    // be filled in, but it is dim.
+    expect(frame).toContain('CASTING:')
+    expect(frame).toContain('[2m')
+    unmount()
+  })
+
+  it('Outer paddingX leaves a 1-column gutter on each side', () => {
+    // T3.2 — every non-empty frame line starts with at least one space
+    // (the paddingX gutter). The right gutter is harder to detect because
+    // trailing whitespace gets trimmed in some renderings; the left gutter
+    // is the load-bearing assertion.
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    const nonEmptyLines = frame.split('\n').filter((row) => row.length > 0)
+    expect(nonEmptyLines.length).toBeGreaterThan(0)
+    for (const row of nonEmptyLines) {
+      expect(row.startsWith(' ')).toBe(true)
+    }
     unmount()
   })
 })
