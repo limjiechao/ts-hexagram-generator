@@ -104,8 +104,88 @@ describe('QueryEditor', () => {
     const { lastFrame, unmount } = render(
       <QueryEditorHost onSubmit={onSubmit} />,
     )
-    expect(lastFrame() ?? '').toContain('Enter your query')
+    // The cursor cell now sits between the two placeholder halves, so the
+    // literal "Enter your query" is split by ANSI escapes. Assert the two
+    // segments individually.
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Enter ')
+    expect(frame).toContain('your query')
     unmount()
+  })
+
+  it("places the cursor after the placeholder's first space", () => {
+    const onSubmit = vi.fn()
+    const { lastFrame, unmount } = render(
+      <QueryEditor
+        value=""
+        focused
+        width={40}
+        placeholder="Enter your query."
+        onChange={() => {}}
+        onSubmit={onSubmit}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    // Inverse SGR marks the rendered cursor cell.
+    const INVERSE = '[7m'
+    expect(frame).toContain(INVERSE)
+    const cursorIndex = frame.indexOf(INVERSE)
+    const before = frame.slice(0, cursorIndex)
+    const after = frame.slice(cursorIndex + INVERSE.length)
+    expect(before).toContain('Enter ')
+    expect(after).toContain('your')
+    unmount()
+  })
+
+  it('blinks the cursor every 500ms', () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const { lastFrame, rerender, unmount } = render(
+        <QueryEditor
+          value=""
+          focused
+          width={40}
+          placeholder="Enter your query."
+          onChange={() => {}}
+          onSubmit={() => {}}
+        />,
+      )
+      const INVERSE = '[7m'
+      const initial = lastFrame() ?? ''
+      expect(initial).toContain(INVERSE)
+
+      vi.advanceTimersByTime(500)
+      // Nudge React to re-render after the interval fires.
+      rerender(
+        <QueryEditor
+          value=""
+          focused
+          width={40}
+          placeholder="Enter your query."
+          onChange={() => {}}
+          onSubmit={() => {}}
+        />,
+      )
+      const blinkedOff = lastFrame() ?? ''
+      expect(blinkedOff).not.toContain(INVERSE)
+
+      vi.advanceTimersByTime(500)
+      rerender(
+        <QueryEditor
+          value=""
+          focused
+          width={40}
+          placeholder="Enter your query."
+          onChange={() => {}}
+          onSubmit={() => {}}
+        />,
+      )
+      const blinkedOn = lastFrame() ?? ''
+      expect(blinkedOn).toContain(INVERSE)
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('accumulates typed characters', async () => {
@@ -182,8 +262,11 @@ describe('QueryEditor', () => {
     stdin.write(CTRL_C)
     await tick()
     // The buffer must NOT have collected escape/ctrl-c bytes; placeholder
-    // still shown because nothing was typed.
-    expect(lastFrame() ?? '').toContain('Enter your query')
+    // still shown because nothing was typed. The cursor splits the two
+    // halves of the placeholder, so assert each segment individually.
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Enter ')
+    expect(frame).toContain('your query')
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
@@ -356,7 +439,7 @@ describe('CastingPromptBox', () => {
       <CastingPromptBoxHost onSubmit={onSubmit} onError={onError} />,
     )
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Line 1 · 1st Cast')
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48:')
     unmount()
   })

@@ -1,13 +1,19 @@
 import { Box, Text, useInput } from 'ink'
-import type { ReactElement } from 'react'
+import { useEffect, useState, type ReactElement } from 'react'
 
 import { BOLD_RED, NORMAL } from './cli-utils-output.js'
 
 // A blinky-block cursor stand-in. Ink has no native cursor primitive, so we
 // inverse a single trailing space to draw the eye to the caret. Rendered only
-// when the host editor is focused.
+// when the host editor is focused. The blink-off frame still occupies a
+// column so layout doesn't jump.
 function Cursor(): ReactElement {
-  return <Text inverse> </Text>
+  const [on, setOn] = useState(true)
+  useEffect(() => {
+    const id = setInterval(() => setOn((v) => !v), 500)
+    return () => clearInterval(id)
+  }, [])
+  return on ? <Text inverse> </Text> : <Text> </Text>
 }
 
 // Returns true for keystrokes the global viewer handler must always own —
@@ -68,8 +74,29 @@ export function QueryEditor({
     { isActive: focused },
   )
 
-  const display = value.length === 0 ? (placeholder ?? '') : value
-  const dim = value.length === 0 && placeholder !== undefined
+  if (value.length === 0 && placeholder !== undefined) {
+    // Split the placeholder at its first space and render <prefix><cursor><suffix>,
+    // all dimmed. The cursor visually marks where typing will begin.
+    const firstSpaceIndex = placeholder.indexOf(' ')
+    const hasSpace = firstSpaceIndex !== -1
+    const prefix = hasSpace
+      ? placeholder.slice(0, firstSpaceIndex + 1)
+      : placeholder
+    const suffix = hasSpace ? placeholder.slice(firstSpaceIndex + 1) : ''
+    return (
+      <Box
+        borderStyle="round"
+        borderColor={focused ? 'cyan' : undefined}
+        width={width}
+        flexShrink={0}
+      >
+        <Text dimColor>{prefix}</Text>
+        {focused && <Cursor />}
+        <Text dimColor>{suffix}</Text>
+      </Box>
+    )
+  }
+
   return (
     <Box
       borderStyle="round"
@@ -77,7 +104,7 @@ export function QueryEditor({
       width={width}
       flexShrink={0}
     >
-      <Text dimColor={dim}>{display}</Text>
+      <Text>{value}</Text>
       {focused && <Cursor />}
     </Box>
   )
@@ -147,12 +174,6 @@ export function NumberInput({
   )
 }
 
-const ORDINAL_WORD: Record<0 | 1 | 2, '1st' | '2nd' | '3rd'> = {
-  0: '1st',
-  1: '2nd',
-  2: '3rd',
-}
-
 interface CastingPromptBoxProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
@@ -194,9 +215,7 @@ export function CastingPromptBox({
       flexShrink={0}
       flexDirection="column"
     >
-      <Text
-        dimColor
-      >{`Line ${lineNumber} · ${ORDINAL_WORD[castIndex]} Cast`}</Text>
+      <Text dimColor>{`Line ${lineNumber}/6 · Cast ${castIndex + 1}/3`}</Text>
       <Box flexDirection="row">
         <Text>{`Divide the stalks. Pick a number from ${min} to ${max}: `}</Text>
         <NumberInput
