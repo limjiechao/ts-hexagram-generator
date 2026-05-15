@@ -206,16 +206,19 @@ function castingSection(casting: CastingRecord): string {
   const MID = '├────────┼────────┼───────┼────────┼───────┼────────┼───────┤'
   const BOTTOM = '└────────┴────────┴───────┴────────┴───────┴────────┴───────┘'
 
+  // Plain (default-fg) cells leave the structural framing — cast names, the
+  // Split header, and the row labels — calm against the bold-grey column
+  // scaffolding and the bold-white picks.
   const castRow =
-    `│        │${castLeft('First Cast', 16, BOLD_GREY)}│` +
-    `${castLeft('Second Cast', 16, BOLD_GREY)}│` +
-    `${castLeft('Third Cast', 16, BOLD_GREY)}│`
+    `│        │${castLeft('First Cast', 16)}│` +
+    `${castLeft('Second Cast', 16)}│` +
+    `${castLeft('Third Cast', 16)}│`
 
   const colRow =
     `│${castCenter('Line', 8, BOLD_GREY)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│`
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
 
   const cell = (split: { pick: number; max: number }): string =>
     `${castCenter(String(split.max), 8, NORMAL_GREY)}│${castCenter(String(split.pick), 7, BOLD_WHITE)}`
@@ -223,7 +226,7 @@ function castingSection(casting: CastingRecord): string {
   const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
       const [first, second, third] = casting[lineNumber - 1]
-      return `│${castCenter(`Line ${lineNumber}`, 8, NORMAL_GREY)}│${cell(first)}│${cell(second)}│${cell(third)}│`
+      return `│${castCenter(`Line ${lineNumber}`, 8)}│${cell(first)}│${cell(second)}│${cell(third)}│`
     })
     .join('\n')
 
