@@ -22,6 +22,8 @@ pnpm hexagram-interactive   # Interactive hexagram (via tsx)
 # Both CLIs default to a full-screen tabbed viewer; append `-- --plain`
 # (or `-- --no-ui`) for the classic scrolling console output.
 # `-- --wrap-width <n>` caps the viewer's content wrap width (default 120)
+# `-- --numeric-input` switches the interactive casting prompt from the
+# default bouncing slider back to the legacy typed-number input
 
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files
@@ -60,15 +62,20 @@ Lines 6 and 9 are "moving lines". The resultant hexagram is obtained by flipping
 
 Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`src/types.ts`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `src/cli-utils-mode.ts`:
 
-- **Ink viewer (default)** — a full-screen tabbed viewer (`src/cli-viewer.tsx`) with up to four tabs (Casting / Transformation / Originating / Resultant), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, maxWrapWidth })` renders it on the alternate screen.
+- **Ink viewer (default)** — a full-screen tabbed viewer (`src/cli-viewer.tsx`) with up to four tabs (Casting / Transformation / Originating / Resultant), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` renders it on the alternate screen.
 
   The viewer owns a state machine: `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
-  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `src/cli-editors.tsx`) appears above the footer, hosting an in-tab `<NumberInput>` for each of the 18 splits in turn. Each Enter commits a `SplitRecord`, advances the per-line `makeLineGenerator`, and fills the matching cell in the table. While casting is in flight, all non-Casting tabs are locked and rendered with `dimColor`; Tab/arrow/PgUp/PgDn/g/G are no-ops. Only Escape and Ctrl+C exit.
-  - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown.
+  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `src/cli-editors.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `src/cli-utils-mode.ts`):
+    - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `pick: N / max` readout are both centred and stay anchored as the cursor moves. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
+    - **`inputMode: 'number'`** — the legacy typed-`<NumberInput>` prompt; Enter commits, out-of-range values are rejected with an inline error.
+      Each commit advances the per-line `makeLineGenerator` and fills the matching cell in the table. While casting is in flight, all non-Casting tabs are locked and rendered with `dimColor`; only Escape and Ctrl+C exit.
+  - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown (so `inputMode` is moot for random).
+
+  The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `src/cli-viewer.tsx`), where `N` is the number of committed splits.
 
   After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `src/cli-utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
 
-- **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` has no effect here.
+- **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 
 Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering in `src/cli-utils-output.ts`: `buildConsultationSections()` produces the per-tab strings, `castingSection()` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` output (and the saved file) is locked byte-for-byte by fixtures in `tests/fixtures/` — after intentionally changing a section builder, regenerate them with `pnpm generate-fixtures` (driven by the shared cases in `tests/fixtures/cases.ts`).
 
