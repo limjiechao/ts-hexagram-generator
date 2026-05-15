@@ -360,6 +360,42 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
+  it('advances the prompt to the next line with the correct max after the 3rd cast', async () => {
+    // Regression: previously `currentMaxRef.current` was only reset by the
+    // line-boundary `useEffect`, which fires after render — so the first frame
+    // after the 3rd cast displayed the stale 3rd-cast max (e.g. 1..31) under
+    // the new "Line 2 · 1st Cast" title. Validate that the synchronous reset
+    // in `submitSplit` brings the prompt back to 1..48 on the new line.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    // Picks (24, 20, 16) are within range for rounds 1/2/3 of an unmodified
+    // 49-stalk casting and produce a valid Line (6) — concrete enough to
+    // exercise the real generator end-to-end rather than mocking it.
+    stdin.write('24')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('20')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('16')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 2 · 1st Cast')
+    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
+    // And the previous line's intermediate max must not linger in the frame.
+    expect(frame).not.toContain('Pick a number from 1 to 31')
+    unmount()
+  })
+
   it('locks Tab while the casting phase is in progress', async () => {
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" />,

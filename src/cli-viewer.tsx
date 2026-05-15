@@ -521,6 +521,12 @@ export function ConsultationViewer({
     const { value: line } = generator.next()
     assertIsLine(line)
     lineGeneratorRef.current = null // ready for the next line
+    // Reset the displayed max synchronously so the immediate re-render shows
+    // the new line's first-cast range (1..48) instead of the stale third-cast
+    // max from this line. The line-boundary `useEffect` below will idempotently
+    // confirm the same value when it (re-)creates the placeholder generator,
+    // but that effect fires only after render — too late on its own.
+    currentMaxRef.current = stalksBeforeParting.length - 1
     dispatch({ type: 'splitCommitted', pick, max, line })
   }
 
