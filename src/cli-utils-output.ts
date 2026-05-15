@@ -194,6 +194,15 @@ function castLeft(text: string, width: number, color?: string): string {
   return ` ${body}${' '.repeat(trailing)}`
 }
 
+// Right-aligned cell: filler, then the (optionally styled) text, then a single
+// trailing space — keeps numeric values lined up against the right edge of the
+// column with a touch of breathing room from the border.
+function castRight(text: string, width: number, color?: string): string {
+  const leading = Math.max(0, width - text.length - 1)
+  const body = color ? `${color}${text}${NORMAL}` : text
+  return `${' '.repeat(leading)}${body} `
+}
+
 // The eighteen stalk divisions (十有八變) that produced the hexagram, laid out
 // as a single 6×3 table — rows are lines in hexagram order (Line 6 at top,
 // matching the diagram sections), columns are the three casts. Each cast shows
@@ -220,13 +229,16 @@ function castingSection(casting: CastingRecord): string {
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
 
+  // Line numbers and split picks right-align so multi-digit values line up
+  // against the right column edge; stalks counts stay centred (they're
+  // structural context, not the value the eye should track).
   const cell = (split: { pick: number; max: number }): string =>
-    `${castCenter(String(split.max), 8, NORMAL_GREY)}│${castCenter(String(split.pick), 7, BOLD_WHITE)}`
+    `${castCenter(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
 
   const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
       const [first, second, third] = casting[lineNumber - 1]
-      return `│${castCenter(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
+      return `│${castRight(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
     })
     .join('\n')
 
