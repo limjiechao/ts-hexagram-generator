@@ -1,6 +1,10 @@
 import { expect, test } from 'vitest'
 
-import { parseWrapWidth, shouldUsePlainMode } from '../src/cli-utils-mode'
+import {
+  parseWrapWidth,
+  shouldUseNumericInput,
+  shouldUsePlainMode,
+} from '../src/cli-utils-mode'
 
 test('shouldUsePlainMode() detects --plain', () => {
   expect(shouldUsePlainMode(['--plain'])).toBe(true)
@@ -41,4 +45,19 @@ test('parseWrapWidth() ignores non-positive-integer values', () => {
   expect(parseWrapWidth(['--wrap-width', '0'])).toBe(120)
   expect(parseWrapWidth(['--wrap-width', '-5'])).toBe(120)
   expect(parseWrapWidth(['--wrap-width'])).toBe(120)
+})
+
+test('shouldUseNumericInput() detects --numeric-input', () => {
+  expect(shouldUseNumericInput(['--numeric-input'])).toBe(true)
+})
+
+test('shouldUseNumericInput() detects the flag among other arguments', () => {
+  expect(shouldUseNumericInput(['foo', '--numeric-input', '--plain'])).toBe(
+    true,
+  )
+})
+
+test('shouldUseNumericInput() is false without the flag', () => {
+  expect(shouldUseNumericInput([])).toBe(false)
+  expect(shouldUseNumericInput(['foo', '--bar'])).toBe(false)
 })

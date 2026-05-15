@@ -1,8 +1,10 @@
 import process from 'node:process'
 
 export type OutputMode = 'ink' | 'plain'
+export type InputMode = 'slider' | 'number'
 
 const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
+const NUMERIC_INPUT_FLAGS = new Set(['--numeric-input'])
 
 /**
  * Whether the given CLI arguments request the plain (non-Ink) output mode.
@@ -10,6 +12,15 @@ const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
  */
 export function shouldUsePlainMode(argv: string[]): boolean {
   return argv.some((argument) => PLAIN_MODE_FLAGS.has(argument))
+}
+
+/**
+ * Whether the given CLI arguments request the legacy typed-number casting
+ * prompt instead of the new default bouncing slider. Pure — takes `argv`
+ * explicitly so it can be unit-tested without `process`.
+ */
+export function shouldUseNumericInput(argv: string[]): boolean {
+  return argv.some((argument) => NUMERIC_INPUT_FLAGS.has(argument))
 }
 
 /**
@@ -26,6 +37,17 @@ export function resolveOutputMode(): OutputMode {
   if (!process.stdout?.isTTY) return 'plain'
 
   return 'ink'
+}
+
+/**
+ * Resolve which casting input mode the Ink viewer should use this run. The
+ * bouncing slider is the default; `--numeric-input` opts back into the
+ * typed-number prompt.
+ */
+export function resolveInputMode(): InputMode {
+  return shouldUseNumericInput(process.argv?.slice(2) ?? [])
+    ? 'number'
+    : 'slider'
 }
 
 export const DEFAULT_MAX_WRAP_WIDTH = 120
