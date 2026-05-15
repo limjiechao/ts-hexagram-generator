@@ -513,8 +513,12 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     const frame = lastFrame() ?? ''
     // The casting table header row is intact (no mid-row truncation that
-    // would leave a dangling `│` with no cell content after it).
-    expect(frame).toContain('│ Line │')
+    // would leave a dangling `│` with no cell content after it). After R3
+    // the header cells are SGR-wrapped (HEADING_GREY), so strip ANSI
+    // before checking the literal substring.
+    // eslint-disable-next-line no-control-regex
+    const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
+    expect(stripped).toContain('│ Line │')
     // The pan-status pill renders, proving the row is wider than the cols.
     expect(frame).toContain('◀')
     expect(frame).toContain('▶')

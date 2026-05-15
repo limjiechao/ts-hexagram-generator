@@ -235,15 +235,15 @@ export function castingSection(casting: PartialCastingRecord): string {
   // Line/Split headers, and the row labels — calm against the bold-grey
   // Stalks scaffolding and the bold-white picks.
   const castRow =
-    `│      │${castCenter('1st Cast', 16)}│` +
-    `${castCenter('2nd Cast', 16)}│` +
-    `${castCenter('3rd Cast', 16)}│`
+    `│      │${castCenter('1st Cast', 16, HEADING_GREY)}│` +
+    `${castCenter('2nd Cast', 16, HEADING_GREY)}│` +
+    `${castCenter('3rd Cast', 16, HEADING_GREY)}│`
 
   const colRow =
-    `│${castCenter('Line', 6)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
-    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
+    `│${castCenter('Line', 6, HEADING_GREY)}│` +
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Split', 7, HEADING_GREY)}│` +
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Split', 7, HEADING_GREY)}│` +
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Split', 7, HEADING_GREY)}│`
 
   // All numeric body cells right-align so multi-digit values line up against
   // the right column edge. Pending cells get a `·` in both sub-columns, dimmed
@@ -290,14 +290,17 @@ export function buildPartialCastingSections(
   }
 }
 
-function noMovingLinesSection(hexagram: Hexagram): string {
+function noMovingLinesSection(
+  hexagram: Hexagram,
+  options: { showNoMovingLinesNotice?: boolean } = {},
+): string {
+  const { showNoMovingLinesNotice = true } = options
   const { Text } = getHexagramRecord(hexagram)
+  const notice = showNoMovingLinesNotice ? `${NORMAL}(No moving lines)\n\n` : ''
 
   return `
 ${BOLD_GREY}LINES:
-${NORMAL}(No moving lines)
-
-${NORMAL_GREY}[Traditional Chinese]
+${notice}${NORMAL_GREY}[Traditional Chinese]
 
   ${NORMAL}(Scripture)
   ${BOLD_WHITE}${Text.Chinese.Traditional.Scripture.Hexagram}
@@ -503,7 +506,7 @@ export function buildConsultationSections(
       `${originatingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
     resultant:
       movingLines.length > 0
-        ? `${resultantHexagramSection(hexagram)}\n\n${noMovingLinesSection(getResultantHexagram(hexagram))}`.trim()
+        ? `${resultantHexagramSection(hexagram)}\n\n${noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false })}`.trim()
         : null,
   }
 }
@@ -534,7 +537,7 @@ ${linesBlock(hexagram)}
 
 ${movingLines.length > 0 ? resultantHexagramSection(hexagram) : ''}
 
-${movingLines.length > 0 ? noMovingLinesSection(getResultantHexagram(hexagram)) : ''}
+${movingLines.length > 0 ? noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false }) : ''}
 `
 }
 
