@@ -21,7 +21,7 @@
 
 [1;90mTRANSFORMATION:
 
-[0m  Originating                                 Resultant
+[0m[1;90m  Originating                                 [0m[1;90mResultant[0m
 
   [1;97m8[0m  [1;97m━━━   ━━━[0m  （六, 6th）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （六, 6th）
   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）

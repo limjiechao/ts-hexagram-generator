@@ -36,6 +36,15 @@ export const BOLD_RED = '\u001B[1;91m'
 export const NORMAL = '\u001B[0m'
 export const NORMAL_GREY = '\u001B[90m'
 
+// Semantic palette — aliases over the base ANSI constants so viewers can
+// reference intent ("placeholder", "heading") instead of raw weights.
+// IMPORTANT: do not change the underlying ANSI bytes for aliases that flow
+// through the populated-output path — fixture byte-identity depends on it.
+export const HEADING_GREY: typeof BOLD_GREY = BOLD_GREY // section titles, column labels
+export const VALUE_WHITE: typeof BOLD_WHITE = BOLD_WHITE // populated numbers, user input
+export const MUTED_GREY: typeof NORMAL_GREY = NORMAL_GREY // labels, hints
+export const PLACEHOLDER_GREY = '\u001B[37m' // (new) medium-dim for `·`
+
 const hexagramLineDiagramMap = {
   6: '━━━ × ━━━',
   7: '━━━━━━━━━',
@@ -142,7 +151,9 @@ ${NORMAL}(No transformation)
     [originatingLine1, resultantLine1, POSITION_LABELS[1]],
   ]
 
-  const headerLine = `${padToColumn('  Originating', RIGHT_COLUMN)}Resultant`
+  const headerLine =
+    `${BOLD_GREY}${padToColumn('  Originating', RIGHT_COLUMN)}${NORMAL}` +
+    `${BOLD_GREY}Resultant${NORMAL}`
 
   const lineRows = pairs
     .map(([originatingLine, resultantLine, pos]) => {
@@ -239,7 +250,7 @@ export function castingSection(casting: PartialCastingRecord): string {
   // so the eye reads them as "not yet picked".
   const cell = (split: PartialSplitRecord): string =>
     split === null
-      ? `${castRight('·', 8, NORMAL_GREY)}│${castRight('·', 7, NORMAL_GREY)}`
+      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}`
       : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
 
   const dataRows = [6, 5, 4, 3, 2, 1]
