@@ -201,21 +201,21 @@ function castLeft(text: string, width: number, color?: string): string {
 // range) alongside the index parted at (`Split`). The query is not repeated
 // here — it has its own section.
 function castingSection(casting: CastingRecord): string {
-  const TOP = '┌────────┬────────────────┬────────────────┬────────────────┐'
-  const SUB = '│        ├────────┬───────┼────────┬───────┼────────┬───────┤'
-  const MID = '├────────┼────────┼───────┼────────┼───────┼────────┼───────┤'
-  const BOTTOM = '└────────┴────────┴───────┴────────┴───────┴────────┴───────┘'
+  const TOP = '┌──────┬────────────────┬────────────────┬────────────────┐'
+  const SUB = '│      ├────────┬───────┼────────┬───────┼────────┬───────┤'
+  const MID = '├──────┼────────┼───────┼────────┼───────┼────────┼───────┤'
+  const BOTTOM = '└──────┴────────┴───────┴────────┴───────┴────────┴───────┘'
 
   // Plain (default-fg) cells leave the structural framing — cast names, the
-  // Split header, and the row labels — calm against the bold-grey column
-  // scaffolding and the bold-white picks.
+  // Line/Split headers, and the row labels — calm against the bold-grey
+  // Stalks scaffolding and the bold-white picks.
   const castRow =
-    `│        │${castLeft('First Cast', 16)}│` +
+    `│      │${castLeft('First Cast', 16)}│` +
     `${castLeft('Second Cast', 16)}│` +
     `${castLeft('Third Cast', 16)}│`
 
   const colRow =
-    `│${castCenter('Line', 8, BOLD_GREY)}│` +
+    `│${castCenter('Line', 6)}│` +
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
@@ -226,7 +226,7 @@ function castingSection(casting: CastingRecord): string {
   const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
       const [first, second, third] = casting[lineNumber - 1]
-      return `│${castCenter(`Line ${lineNumber}`, 8)}│${cell(first)}│${cell(second)}│${cell(third)}│`
+      return `│${castCenter(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
     })
     .join('\n')
 
