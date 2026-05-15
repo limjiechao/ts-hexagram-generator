@@ -229,11 +229,10 @@ function castingSection(casting: CastingRecord): string {
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│` +
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
 
-  // Line numbers and split picks right-align so multi-digit values line up
-  // against the right column edge; stalks counts stay centred (they're
-  // structural context, not the value the eye should track).
+  // All numeric body cells right-align so multi-digit values line up against
+  // the right column edge.
   const cell = (split: { pick: number; max: number }): string =>
-    `${castCenter(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
+    `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
 
   const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
