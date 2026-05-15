@@ -15,7 +15,13 @@ import {
   getResultantHexagram,
   getTrigramRecord,
 } from './getters.js'
-import type { CastingRecord, Hexagram, Line } from './types'
+import type {
+  CastingRecord,
+  Hexagram,
+  Line,
+  PartialCastingRecord,
+  PartialSplitRecord,
+} from './types'
 
 export async function getUserQuery(): Promise<string> {
   return await input({
@@ -201,7 +207,14 @@ function castRight(text: string, width: number, color?: string): string {
 // the stalks present before the division (`Stalks`, the round's selectable
 // range) alongside the index parted at (`Split`). The query is not repeated
 // here — it has its own section.
-function castingSection(casting: CastingRecord): string {
+//
+// Accepts a `PartialCastingRecord` so the same renderer is reused while the
+// casting is still being collected by the interactive viewer — `null` cells
+// fall back to a `·` placeholder of the same column width, so border characters
+// never shift as cells fill in. `CastingRecord` is structurally a subtype, so
+// fully-populated callers keep producing byte-identical output (the four
+// `tests/fixtures/plain-output-*.txt` byte-identity tests guard this).
+export function castingSection(casting: PartialCastingRecord): string {
   const TOP = '┌──────┬────────────────┬────────────────┬────────────────┐'
   const SUB = '│      ├────────┬───────┼────────┬───────┼────────┬───────┤'
   const MID = '├──────┼────────┼───────┼────────┼───────┼────────┼───────┤'
@@ -222,9 +235,12 @@ function castingSection(casting: CastingRecord): string {
     `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7)}│`
 
   // All numeric body cells right-align so multi-digit values line up against
-  // the right column edge.
-  const cell = (split: { pick: number; max: number }): string =>
-    `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
+  // the right column edge. Pending cells get a `·` in both sub-columns, dimmed
+  // so the eye reads them as "not yet picked".
+  const cell = (split: PartialSplitRecord): string =>
+    split === null
+      ? `${castRight('·', 8, NORMAL_GREY)}│${castRight('·', 7, NORMAL_GREY)}`
+      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
 
   const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
@@ -244,6 +260,23 @@ ${MID}
 ${dataRows}
 ${BOTTOM}
 `.trim()
+}
+
+/**
+ * Build just the two sections that render while the casting is still being
+ * collected — the query (frozen once submitted) and the partial casting
+ * table. Used by the Ink viewer for transient mid-flow rendering; the other
+ * sections (transformation, originating, resultant) are only meaningful after
+ * the hexagram is complete and are built via `buildConsultationSections`.
+ */
+export function buildPartialCastingSections(
+  query: string,
+  casting: PartialCastingRecord,
+): Pick<ConsultationSections, 'query' | 'casting'> {
+  return {
+    query: querySection(query),
+    casting: castingSection(casting),
+  }
 }
 
 function noMovingLinesSection(hexagram: Hexagram): string {

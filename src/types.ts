@@ -88,6 +88,35 @@ export const assertIsCastingRecord: (
   }
 }
 
+// Partial counterparts of the above — used while the casting is still being
+// collected (e.g. inside the Ink viewer's interactive flow). A `null` cell
+// means "not yet picked"; the casting table renders it as a placeholder.
+// `CastingRecord` is structurally a subtype, so fully-populated callers
+// continue working without a widening cast.
+export type PartialSplitRecord = SplitRecord | null
+export type PartialLineCasting = [
+  PartialSplitRecord,
+  PartialSplitRecord,
+  PartialSplitRecord,
+]
+export type PartialCastingRecord = [
+  PartialLineCasting,
+  PartialLineCasting,
+  PartialLineCasting,
+  PartialLineCasting,
+  PartialLineCasting,
+  PartialLineCasting,
+]
+
+export const emptyPartialCastingRecord = (): PartialCastingRecord => [
+  [null, null, null],
+  [null, null, null],
+  [null, null, null],
+  [null, null, null],
+  [null, null, null],
+  [null, null, null],
+]
+
 export type LineGeneratorResult = {
   line: Line
   rounds: [FourOperationsResult, FourOperationsResult, FourOperationsResult]
