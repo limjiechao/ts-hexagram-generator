@@ -77,7 +77,7 @@ const ELLIPSIS = '…'
 const MIN_CONTENT_WIDTH = 100
 
 const KEY_HINTS_TEMPLATE = (n: number): string =>
-  `Tab: switch   1-${n}: jump   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
+  `Tab/1-${n}: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
 const KEY_HINTS_FLOW = 'Esc/Ctrl+C: quit'
 
 function clamp(value: number, min: number, max: number): number {
@@ -85,11 +85,24 @@ function clamp(value: number, min: number, max: number): number {
 }
 
 // 18 splits total (6 lines × 3 casts). Footer shows casting progress as
-// `▰▰▱▱…  N/18` to give a glanceable sense of flow completion.
+// `■■■□□□…  N/18` to give a glanceable sense of flow completion. Filled
+// and empty squares read as discrete units (one per cast) and stay legible
+// across the fonts users are likely to have.
 function renderProgressBar(completed: number, total: number): string {
-  const filled = '▰'.repeat(completed)
-  const empty = '▱'.repeat(total - completed)
+  const filled = '■'.repeat(completed)
+  const empty = '□'.repeat(total - completed)
   return `${filled}${empty}  ${completed}/${total}`
+}
+
+// Ink's <Text dimColor> wraps its child in [2m…[22m, but embedded [0m
+// resets inside the rendered content clear the dim mid-string — the
+// result is a sea of mixed-intensity rows. Strip every SGR code from
+// the placeholder rows before handing them to Ink, so the entire region
+// reads as uniformly dim.
+// oxlint-disable-next-line no-control-regex
+const ANSI_PATTERN: RegExp = /\[[0-9;]*m/g
+function stripAnsi(text: string): string {
+  return text.replaceAll(ANSI_PATTERN, '')
 }
 
 // Wrap a pre-formatted ANSI string to `width` columns. `trim: false` keeps the
@@ -139,12 +152,7 @@ function QueryBox({
 }): ReactElement {
   return (
     <Box borderStyle="round" width={width} flexShrink={0}>
-      {/*
-        Raw ANSI content: this <Text> (and its ancestors) must carry no color
-        props, or Ink would emit its own SGR codes and override the embedded
-        ones.
-      */}
-      <Text>{query}</Text>
+      <Text>{` ${query}`}</Text>
     </Box>
   )
 }
@@ -331,6 +339,19 @@ type FlowAction =
     }
   | { type: 'computeFailed'; error: Error }
 
+// Recover the user's plain query text from a pre-built `querySection()`
+// output of the shape `${BOLD_GREY}QUERY:\n\n  ${BOLD_WHITE}<query>`. Strip
+// every SGR code, trim the leading `QUERY:` label + blank line, and return
+// the body. Used only on the test-mode `prebuiltSections` entry path so
+// the locked QueryBox (which now reads `state.query` directly per R1) has
+// something to display.
+function extractQueryText(querySection: string): string {
+  const stripped = querySection.replaceAll(ANSI_PATTERN, '')
+  const lines = stripped.split('\n')
+  const queryLine = lines.at(-1) ?? ''
+  return queryLine.trim()
+}
+
 function initialFlowState(
   flowKind: FlowKind,
   preBuiltSections: ConsultationSections | null,
@@ -340,7 +361,8 @@ function initialFlowState(
   return {
     mode: isDone ? 'done' : 'awaitingQuery',
     flowKind,
-    query: '',
+    query:
+      preBuiltSections === null ? '' : extractQueryText(preBuiltSections.query),
     queryBuffer: '',
     castingBuffer: '',
     error: null,
@@ -654,9 +676,16 @@ export function ConsultationViewer({
   // chrome never collides with the gutter or padding.
   const innerCols = Math.max(1, cols - 2 - 1)
 
+  const HEADER_HEIGHT = 1
+  const queryContent =
+    state.mode === 'awaitingQuery' ? state.queryBuffer : state.query
   const wrappedQuery = useMemo(
-    () => wrapToWidth(effectiveSections.query, Math.max(1, innerCols - 2)),
-    [effectiveSections.query, innerCols],
+    () =>
+      wrapToWidth(
+        queryContent.length === 0 ? ' ' : queryContent,
+        Math.max(1, innerCols - 2),
+      ),
+    [queryContent, innerCols],
   )
   const queryBoxHeight = wrappedQuery.split('\n').length + QUERY_BORDER_HEIGHT
 
@@ -673,6 +702,7 @@ export function ConsultationViewer({
   const viewportHeight = Math.max(
     1,
     termRows -
+      HEADER_HEIGHT -
       queryBoxHeight -
       MARGIN_QUERY_TO_TABS -
       TAB_BAR_HEIGHT -
@@ -862,6 +892,7 @@ export function ConsultationViewer({
 
   return (
     <Box flexDirection="column" paddingX={1} width={cols} height={termRows}>
+      <Text>{`${BOLD_GREY}QUERY:${NORMAL}`}</Text>
       {state.mode === 'awaitingQuery' ? (
         <QueryEditor
           value={state.queryBuffer}
@@ -872,7 +903,7 @@ export function ConsultationViewer({
           onSubmit={() => dispatch({ type: 'querySubmit' })}
         />
       ) : (
-        <QueryBox query={wrappedQuery} width={innerCols} />
+        <QueryBox query={state.query} width={innerCols} />
       )}
       <Box marginTop={MARGIN_QUERY_TO_TABS} flexShrink={0}>
         <TabBar
@@ -886,10 +917,10 @@ export function ConsultationViewer({
         <Box flexDirection="column" flexGrow={1}>
           {state.mode === 'awaitingQuery' ? (
             // T3.7 — dim the placeholder casting table while the user is still
-            // typing the query. ANSI escapes inside the partial output (the
-            // grey `·`s) compose cleanly with Ink's emitted `[2m`.
+            // typing the query. Embedded SGR codes inside the partial output
+            // would cancel Ink's `[2m` mid-stream, so strip them first.
             <Box height={viewportHeight} flexDirection="column">
-              <Text dimColor>{visibleRows.join('\n')}</Text>
+              <Text dimColor>{stripAnsi(visibleRows.join('\n'))}</Text>
             </Box>
           ) : (
             <ScrollableSection

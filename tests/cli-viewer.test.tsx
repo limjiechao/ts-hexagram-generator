@@ -516,7 +516,6 @@ describe('ConsultationViewer (T3 refinements)', () => {
     // would leave a dangling `│` with no cell content after it). After R3
     // the header cells are SGR-wrapped (HEADING_GREY), so strip ANSI
     // before checking the literal substring.
-    // eslint-disable-next-line no-control-regex
     const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
     expect(stripped).toContain('│ Line │')
     // The pan-status pill renders, proving the row is wider than the cols.
@@ -610,7 +609,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     stdin.write('\r')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  0/18')
+    expect(frame).toContain('□□□□□□□□□□□□□□□□□□  0/18')
     unmount()
   })
 
@@ -636,7 +635,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     stdin.write('\r')
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('▰▰▰▱▱▱▱▱▱▱▱▱▱▱▱▱▱▱  3/18')
+    expect(frame).toContain('■■■□□□□□□□□□□□□□□□  3/18')
     unmount()
   })
 
@@ -696,6 +695,132 @@ describe('ConsultationViewer (T3 refinements)', () => {
     for (const row of nonEmptyLines) {
       expect(row.startsWith(' ')).toBe(true)
     }
+    unmount()
+  })
+})
+
+describe('ConsultationViewer (Pass #2)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('renders QUERY: header on its own row above the box (awaitingQuery)', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    const frame = lastFrame() ?? ''
+    const lines = frame.split('\n')
+    const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0)
+    expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
+    expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
+    // The next line should contain a top border character.
+    const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
+    expect(nextLine.includes('╭') || nextLine.includes('─')).toBe(true)
+    unmount()
+  })
+
+  it('renders QUERY: header on its own row above the box (done)', () => {
+    const customSections = buildConsultationSections(
+      'what say you',
+      [7, 8, 7, 8, 7, 8],
+      sampleCasting,
+    )
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={customSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    const lines = frame.split('\n')
+    const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0)
+    expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
+    expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
+    const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
+    expect(nextLine.includes('╭') || nextLine.includes('─')).toBe(true)
+    // The query text appears inside the box on a subsequent non-border line.
+    const queryLine = lines.find(
+      (line) =>
+        line.includes('what say you') &&
+        !line.includes('╭') &&
+        !line.includes('╰'),
+    )
+    expect(queryLine).toBeDefined()
+    unmount()
+  })
+
+  it('query box height does not jump when the query is submitted', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Hi')
+    await tick()
+    const beforeFrame = lastFrame() ?? ''
+    const beforeLines = beforeFrame.split('\n')
+    const beforeIndex = beforeLines.findIndex((line) =>
+      line.includes(' Casting '),
+    )
+    expect(beforeIndex).toBeGreaterThanOrEqual(0)
+    stdin.write('\r')
+    await tick()
+    const afterFrame = lastFrame() ?? ''
+    const afterLines = afterFrame.split('\n')
+    const afterIndex = afterLines.findIndex((line) =>
+      line.includes(' Casting '),
+    )
+    expect(afterIndex).toBe(beforeIndex)
+    unmount()
+  })
+
+  it('placeholder casting table renders without bold-grey accents', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    const frame = lastFrame() ?? ''
+    // R2: stripAnsi removes all SGR codes from the dimmed casting region.
+    // The BOLD_GREY sequence `[1;90m` must not appear inside the placeholder
+    // casting rows (the QUERY: header above is its own <Text> render and is
+    // not affected — but Ink composes it down to plain bytes, so the
+    // load-bearing check is the absence of [1;90m anywhere in the frame).
+    expect(frame).not.toContain('[1;90m')
+    unmount()
+  })
+
+  it('KEY_HINTS_TEMPLATE merges Tab and digit hints', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame.includes('Tab/')).toBe(true)
+    expect(frame.includes('1-4: jump')).toBe(false)
+    unmount()
+  })
+
+  it('progress bar uses filled/empty squares (R6)', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const initialFrame = lastFrame() ?? ''
+    expect(initialFrame).toContain('□□□')
+    expect(initialFrame).not.toContain('▱')
+    // Drive Line 1 through 3 valid splits.
+    stdin.write('24')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('20')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('16')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const afterFrame = lastFrame() ?? ''
+    expect(afterFrame).toContain('■■■')
+    expect(afterFrame).not.toContain('▰')
     unmount()
   })
 })
