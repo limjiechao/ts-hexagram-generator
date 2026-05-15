@@ -115,11 +115,13 @@ describe('ConsultationViewer', () => {
   })
 
   it('scrolls the active section on arrow-down', async () => {
+    // The Casting table is compact (~14 rows) — fits a default 24-row
+    // viewport. Shrink rows so it overflows and arrow-down has to scroll.
+    windowSize.current = { columns: 100, rows: 14 }
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
 
-    // The default Casting tab (eighteen divisions) is long enough to scroll.
     const beforeScroll = lastFrame() ?? ''
 
     stdin.write(ARROW_DOWN)

@@ -4,43 +4,20 @@
 
   [1;97mShould I take the new position?
 
-[1;90mCASTING:
+[1;90mCASTING:[0m
 
-[0m(Line 6 at top; three divisions per line)
-
-  [90mLine 6:  [1;97m21 [90m/ [1;97m6 [90m/ [1;97m30[0m
-  [90mLine 5:  [1;97m16 [90m/ [1;97m33 [90m/ [1;97m9[0m
-  [90mLine 4:  [1;97m44 [90m/ [1;97m2 [90m/ [1;97m28[0m
-  [90mLine 3:  [1;97m8 [90m/ [1;97m40 [90m/ [1;97m13[0m
-  [90mLine 2:  [1;97m31 [90m/ [1;97m19 [90m/ [1;97m22[0m
-  [90mLine 1:  [1;97m5 [90m/ [1;97m11 [90m/ [1;97m7[0m
-
-[0m(18 divisions in casting order)
-
-  [1;90mLine 1:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m5[0m
-    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m11[0m
-    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m7[0m
-  [1;90mLine 2:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m31[0m
-    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m19[0m
-    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m22[0m
-  [1;90mLine 3:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m8[0m
-    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m40[0m
-    [0mDivide the stalks. Pick a number from 1 to 35 [90m→ [1;97m13[0m
-  [1;90mLine 4:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m44[0m
-    [0mDivide the stalks. Pick a number from 1 to 43 [90m→ [1;97m2[0m
-    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m28[0m
-  [1;90mLine 5:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m16[0m
-    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m33[0m
-    [0mDivide the stalks. Pick a number from 1 to 35 [90m→ [1;97m9[0m
-  [1;90mLine 6:[0m
-    [0mDivide the stalks. Pick a number from 1 to 48 [90m→ [1;97m21[0m
-    [0mDivide the stalks. Pick a number from 1 to 39 [90m→ [1;97m6[0m
-    [0mDivide the stalks. Pick a number from 1 to 31 [90m→ [1;97m30[0m
+┌────────┬────────────────┬────────────────┬────────────────┐
+│        │ [1;90mFirst Cast[0m     │ [1;90mSecond Cast[0m    │ [1;90mThird Cast[0m     │
+│        ├────────┬───────┼────────┬───────┼────────┬───────┤
+│  [1;90mLine[0m  │ [1;90mStalks[0m │ [1;90mSplit[0m │ [1;90mStalks[0m │ [1;90mSplit[0m │ [1;90mStalks[0m │ [1;90mSplit[0m │
+├────────┼────────┼───────┼────────┼───────┼────────┼───────┤
+│ [90mLine 6[0m │   [90m48[0m   │  [1;97m21[0m   │   [90m39[0m   │   [1;97m6[0m   │   [90m31[0m   │  [1;97m30[0m   │
+│ [90mLine 5[0m │   [90m48[0m   │  [1;97m16[0m   │   [90m39[0m   │  [1;97m33[0m   │   [90m35[0m   │   [1;97m9[0m   │
+│ [90mLine 4[0m │   [90m48[0m   │  [1;97m44[0m   │   [90m43[0m   │   [1;97m2[0m   │   [90m39[0m   │  [1;97m28[0m   │
+│ [90mLine 3[0m │   [90m48[0m   │   [1;97m8[0m   │   [90m43[0m   │  [1;97m40[0m   │   [90m35[0m   │  [1;97m13[0m   │
+│ [90mLine 2[0m │   [90m48[0m   │  [1;97m31[0m   │   [90m43[0m   │  [1;97m19[0m   │   [90m39[0m   │  [1;97m22[0m   │
+│ [90mLine 1[0m │   [90m48[0m   │   [1;97m5[0m   │   [90m43[0m   │  [1;97m11[0m   │   [90m39[0m   │   [1;97m7[0m   │
+└────────┴────────┴───────┴────────┴───────┴────────┴───────┘
 
 [1;90mTRANSFORMATION:
 

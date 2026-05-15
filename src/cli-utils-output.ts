@@ -177,41 +177,66 @@ function querySection(query: string): string {
   ${BOLD_WHITE}${query || '(Query not provided)'}`
 }
 
-// The eighteen stalk divisions (十有八變) that produced the hexagram, rendered
-// two ways: a compact grid in hexagram order (line 6 at top, matching the
-// diagram sections) and a chronological replay in casting order (line 1 first,
-// the order the divisions were actually made). The query is not repeated here —
-// it has its own section.
+// Pad `text` to `width` visual columns, centred. The styling wraps just the
+// text — ANSI codes are zero-width so the cell still aligns.
+function castCenter(text: string, width: number, color?: string): string {
+  const leftPad = Math.floor((width - text.length) / 2)
+  const rightPad = width - text.length - leftPad
+  const body = color ? `${color}${text}${NORMAL}` : text
+  return `${' '.repeat(leftPad)}${body}${' '.repeat(rightPad)}`
+}
+
+// Left-aligned cell: 1 leading space, then the (optionally styled) text, then
+// filler to `width`. Matches the cast-group headers in the casting table.
+function castLeft(text: string, width: number, color?: string): string {
+  const trailing = Math.max(0, width - text.length - 1)
+  const body = color ? `${color}${text}${NORMAL}` : text
+  return ` ${body}${' '.repeat(trailing)}`
+}
+
+// The eighteen stalk divisions (十有八變) that produced the hexagram, laid out
+// as a single 6×3 table — rows are lines in hexagram order (Line 6 at top,
+// matching the diagram sections), columns are the three casts. Each cast shows
+// the stalks present before the division (`Stalks`, the round's selectable
+// range) alongside the index parted at (`Split`). The query is not repeated
+// here — it has its own section.
 function castingSection(casting: CastingRecord): string {
-  const grid = [6, 5, 4, 3, 2, 1]
+  const TOP = '┌────────┬────────────────┬────────────────┬────────────────┐'
+  const SUB = '│        ├────────┬───────┼────────┬───────┼────────┬───────┤'
+  const MID = '├────────┼────────┼───────┼────────┼───────┼────────┼───────┤'
+  const BOTTOM = '└────────┴────────┴───────┴────────┴───────┴────────┴───────┘'
+
+  const castRow =
+    `│        │${castLeft('First Cast', 16, BOLD_GREY)}│` +
+    `${castLeft('Second Cast', 16, BOLD_GREY)}│` +
+    `${castLeft('Third Cast', 16, BOLD_GREY)}│`
+
+  const colRow =
+    `│${castCenter('Line', 8, BOLD_GREY)}│` +
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│` +
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│` +
+    `${castCenter('Stalks', 8, BOLD_GREY)}│${castCenter('Split', 7, BOLD_GREY)}│`
+
+  const cell = (split: { pick: number; max: number }): string =>
+    `${castCenter(String(split.max), 8, NORMAL_GREY)}│${castCenter(String(split.pick), 7, BOLD_WHITE)}`
+
+  const dataRows = [6, 5, 4, 3, 2, 1]
     .map((lineNumber) => {
       const [first, second, third] = casting[lineNumber - 1]
-      return `  ${NORMAL_GREY}Line ${lineNumber}:  ${BOLD_WHITE}${first.pick} ${NORMAL_GREY}/ ${BOLD_WHITE}${second.pick} ${NORMAL_GREY}/ ${BOLD_WHITE}${third.pick}${NORMAL}`
-    })
-    .join('\n')
-
-  const replay = casting
-    .map((lineCasting, index) => {
-      const divisions = lineCasting
-        .map(
-          ({ pick, max }) =>
-            `    ${NORMAL}Divide the stalks. Pick a number from 1 to ${max} ${NORMAL_GREY}→ ${BOLD_WHITE}${pick}${NORMAL}`,
-        )
-        .join('\n')
-      return `  ${BOLD_GREY}Line ${index + 1}:${NORMAL}\n${divisions}`
+      return `│${castCenter(`Line ${lineNumber}`, 8, NORMAL_GREY)}│${cell(first)}│${cell(second)}│${cell(third)}│`
     })
     .join('\n')
 
   return `
-${BOLD_GREY}CASTING:
+${BOLD_GREY}CASTING:${NORMAL}
 
-${NORMAL}(Line 6 at top; three divisions per line)
-
-${grid}
-
-${NORMAL}(18 divisions in casting order)
-
-${replay}
+${TOP}
+${castRow}
+${SUB}
+${colRow}
+${MID}
+${dataRows}
+${BOTTOM}
 `.trim()
 }
 
