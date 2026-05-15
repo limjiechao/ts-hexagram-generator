@@ -10,7 +10,6 @@ import {
   getUserQuery,
   logAndSaveConsultationOutput,
   NORMAL,
-  saveConsultation,
 } from './cli-utils-output'
 import { runConsultationViewer } from './cli-viewer'
 import {
@@ -149,17 +148,19 @@ export async function main(): Promise<void> {
   `)
 
   try {
-    const { query, hexagram, casting } = await getHexagramViaInteraction()
-
     if (resolveOutputMode() === 'plain') {
+      // Plain mode keeps the Inquirer-driven terminal flow: gather the
+      // query and 18 splits at the prompt, then print + save the formatted
+      // reading.
+      const { query, hexagram, casting } = await getHexagramViaInteraction()
       await logAndSaveConsultationOutput(query, hexagram, casting)
     } else {
-      const { sections, savedPath } = await saveConsultation(
-        query,
-        hexagram,
-        casting,
-      )
-      await runConsultationViewer(sections, savedPath, resolveWrapWidth())
+      // Ink mode hands the entire flow to the viewer — query box and the
+      // 18 split prompts live inside the Casting tab.
+      await runConsultationViewer({
+        flowKind: 'interactive',
+        maxWrapWidth: resolveWrapWidth(),
+      })
     }
 
     process.exit(0)
