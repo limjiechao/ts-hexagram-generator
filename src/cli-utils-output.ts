@@ -186,14 +186,6 @@ function castCenter(text: string, width: number, color?: string): string {
   return `${' '.repeat(leftPad)}${body}${' '.repeat(rightPad)}`
 }
 
-// Left-aligned cell: 1 leading space, then the (optionally styled) text, then
-// filler to `width`. Matches the cast-group headers in the casting table.
-function castLeft(text: string, width: number, color?: string): string {
-  const trailing = Math.max(0, width - text.length - 1)
-  const body = color ? `${color}${text}${NORMAL}` : text
-  return ` ${body}${' '.repeat(trailing)}`
-}
-
 // Right-aligned cell: filler, then the (optionally styled) text, then a single
 // trailing space — keeps numeric values lined up against the right edge of the
 // column with a touch of breathing room from the border.
@@ -219,9 +211,9 @@ function castingSection(casting: CastingRecord): string {
   // Line/Split headers, and the row labels — calm against the bold-grey
   // Stalks scaffolding and the bold-white picks.
   const castRow =
-    `│      │${castLeft('1st Cast', 16)}│` +
-    `${castLeft('2nd Cast', 16)}│` +
-    `${castLeft('3rd Cast', 16)}│`
+    `│      │${castCenter('1st Cast', 16)}│` +
+    `${castCenter('2nd Cast', 16)}│` +
+    `${castCenter('3rd Cast', 16)}│`
 
   const colRow =
     `│${castCenter('Line', 6)}│` +
