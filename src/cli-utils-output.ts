@@ -219,9 +219,9 @@ function castingSection(casting: CastingRecord): string {
   // Line/Split headers, and the row labels — calm against the bold-grey
   // Stalks scaffolding and the bold-white picks.
   const castRow =
-    `│      │${castLeft('First Cast', 16)}│` +
-    `${castLeft('Second Cast', 16)}│` +
-    `${castLeft('Third Cast', 16)}│`
+    `│      │${castLeft('1st Cast', 16)}│` +
+    `${castLeft('2nd Cast', 16)}│` +
+    `${castLeft('3rd Cast', 16)}│`
 
   const colRow =
     `│${castCenter('Line', 6)}│` +
