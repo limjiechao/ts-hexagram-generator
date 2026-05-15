@@ -110,16 +110,11 @@ describe('QueryEditor', () => {
     const { lastFrame, unmount } = render(
       <QueryEditorHost onSubmit={onSubmit} />,
     )
-    // The cursor cell now sits between the two placeholder halves, so the
-    // literal "Enter your query" is split by ANSI escapes. Assert the two
-    // segments individually.
-    const frame = lastFrame() ?? ''
-    expect(frame).toContain('Enter ')
-    expect(frame).toContain('your query')
+    expect(lastFrame() ?? '').toContain('Enter your query')
     unmount()
   })
 
-  it("places the cursor after the placeholder's first space", () => {
+  it('places the cursor at the start of the placeholder', () => {
     const onSubmit = vi.fn()
     const { lastFrame, unmount } = render(
       <QueryEditor
@@ -138,8 +133,10 @@ describe('QueryEditor', () => {
     const cursorIndex = frame.indexOf(INVERSE)
     const before = frame.slice(0, cursorIndex)
     const after = frame.slice(cursorIndex + INVERSE.length)
-    expect(before).toContain('Enter ')
-    expect(after).toContain('your')
+    // Cursor sits before the placeholder text — column 0 is where typing
+    // appends to, since the buffer is empty.
+    expect(before).not.toContain('Enter')
+    expect(after).toContain('Enter your query')
     unmount()
   })
 
@@ -268,11 +265,8 @@ describe('QueryEditor', () => {
     stdin.write(CTRL_C)
     await tick()
     // The buffer must NOT have collected escape/ctrl-c bytes; placeholder
-    // still shown because nothing was typed. The cursor splits the two
-    // halves of the placeholder, so assert each segment individually.
-    const frame = lastFrame() ?? ''
-    expect(frame).toContain('Enter ')
-    expect(frame).toContain('your query')
+    // still shown because nothing was typed.
+    expect(lastFrame() ?? '').toContain('Enter your query')
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })

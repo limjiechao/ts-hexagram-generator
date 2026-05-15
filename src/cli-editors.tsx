@@ -83,14 +83,11 @@ export function QueryEditor({
   )
 
   if (value.length === 0 && placeholder !== undefined) {
-    // Split the placeholder at its first space and render <prefix><cursor><suffix>,
-    // all dimmed. The cursor visually marks where typing will begin.
-    const firstSpaceIndex = placeholder.indexOf(' ')
-    const hasSpace = firstSpaceIndex !== -1
-    const prefix = hasSpace
-      ? placeholder.slice(0, firstSpaceIndex + 1)
-      : placeholder
-    const suffix = hasSpace ? placeholder.slice(firstSpaceIndex + 1) : ''
+    // Cursor sits at column 0 (where typing will actually appear, since the
+    // buffer is empty and input is appended) with the placeholder dimmed
+    // immediately after it. A previous version split the placeholder at its
+    // first space and put the cursor mid-text, which read like the prefix
+    // was already typed.
     return (
       <Box
         borderStyle="round"
@@ -98,9 +95,8 @@ export function QueryEditor({
         width={width}
         flexShrink={0}
       >
-        <Text dimColor>{prefix}</Text>
         {focused && <Cursor />}
-        <Text dimColor>{suffix}</Text>
+        <Text dimColor>{placeholder}</Text>
       </Box>
     )
   }
