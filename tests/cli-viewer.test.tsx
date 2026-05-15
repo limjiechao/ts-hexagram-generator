@@ -9,7 +9,36 @@ import {
   truncateEnd,
   truncateStart,
 } from '../src/cli-viewer'
-import type { CastingRecord } from '../src/types'
+import type { CastingRecord, Hexagram } from '../src/types'
+
+// Stub the filesystem-touching half of `cli-utils-output` so the
+// interactive-mode tests can drive the viewer to completion without writing
+// real files to `consultations/`. `buildConsultationSections` and the partial-
+// rendering helpers stay live — they're pure.
+const consultationFileOutputMock = vi.hoisted(() =>
+  vi.fn(() => Promise.resolve('/tmp/consultation-mocked.txt')),
+)
+vi.mock('../src/cli-utils-output', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('../src/cli-utils-output')>()
+  return { ...actual, consultationFileOutput: consultationFileOutputMock }
+})
+
+// `generateRandomConsultation` is deterministic for the random-flow tests so
+// the viewer arrives at `done` with predictable casting data.
+const randomConsultationMock = vi.hoisted(() => {
+  const stubHexagram: Hexagram = [7, 8, 7, 8, 7, 8]
+  const stubCasting = Array.from({ length: 6 }, () => [
+    { pick: 24, max: 48 },
+    { pick: 20, max: 43 },
+    { pick: 16, max: 35 },
+  ]) as CastingRecord
+  return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
+})
+vi.mock('../src/random', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/random')>()
+  return { ...actual, generateRandomConsultation: randomConsultationMock }
+})
 
 // `useWindowSize` reads stdout dimensions; ink-testing-library's fake stdout
 // is fixed at 100 columns with no rows. Mock the hook so tests can exercise
@@ -256,6 +285,157 @@ describe('ConsultationViewer', () => {
     expect(frame.length).toBeGreaterThan(0)
     expect(frame.split('\n').length).toBeLessThanOrEqual(40)
 
+    unmount()
+  })
+})
+
+describe('ConsultationViewer (interactive flow)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('opens in awaitingQuery mode with an empty editable query box', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Enter your query for the oracle.')
+    // The empty casting table is visible in the content area.
+    expect(frame).toContain('CASTING:')
+    // The footer-bottom line shows the flow hint, not a saved-path line.
+    expect(frame).toContain('Type your query and press Enter.')
+    expect(frame).not.toContain('saved to')
+    unmount()
+  })
+
+  it('locks Tab while awaiting the query', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    const before = lastFrame() ?? ''
+    stdin.write('\t')
+    await tick()
+    const after = lastFrame() ?? ''
+    expect(after).toContain('Enter your query for the oracle.')
+    expect(after).not.toContain('TRANSFORMATION:')
+    // The query buffer should NOT have absorbed the tab character.
+    expect(before).toContain('Enter your query')
+    unmount()
+  })
+
+  it('reveals the casting prompt box once the query is submitted', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Hi')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 1 · 1st Cast')
+    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
+    // Saved-path line still absent — casting hasn't completed.
+    expect(frame).not.toContain('saved to')
+    unmount()
+  })
+
+  it('shows a validation error for out-of-range picks', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    // 99 is above the round-1 max of 48 — pressing Enter should surface the
+    // canonical error line and stay on the same cast.
+    stdin.write('99')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Pick a number from 1 to 48.')
+    expect(frame).toContain('Line 1 · 1st Cast')
+    unmount()
+  })
+
+  it('locks Tab while the casting phase is in progress', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write('\r')
+    await tick()
+    stdin.write('\t')
+    await tick()
+    const frame = lastFrame() ?? ''
+    // Tab must not have advanced the active tab — Casting prompt still shown.
+    expect(frame).toContain('Line 1 · 1st Cast')
+    expect(frame).not.toContain('TRANSFORMATION:')
+    unmount()
+  })
+
+  it('drives a random flow to done after the query is submitted', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="random" />,
+    )
+    stdin.write('Will the harvest be plentiful?')
+    await tick()
+    stdin.write('\r')
+    // Give the compute effect (microtask + mocked file write) time to settle.
+    await tick(150)
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('saved to /tmp/consultation-mocked.txt')
+    expect(randomConsultationMock).toHaveBeenCalledTimes(1)
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+    // No casting prompt box was ever rendered — the random flow skips that
+    // phase entirely.
+    expect(frame).not.toContain('Divide the stalks. Pick a number')
+    unmount()
+  })
+
+  it('unlocks Tab once the random flow reaches done', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="random" />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write('\r')
+    await tick(150)
+    stdin.write('\t')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('TRANSFORMATION:')
+    unmount()
+  })
+
+  it('exits cleanly when Escape is pressed mid-query', async () => {
+    const { stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    expect(() => stdin.write('')).not.toThrow()
+    await tick()
+    unmount()
+  })
+
+  it('exits cleanly when Ctrl+C is pressed mid-query', async () => {
+    const { stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    expect(() => stdin.write('')).not.toThrow()
+    await tick()
+    unmount()
+  })
+
+  it('accepts q as a regular character during the query phase', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" />,
+    )
+    stdin.write('quit?')
+    await tick()
+    expect(lastFrame() ?? '').toContain('quit?')
     unmount()
   })
 })

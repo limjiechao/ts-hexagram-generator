@@ -25,8 +25,7 @@ const sampleCasting = cases[0].casting
 // doesn't perturb structural comparisons. Hoisted to module scope so it isn't
 // recreated for every assertion.
 // oxlint-disable-next-line no-control-regex
-const stripAnsi = (text: string): string =>
-  text.replaceAll(/\[[0-9;]*m/g, '')
+const stripAnsi = (text: string): string => text.replaceAll(/\[[0-9;]*m/g, '')
 
 const borderColumns = (row: string): number[] => {
   const positions: number[] = []
