@@ -23,7 +23,10 @@ pnpm hexagram-interactive   # Interactive hexagram (via tsx)
 # (or `-- --no-ui`) for the classic scrolling console output.
 # `-- --wrap-width <n>` caps the viewer's content wrap width (default 120)
 # `-- --numeric-input` switches the interactive casting prompt from the
-# default bouncing slider back to the legacy typed-number input
+# default bouncing slider back to the legacy typed-number input.
+# The slider also auto-falls-back to typed input when `NO_COLOR=1` or
+# `CI=true` is set, so screen-reader and automation environments don't get
+# stuck watching a moving cursor (non-TTY stdout already routes to plain).
 
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files
@@ -32,7 +35,7 @@ pnpm generate-json-files
 pnpm generate-fixtures
 ```
 
-The statistical distribution test (`generateLines() should return valid report`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design.
+The statistical distribution test (`generateLines() should return valid report`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm test -- --exclude tests/random.test.ts` (or a `-t` filter that excludes its describe block).
 
 ## Architecture
 
