@@ -145,7 +145,7 @@ export function NumberInput({
       if (isGlobalExitKey(input, key)) return
       if (key.return) {
         if (value.length === 0) return // empty Enter is a no-op (Inquirer parity)
-        const parsed = Number(value)
+        const parsed = Number.parseInt(value, 10)
         if (!Number.isInteger(parsed) || parsed < min || parsed > max) {
           onError(`Pick a number from ${min} to ${max}.`)
           return
