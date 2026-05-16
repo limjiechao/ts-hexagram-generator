@@ -56,6 +56,26 @@ describe('consultationConsoleOutput', () => {
   }
 })
 
+// Guards the Ink-side composer the same way the plain test guards the
+// console output. Catches drift in `buildConsultationSections` that wouldn't
+// otherwise surface — e.g. a structural change to a single section's string
+// that the plain composer happens to mask via concatenation.
+describe('buildConsultationSections (fixture parity)', () => {
+  for (const { name, query, hexagram, casting } of cases) {
+    it(`matches the captured ink-sections fixture (${name})`, () => {
+      const expected = JSON.parse(
+        readFileSync(
+          path.join(fixturesDirectory, `ink-sections-${name}.json`),
+          'utf8',
+        ),
+      )
+      expect(buildConsultationSections(query, hexagram, casting)).toEqual(
+        expected,
+      )
+    })
+  }
+})
+
 describe('buildConsultationSections', () => {
   it('omits the resultant section when there are no moving lines', () => {
     const sections = buildConsultationSections(
