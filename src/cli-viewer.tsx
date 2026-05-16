@@ -81,7 +81,17 @@ const MIN_CONTENT_WIDTH = 100
 
 const KEY_HINTS_TEMPLATE = (n: number): string =>
   `Tab/1-${n}: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
-const KEY_HINTS_FLOW = 'Esc/Ctrl+C: quit'
+
+// Footer key hints during the casting phase. The slider's load-bearing key
+// is SPACE — without surfacing it here the prompt is undiscoverable. Number
+// mode advertises Enter for parity with the in-tab prompt label. ←/→ is the
+// horizontal-pan binding the viewer registers when slider content overflows.
+function keyHintsForCasting(inputMode: InputMode): string {
+  return inputMode === 'slider'
+    ? 'SPACE: part   ←→: pan   Esc/Ctrl+C: quit'
+    : 'Enter: commit   Esc/Ctrl+C: quit'
+}
+const KEY_HINTS_FLOW_DEFAULT = 'Esc/Ctrl+C: quit'
 
 function clamp(value: number, min: number, max: number): number {
   return Math.min(Math.max(value, min), max)
@@ -278,6 +288,7 @@ function FooterBar({
   wrapChip,
   flowHint,
   inFlow,
+  flowKeyHints,
   tabsLength,
 }: {
   savedPath: string
@@ -287,13 +298,14 @@ function FooterBar({
   wrapChip: string | null
   flowHint: string | null
   inFlow: boolean
+  flowKeyHints: string
   tabsLength: number
 }): ReactElement {
   const segments: string[] = []
   if (verticalStatus) segments.push(verticalStatus)
   if (horizontalStatus) segments.push(horizontalStatus)
   if (wrapChip) segments.push(wrapChip)
-  segments.push(inFlow ? KEY_HINTS_FLOW : KEY_HINTS_TEMPLATE(tabsLength))
+  segments.push(inFlow ? flowKeyHints : KEY_HINTS_TEMPLATE(tabsLength))
   const status = truncateEnd(segments.join('   '), cols)
   // During the flow, replace the saved-path line with a one-line progress
   // hint — there's no saved file yet.
@@ -1052,6 +1064,11 @@ export function ConsultationViewer({
           wrapChip={wrapChip}
           flowHint={flowHint}
           inFlow={state.mode !== 'done'}
+          flowKeyHints={
+            state.mode === 'casting'
+              ? keyHintsForCasting(inputMode)
+              : KEY_HINTS_FLOW_DEFAULT
+          }
           tabsLength={tabs.length}
         />
       </Box>
