@@ -8,17 +8,9 @@ import {
   QueryEditor,
   SliderInput,
 } from '../src/cli-editors'
+import { tick } from './helpers/async'
+import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 
-const ENTER = '\r'
-const BACKSPACE = ''
-const ESCAPE = ''
-const CTRL_C = ''
-
-// Let Ink's stdin → React → render pipeline settle after a simulated keypress.
-const tick = (ms = 30): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
 
 // Controlled-state host so tests exercise the editor exactly the way the
 // viewer will — buffer lifted into a parent component.

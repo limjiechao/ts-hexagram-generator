@@ -10,6 +10,9 @@ import {
   truncateStart,
 } from '../src/cli-viewer'
 import type { CastingRecord, Hexagram } from '../src/types'
+import { tick } from './helpers/async'
+import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT } from './helpers/keystrokes'
+import { STUB_CASTING } from './helpers/stubs'
 
 // Stub the filesystem-touching half of `cli-utils-output` so the
 // interactive-mode tests can drive the viewer to completion without writing
@@ -51,24 +54,15 @@ vi.mock('ink', async (importOriginal) => {
   return { ...actual, useWindowSize: () => windowSize.current }
 })
 
+// Distinct from the file-output mock's path (`consultation-mocked.txt`) on
+// purpose: this is the saved-path string fed to the viewer when it mounts
+// with pre-built sections (no flow), so tests can assert the footer shows
+// the path the consumer supplied.
 const SAVED_PATH = '/tmp/consultation-test.txt'
-const ARROW_DOWN = '\u001B[B'
-const ARROW_LEFT = '\u001B[D'
-const ARROW_RIGHT = '\u001B[C'
 
-// Let Ink process the simulated keypress and re-render.
-const tick = (ms = 50): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-
-// A valid CastingRecord — the viewer only renders it, so the picks need not
-// algorithmically reproduce the hexagrams under test.
-const sampleCasting = Array.from({ length: 6 }, () => [
-  { pick: 24, max: 48 },
-  { pick: 20, max: 43 },
-  { pick: 16, max: 35 },
-]) as CastingRecord
+// The viewer only renders the casting record, so the shared stub from
+// `tests/helpers/stubs.ts` is reused for both moving and static cases.
+const sampleCasting = STUB_CASTING
 
 const movingSections = buildConsultationSections(
   'Should I take the journey?',
