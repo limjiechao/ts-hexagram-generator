@@ -17,13 +17,10 @@ import {
 } from './cli-utils-output'
 import { runConsultationViewer } from './cli-viewer'
 import {
-  assertIsCastingRecord,
   assertIsFourOperationsResult,
-  assertIsHexagram,
   assertIsLine,
   type CastingRecord,
   type Hexagram,
-  type LineCasting,
   type LineGeneratorResult,
   type SplitRecord,
 } from './types'
@@ -43,58 +40,46 @@ async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
   return { pick, max }
 }
 
-export async function* getOneLineViaInteraction(): AsyncGenerator<
-  /* Yield */ LineGeneratorResult,
-  /* Return */ void,
-  /* Next */ void
-> {
+/**
+ * Drive one line's three-split casting with the Inquirer prompt. Each split
+ * advances the per-line `makeLineGenerator` and the returned object captures
+ * both the resultant Line and the three SplitRecords for replay.
+ */
+export async function getOneLineViaInteraction(): Promise<LineGeneratorResult> {
   const firstSplit = await getSplitIndex(stalksBeforeParting)
-  const roundOneArguments = {
+  const lineGenerator = makeLineGenerator({
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],
     partStalksAtIndex: firstSplit.pick,
-  }
+  })
 
-  const lineGenerator = makeLineGenerator(roundOneArguments)
   const roundOneResults = lineGenerator.next().value
-
   assertIsFourOperationsResult(roundOneResults)
 
   const secondSplit = await getSplitIndex(roundOneResults.unpartedStalks)
   const roundTwoResults = lineGenerator.next(secondSplit.pick).value
-
   assertIsFourOperationsResult(roundTwoResults)
 
   const thirdSplit = await getSplitIndex(roundTwoResults.unpartedStalks)
   const roundThreeResults = lineGenerator.next(thirdSplit.pick).value
-
   assertIsFourOperationsResult(roundThreeResults)
 
   const { value: line } = lineGenerator.next()
-
   assertIsLine(line)
 
-  yield {
+  return {
     line,
     rounds: [roundOneResults, roundTwoResults, roundThreeResults],
     splits: [firstSplit, secondSplit, thirdSplit],
   }
 }
 
-async function* makeInteractiveHexagramGenerator() {
-  const lines = Array.from<unknown, [number, typeof getOneLineViaInteraction]>(
-    { length: 6 },
-    (_, index) => [index + 1, getOneLineViaInteraction],
-  )
-
-  for (const [index, line] of lines) {
-    console.info(
-      `
-${BOLD_GREY}Line ${index}:${NORMAL}
+function logLineBanner(lineNumber: 1 | 2 | 3 | 4 | 5 | 6): void {
+  console.info(
+    `
+${BOLD_GREY}Line ${lineNumber}:${NORMAL}
       `.trimEnd(),
-    )
-    yield* line()
-  }
+  )
 }
 
 export async function getHexagramViaInteraction(): Promise<{
@@ -104,21 +89,49 @@ export async function getHexagramViaInteraction(): Promise<{
 }> {
   const query = await getUserQuery()
 
-  const getHexagram = makeInteractiveHexagramGenerator()
-  const maybeHexagram: number[] = []
-  const maybeCasting: LineCasting[] = []
-
-  for await (const { line, splits } of getHexagram) {
-    assertIsLine(line)
-
-    maybeHexagram.push(line)
-    maybeCasting.push(splits)
+  // Six explicit sequential awaits — produces a typed 6-tuple at
+  // construction time, so the resulting `hexagram` / `casting` are typed as
+  // their exact tuple shapes without any runtime assertion narrowing.
+  const castOneLine = (
+    lineNumber: 1 | 2 | 3 | 4 | 5 | 6,
+  ): Promise<LineGeneratorResult> => {
+    logLineBanner(lineNumber)
+    return getOneLineViaInteraction()
   }
+  const results: readonly [
+    LineGeneratorResult,
+    LineGeneratorResult,
+    LineGeneratorResult,
+    LineGeneratorResult,
+    LineGeneratorResult,
+    LineGeneratorResult,
+  ] = [
+    await castOneLine(1),
+    await castOneLine(2),
+    await castOneLine(3),
+    await castOneLine(4),
+    await castOneLine(5),
+    await castOneLine(6),
+  ]
 
-  assertIsHexagram(maybeHexagram)
-  assertIsCastingRecord(maybeCasting)
+  const hexagram: Hexagram = [
+    results[0].line,
+    results[1].line,
+    results[2].line,
+    results[3].line,
+    results[4].line,
+    results[5].line,
+  ]
+  const casting: CastingRecord = [
+    results[0].splits,
+    results[1].splits,
+    results[2].splits,
+    results[3].splits,
+    results[4].splits,
+    results[5].splits,
+  ]
 
-  return { query, hexagram: maybeHexagram, casting: maybeCasting }
+  return { query, hexagram, casting }
 }
 
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
