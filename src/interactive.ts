@@ -8,13 +8,9 @@ import {
   resolveOutputMode,
   resolveWrapWidth,
 } from './cli-utils-mode'
-import {
-  BOLD_GREY,
-  BOLD_WHITE,
-  getUserQuery,
-  logAndSaveConsultationOutput,
-  NORMAL,
-} from './cli-utils-output'
+import { logAndSaveConsultationOutput } from './cli-output-file'
+import { BOLD_GREY, BOLD_WHITE, NORMAL } from './cli-output-palette'
+import { getUserQuery } from './cli-prompts'
 import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsFourOperationsResult,

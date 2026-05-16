@@ -3,7 +3,8 @@ import process from 'node:process'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
 import { resolveOutputMode, resolveWrapWidth } from './cli-utils-mode'
-import { getUserQuery, logAndSaveConsultationOutput } from './cli-utils-output'
+import { logAndSaveConsultationOutput } from './cli-output-file'
+import { getUserQuery } from './cli-prompts'
 import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsCastingRecord,

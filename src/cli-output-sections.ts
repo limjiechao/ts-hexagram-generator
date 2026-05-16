@@ -1,10 +1,3 @@
-import fs from 'node:fs/promises'
-import path from 'node:path'
-import { fileURLToPath } from 'node:url'
-
-import { input } from '@inquirer/prompts'
-
-import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
 import {
   assertLine1ToLine6,
   isLineIndex,
@@ -15,35 +8,21 @@ import {
   getResultantHexagram,
   getTrigramRecord,
 } from './getters.js'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  HEADING_GREY,
+  NORMAL,
+  NORMAL_GREY,
+  PLACEHOLDER_GREY,
+} from './cli-output-palette.js'
 import type {
-  CastingRecord,
   Hexagram,
   Line,
   PartialCastingRecord,
   PartialSplitRecord,
 } from './types'
-
-export async function getUserQuery(): Promise<string> {
-  return await input({
-    message: 'Enter your query for the oracle.',
-    required: true,
-  })
-}
-
-export const BOLD_GREY = '\u001B[1;90m'
-export const BOLD_WHITE = '\u001B[1;97m'
-export const BOLD_RED = '\u001B[1;91m'
-export const NORMAL = '\u001B[0m'
-export const NORMAL_GREY = '\u001B[90m'
-
-// Semantic palette — aliases over the base ANSI constants so viewers can
-// reference intent ("placeholder", "heading") instead of raw weights.
-// IMPORTANT: do not change the underlying ANSI bytes for aliases that flow
-// through the populated-output path — fixture byte-identity depends on it.
-export const HEADING_GREY: typeof BOLD_GREY = BOLD_GREY // section titles, column labels
-export const VALUE_WHITE: typeof BOLD_WHITE = BOLD_WHITE // populated numbers, user input
-export const MUTED_GREY: typeof NORMAL_GREY = NORMAL_GREY // labels, hints
-export const PLACEHOLDER_GREY = '\u001B[37m' // (new) medium-dim for `·`
 
 const hexagramLineDiagramMap = {
   6: '━━━ × ━━━',
@@ -76,7 +55,12 @@ const POSITION_LABELS = {
   6: '（六, 6th）',
 } as const
 
-// Returns the terminal display width of a string, counting CJK/fullwidth chars as 2.
+/**
+ * Compute the display width of a string, counting CJK and other fullwidth
+ * characters as two columns and everything else as one. Used by
+ * `padToColumn` to keep fixed-width diagrams aligned even when they contain
+ * Chinese characters or fullwidth punctuation.
+ */
 function visualWidth(text: string): number {
   let width = 0
   for (const character of text) {
@@ -107,7 +91,7 @@ function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
 
-function transformationSection(hexagram: Hexagram): string {
+export function transformationSection(hexagram: Hexagram): string {
   const movingLines = hexagram.filter(isMovingLine)
   if (movingLines.length === 0)
     return `
@@ -188,7 +172,7 @@ ${footer2}
 `.trim()
 }
 
-function querySection(query: string): string {
+export function querySection(query: string): string {
   return `${BOLD_GREY}QUERY:
 
   ${BOLD_WHITE}${query || '(Query not provided)'}`
@@ -285,24 +269,7 @@ ${BOTTOM}
 `.trim()
 }
 
-/**
- * Build just the two sections that render while the casting is still being
- * collected — the query (frozen once submitted) and the partial casting
- * table. Used by the Ink viewer for transient mid-flow rendering; the other
- * sections (transformation, originating, resultant) are only meaningful after
- * the hexagram is complete and are built via `buildConsultationSections`.
- */
-export function buildPartialCastingSections(
-  query: string,
-  casting: PartialCastingRecord,
-): Pick<ConsultationSections, 'query' | 'casting'> {
-  return {
-    query: querySection(query),
-    casting: castingSection(casting),
-  }
-}
-
-function noMovingLinesSection(
+export function noMovingLinesSection(
   hexagram: Hexagram,
   options: { showNoMovingLinesNotice?: boolean } = {},
 ): string {
@@ -397,7 +364,7 @@ ${NORMAL_GREY}[English, James Legge]
 
 // LINES block for a hexagram: scripture/exegesis keyed off how many moving
 // lines it has (none / one / multiple).
-function linesBlock(hexagram: Hexagram): string {
+export function linesBlock(hexagram: Hexagram): string {
   const movingLines = hexagram.filter(isMovingLine)
 
   if (movingLines.length === 0) return noMovingLinesSection(hexagram)
@@ -468,160 +435,14 @@ ${NORMAL_GREY}[English, James Legge]
 `
 }
 
-function originatingHexagramSection(hexagram: Hexagram): string {
+export function originatingHexagramSection(hexagram: Hexagram): string {
   return hexagramSection(hexagram, 'ORIGINATING', getLineColor)
 }
 
-function resultantHexagramSection(hexagram: Hexagram): string {
+export function resultantHexagramSection(hexagram: Hexagram): string {
   return hexagramSection(
     getResultantHexagram(hexagram),
     'RESULTANT',
     () => BOLD_WHITE,
   )
-}
-
-/**
- * The consultation broken into its presentational sections, each a
- * pre-formatted ANSI string. Consumed both by `consultationConsoleOutput`
- * (the plain composer) and by the Ink tabbed viewer.
- *
- * - `casting` always renders — every consultation has eighteen divisions.
- * - `transformation` always renders (it shows "(No transformation)" when
- *   there are no moving lines).
- * - `resultant` is `null` when there are no moving lines — the resultant
- *   hexagram is identical to the originating one, so there is no resultant tab.
- */
-export interface ConsultationSections {
-  query: string
-  casting: string
-  transformation: string
-  originating: string
-  resultant: string | null
-}
-
-/**
- * Build the consultation's presentational sections. This is the
- * content-generation layer shared by the plain output and the Ink viewer.
- */
-export function buildConsultationSections(
-  query: string,
-  hexagram: Hexagram,
-  casting: CastingRecord,
-): ConsultationSections {
-  const movingLines = hexagram.filter(isMovingLine)
-
-  return {
-    query: querySection(query),
-    casting: castingSection(casting),
-    transformation: transformationSection(hexagram),
-    originating:
-      `${originatingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
-    resultant:
-      movingLines.length > 0
-        ? `${resultantHexagramSection(hexagram)}\n\n${noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false })}`.trim()
-        : null,
-  }
-}
-
-/**
- * Compose the full plain console output. Kept as a thin composer over the
- * same section builders that feed `buildConsultationSections`, so the
- * `--plain` output (and the saved file) stays byte-identical.
- */
-export function consultationConsoleOutput(
-  query: string,
-  hexagram: Hexagram,
-  casting: CastingRecord,
-): string {
-  const movingLines = hexagram.filter(isMovingLine)
-
-  return `
-
-${querySection(query)}
-
-${castingSection(casting)}
-
-${transformationSection(hexagram)}
-
-${originatingHexagramSection(hexagram)}
-
-${linesBlock(hexagram)}
-
-${movingLines.length > 0 ? resultantHexagramSection(hexagram) : ''}
-
-${movingLines.length > 0 ? noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false }) : ''}
-`
-}
-
-const currentFilename = fileURLToPath(import.meta.url)
-const currentDirname = path.dirname(currentFilename)
-const CONSULTATIONS_OUTPUT_DIRECTORY = path.join(
-  currentDirname,
-  '..',
-  'consultations',
-)
-
-/**
- * Save consultation output to a timestamped file
- * @param consoleOutput - The formatted console output with ANSI color codes
- * @param outputDirectory - Directory to save the file (optional, defaults to consultations directory)
- * @returns The full path of the created file
- */
-export async function consultationFileOutput(
-  consoleOutput: string,
-  outputDirectory: string = CONSULTATIONS_OUTPUT_DIRECTORY,
-): Promise<string> {
-  // Strip ANSI color codes for file output
-  // oxlint-disable-next-line no-control-regex
-  const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
-
-  // Ensure output directory exists (create if needed)
-  await fs.mkdir(outputDirectory, { recursive: true })
-
-  // Generate filesystem-safe, timezone-aware timestamp
-  const timestamp = getFilesystemSafeTimestamp()
-  const filePath = path.join(outputDirectory, `consultation-${timestamp}.txt`)
-
-  await fs.writeFile(filePath, textOutput, { encoding: 'utf8' })
-
-  return filePath
-}
-
-/**
- * Build the consultation sections and persist the plain output to a
- * timestamped file, without printing anything. Used by the Ink viewer path,
- * which owns the screen — the file is saved up front so the viewer can show
- * the saved path in its footer.
- */
-export async function saveConsultation(
-  query: string,
-  hexagram: Hexagram,
-  casting: CastingRecord,
-): Promise<{
-  sections: ConsultationSections
-  savedPath: string
-  plainOutput: string
-}> {
-  const sections = buildConsultationSections(query, hexagram, casting)
-  const plainOutput = consultationConsoleOutput(query, hexagram, casting)
-  const savedPath = await consultationFileOutput(plainOutput)
-
-  return { sections, savedPath, plainOutput }
-}
-
-export async function logAndSaveConsultationOutput(
-  question: string,
-  hexagram: Hexagram,
-  casting: CastingRecord,
-): Promise<void> {
-  const consoleOutput = consultationConsoleOutput(question, hexagram, casting)
-
-  console.clear()
-  console.info(consoleOutput)
-
-  const filePath = await consultationFileOutput(consoleOutput)
-
-  console.info('')
-  console.info(`${BOLD_GREY}Consultation output saved to ${filePath}.${NORMAL}`)
-  console.info('')
 }

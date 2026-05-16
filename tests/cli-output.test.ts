@@ -7,9 +7,9 @@ import { describe, expect, it } from 'vitest'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-  castingSection,
   consultationConsoleOutput,
-} from '../src/cli-utils-output'
+} from '../src/cli-output-composers'
+import { castingSection } from '../src/cli-output-sections'
 import { emptyPartialCastingRecord } from '../src/types'
 import { cases } from './fixtures/cases'
 

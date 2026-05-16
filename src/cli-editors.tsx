@@ -9,7 +9,7 @@ import {
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
-import { BOLD_RED, NORMAL } from './cli-utils-output.js'
+import { BOLD_RED, NORMAL } from './cli-output-palette.js'
 
 // A blinky-block cursor stand-in. Ink has no native cursor primitive, so we
 // inverse a single trailing space to draw the eye to the caret. Rendered only

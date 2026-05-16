@@ -21,14 +21,13 @@ import wrapAnsi from 'wrap-ansi'
 import { CastingPromptBox, QueryEditor } from './cli-editors.js'
 import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './cli-utils-mode.js'
 import {
-  BOLD_GREY,
   buildConsultationSections,
   buildPartialCastingSections,
   consultationConsoleOutput,
-  consultationFileOutput,
-  NORMAL,
   type ConsultationSections,
-} from './cli-utils-output.js'
+} from './cli-output-composers.js'
+import { consultationFileOutput } from './cli-output-file.js'
+import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
 import { makeLineGenerator, stalksBeforeParting } from './index.js'
 import { generateRandomConsultation } from './random.js'
 import {

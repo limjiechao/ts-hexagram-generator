@@ -2,7 +2,7 @@ import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildConsultationSections } from '../src/cli-utils-output'
+import { buildConsultationSections } from '../src/cli-output-composers'
 import {
   computeWrapWidth,
   ConsultationViewer,
@@ -14,16 +14,15 @@ import { tick } from './helpers/async'
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT } from './helpers/keystrokes'
 import { STUB_CASTING } from './helpers/stubs'
 
-// Stub the filesystem-touching half of `cli-utils-output` so the
-// interactive-mode tests can drive the viewer to completion without writing
-// real files to `consultations/`. `buildConsultationSections` and the partial-
-// rendering helpers stay live — they're pure.
+// Stub the filesystem-touching `cli-output-file` module so the interactive-
+// mode tests can drive the viewer to completion without writing real files
+// to `consultations/`. `buildConsultationSections` / `consultationConsole
+// Output` (in `cli-output-composers`) stay live — they're pure.
 const consultationFileOutputMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve('/tmp/consultation-mocked.txt')),
 )
-vi.mock('../src/cli-utils-output', async (importOriginal) => {
-  const actual =
-    await importOriginal<typeof import('../src/cli-utils-output')>()
+vi.mock('../src/cli-output-file', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/cli-output-file')>()
   return { ...actual, consultationFileOutput: consultationFileOutputMock }
 })
 
