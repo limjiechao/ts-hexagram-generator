@@ -35,7 +35,9 @@ for (const { name, query, hexagram, casting } of cases) {
   // the new ground truth.
   const hasMovingLines = hexagram.some((line) => line === 6 || line === 9)
   if (sections.query === '' && query !== '') {
-    throw new Error(`Case ${name}: empty query section despite a non-empty query`)
+    throw new Error(
+      `Case ${name}: empty query section despite a non-empty query`,
+    )
   }
   if (!sections.casting || !sections.transformation || !sections.originating) {
     throw new Error(`Case ${name}: missing a load-bearing section`)
@@ -44,7 +46,9 @@ for (const { name, query, hexagram, casting } of cases) {
     throw new Error(`Case ${name}: moving lines without a resultant section`)
   }
   if (!hasMovingLines && sections.resultant !== null) {
-    throw new Error(`Case ${name}: resultant section present without moving lines`)
+    throw new Error(
+      `Case ${name}: resultant section present without moving lines`,
+    )
   }
   const inkPath = path.join(fixturesDirectory, `ink-sections-${name}.json`)
   writeFileSync(inkPath, `${JSON.stringify(sections, null, 2)}\n`, {

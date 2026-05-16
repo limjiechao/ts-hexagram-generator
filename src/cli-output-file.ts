@@ -2,13 +2,13 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
 import {
   buildConsultationSections,
   consultationConsoleOutput,
   type ConsultationSections,
 } from './cli-output-composers.js'
 import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
+import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
 import type { CastingRecord, Hexagram } from './types'
 
 const currentFilename = fileURLToPath(import.meta.url)

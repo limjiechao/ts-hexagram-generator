@@ -2,9 +2,9 @@ import { randomInt } from 'node:crypto'
 import process from 'node:process'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
-import { resolveOutputMode, resolveWrapWidth } from './cli-utils-mode'
 import { logAndSaveConsultationOutput } from './cli-output-file'
 import { getUserQuery } from './cli-prompts'
+import { resolveOutputMode, resolveWrapWidth } from './cli-utils-mode'
 import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsCastingRecord,

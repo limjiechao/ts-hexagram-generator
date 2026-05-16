@@ -1,4 +1,13 @@
 import {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  HEADING_GREY,
+  NORMAL,
+  NORMAL_GREY,
+  PLACEHOLDER_GREY,
+} from './cli-output-palette.js'
+import {
   assertLine1ToLine6,
   isLineIndex,
   isMovingLine,
@@ -8,15 +17,6 @@ import {
   getResultantHexagram,
   getTrigramRecord,
 } from './getters.js'
-import {
-  BOLD_GREY,
-  BOLD_RED,
-  BOLD_WHITE,
-  HEADING_GREY,
-  NORMAL,
-  NORMAL_GREY,
-  PLACEHOLDER_GREY,
-} from './cli-output-palette.js'
 import type {
   Hexagram,
   Line,

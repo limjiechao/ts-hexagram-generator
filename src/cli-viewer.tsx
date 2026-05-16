@@ -16,10 +16,8 @@ import {
 } from 'react'
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
-import wrapAnsi from 'wrap-ansi'
 
 import { CastingPromptBox, QueryEditor } from './cli-editors.js'
-import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './cli-utils-mode.js'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
@@ -28,6 +26,37 @@ import {
 } from './cli-output-composers.js'
 import { consultationFileOutput } from './cli-output-file.js'
 import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
+import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './cli-utils-mode.js'
+import {
+  FooterBar,
+  KEY_HINTS_FLOW_DEFAULT,
+  keyHintsForCasting,
+  QueryBox,
+  ScrollableSection,
+  ScrollbarTrack,
+  TabBar,
+  type NonEmpty,
+  type TabDescriptor,
+} from './cli-viewer-chrome.js'
+import {
+  EMPTY_SECTIONS,
+  flowReducer,
+  initialFlowState,
+  type FlowKind,
+} from './cli-viewer-flow.js'
+import {
+  clamp,
+  computeWrapWidth,
+  FOOTER_HEIGHT,
+  HEADER_HEIGHT,
+  MARGIN_CONTENT_TO_NEXT,
+  MARGIN_QUERY_TO_TABS,
+  QUERY_BORDER_HEIGHT,
+  renderProgressBar,
+  stripAnsi,
+  TAB_BAR_HEIGHT,
+  wrapToWidth,
+} from './cli-viewer-layout.js'
 import { makeLineGenerator, stalksBeforeParting } from './index.js'
 import { generateRandomConsultation } from './random.js'
 import {
@@ -35,30 +64,21 @@ import {
   assertIsFourOperationsResult,
   assertIsHexagram,
   assertIsLine,
-  emptyPartialCastingRecord,
   type CastingRecord,
   type FourOperationsResult,
   type Hexagram,
   type Line,
-  type PartialCastingRecord,
-  type SplitRecord,
 } from './types.js'
 
-type TabId = 'casting' | 'transformation' | 'originating' | 'resultant'
-
-interface TabDescriptor {
-  id: TabId
-  label: string
-  wrapMode: 'wrap' | 'never'
-}
-
-// Used by TabBar / the activeTab lookup. The viewer always has at least the
-// `casting` tab, so encoding non-emptiness in the type lets `tabs[0]` serve
-// as a safe fallback for the activeIndex lookup under noUncheckedIndexedAccess.
-type NonEmpty<T> = readonly [T, ...T[]]
-
-export type FlowKind = 'interactive' | 'random'
-type FlowMode = 'awaitingQuery' | 'casting' | 'computing' | 'done'
+export { type FlowKind } from './cli-viewer-flow.js'
+// Re-export the pure layout helpers so callers (notably the existing
+// `tests/cli-viewer.test.tsx`) can import them from the same entry point.
+// The implementations live in `cli-viewer-layout.ts`.
+export {
+  computeWrapWidth,
+  truncateEnd,
+  truncateStart,
+} from './cli-viewer-layout.js'
 
 interface ConsultationViewerProps {
   // Production callers pass a flowKind; the viewer then owns the entire flow.
@@ -71,417 +91,6 @@ interface ConsultationViewerProps {
   sections?: ConsultationSections
   savedPath?: string
   maxWrapWidth?: number
-}
-
-const TAB_BAR_HEIGHT = 1
-const FOOTER_HEIGHT = 2
-const QUERY_BORDER_HEIGHT = 2
-const ELLIPSIS = '…'
-
-// Widest fixed-width structural line (the transformation tab's side-by-side
-// diagram + hexagram-name footer) is ~92 display columns; never wrap content
-// below this or the ASCII art shreds. Small margin over the measured worst case.
-const MIN_CONTENT_WIDTH = 100
-
-const KEY_HINTS_TEMPLATE = (n: number): string =>
-  `Tab/1-${n}: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
-
-// Footer key hints during the casting phase. The slider's load-bearing key
-// is SPACE — without surfacing it here the prompt is undiscoverable. Number
-// mode advertises Enter for parity with the in-tab prompt label. ←/→ is the
-// horizontal-pan binding the viewer registers when slider content overflows.
-function keyHintsForCasting(inputMode: InputMode): string {
-  return inputMode === 'slider'
-    ? 'SPACE: part   ←→: pan   Esc/Ctrl+C: quit'
-    : 'Enter: commit   Esc/Ctrl+C: quit'
-}
-const KEY_HINTS_FLOW_DEFAULT = 'Esc/Ctrl+C: quit'
-
-function clamp(value: number, min: number, max: number): number {
-  return Math.min(Math.max(value, min), max)
-}
-
-// 18 splits total (6 lines × 3 casts). Footer shows casting progress as
-// `Casting in progress ·  ■■■□□□…  N/18` to give a glanceable sense of flow
-// completion. Filled and empty squares read as discrete units (one per cast)
-// and stay legible across the fonts users are likely to have.
-function renderProgressBar(completed: number, total: number): string {
-  const filled = '■'.repeat(completed)
-  const empty = '□'.repeat(total - completed)
-  return `Casting in progress ·  ${filled}${empty}  ${completed}/${total}`
-}
-
-// Ink's <Text dimColor> wraps its child in [2m…[22m, but embedded [0m
-// resets inside the rendered content clear the dim mid-string — the
-// result is a sea of mixed-intensity rows. Strip every SGR code from
-// the placeholder rows before handing them to Ink, so the entire region
-// reads as uniformly dim.
-// oxlint-disable-next-line no-control-regex
-const ANSI_PATTERN: RegExp = /\[[0-9;]*m/g
-function stripAnsi(text: string): string {
-  return text.replaceAll(ANSI_PATTERN, '')
-}
-
-// Wrap a pre-formatted ANSI string to `width` columns. `trim: false` keeps the
-// existing indentation; `hard: true` breaks words longer than the viewport.
-function wrapToWidth(content: string, width: number): string {
-  return wrapAnsi(content, Math.max(1, width), { hard: true, trim: false })
-}
-
-// Resolve the column width to wrap content at: wrap to fit the terminal but
-// never wider than `maxWrapWidth`, and never narrower than the section's
-// structural floor — so prose hard-wraps while fixed-width diagrams stay intact.
-export function computeWrapWidth(
-  cols: number,
-  maxWrapWidth: number,
-  intrinsicWidth: number,
-): number {
-  return Math.max(
-    Math.min(intrinsicWidth, MIN_CONTENT_WIDTH),
-    Math.min(cols, maxWrapWidth),
-  )
-}
-
-// Truncate `text` to `width` display columns, appending an ellipsis when cut.
-// ANSI-aware: embedded SGR codes are preserved and never counted as width.
-export function truncateEnd(text: string, width: number): string {
-  if (width <= 0) return ''
-  if (stringWidth(text) <= width) return text
-  return `${sliceAnsi(text, 0, Math.max(0, width - 1))}${ELLIPSIS}`
-}
-
-// Truncate `text` to `width` display columns from the right — keeps the tail
-// and prefixes an ellipsis, so the saved-path filename (the useful part) always
-// survives. ANSI-aware (see truncateEnd).
-export function truncateStart(text: string, width: number): string {
-  if (width <= 0) return ''
-  const total = stringWidth(text)
-  if (total <= width) return text
-  return `${ELLIPSIS}${sliceAnsi(text, total - Math.max(0, width - 1), total)}`
-}
-
-function QueryBox({
-  query,
-  width,
-}: {
-  query: string
-  width: number
-}): ReactElement {
-  return (
-    <Box borderStyle="round" width={width} flexShrink={0}>
-      <Text>{` ${query}`}</Text>
-    </Box>
-  )
-}
-
-function TabBar({
-  tabs,
-  activeIndex,
-  cols,
-  locked,
-}: {
-  tabs: NonEmpty<TabDescriptor>
-  activeIndex: number
-  cols: number
-  locked: boolean
-}): ReactElement {
-  // `activeIndex` is clamped against `tabs.length` upstream, but
-  // noUncheckedIndexedAccess still types `tabs[activeIndex]` as `T |
-  // undefined`. `tabs[0]` is provably defined (NonEmpty), so it's the safe
-  // fallback when the clamp races with a tab-list shrink.
-  const activeTab = tabs[activeIndex] ?? tabs[0]
-
-  // Flow in progress: only the active tab shows, rendered with the same
-  // bold+inverse styling as done-mode — there's no agency to switch tabs.
-  if (locked) {
-    return (
-      <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${activeTab.label} `}</Text>
-      </Box>
-    )
-  }
-
-  // Done mode: all tabs visible, dim ` · ` separator between them.
-  // Each cell renders as ` label ` (label.length + 2); separators add 3 cols.
-  const renderedWidth = tabs.reduce(
-    (sum, t, i) => sum + t.label.length + 2 + (i > 0 ? 3 : 0),
-    0,
-  )
-  if (renderedWidth > cols) {
-    return (
-      <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${activeTab.label} `}</Text>
-        <Text dimColor>{` (${activeIndex + 1}/${tabs.length})`}</Text>
-      </Box>
-    )
-  }
-
-  return (
-    <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-      {tabs.flatMap((tab, index) => {
-        const active = index === activeIndex
-        const cells: ReactElement[] = [
-          <Text key={tab.id} bold={active} inverse={active} dimColor={!active}>
-            {` ${tab.label} `}
-          </Text>,
-        ]
-        if (index < tabs.length - 1) {
-          cells.push(
-            <Text key={`sep-${tab.id}`} dimColor>
-              {' · '}
-            </Text>,
-          )
-        }
-        return cells
-      })}
-    </Box>
-  )
-}
-
-function ScrollableSection({
-  rows,
-  viewportHeight,
-}: {
-  rows: string[]
-  viewportHeight: number
-}): ReactElement {
-  return (
-    <Box height={viewportHeight} flexDirection="column">
-      {/* Raw ANSI content — no color props (see QueryBox). */}
-      <Text>{rows.join('\n')}</Text>
-    </Box>
-  )
-}
-
-// 1-column vertical scrollbar gutter. When content overflows the viewport,
-// renders a proportional `█` handle over a `░` track; otherwise reserves the
-// column with whitespace so chrome above/below doesn't shift when overflow
-// state toggles.
-function ScrollbarTrack({
-  offset,
-  totalRows,
-  viewportHeight,
-}: {
-  offset: number
-  totalRows: number
-  viewportHeight: number
-}): ReactElement {
-  if (totalRows <= viewportHeight) {
-    return (
-      <Text>
-        {Array.from({ length: viewportHeight }, () => ' ').join('\n')}
-      </Text>
-    )
-  }
-  const handleHeight = Math.max(
-    1,
-    Math.floor((viewportHeight * viewportHeight) / totalRows),
-  )
-  const handleTop = Math.floor(
-    (offset * (viewportHeight - handleHeight)) /
-      Math.max(1, totalRows - viewportHeight),
-  )
-  const chars: string[] = []
-  for (let i = 0; i < viewportHeight; i += 1) {
-    chars.push(i >= handleTop && i < handleTop + handleHeight ? '█' : '░')
-  }
-  return <Text dimColor>{chars.join('\n')}</Text>
-}
-
-function FooterBar({
-  savedPath,
-  cols,
-  verticalStatus,
-  horizontalStatus,
-  wrapChip,
-  flowHint,
-  inFlow,
-  flowKeyHints,
-  tabsLength,
-}: {
-  savedPath: string
-  cols: number
-  verticalStatus: string | null
-  horizontalStatus: string | null
-  wrapChip: string | null
-  flowHint: string | null
-  inFlow: boolean
-  flowKeyHints: string
-  tabsLength: number
-}): ReactElement {
-  const segments: string[] = []
-  if (verticalStatus) segments.push(verticalStatus)
-  if (horizontalStatus) segments.push(horizontalStatus)
-  if (wrapChip) segments.push(wrapChip)
-  segments.push(inFlow ? flowKeyHints : KEY_HINTS_TEMPLATE(tabsLength))
-  const status = truncateEnd(segments.join('   '), cols)
-  // During the flow, replace the saved-path line with a one-line progress
-  // hint — there's no saved file yet.
-  const bottomLineRaw = inFlow
-    ? (flowHint ?? '')
-    : `Consultation output saved to ${savedPath}.`
-  const bottomLine = truncateStart(bottomLineRaw, cols)
-
-  return (
-    <Box flexDirection="column" flexShrink={0}>
-      <Text dimColor>{status}</Text>
-      {/* Raw ANSI constants for parity with the plain-mode "saved to" line. */}
-      <Text>{`${BOLD_GREY}${bottomLine}${NORMAL}`}</Text>
-    </Box>
-  )
-}
-
-// ── Flow state machine ───────────────────────────────────────────────────────
-
-interface FlowState {
-  mode: FlowMode
-  flowKind: FlowKind
-  query: string
-  queryBuffer: string
-  castingBuffer: string
-  error: string | null
-  lineIndex: 0 | 1 | 2 | 3 | 4 | 5
-  castIndex: 0 | 1 | 2
-  partialCasting: PartialCastingRecord
-  completedLines: Line[]
-  sections: ConsultationSections | null
-  savedPath: string | null
-  saveError: Error | null
-}
-
-type FlowAction =
-  | { type: 'queryChange'; value: string }
-  | { type: 'querySubmit' }
-  | { type: 'castingBufferChange'; value: string }
-  | { type: 'castingError'; message: string | null }
-  | { type: 'splitCommitted'; pick: number; max: number; line?: Line }
-  | {
-      type: 'computeSucceeded'
-      sections: ConsultationSections
-      savedPath: string
-    }
-  | { type: 'computeFailed'; error: Error }
-
-// Recover the user's plain query text from a pre-built `querySection()`
-// output of the shape `${BOLD_GREY}QUERY:\n\n  ${BOLD_WHITE}<query>`. Strip
-// every SGR code, trim the leading `QUERY:` label + blank line, and return
-// the body. Used only on the test-mode `prebuiltSections` entry path so
-// the locked QueryBox (which now reads `state.query` directly per R1) has
-// something to display.
-function extractQueryText(querySection: string): string {
-  const stripped = querySection.replaceAll(ANSI_PATTERN, '')
-  const lines = stripped.split('\n')
-  const queryLine = lines.at(-1) ?? ''
-  return queryLine.trim()
-}
-
-function initialFlowState(
-  flowKind: FlowKind,
-  preBuiltSections: ConsultationSections | null,
-  preBuiltSavedPath: string | null,
-): FlowState {
-  const isDone = preBuiltSections !== null && preBuiltSavedPath !== null
-  return {
-    mode: isDone ? 'done' : 'awaitingQuery',
-    flowKind,
-    query:
-      preBuiltSections === null ? '' : extractQueryText(preBuiltSections.query),
-    queryBuffer: '',
-    castingBuffer: '',
-    error: null,
-    lineIndex: 0,
-    castIndex: 0,
-    partialCasting: emptyPartialCastingRecord(),
-    completedLines: [],
-    sections: preBuiltSections,
-    savedPath: preBuiltSavedPath,
-    saveError: null,
-  }
-}
-
-function flowReducer(state: FlowState, action: FlowAction): FlowState {
-  switch (action.type) {
-    case 'queryChange':
-      return { ...state, queryBuffer: action.value }
-    case 'querySubmit': {
-      if (state.queryBuffer.trim().length === 0) return state
-      const query = state.queryBuffer
-      // Random skips the casting phase entirely — the picks are generated
-      // inside the compute effect.
-      return state.flowKind === 'random'
-        ? { ...state, query, mode: 'computing' }
-        : { ...state, query, mode: 'casting' }
-    }
-    case 'castingBufferChange':
-      return { ...state, castingBuffer: action.value }
-    case 'castingError':
-      return { ...state, error: action.message }
-    case 'splitCommitted': {
-      // The split has already been validated by NumberInput and the line
-      // generator has been advanced (with the returned Line included when
-      // this was the third cast).
-      const split: SplitRecord = { pick: action.pick, max: action.max }
-      const partialCasting = state.partialCasting.map(
-        (line, lineIndex) =>
-          (lineIndex === state.lineIndex
-            ? line.map((cast, castIndex) =>
-                castIndex === state.castIndex ? split : cast,
-              )
-            : line) as PartialCastingRecord[number],
-      ) as PartialCastingRecord
-      const completedLines =
-        action.line === undefined
-          ? state.completedLines
-          : [...state.completedLines, action.line]
-      // Advance to the next slot. Three casts per line; then the next line.
-      const isLastCastOfLine = state.castIndex === 2
-      const isLastLine = state.lineIndex === 5
-      if (isLastCastOfLine && isLastLine) {
-        return {
-          ...state,
-          mode: 'computing',
-          partialCasting,
-          completedLines,
-          castingBuffer: '',
-          error: null,
-        }
-      }
-      const nextLineIndex = (
-        isLastCastOfLine ? state.lineIndex + 1 : state.lineIndex
-      ) as FlowState['lineIndex']
-      const nextCastIndex = (
-        isLastCastOfLine ? 0 : state.castIndex + 1
-      ) as FlowState['castIndex']
-      return {
-        ...state,
-        partialCasting,
-        completedLines,
-        lineIndex: nextLineIndex,
-        castIndex: nextCastIndex,
-        castingBuffer: '',
-        error: null,
-      }
-    }
-    case 'computeSucceeded':
-      return {
-        ...state,
-        mode: 'done',
-        sections: action.sections,
-        savedPath: action.savedPath,
-      }
-    case 'computeFailed':
-      return { ...state, saveError: action.error }
-  }
-}
-
-// ── ConsultationViewer ───────────────────────────────────────────────────────
-
-const EMPTY_SECTIONS: ConsultationSections = {
-  query: '',
-  casting: '',
-  transformation: '',
-  originating: '',
-  resultant: null,
 }
 
 export function ConsultationViewer({
@@ -570,9 +179,6 @@ export function ConsultationViewer({
           })
       }
     }
-    // Fire-and-forget — `runCompute` swallows all errors via the inner catch
-    // and converts them into `computeFailed` dispatches; the `.catch(() => {})`
-    // satisfies the `no-floating-promises` lint without doubling up reporting.
     runCompute().catch(() => {})
     return () => {
       cancelled = true
@@ -594,11 +200,9 @@ export function ConsultationViewer({
     if (generator === null) return
     const max = currentMaxRef.current
     if (state.castIndex === 0) {
-      // First cast: this `pick` is the seed parted-at index. Drive the
-      // generator forward to yield round one's result, then capture the
-      // selectable range for round two.
-      // Re-create the generator with the real pick (the placeholder ctor
-      // above is replaced lazily here on the first split).
+      // First cast: this `pick` is the seed parted-at index. Re-create the
+      // generator with the real pick, then drive it forward to yield round
+      // one's result and capture the selectable range for round two.
       const fresh = makeLineGenerator({
         unpartedStalks: stalksBeforeParting,
         suspendedFromNextRound: [],
@@ -626,9 +230,10 @@ export function ConsultationViewer({
     lineGeneratorRef.current = null // ready for the next line
     // Reset the displayed max synchronously so the immediate re-render shows
     // the new line's first-cast range (1..48) instead of the stale third-cast
-    // max from this line. The line-boundary `useEffect` below will idempotently
-    // confirm the same value when it (re-)creates the placeholder generator,
-    // but that effect fires only after render — too late on its own.
+    // max from this line. The line-boundary `useEffect` above will
+    // idempotently confirm the same value when it re-creates the placeholder
+    // generator, but that effect fires only after render — too late on its
+    // own.
     currentMaxRef.current = stalksBeforeParting.length - 1
     dispatch({ type: 'splitCommitted', pick, max, line })
   }
@@ -636,8 +241,8 @@ export function ConsultationViewer({
   // ── Section selection + tab bar ─────────────────────────────────────────
 
   // While the flow is running we don't yet know whether resultant will exist
-  // — show Transformation optimistically; the locked tab bar (T3.3) hides
-  // every non-active tab anyway. Once `done`, Transformation + Resultant are
+  // — show Transformation optimistically; the locked tab bar hides every
+  // non-active tab anyway. Once `done`, Transformation + Resultant are
   // dropped whenever there are no moving lines.
   const tabs = useMemo<NonEmpty<TabDescriptor>>(() => {
     const hasMovingLines =
@@ -719,7 +324,6 @@ export function ConsultationViewer({
   // chrome never collides with the gutter or padding.
   const innerCols = Math.max(1, cols - 2 - 1)
 
-  const HEADER_HEIGHT = 1
   const queryContent =
     state.mode === 'awaitingQuery' ? state.queryBuffer : state.query
   const wrappedQuery = useMemo(
@@ -743,12 +347,6 @@ export function ConsultationViewer({
           ? 5
           : 6
       : 0
-
-  // Permanent layout gaps: 1 row between QueryBox and TabBar, and 1 row
-  // between either the content/prompt block and the footer (the gap collapses
-  // into the prompt's own marginTop when casting is active).
-  const MARGIN_QUERY_TO_TABS = 1
-  const MARGIN_CONTENT_TO_NEXT = 1
 
   const viewportHeight = Math.max(
     1,
@@ -888,8 +486,8 @@ export function ConsultationViewer({
   // the casting flow, ←/→ pan the casting prompt box (slider-mode only,
   // matches the main viewport's panning convention); everything else is
   // owned by the editor. After the flow is done, the full done-mode binding
-  // set applies. `q` is intentionally NOT a quit shortcut anymore (T3.8);
-  // the only exits are Esc and Ctrl+C.
+  // set applies. `q` is intentionally NOT a quit shortcut anymore; the only
+  // exits are Esc and Ctrl+C.
   useInput((input, key) => {
     if (key.escape) {
       exit()
@@ -929,8 +527,8 @@ export function ConsultationViewer({
       stepToTab(-1)
       return
     }
-    // Digit shortcuts 1-9 jump to that tab index (1-indexed). Range is
-    // defensive against future tab additions; the < tabs.length check gates.
+    // Digit shortcuts 1-9 jump to that tab index (1-indexed). The
+    // < tabs.length check gates against future tab additions.
     if (input >= '1' && input <= '9') {
       const target = Number.parseInt(input, 10) - 1
       if (target >= 0 && target < tabs.length) {
@@ -1025,7 +623,7 @@ export function ConsultationViewer({
       <Box flexGrow={1} flexShrink={1} flexDirection="row" overflow="hidden">
         <Box flexDirection="column" flexGrow={1}>
           {state.mode === 'awaitingQuery' ? (
-            // T3.7 — dim the placeholder casting table while the user is still
+            // Dim the placeholder casting table while the user is still
             // typing the query. Embedded SGR codes inside the partial output
             // would cancel Ink's `[2m` mid-stream, so strip them first.
             <Box height={viewportHeight} flexDirection="column">
@@ -1091,16 +689,17 @@ export function ConsultationViewer({
 }
 
 /**
- * Render the consultation as a full-screen, tabbed Ink viewer and resolve once
- * the user exits. Uses the alternate screen buffer so the terminal's prior
- * contents are restored on exit.
+ * Render the consultation as a full-screen, tabbed Ink viewer and resolve
+ * once the user exits. Uses the alternate screen buffer so the terminal's
+ * prior contents are restored on exit.
  *
  * Two call shapes:
  *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` —
  *     production: the viewer owns the flow (collects the query and 18 picks
  *     in-tab).
- *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` — back-compat
- *     for callers that already built everything (currently just tests).
+ *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` —
+ *     back-compat for callers that already built everything (currently
+ *     just tests).
  */
 export async function runConsultationViewer(
   argsOrSections:

@@ -3,14 +3,14 @@ import process from 'node:process'
 import { number } from '@inquirer/prompts'
 
 import { makeLineGenerator, stalksBeforeParting } from '.'
+import { logAndSaveConsultationOutput } from './cli-output-file'
+import { BOLD_GREY, BOLD_WHITE, NORMAL } from './cli-output-palette'
+import { getUserQuery } from './cli-prompts'
 import {
   resolveInputMode,
   resolveOutputMode,
   resolveWrapWidth,
 } from './cli-utils-mode'
-import { logAndSaveConsultationOutput } from './cli-output-file'
-import { BOLD_GREY, BOLD_WHITE, NORMAL } from './cli-output-palette'
-import { getUserQuery } from './cli-prompts'
 import { runConsultationViewer } from './cli-viewer'
 import {
   assertIsFourOperationsResult,

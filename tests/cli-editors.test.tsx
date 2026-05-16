@@ -11,7 +11,6 @@ import {
 import { tick } from './helpers/async'
 import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 
-
 // Controlled-state host so tests exercise the editor exactly the way the
 // viewer will — buffer lifted into a parent component.
 function QueryEditorHost({

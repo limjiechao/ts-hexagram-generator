@@ -1,5 +1,3 @@
-import { isMovingLine } from './cli-utils-validators.js'
-import { getResultantHexagram } from './getters.js'
 import {
   castingSection,
   linesBlock,
@@ -9,11 +7,9 @@ import {
   resultantHexagramSection,
   transformationSection,
 } from './cli-output-sections.js'
-import type {
-  CastingRecord,
-  Hexagram,
-  PartialCastingRecord,
-} from './types'
+import { isMovingLine } from './cli-utils-validators.js'
+import { getResultantHexagram } from './getters.js'
+import type { CastingRecord, Hexagram, PartialCastingRecord } from './types'
 
 /**
  * The consultation broken into its presentational sections, each a
