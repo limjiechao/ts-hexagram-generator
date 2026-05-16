@@ -1,7 +1,9 @@
 import { expect, test } from 'vitest'
 
 import {
+  parseCliFlags,
   parseWrapWidth,
+  shouldForceNumericForAccessibility,
   shouldUseNumericInput,
   shouldUsePlainMode,
 } from '../src/cli-utils-mode'
@@ -60,4 +62,95 @@ test('shouldUseNumericInput() detects the flag among other arguments', () => {
 test('shouldUseNumericInput() is false without the flag', () => {
   expect(shouldUseNumericInput([])).toBe(false)
   expect(shouldUseNumericInput(['foo', '--bar'])).toBe(false)
+})
+
+test('shouldForceNumericForAccessibility() triggers on NO_COLOR set to any value', () => {
+  expect(
+    shouldForceNumericForAccessibility({ NO_COLOR: '1', CI: undefined }),
+  ).toBe(true)
+  expect(
+    shouldForceNumericForAccessibility({
+      NO_COLOR: 'whatever',
+      CI: undefined,
+    }),
+  ).toBe(true)
+})
+
+test('shouldForceNumericForAccessibility() triggers on CI set to any value', () => {
+  expect(
+    shouldForceNumericForAccessibility({ NO_COLOR: undefined, CI: 'true' }),
+  ).toBe(true)
+  expect(
+    shouldForceNumericForAccessibility({ NO_COLOR: undefined, CI: '1' }),
+  ).toBe(true)
+})
+
+test('shouldForceNumericForAccessibility() ignores empty-string env vars (no-color spec)', () => {
+  expect(shouldForceNumericForAccessibility({ NO_COLOR: '', CI: '' })).toBe(
+    false,
+  )
+})
+
+test('shouldForceNumericForAccessibility() is false when neither var is set', () => {
+  expect(
+    shouldForceNumericForAccessibility({ NO_COLOR: undefined, CI: undefined }),
+  ).toBe(false)
+})
+
+test('parseCliFlags() composes argv + TTY + env into a single config', () => {
+  const flags = parseCliFlags({
+    argv: [],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags).toEqual({
+    outputMode: 'ink',
+    inputMode: 'slider',
+    wrapWidth: 120,
+  })
+})
+
+test('parseCliFlags() routes non-TTY to plain', () => {
+  const flags = parseCliFlags({
+    argv: [],
+    isTTY: false,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.outputMode).toBe('plain')
+})
+
+test('parseCliFlags() forces numeric input under NO_COLOR even when --numeric-input is absent', () => {
+  const flags = parseCliFlags({
+    argv: [],
+    isTTY: true,
+    envVars: { NO_COLOR: '1', CI: undefined },
+  })
+  expect(flags.inputMode).toBe('number')
+})
+
+test('parseCliFlags() forces numeric input under CI', () => {
+  const flags = parseCliFlags({
+    argv: [],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: 'true' },
+  })
+  expect(flags.inputMode).toBe('number')
+})
+
+test('parseCliFlags() honours explicit --numeric-input', () => {
+  const flags = parseCliFlags({
+    argv: ['--numeric-input'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.inputMode).toBe('number')
+})
+
+test('parseCliFlags() picks up --wrap-width', () => {
+  const flags = parseCliFlags({
+    argv: ['--wrap-width', '64'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.wrapWidth).toBe(64)
 })

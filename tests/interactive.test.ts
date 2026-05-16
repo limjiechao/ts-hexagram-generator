@@ -9,10 +9,16 @@ import { getHexagramViaInteraction, main } from '../src/interactive'
 vi.mock('node:fs/promises')
 const mockedFs = vi.mocked(fs)
 
-// Mock process.exit
+// Mock `node:process` with the surface `cli-utils-mode.getCliFlags()` reads:
+// argv (no flags → defaults), stdout.isTTY (`false` so resolveOutputMode
+// returns 'plain' and the test exercises the Inquirer flow), env (empty so
+// the a11y NO_COLOR/CI fallback stays off).
 vi.mock('node:process', () => ({
   default: {
     exit: vi.fn(),
+    argv: ['node', 'cli-interactive'],
+    stdout: { isTTY: false },
+    env: {},
   },
 }))
 
