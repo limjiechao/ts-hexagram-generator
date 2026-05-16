@@ -317,6 +317,23 @@ export function SliderInput({
 
 export type CastingInputMode = 'slider' | 'number'
 
+/**
+ * Rendered height of `<CastingPromptBox>` for a given mode + error state,
+ * border included. Colocated with the component because the viewer reserves
+ * vertical space for the prompt before mounting it — keeping the contract
+ * here means a new input mode can't drift the two numbers out of sync.
+ *
+ *   slider mode → 3 content rows (title + bar + readout) → 5 with border
+ *   number mode → 2 content rows + optional error → 5 normally, 6 with error
+ */
+export function getCastingPromptHeight(
+  inputMode: CastingInputMode,
+  hasError: boolean,
+): number {
+  if (inputMode === 'slider') return 5
+  return hasError ? 6 : 5
+}
+
 // Pre-pad `content` (display width `contentWidth`) with leading spaces so it
 // centres within `total` columns, then trail-fill to exactly `total` columns
 // so successive slices land at predictable offsets.

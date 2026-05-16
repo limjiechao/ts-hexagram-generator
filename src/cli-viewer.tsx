@@ -17,7 +17,11 @@ import {
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
-import { CastingPromptBox, QueryEditor } from './cli-editors.js'
+import {
+  CastingPromptBox,
+  getCastingPromptHeight,
+  QueryEditor,
+} from './cli-editors.js'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
@@ -336,16 +340,12 @@ export function ConsultationViewer({
   )
   const queryBoxHeight = wrappedQuery.split('\n').length + QUERY_BORDER_HEIGHT
 
-  // Casting prompt box height (border 2 + content rows):
-  //   slider mode → 3 content rows (title + bar + readout) → 5 total
-  //   number mode → 2 content rows + optional error → 5 normally, 6 with error
+  // Casting prompt box height — sourced from the component so a new input
+  // mode can't drift the reserved vertical space out of sync with what the
+  // component actually renders. See `getCastingPromptHeight` in cli-editors.
   const castingPromptHeight =
     state.mode === 'casting'
-      ? inputMode === 'slider'
-        ? 5
-        : state.error === null
-          ? 5
-          : 6
+      ? getCastingPromptHeight(inputMode, state.error !== null)
       : 0
 
   const viewportHeight = Math.max(
