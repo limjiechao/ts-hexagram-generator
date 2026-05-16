@@ -253,9 +253,21 @@ export function castingSection(casting: PartialCastingRecord): string {
       ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}`
       : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}`
 
-  const dataRows = [6, 5, 4, 3, 2, 1]
-    .map((lineNumber) => {
-      const [first, second, third] = casting[lineNumber - 1]
+  // `casting` is a 6-tuple and the literal source `[6, 5, 4, 3, 2, 1]` covers
+  // every valid index, but TS can't narrow `lineNumber - 1` to `0..5` from a
+  // plain `number`. Index with the tuple-positioned literals instead — each
+  // access is provably in-bounds.
+  const indexedLines = [
+    [6, casting[5]],
+    [5, casting[4]],
+    [4, casting[3]],
+    [3, casting[2]],
+    [2, casting[1]],
+    [1, casting[0]],
+  ] as const
+  const dataRows = indexedLines
+    .map(([lineNumber, lineCasting]) => {
+      const [first, second, third] = lineCasting
       return `│${castRight(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
     })
     .join('\n')

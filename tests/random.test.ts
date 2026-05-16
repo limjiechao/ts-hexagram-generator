@@ -54,34 +54,31 @@ test('generateLines() should return valid report', { timeout: 40_000 }, () => {
   expect(report).toHaveProperty('Line 10')
   expect(report['Line 10']).toBe('0.000%')
 
-  expect(report).toHaveProperty('Line 6')
-  const line6Percentage = report['Line 6']
-  expect(line6Percentage).toMatch(/^\d+\.\d+%$/)
+  const requirePercentage = (lineKey: string): string => {
+    const value = report[lineKey]
+    expect(value).toMatch(/^\d+\.\d+%$/)
+    if (value === undefined) {
+      throw new Error(`Expected ${lineKey} in distribution report`)
+    }
+    return value
+  }
 
+  const line6Percentage = requirePercentage('Line 6')
   const line6Float = Number.parseFloat(line6Percentage)
   expect(line6Float).toBeGreaterThanOrEqual(2)
   expect(line6Float).toBeLessThanOrEqual(10)
 
-  expect(report).toHaveProperty('Line 7')
-  const line7Percentage = report['Line 7']
-  expect(line7Percentage).toMatch(/^\d+\.\d+%$/)
-
+  const line7Percentage = requirePercentage('Line 7')
   const line7Float = Number.parseFloat(line7Percentage)
   expect(line7Float).toBeGreaterThanOrEqual(27)
   expect(line7Float).toBeLessThanOrEqual(35)
 
-  expect(report).toHaveProperty('Line 8')
-  const line8Percentage = report['Line 8']
-  expect(line8Percentage).toMatch(/^\d+\.\d+%$/)
-
+  const line8Percentage = requirePercentage('Line 8')
   const line8Float = Number.parseFloat(line8Percentage)
   expect(line8Float).toBeGreaterThanOrEqual(39)
   expect(line8Float).toBeLessThanOrEqual(47)
 
-  expect(report).toHaveProperty('Line 9')
-  const line9Percentage = report['Line 9']
-  expect(line9Percentage).toMatch(/^\d+\.\d+%$/)
-
+  const line9Percentage = requirePercentage('Line 9')
   const line9Float = Number.parseFloat(line9Percentage)
   expect(line9Float).toBeGreaterThanOrEqual(14)
   expect(line9Float).toBeLessThanOrEqual(22)

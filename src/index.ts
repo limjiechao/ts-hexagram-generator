@@ -26,14 +26,17 @@ const sortIntoFours = (stalks: number[]): SortedStalks[] => {
 
   const sliceIndices = [0, ...allFours.map((fours, index) => index * 4 + fours)]
   const sliceArguments = sliceIndices.reduce<[number, number][]>(
-    (result, sliceIndex, index) =>
-      sliceIndices.length === index + 1
-        ? result
-        : [...result, [sliceIndex, sliceIndices[index + 1]]],
+    (result, sliceIndex, index) => {
+      const nextIndex = sliceIndices[index + 1]
+      if (nextIndex === undefined) return result
+      return [...result, [sliceIndex, nextIndex]]
+    },
     [],
   )
 
-  return sliceArguments.map((args) => stalks.slice(...args) as SortedStalks)
+  return sliceArguments.map(
+    ([start, end]) => stalks.slice(start, end) as SortedStalks,
+  )
 }
 
 // 大衍之數五十，其用四十有九。

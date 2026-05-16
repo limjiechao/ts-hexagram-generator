@@ -53,6 +53,11 @@ interface TabDescriptor {
   wrapMode: 'wrap' | 'never'
 }
 
+// Used by TabBar / the activeTab lookup. The viewer always has at least the
+// `casting` tab, so encoding non-emptiness in the type lets `tabs[0]` serve
+// as a safe fallback for the activeIndex lookup under noUncheckedIndexedAccess.
+type NonEmpty<T> = readonly [T, ...T[]]
+
 export type FlowKind = 'interactive' | 'random'
 type FlowMode = 'awaitingQuery' | 'casting' | 'computing' | 'done'
 
@@ -176,18 +181,23 @@ function TabBar({
   cols,
   locked,
 }: {
-  tabs: TabDescriptor[]
+  tabs: NonEmpty<TabDescriptor>
   activeIndex: number
   cols: number
   locked: boolean
 }): ReactElement {
+  // `activeIndex` is clamped against `tabs.length` upstream, but
+  // noUncheckedIndexedAccess still types `tabs[activeIndex]` as `T |
+  // undefined`. `tabs[0]` is provably defined (NonEmpty), so it's the safe
+  // fallback when the clamp races with a tab-list shrink.
+  const activeTab = tabs[activeIndex] ?? tabs[0]
+
   // Flow in progress: only the active tab shows, rendered with the same
   // bold+inverse styling as done-mode — there's no agency to switch tabs.
   if (locked) {
-    const active = tabs[activeIndex]
     return (
       <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${active.label} `}</Text>
+        <Text bold inverse>{` ${activeTab.label} `}</Text>
       </Box>
     )
   }
@@ -199,10 +209,9 @@ function TabBar({
     0,
   )
   if (renderedWidth > cols) {
-    const active = tabs[activeIndex]
     return (
       <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${active.label} `}</Text>
+        <Text bold inverse>{` ${activeTab.label} `}</Text>
         <Text dimColor>{` (${activeIndex + 1}/${tabs.length})`}</Text>
       </Box>
     )
@@ -631,10 +640,12 @@ export function ConsultationViewer({
   // — show Transformation optimistically; the locked tab bar (T3.3) hides
   // every non-active tab anyway. Once `done`, Transformation + Resultant are
   // dropped whenever there are no moving lines.
-  const tabs = useMemo<TabDescriptor[]>(() => {
+  const tabs = useMemo<NonEmpty<TabDescriptor>>(() => {
     const hasMovingLines =
       state.mode !== 'done' || state.sections?.resultant != null
-    const result: TabDescriptor[] = [
+    // Seed with the always-present Casting tab so the result is provably
+    // non-empty under noUncheckedIndexedAccess.
+    const result: [TabDescriptor, ...TabDescriptor[]] = [
       { id: 'casting', label: 'Casting', wrapMode: 'never' },
     ]
     if (hasMovingLines) {
@@ -752,7 +763,11 @@ export function ConsultationViewer({
       FOOTER_HEIGHT,
   )
 
-  const activeTab = tabs[activeIndex]
+  // `activeIndex` was clamped against `tabs.length`, but
+  // noUncheckedIndexedAccess still types `tabs[activeIndex]` as `T |
+  // undefined`. `tabs[0]` is provably defined (NonEmpty type), so it's the
+  // safe fallback.
+  const activeTab = tabs[activeIndex] ?? tabs[0]
   const activeContent =
     activeTab.id === 'casting'
       ? effectiveSections.casting

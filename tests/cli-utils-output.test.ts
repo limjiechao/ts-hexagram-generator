@@ -19,7 +19,9 @@ const fixturesDirectory = path.join(
 )
 
 // A casting record reused by the `buildConsultationSections` shape tests below.
-const sampleCasting = cases[0].casting
+const [firstCase] = cases
+if (firstCase === undefined) throw new Error('tests/fixtures/cases.ts is empty')
+const sampleCasting = firstCase.casting
 
 // Strips ANSI SGR escape sequences from rendered output so colour markup
 // doesn't perturb structural comparisons. Hoisted to module scope so it isn't
@@ -111,7 +113,9 @@ describe('castingSection (partial)', () => {
     expect(emptyRows).toHaveLength(6)
     expect(fullRows).toHaveLength(6)
     for (const [index, fullRow] of fullRows.entries()) {
-      expect(borderColumns(emptyRows[index])).toEqual(borderColumns(fullRow))
+      const emptyRow = emptyRows[index]
+      if (emptyRow === undefined) throw new Error(`row ${index} missing`)
+      expect(borderColumns(emptyRow)).toEqual(borderColumns(fullRow))
     }
   })
 
