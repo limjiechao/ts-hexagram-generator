@@ -14,58 +14,121 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 - Unit test to validate the statistical analysis of line distributions
 - Type-safe implementation in TypeScript
 
+## Monorepo layout
+
+The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private; published packages live under `packages/*` and CLI bins under `apps/*`.
+
+| Package                     | Description                                                                                                                                      |
+| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `@hexagram/types`           | Public type definitions for the hexagram + casting domain (`Line`, `Hexagram`, `CastingRecord`, `LineGeneratorResult`, plus runtime assertions). |
+| `@hexagram/core`            | Yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records.                      |
+| `@hexagram/viewer-ui`       | Terminal UI: Ink-based tabbed viewer, Inquirer fallback flow, formatted output sections.                                                         |
+| `@hexagram/cli` _(private)_ | The two CLI bins (`hexagram-random`, `hexagram-interactive`) — dogfoods every published package.                                                 |
+
+Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions.
+
 ---
+
+## Library usage
+
+Once published, consumers can reach into the library at these subpaths:
+
+```ts
+// Algorithm + types in one import (core re-exports types).
+import {
+  makeLineGenerator,
+  stalksBeforeParting,
+  type Hexagram,
+  type Line,
+} from '@hexagram/core'
+
+// RNG-driven generators.
+import {
+  generateRandomConsultation,
+  generateRandomHexagram,
+  generateRandomHexagrams,
+} from '@hexagram/core/random'
+
+// Hexagram / trigram record lookup.
+import {
+  getHexagramRecord,
+  getResultantHexagram,
+  getTrigramRecord,
+} from '@hexagram/core/getters'
+
+// Direct access to the data tables (typed).
+import { HEXAGRAM_RECORDS } from '@hexagram/core/hexagrams'
+import { TRIGRAM_RECORDS } from '@hexagram/core/trigrams'
+
+// Type-only re-exports also live at the foundation package.
+import type {
+  CastingRecord,
+  LineGeneratorResult,
+  SplitRecord,
+} from '@hexagram/types'
+
+// Terminal UI (viewer + Inquirer flow + formatters), if you want to embed
+// the CLI experience in your own host.
+import {
+  getHexagramViaInteraction,
+  logAndSaveConsultationOutput,
+  runConsultationViewer,
+} from '@hexagram/viewer-ui'
+```
 
 ## Install globally from local source
 
-The package exposes two CLI bins via the [`bin` field in `package.json`](./package.json):
-
-- `hexagram-random` — generate a random hexagram
-- `hexagram-interactive` — drive the yarrow stalk method by entering each split index
+The CLI bins are exposed by the `@hexagram/cli` workspace package. Until publishing lands you can install them globally from your local clone.
 
 Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Originating / Resultant tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 
-Until the package is published to npm, you can still install it globally from your local clone. Three options, in order of how closely they mirror a published install.
+### Option 1 — `pnpm link --global` from `apps/cli` (live development)
 
-### Option 1 — `pnpm link --global` (live development)
-
-Creates a symlink from the global pnpm bin directory to your local `dist/`. Edits picked up by `pnpm build` (or `pnpm dev`) appear immediately — no reinstall.
+Creates a symlink from the global pnpm bin directory to `apps/cli/dist/`. Edits in any workspace package are picked up by the next `pnpm build` — no reinstall.
 
 ```bash
 pnpm install
-pnpm build
-pnpm link --global
+pnpm build                            # turbo builds all packages in topological order
+pnpm --filter @hexagram/cli link --global
 
 hexagram-random
 hexagram-interactive
 
 # When you're done:
-pnpm uninstall --global ts-hexagram-generator
+pnpm --filter @hexagram/cli uninstall --global
 ```
 
-### Option 2 — `pnpm add -g <path>` (install a copy)
+### Option 2 — `pnpm add -g` against the workspace path
 
-Copies the built package into the global pnpm store. Re-run after every change.
+Copies the built `@hexagram/cli` package (plus its workspace dependencies) into the global pnpm store. Re-run after every change.
 
 ```bash
 pnpm install
 pnpm build
-pnpm add -g "$PWD"
+pnpm add -g "$PWD/apps/cli"
 
 hexagram-random
 ```
 
-### Option 3 — `pnpm pack` + global install (closest to publishing)
+### Option 3 — `pnpm pack` per package + global install (closest to publishing)
 
-`pnpm pack` honors the `files` field, so the resulting tarball is byte-identical to what an `npm publish` consumer would receive. Best for verifying the published package will actually work.
+`pnpm pack` honors each package's `files` field, so the resulting tarballs are byte-identical to what an `npm publish` consumer would receive. Best for verifying the published package will actually work.
 
 ```bash
 pnpm install
 pnpm build
-pnpm pack                                    # → ts-hexagram-generator-0.0.0.tgz
-pnpm add -g "$PWD/ts-hexagram-generator-0.0.0.tgz"
+
+# Pack the three library packages (workspace deps) and the CLI.
+pnpm --filter @hexagram/types     pack
+pnpm --filter @hexagram/core      pack
+pnpm --filter @hexagram/viewer-ui pack
+pnpm --filter @hexagram/cli       pack
+
+# Install the CLI tarball globally; pnpm resolves the workspace deps from
+# the same store (or use --offline against the just-packed tarballs).
+pnpm add -g ./apps/cli/hexagram-cli-0.0.0.tgz
 
 hexagram-random
 ```
@@ -75,24 +138,25 @@ hexagram-random
 If you'd rather use npm:
 
 ```bash
-npm link                          # in the package directory → global symlink
-npm install -g "$PWD"             # install a copy from a path
-npm install -g ./ts-hexagram-generator-0.0.0.tgz   # install from a packed tarball
+npm link                                 # in any workspace package → global symlink
+npm install -g ./apps/cli                # install a copy from the workspace path
+npm install -g ./apps/cli/hexagram-cli-0.0.0.tgz   # install from a packed tarball
 ```
 
 ### Verify & troubleshoot
 
 - Confirm the bin directory is on your `PATH`: `pnpm bin -g` (or `npm bin -g`).
 - Confirm the symlink resolves: `which hexagram-random && ls -l "$(which hexagram-random)"`.
-- The CLI files require Node `>=24.6.0` (see `engines` in `package.json`); older Node versions may refuse to install with `--engine-strict`.
+- The CLI files require Node `>=24.6.0` (see `engines` in the root `package.json`); older Node versions may refuse to install with `--engine-strict`.
 - Always `pnpm build` first — the `bin` entries point at `./dist/*.mjs`, which don't exist until the build runs.
 
 ---
 
 ## Tech Stack
 
-Scaffolded with [sxzz/ts-starter](https://github.com/sxzz/ts-starter)
+Scaffolded from [sxzz/ts-starter](https://github.com/sxzz/ts-starter); migrated to a Turborepo + pnpm-workspaces monorepo.
 
 - Package manager [pnpm](https://pnpm.js.org/), safe and fast
-- Bundle with blazing fast [tsdown](https://github.com/sxzz/tsdown)
+- Monorepo orchestration with [Turborepo](https://turbo.build/repo)
+- Bundle each package with blazing fast [tsdown](https://github.com/sxzz/tsdown)
 - Test with [Vitest](https://vitest.dev)
