@@ -47,8 +47,6 @@
     "type:check": "tsc --noEmit",
     "format:fix": "oxfmt --write",
     "format:check": "oxfmt --check",
-    "release": "bumpp && pnpm publish",
-    "prepublishOnly": "pnpm run build",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
     "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json",
@@ -75,6 +73,7 @@
     "oxlint": "^1.64.0",
     "tsdown": "^0.22.0",
     "tsx": "^4.21.0",
+    "turbo": "^2.5.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.6"
   }
