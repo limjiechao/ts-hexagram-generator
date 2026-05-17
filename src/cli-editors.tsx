@@ -1,9 +1,9 @@
 import { Box, Text, useInput } from 'ink'
 import {
   useEffect,
-  useReducer,
   useRef,
   useState,
+  useSyncExternalStore,
   type ReactElement,
 } from 'react'
 import sliceAnsi from 'slice-ansi'
@@ -189,15 +189,116 @@ interface UseSliderBounceArgs {
 }
 
 /**
+ * File-local store backing `useSliderBounce`. Owns the bouncing-cursor
+ * position/direction/committed state and the `setInterval` that drives the
+ * tick loop. Consumers attach via `subscribe`/`getSnapshot` so React's
+ * `useSyncExternalStore` can read the live position without the legacy
+ * `useReducer((c) => c + 1, 0)` forced-rerender hack. The interval starts
+ * lazily on first subscribe and clears when the last subscriber detaches —
+ * no leaked timers.
+ *
+ * `setRange` is invoked from the hook's render phase so a cast-boundary
+ * range change rewinds the cursor synchronously, matching the prior
+ * zero-frame-lag behaviour.
+ */
+class BouncingSliderStore {
+  private position: number
+  private direction: 1 | -1 = 1
+  private committed = false
+  private min: number
+  private max: number
+  private readonly tickMs: number
+  private readonly listeners = new Set<() => void>()
+  private intervalId: ReturnType<typeof setInterval> | null = null
+
+  constructor(min: number, max: number, tickMs: number) {
+    this.min = min
+    this.max = max
+    this.tickMs = tickMs
+    this.position = min
+  }
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener)
+    if (this.listeners.size === 1) this.startTicking()
+    return () => {
+      this.listeners.delete(listener)
+      if (this.listeners.size === 0) this.stopTicking()
+    }
+  }
+
+  readonly getSnapshot = (): number => this.position
+
+  setRange(min: number, max: number): void {
+    if (this.min === min && this.max === max) return
+    this.min = min
+    this.max = max
+    this.position = min
+    this.direction = 1
+    this.committed = false
+    // Restart the tick timer so the next interval tick is a full `tickMs`
+    // away — matches the pre-refactor `useEffect([min, max, …])` behaviour
+    // where changing the range cleared and re-installed the interval, giving
+    // the user a fresh window to react to the new range before the cursor
+    // moves off `min`.
+    if (this.intervalId !== null) {
+      this.stopTicking()
+      this.startTicking()
+    }
+    this.notify()
+  }
+
+  commit(): number {
+    this.committed = true
+    return this.position
+  }
+
+  private startTicking(): void {
+    if (this.intervalId !== null) return
+    this.intervalId = setInterval(() => {
+      if (this.committed) return
+      let next = this.position + this.direction
+      if (next > this.max) {
+        this.direction = -1
+        next = this.max - 1
+      } else if (next < this.min) {
+        this.direction = 1
+        next = this.min + 1
+      }
+      this.position = next
+      this.notify()
+    }, this.tickMs)
+  }
+
+  private stopTicking(): void {
+    if (this.intervalId === null) return
+    clearInterval(this.intervalId)
+    this.intervalId = null
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener()
+  }
+}
+
+// Stable no-op subscriber used when `focused` is false — `useSyncExternalStore`
+// requires a referentially-stable subscribe function, so we hoist this rather
+// than inline a fresh closure on every render. The listener argument is
+// intentionally unread: we never need to notify when the slider is unfocused.
+const noopSubscribe = (): (() => void) => () => {}
+
+/**
  * Headless bouncing-slider state. Drives a cursor between `min..max` at
  * `tickMs` intervals, bouncing off both endpoints, and commits the current
- * position via `onSubmit` when SPACE is pressed. The committed flag is held
- * in a ref so the tick callback always reads a fresh value, and the timer is
- * cleared on commit + on unmount.
+ * position via `onSubmit` when SPACE is pressed. Backed by a file-local
+ * `BouncingSliderStore` consumed via `useSyncExternalStore`; the store owns
+ * the interval and clears it whenever the last subscriber unmounts (or
+ * `focused` toggles off, which swaps in a noop subscribe).
  *
  * Reset semantics: whenever `min` or `max` changes (i.e. a new cast), the
  * position rewinds to `min`, the direction flips back to +1, and the commit
- * flag clears so the same hook instance can drive every cast in a flow.
+ * flag clears. `setRange` runs in the hook's render phase so the reset is
+ * visible on the same frame — no `useEffect` lag.
  */
 function useSliderBounce({
   min,
@@ -206,59 +307,29 @@ function useSliderBounce({
   tickMs,
   onSubmit,
 }: UseSliderBounceArgs): number {
-  // `positionRef` is the source of truth (always current). `forceRender` is
-  // only used to trigger a re-render after each tick — we never read state
-  // for the rendered value, so the range-change reset can happen during
-  // render without React's "stale state until next commit" lag.
-  const positionRef = useRef<number>(min)
-  const directionRef = useRef<1 | -1>(1)
-  const committedRef = useRef<boolean>(false)
-  const prevRangeRef = useRef<{ min: number; max: number }>({ min, max })
-  const [, forceRender] = useReducer((counter: number) => counter + 1, 0)
+  const storeRef = useRef<BouncingSliderStore | null>(null)
+  storeRef.current ??= new BouncingSliderStore(min, max, tickMs)
+  // Render-phase sync — preserves zero-frame-lag rewind on cast-boundary
+  // range changes, exactly like the previous prevRangeRef branch.
+  storeRef.current.setRange(min, max)
 
-  // Render-phase reset: whenever the range changes (i.e. a new cast starts),
-  // synchronously rewind the cursor to `min` and the direction to +1. The
-  // ref is consulted by the render below, so the reset is visible on the
-  // very same frame — no `useEffect` lag.
-  if (prevRangeRef.current.min !== min || prevRangeRef.current.max !== max) {
-    prevRangeRef.current = { min, max }
-    positionRef.current = min
-    directionRef.current = 1
-    committedRef.current = false
-  }
-
-  useEffect(() => {
-    if (!focused) return
-    const id = setInterval(() => {
-      if (committedRef.current) return
-      let next = positionRef.current + directionRef.current
-      if (next > max) {
-        directionRef.current = -1
-        next = max - 1
-      } else if (next < min) {
-        directionRef.current = 1
-        next = min + 1
-      }
-      positionRef.current = next
-      forceRender()
-    }, tickMs)
-    return () => {
-      clearInterval(id)
-    }
-  }, [focused, min, max, tickMs])
+  const position = useSyncExternalStore(
+    focused ? storeRef.current.subscribe : noopSubscribe,
+    storeRef.current.getSnapshot,
+    storeRef.current.getSnapshot,
+  )
 
   useInput(
     (input, key) => {
       if (isGlobalExitKey(input, key)) return
-      if (input === ' ' && !committedRef.current) {
-        committedRef.current = true
-        onSubmit(positionRef.current)
+      if (input === ' ') {
+        onSubmit(storeRef.current!.commit())
       }
     },
     { isActive: focused },
   )
 
-  return positionRef.current
+  return position
 }
 
 // Build the bar string from a position. `▕` + (cursorIndex × ░) + `█` +

@@ -683,6 +683,85 @@ describe('SliderInput', () => {
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
+
+  it('stops and resumes ticking when focused toggles off and on', () => {
+    // Exercises the subscribe/unsubscribe contract on the store: when
+    // `focused` flips false the noop subscriber takes over and the store's
+    // last listener detaches, stopping the interval. Re-focusing re-attaches
+    // and ticking resumes — no leaked timer, no crash on rerender. The
+    // position is preserved across the toggle because the same store
+    // instance stays in the ref (only the range reset clears it).
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, rerender, unmount } = render(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      // Two ticks while focused: 1 → 2 → 3.
+      vi.advanceTimersByTime(100)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      // Lose focus: interval should stop, position should hold.
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused={false}
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      vi.advanceTimersByTime(500)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused={false}
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      // Regain focus: ticking resumes from where it left off.
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      vi.advanceTimersByTime(50)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 4 / 10')
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 // ── CastingPromptBox in slider mode ──────────────────────────────────────────
