@@ -138,10 +138,12 @@ function welcomeOutput(
   textStyle: Style,
   epilogueStyle: Style,
 ): string {
-  const [prologue, text, epilogue] = strings.reduce<string[]>(
-    (acc, string) => (string.trim() ? [...acc, string.trim()] : acc),
-    [],
-  )
+  const nonEmpty: string[] = []
+  for (const part of strings) {
+    const trimmed = part.trim()
+    if (trimmed) nonEmpty.push(trimmed)
+  }
+  const [prologue, text, epilogue] = nonEmpty
 
   return `
 ${prologueStyle}${prologue}${NORMAL}

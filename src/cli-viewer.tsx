@@ -366,20 +366,19 @@ export function ConsultationViewer({
   // undefined`. `tabs[0]` is provably defined (NonEmpty type), so it's the
   // safe fallback.
   const activeTab = tabs[activeIndex] ?? tabs[0]
-  const activeContent =
-    activeTab.id === 'casting'
-      ? effectiveSections.casting
-      : activeTab.id === 'transformation'
-        ? effectiveSections.transformation
-        : activeTab.id === 'originating'
-          ? effectiveSections.originating
-          : (effectiveSections.resultant ?? '')
+  const activeContent: string = {
+    casting: effectiveSections.casting,
+    transformation: effectiveSections.transformation,
+    originating: effectiveSections.originating,
+    resultant: effectiveSections.resultant ?? '',
+  }[activeTab.id]
 
   const intrinsicWidth = useMemo(
     () =>
-      activeContent
-        .split('\n')
-        .reduce((widest, line) => Math.max(widest, stringWidth(line)), 1),
+      Math.max(
+        1,
+        ...activeContent.split('\n').map((line) => stringWidth(line)),
+      ),
     [activeContent],
   )
   const wrapWidth =
@@ -661,25 +660,23 @@ export async function runConsultationViewer(
   maybeSavedPath?: string,
   maybeMaxWrapWidth?: number,
 ): Promise<void> {
-  let instance: Instance
-  if ('flowKind' in argsOrSections) {
-    instance = render(
-      <ConsultationViewer
-        flowKind={argsOrSections.flowKind}
-        inputMode={argsOrSections.inputMode}
-        maxWrapWidth={argsOrSections.maxWrapWidth}
-      />,
-      { alternateScreen: true },
-    )
-  } else {
-    instance = render(
-      <ConsultationViewer
-        sections={argsOrSections}
-        savedPath={maybeSavedPath ?? ''}
-        maxWrapWidth={maybeMaxWrapWidth}
-      />,
-      { alternateScreen: true },
-    )
-  }
+  const instance: Instance =
+    'flowKind' in argsOrSections
+      ? render(
+          <ConsultationViewer
+            flowKind={argsOrSections.flowKind}
+            inputMode={argsOrSections.inputMode}
+            maxWrapWidth={argsOrSections.maxWrapWidth}
+          />,
+          { alternateScreen: true },
+        )
+      : render(
+          <ConsultationViewer
+            sections={argsOrSections}
+            savedPath={maybeSavedPath ?? ''}
+            maxWrapWidth={maybeMaxWrapWidth}
+          />,
+          { alternateScreen: true },
+        )
   await instance.waitUntilExit()
 }

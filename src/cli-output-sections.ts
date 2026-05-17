@@ -65,7 +65,7 @@ function visualWidth(text: string): number {
   let width = 0
   for (const character of text) {
     const codePoint = character.codePointAt(0) ?? 0
-    if (
+    const isFullwidth =
       (codePoint >= 0x1100 && codePoint <= 0x115f) ||
       (codePoint >= 0x2e80 && codePoint <= 0x303e) ||
       (codePoint >= 0x3041 && codePoint <= 0x33ff) ||
@@ -77,11 +77,7 @@ function visualWidth(text: string): number {
       (codePoint >= 0xfe10 && codePoint <= 0xfe6f) ||
       (codePoint >= 0xff01 && codePoint <= 0xff60) ||
       (codePoint >= 0xffe0 && codePoint <= 0xffe6)
-    ) {
-      width += 2
-    } else {
-      width += 1
-    }
+    width += isFullwidth ? 2 : 1
   }
   return width
 }

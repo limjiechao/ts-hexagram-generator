@@ -3,7 +3,7 @@ import type { GenericHexagramRecord } from './models/hexagram'
 import { HEXAGRAM_RECORDS } from './models/hexagrams'
 import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
 import { TRIGRAM_RECORDS } from './models/trigrams'
-import type { Hexagram } from './types'
+import type { Hexagram, Line } from './types'
 
 const HexagramLineToKey = {
   6: 2,
@@ -11,6 +11,15 @@ const HexagramLineToKey = {
   8: 2,
   9: 1,
 } as const
+
+// Moving lines collapse to their non-moving counterparts: 6→7, 9→8;
+// static lines pass through.
+const RESULTANT_LINE = {
+  6: 7,
+  7: 7,
+  8: 8,
+  9: 8,
+} as const satisfies Record<Line, Line>
 
 function getHexagramKey([
   line1,
@@ -34,7 +43,5 @@ export function getHexagramRecord(hexagram: Hexagram): GenericHexagramRecord {
 }
 
 export function getResultantHexagram(hexagram: Hexagram): Hexagram {
-  return hexagram.map((line) =>
-    line === 6 ? 7 : line === 9 ? 8 : line,
-  ) as Hexagram
+  return hexagram.map((line) => RESULTANT_LINE[line]) as Hexagram
 }

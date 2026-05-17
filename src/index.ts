@@ -25,14 +25,13 @@ const sortIntoFours = (stalks: number[]): SortedStalks[] => {
   const allFours = [...completeFours, ...incompleteFours]
 
   const sliceIndices = [0, ...allFours.map((fours, index) => index * 4 + fours)]
-  const sliceArguments = sliceIndices.reduce<[number, number][]>(
-    (result, sliceIndex, index) => {
-      const nextIndex = sliceIndices[index + 1]
-      if (nextIndex === undefined) return result
-      return [...result, [sliceIndex, nextIndex]]
-    },
-    [],
-  )
+  const sliceArguments: [number, number][] = []
+  for (let index = 0; index < sliceIndices.length - 1; index += 1) {
+    const sliceIndex = sliceIndices[index]
+    const nextIndex = sliceIndices[index + 1]
+    if (sliceIndex === undefined || nextIndex === undefined) continue
+    sliceArguments.push([sliceIndex, nextIndex])
+  }
 
   return sliceArguments.map(
     ([start, end]) => stalks.slice(start, end) as SortedStalks,
