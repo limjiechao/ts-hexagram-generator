@@ -7,7 +7,7 @@ import {
   NumberInput,
   QueryEditor,
   SliderInput,
-} from '../src/cli-editors'
+} from '../src/editors'
 import { tick } from './helpers/async'
 import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 

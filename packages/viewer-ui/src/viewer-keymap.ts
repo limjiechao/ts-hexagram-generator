@@ -1,6 +1,6 @@
 import type { Key } from 'ink'
 
-import type { FlowState } from './cli-viewer-flow.js'
+import type { FlowState } from './viewer-flow.js'
 
 // Data-driven keymap for the consultation viewer. Pure module — no React or
 // Ink imports beyond the `Key` type — so each binding is unit-testable

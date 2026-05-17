@@ -1,3 +1,15 @@
+import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
+import { generateRandomConsultation } from '@hexagram/core/random'
+import {
+  assertIsCastingRecord,
+  assertIsFourOperationsResult,
+  assertIsHexagram,
+  assertIsLine,
+  type CastingRecord,
+  type FourOperationsResult,
+  type Hexagram,
+  type Line,
+} from '@hexagram/types'
 import {
   Box,
   render,
@@ -21,16 +33,16 @@ import {
   CastingPromptBox,
   getCastingPromptHeight,
   QueryEditor,
-} from './cli-editors.js'
+} from './editors.js'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
   consultationConsoleOutput,
   type ConsultationSections,
-} from './cli-output-composers.js'
-import { consultationFileOutput } from './cli-output-file.js'
-import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
-import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './cli-utils-mode.js'
+} from './output-composers.js'
+import { consultationFileOutput } from './output-file.js'
+import { BOLD_GREY, NORMAL } from './output-palette.js'
+import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './utils-mode.js'
 import {
   FooterBar,
   KEY_HINTS_FLOW_DEFAULT,
@@ -41,14 +53,14 @@ import {
   TabBar,
   type NonEmpty,
   type TabDescriptor,
-} from './cli-viewer-chrome.js'
+} from './viewer-chrome.js'
 import {
   EMPTY_SECTIONS,
   flowReducer,
   initialFlowState,
   type FlowKind,
-} from './cli-viewer-flow.js'
-import { dispatchKey, type KeyContext } from './cli-viewer-keymap.js'
+} from './viewer-flow.js'
+import { dispatchKey, type KeyContext } from './viewer-keymap.js'
 import {
   clamp,
   computeWrapWidth,
@@ -61,29 +73,17 @@ import {
   stripAnsi,
   TAB_BAR_HEIGHT,
   wrapToWidth,
-} from './cli-viewer-layout.js'
-import { makeLineGenerator, stalksBeforeParting } from './index.js'
-import { generateRandomConsultation } from './random.js'
-import {
-  assertIsCastingRecord,
-  assertIsFourOperationsResult,
-  assertIsHexagram,
-  assertIsLine,
-  type CastingRecord,
-  type FourOperationsResult,
-  type Hexagram,
-  type Line,
-} from './types.js'
+} from './viewer-layout.js'
 
-export { type FlowKind } from './cli-viewer-flow.js'
+export { type FlowKind } from './viewer-flow.js'
 // Re-export the pure layout helpers so callers (notably the existing
 // `tests/cli-viewer.test.tsx`) can import them from the same entry point.
-// The implementations live in `cli-viewer-layout.ts`.
+// The implementations live in `viewer-layout.ts`.
 export {
   computeWrapWidth,
   truncateEnd,
   truncateStart,
-} from './cli-viewer-layout.js'
+} from './viewer-layout.js'
 
 interface ConsultationViewerProps {
   // Production callers pass a flowKind; the viewer then owns the entire flow.

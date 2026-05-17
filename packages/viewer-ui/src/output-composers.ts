@@ -1,3 +1,10 @@
+import { getResultantHexagram } from '@hexagram/core/getters'
+import type {
+  CastingRecord,
+  Hexagram,
+  PartialCastingRecord,
+} from '@hexagram/types'
+
 import {
   castingSection,
   linesBlock,
@@ -6,10 +13,8 @@ import {
   querySection,
   resultantHexagramSection,
   transformationSection,
-} from './cli-output-sections.js'
-import { isMovingLine } from './cli-utils-validators.js'
-import { getResultantHexagram } from './getters.js'
-import type { CastingRecord, Hexagram, PartialCastingRecord } from './types'
+} from './output-sections.js'
+import { isMovingLine } from './utils-validators.js'
 
 /**
  * The consultation broken into its presentational sections, each a

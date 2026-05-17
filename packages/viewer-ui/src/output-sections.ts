@@ -1,4 +1,16 @@
 import {
+  getHexagramRecord,
+  getResultantHexagram,
+  getTrigramRecord,
+} from '@hexagram/core/getters'
+import type {
+  Hexagram,
+  Line,
+  PartialCastingRecord,
+  PartialSplitRecord,
+} from '@hexagram/types'
+
+import {
   BOLD_GREY,
   BOLD_RED,
   BOLD_WHITE,
@@ -6,23 +18,12 @@ import {
   NORMAL,
   NORMAL_GREY,
   PLACEHOLDER_GREY,
-} from './cli-output-palette.js'
+} from './output-palette.js'
 import {
   assertLine1ToLine6,
   isLineIndex,
   isMovingLine,
-} from './cli-utils-validators.js'
-import {
-  getHexagramRecord,
-  getResultantHexagram,
-  getTrigramRecord,
-} from './getters.js'
-import type {
-  Hexagram,
-  Line,
-  PartialCastingRecord,
-  PartialSplitRecord,
-} from './types'
+} from './utils-validators.js'
 
 const hexagramLineDiagramMap = {
   6: '━━━ × ━━━',

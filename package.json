@@ -50,11 +50,12 @@
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
     "generate-json-files": "turbo run generate-json-files --filter=@hexagram/core",
-    "generate-fixtures": "tsx scripts/generate-fixtures.ts"
+    "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/viewer-ui"
   },
   "dependencies": {
     "@hexagram/core": "workspace:*",
     "@hexagram/types": "workspace:*",
+    "@hexagram/viewer-ui": "workspace:*",
     "@inquirer/prompts": "^8.4.3",
     "ink": "^7.0.3",
     "react": "^19.2.6",

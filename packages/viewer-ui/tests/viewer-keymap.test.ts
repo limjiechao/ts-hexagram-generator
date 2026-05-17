@@ -1,7 +1,8 @@
+import { emptyPartialCastingRecord } from '@hexagram/types'
 import type { Key } from 'ink'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { FlowState } from '../src/cli-viewer-flow'
+import type { FlowState } from '../src/viewer-flow'
 import {
   ALWAYS,
   BINDINGS,
@@ -10,8 +11,7 @@ import {
   IN_DONE,
   type InputMode,
   type KeyContext,
-} from '../src/cli-viewer-keymap'
-import { emptyPartialCastingRecord } from '../src/types'
+} from '../src/viewer-keymap'
 
 // Pure unit tests for the data-driven viewer keymap. No ink-testing-library
 // here — every binding is exercised against a stub `KeyContext` whose

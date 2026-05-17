@@ -2,15 +2,15 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { emptyPartialCastingRecord } from '@hexagram/types'
 import { describe, expect, it } from 'vitest'
 
 import {
   buildConsultationSections,
   buildPartialCastingSections,
   consultationConsoleOutput,
-} from '../src/cli-output-composers'
-import { castingSection } from '../src/cli-output-sections'
-import { emptyPartialCastingRecord } from '../src/types'
+} from '../src/output-composers'
+import { castingSection } from '../src/output-sections'
 import { cases } from './fixtures/cases'
 
 const fixturesDirectory = path.join(

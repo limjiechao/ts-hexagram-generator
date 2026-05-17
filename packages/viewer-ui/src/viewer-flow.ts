@@ -1,10 +1,11 @@
-import type { ConsultationSections } from './cli-output-composers.js'
 import {
   emptyPartialCastingRecord,
   type Line,
   type PartialCastingRecord,
   type SplitRecord,
-} from './types.js'
+} from '@hexagram/types'
+
+import type { ConsultationSections } from './output-composers.js'
 
 // Pure flow state machine for the Ink consultation viewer. Lives in its own
 // module (no React, no Ink imports) so transitions can be unit-tested with

@@ -1,9 +1,9 @@
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 
-import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
-import type { InputMode } from './cli-utils-mode.js'
-import { truncateEnd, truncateStart } from './cli-viewer-layout.js'
+import { BOLD_GREY, NORMAL } from './output-palette.js'
+import type { InputMode } from './utils-mode.js'
+import { truncateEnd, truncateStart } from './viewer-layout.js'
 
 // Presentational chrome for the Ink viewer. Each component is a "dumb"
 // React component — props in, JSX out. No state, no side effects.

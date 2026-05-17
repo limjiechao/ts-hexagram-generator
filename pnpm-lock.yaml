@@ -14,6 +14,9 @@ importers:
       '@hexagram/types':
         specifier: workspace:*
         version: link:packages/types
+      '@hexagram/viewer-ui':
+        specifier: workspace:*
+        version: link:packages/viewer-ui
       '@inquirer/prompts':
         specifier: ^8.4.3
         version: 8.4.3(@types/node@24.12.4)

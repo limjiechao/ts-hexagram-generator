@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url'
 import {
   buildConsultationSections,
   consultationConsoleOutput,
-} from '../src/cli-output-composers'
+} from '../src/output-composers'
 import { cases } from '../tests/fixtures/cases'
 
 // Regenerate the byte-locked fixtures from `consultationConsoleOutput` and

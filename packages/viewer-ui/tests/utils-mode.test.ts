@@ -6,7 +6,7 @@ import {
   shouldForceNumericForAccessibility,
   shouldUseNumericInput,
   shouldUsePlainMode,
-} from '../src/cli-utils-mode'
+} from '../src/utils-mode'
 
 test('shouldUsePlainMode() detects --plain', () => {
   expect(shouldUsePlainMode(['--plain'])).toBe(true)

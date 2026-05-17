@@ -2,14 +2,15 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import type { CastingRecord, Hexagram } from '@hexagram/types'
+
 import {
   buildConsultationSections,
   consultationConsoleOutput,
   type ConsultationSections,
-} from './cli-output-composers.js'
-import { BOLD_GREY, NORMAL } from './cli-output-palette.js'
-import { getFilesystemSafeTimestamp } from './cli-utils-dayjs'
-import type { CastingRecord, Hexagram } from './types'
+} from './output-composers.js'
+import { BOLD_GREY, NORMAL } from './output-palette.js'
+import { getFilesystemSafeTimestamp } from './utils-dayjs.js'
 
 const currentFilename = fileURLToPath(import.meta.url)
 const currentDirname = path.dirname(currentFilename)

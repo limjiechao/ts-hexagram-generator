@@ -1,15 +1,15 @@
+import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildConsultationSections } from '../src/cli-output-composers'
+import { buildConsultationSections } from '../src/output-composers'
 import {
   computeWrapWidth,
   ConsultationViewer,
   truncateEnd,
   truncateStart,
-} from '../src/cli-viewer'
-import type { CastingRecord, Hexagram } from '../src/types'
+} from '../src/viewer'
 import { tick } from './helpers/async'
 import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT } from './helpers/keystrokes'
 import { STUB_CASTING } from './helpers/stubs'
@@ -21,8 +21,8 @@ import { STUB_CASTING } from './helpers/stubs'
 const consultationFileOutputMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve('/tmp/consultation-mocked.txt')),
 )
-vi.mock('../src/cli-output-file', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/cli-output-file')>()
+vi.mock('../src/output-file', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/output-file')>()
   return { ...actual, consultationFileOutput: consultationFileOutputMock }
 })
 
@@ -37,8 +37,8 @@ const randomConsultationMock = vi.hoisted(() => {
   ]) as CastingRecord
   return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
 })
-vi.mock('../src/random', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/random')>()
+vi.mock('@hexagram/core/random', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hexagram/core/random')>()
   return { ...actual, generateRandomConsultation: randomConsultationMock }
 })
 
