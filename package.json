@@ -49,10 +49,12 @@
     "format:check": "oxfmt --check",
     "hexagram-random": "tsx src/cli-random.ts",
     "hexagram-interactive": "tsx src/cli-interactive.ts",
-    "generate-json-files": "tsx src/models/generate-json-files.ts && oxfmt --write src/models/*.json",
+    "generate-json-files": "turbo run generate-json-files --filter=@hexagram/core",
     "generate-fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
+    "@hexagram/core": "workspace:*",
+    "@hexagram/types": "workspace:*",
     "@inquirer/prompts": "^8.4.3",
     "ink": "^7.0.3",
     "react": "^19.2.6",

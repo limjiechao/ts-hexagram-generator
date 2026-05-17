@@ -7,8 +7,28 @@
   "exports": {
     ".": {
       "source": "./src/index.ts",
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js"
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./random": {
+      "source": "./src/random.ts",
+      "types": "./dist/random.d.mts",
+      "import": "./dist/random.mjs"
+    },
+    "./getters": {
+      "source": "./src/getters.ts",
+      "types": "./dist/getters.d.mts",
+      "import": "./dist/getters.mjs"
+    },
+    "./hexagrams": {
+      "source": "./src/models/hexagrams.ts",
+      "types": "./dist/models/hexagrams.d.mts",
+      "import": "./dist/models/hexagrams.mjs"
+    },
+    "./trigrams": {
+      "source": "./src/models/trigrams.ts",
+      "types": "./dist/models/trigrams.d.mts",
+      "import": "./dist/models/trigrams.mjs"
     },
     "./package.json": "./package.json"
   },

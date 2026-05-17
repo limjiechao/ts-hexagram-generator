@@ -1,10 +1,9 @@
-import { expect, test } from 'vitest'
-
 import {
   generateRandomHexagram,
   generateRandomHexagrams,
   generateRandomLines,
-} from '../src/random'
+} from '@hexagram/core/random'
+import { expect, test } from 'vitest'
 
 test('generateRandomHexagram() should return a valid hexagram', () => {
   const hexagram = generateRandomHexagram()

@@ -8,6 +8,12 @@ importers:
 
   .:
     dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:packages/core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:packages/types
       '@inquirer/prompts':
         specifier: ^8.4.3
         version: 8.4.3(@types/node@24.12.4)
