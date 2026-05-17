@@ -1,0 +1,38 @@
+{
+  "name": "@hexagram/viewer-ui",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Terminal UI for the Yijing hexagram oracle: Ink-based tabbed viewer, Inquirer fallback flow, and formatted output sections",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit",
+    "generate-fixtures": "tsx scripts/generate-fixtures.ts"
+  },
+  "dependencies": {
+    "@hexagram/core": "workspace:*",
+    "@hexagram/types": "workspace:*",
+    "@inquirer/prompts": "^8.4.3",
+    "dayjs": "^1.11.20",
+    "ink": "^7.0.3",
+    "react": "^19.2.6",
+    "slice-ansi": "^9.0.0",
+    "string-width": "^8.2.1",
+    "wrap-ansi": "^10.0.0"
+  }
+}

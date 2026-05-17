@@ -1,0 +1,20 @@
+{
+  "name": "@hexagram/cli",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Yijing hexagram oracle CLI bins (hexagram-random, hexagram-interactive)",
+  "license": "MIT",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/core": "workspace:*",
+    "@hexagram/types": "workspace:*",
+    "@hexagram/viewer-ui": "workspace:*"
+  }
+}

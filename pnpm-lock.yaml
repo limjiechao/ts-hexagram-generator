@@ -73,6 +73,56 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@24.12.4)(vite@6.3.5(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.29.3)(tsx@4.21.0)(yaml@2.9.0))
 
+  apps/cli:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../../packages/core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../../packages/types
+      '@hexagram/viewer-ui':
+        specifier: workspace:*
+        version: link:../../packages/viewer-ui
+
+  packages/core:
+    dependencies:
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../types
+
+  packages/types: {}
+
+  packages/viewer-ui:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../types
+      '@inquirer/prompts':
+        specifier: ^8.4.3
+        version: 8.4.3(@types/node@24.12.4)
+      dayjs:
+        specifier: ^1.11.20
+        version: 1.11.20
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+      slice-ansi:
+        specifier: ^9.0.0
+        version: 9.0.0
+      string-width:
+        specifier: ^8.2.1
+        version: 8.2.1
+      wrap-ansi:
+        specifier: ^10.0.0
+        version: 10.0.0
+
 packages:
 
   '@alcalzone/ansi-tokenize@0.3.0':

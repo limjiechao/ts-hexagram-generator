@@ -1,0 +1,30 @@
+{
+  "name": "@hexagram/core",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Yijing hexagram oracle: yarrow stalk algorithm, random generators, getters, and canonical hexagram/trigram records",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit",
+    "generate-json-files": "tsx scripts/generate-json-files.ts && oxfmt --write src/models/*.json"
+  },
+  "dependencies": {
+    "@hexagram/types": "workspace:*"
+  }
+}

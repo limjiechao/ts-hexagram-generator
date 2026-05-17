@@ -1,0 +1,26 @@
+{
+  "name": "@hexagram/types",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Public type definitions for the Yijing hexagram oracle",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  }
+}
