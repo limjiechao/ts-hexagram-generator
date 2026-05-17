@@ -48,6 +48,7 @@ import {
   initialFlowState,
   type FlowKind,
 } from './cli-viewer-flow.js'
+import { dispatchKey, type KeyContext } from './cli-viewer-keymap.js'
 import {
   clamp,
   computeWrapWidth,
@@ -451,6 +452,12 @@ export function ConsultationViewer({
       (activeIndexRef.current + delta + tabs.length) % tabs.length
     forceRender()
   }
+  const jumpToTab = (index: number): void => {
+    if (index >= 0 && index < tabs.length) {
+      activeIndexRef.current = index
+      forceRender()
+    }
+  }
 
   // Intrinsic content width of the casting prompt box (inside its border).
   // Used to drive ←/→ pan during the slider-mode casting flow; the box
@@ -488,86 +495,32 @@ export function ConsultationViewer({
   // owned by the editor. After the flow is done, the full done-mode binding
   // set applies. `q` is intentionally NOT a quit shortcut anymore; the only
   // exits are Esc and Ctrl+C.
+  //
+  // The dispatch table lives in `cli-viewer-keymap.ts` (a pure module);
+  // here we just assemble the per-frame `KeyContext` and delegate. Each
+  // pan / scroll closure clamps internally against its current ceiling, so
+  // the bindings can stay maths-free.
   useInput((input, key) => {
-    if (key.escape) {
-      exit()
-      return
-    }
-    if (key.ctrl && input === 'c') {
-      exit()
-      return
-    }
-    // Casting flow: pan the prompt box horizontally if it overflows.
-    if (state.mode === 'casting' && inputMode === 'slider') {
-      if (key.leftArrow) {
+    const ctx: KeyContext = {
+      state,
+      inputMode,
+      viewportHeight,
+      exit,
+      panCastingPromptBy: (delta) =>
+        panCastingPromptBy(delta, maxCastingHorizontalOffset),
+      panCastingPromptByPage: (delta) =>
         panCastingPromptBy(
-          key.shift ? -(castingInnerWidth - 1) : -1,
+          delta * (castingInnerWidth - 1),
           maxCastingHorizontalOffset,
-        )
-        return
-      }
-      if (key.rightArrow) {
-        panCastingPromptBy(
-          key.shift ? castingInnerWidth - 1 : 1,
-          maxCastingHorizontalOffset,
-        )
-        return
-      }
+        ),
+      stepToTab,
+      jumpToTab,
+      panActiveBy,
+      panActiveByPage: (delta) => panActiveBy(delta * (innerCols - 1)),
+      scrollActiveBy,
+      scrollActiveTo,
     }
-    if (state.mode !== 'done') return // editors handle other keys
-    if (key.tab && key.shift) {
-      stepToTab(-1)
-      return
-    }
-    if (key.tab || input === ']') {
-      stepToTab(1)
-      return
-    }
-    if (input === '[') {
-      stepToTab(-1)
-      return
-    }
-    // Digit shortcuts 1-9 jump to that tab index (1-indexed). The
-    // < tabs.length check gates against future tab additions.
-    if (input >= '1' && input <= '9') {
-      const target = Number.parseInt(input, 10) - 1
-      if (target >= 0 && target < tabs.length) {
-        activeIndexRef.current = target
-        forceRender()
-        return
-      }
-    }
-    if (key.leftArrow) {
-      panActiveBy(key.shift ? -(innerCols - 1) : -1)
-      return
-    }
-    if (key.rightArrow) {
-      panActiveBy(key.shift ? innerCols - 1 : 1)
-      return
-    }
-    if (key.upArrow) {
-      scrollActiveBy(-1)
-      return
-    }
-    if (key.downArrow) {
-      scrollActiveBy(1)
-      return
-    }
-    if (key.pageUp) {
-      scrollActiveBy(-(viewportHeight - 1))
-      return
-    }
-    if (key.pageDown) {
-      scrollActiveBy(viewportHeight - 1)
-      return
-    }
-    if (key.home || input === 'g') {
-      scrollActiveTo(0)
-      return
-    }
-    if (key.end || input === 'G') {
-      scrollActiveTo(maxOffset)
-    }
+    dispatchKey(input, key, ctx)
   })
 
   const verticalStatus = canScrollVertically

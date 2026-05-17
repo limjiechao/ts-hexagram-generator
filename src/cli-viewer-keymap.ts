@@ -1,0 +1,204 @@
+import type { Key } from 'ink'
+
+import type { FlowState } from './cli-viewer-flow.js'
+
+// Data-driven keymap for the consultation viewer. Pure module — no React or
+// Ink imports beyond the `Key` type — so each binding is unit-testable
+// without mounting ink-testing-library. `dispatchKey()` walks `BINDINGS` in
+// declaration order and returns true the moment a binding's `when` predicate
+// and `match` predicate both hold; first match wins.
+//
+// The 16 bindings here replace the previous 81-line `if/else` chain inside
+// `cli-viewer.tsx`'s `useInput` callback. Behaviour is preserved bit-for-bit:
+// global Escape / Ctrl+C exits; ←/→ during a slider-mode cast pan the
+// casting prompt; once `done`, the full Tab / digit / arrow / page / Home /
+// End binding set applies. Shift-modified arrows pan by `innerCols - 1`
+// (a "page" pan) — that math lives in the closures passed in via
+// `KeyContext`, so the bindings here just toggle on `key.shift`.
+
+export type InputMode = 'slider' | 'number'
+
+export interface KeyContext {
+  readonly state: FlowState
+  readonly inputMode: InputMode
+  readonly viewportHeight: number
+  readonly exit: () => void
+  // `delta` is signed cells (1 = one column). The closure passed in by the
+  // viewer is responsible for clamping against the prompt's pan ceiling.
+  readonly panCastingPromptBy: (delta: number) => void
+  // Shift-modified ←/→ during a cast: pan by one page (`innerCols - 1`).
+  readonly panCastingPromptByPage: (delta: number) => void
+  readonly stepToTab: (delta: number) => void
+  readonly jumpToTab: (index: number) => void
+  // `delta` is signed cells. The closure passed in by the viewer clamps
+  // against the active tab's content width.
+  readonly panActiveBy: (delta: number) => void
+  // Shift-modified ←/→ in `done` mode: pan by one page (`innerCols - 1`).
+  readonly panActiveByPage: (delta: number) => void
+  readonly scrollActiveBy: (delta: number) => void
+  readonly scrollActiveTo: (offset: number) => void
+}
+
+export interface KeyBinding {
+  readonly id: string
+  readonly when: (state: FlowState, inputMode: InputMode) => boolean
+  readonly match: (input: string, key: Key) => boolean
+  readonly run: (ctx: KeyContext, input: string, key: Key) => void
+}
+
+export const ALWAYS = (): boolean => true
+export const IN_CASTING_SLIDER = (s: FlowState, im: InputMode): boolean =>
+  s.mode === 'casting' && im === 'slider'
+export const IN_DONE = (s: FlowState): boolean => s.mode === 'done'
+
+export const BINDINGS: readonly KeyBinding[] = [
+  // ── Global ───────────────────────────────────────────────────────────────
+  {
+    id: 'exit/escape',
+    when: ALWAYS,
+    match: (_input, key) => key.escape === true,
+    run: (ctx) => {
+      ctx.exit()
+    },
+  },
+  {
+    id: 'exit/ctrl-c',
+    when: ALWAYS,
+    match: (input, key) => key.ctrl === true && input === 'c',
+    run: (ctx) => {
+      ctx.exit()
+    },
+  },
+  // ── Casting (slider mode only) ───────────────────────────────────────────
+  {
+    id: 'casting/pan-left',
+    when: IN_CASTING_SLIDER,
+    match: (_input, key) => key.leftArrow === true,
+    run: (ctx, _input, key) => {
+      if (key.shift === true) ctx.panCastingPromptByPage(-1)
+      else ctx.panCastingPromptBy(-1)
+    },
+  },
+  {
+    id: 'casting/pan-right',
+    when: IN_CASTING_SLIDER,
+    match: (_input, key) => key.rightArrow === true,
+    run: (ctx, _input, key) => {
+      if (key.shift === true) ctx.panCastingPromptByPage(1)
+      else ctx.panCastingPromptBy(1)
+    },
+  },
+  // ── Done mode ────────────────────────────────────────────────────────────
+  {
+    id: 'done/tab-prev-shift',
+    when: IN_DONE,
+    match: (_input, key) => key.tab === true && key.shift === true,
+    run: (ctx) => {
+      ctx.stepToTab(-1)
+    },
+  },
+  {
+    id: 'done/tab-next',
+    when: IN_DONE,
+    match: (input, key) =>
+      (key.tab === true && key.shift !== true) || input === ']',
+    run: (ctx) => {
+      ctx.stepToTab(1)
+    },
+  },
+  {
+    id: 'done/tab-prev-bracket',
+    when: IN_DONE,
+    match: (input) => input === '[',
+    run: (ctx) => {
+      ctx.stepToTab(-1)
+    },
+  },
+  {
+    id: 'done/jump-digit',
+    when: IN_DONE,
+    match: (input) => input.length === 1 && input >= '1' && input <= '9',
+    run: (ctx, input) => {
+      ctx.jumpToTab(Number.parseInt(input, 10) - 1)
+    },
+  },
+  {
+    id: 'done/pan-left',
+    when: IN_DONE,
+    match: (_input, key) => key.leftArrow === true,
+    run: (ctx, _input, key) => {
+      if (key.shift === true) ctx.panActiveByPage(-1)
+      else ctx.panActiveBy(-1)
+    },
+  },
+  {
+    id: 'done/pan-right',
+    when: IN_DONE,
+    match: (_input, key) => key.rightArrow === true,
+    run: (ctx, _input, key) => {
+      if (key.shift === true) ctx.panActiveByPage(1)
+      else ctx.panActiveBy(1)
+    },
+  },
+  {
+    id: 'done/scroll-up',
+    when: IN_DONE,
+    match: (_input, key) => key.upArrow === true,
+    run: (ctx) => {
+      ctx.scrollActiveBy(-1)
+    },
+  },
+  {
+    id: 'done/scroll-down',
+    when: IN_DONE,
+    match: (_input, key) => key.downArrow === true,
+    run: (ctx) => {
+      ctx.scrollActiveBy(1)
+    },
+  },
+  {
+    id: 'done/page-up',
+    when: IN_DONE,
+    match: (_input, key) => key.pageUp === true,
+    run: (ctx) => {
+      ctx.scrollActiveBy(-(ctx.viewportHeight - 1))
+    },
+  },
+  {
+    id: 'done/page-down',
+    when: IN_DONE,
+    match: (_input, key) => key.pageDown === true,
+    run: (ctx) => {
+      ctx.scrollActiveBy(ctx.viewportHeight - 1)
+    },
+  },
+  {
+    id: 'done/home',
+    when: IN_DONE,
+    match: (input, key) => key.home === true || input === 'g',
+    run: (ctx) => {
+      ctx.scrollActiveTo(0)
+    },
+  },
+  {
+    id: 'done/end',
+    when: IN_DONE,
+    match: (input, key) => key.end === true || input === 'G',
+    run: (ctx) => {
+      // `scrollActiveTo` clamps against the active tab's `maxOffset` (see
+      // its closure in cli-viewer.tsx), so +Infinity safely lands on the
+      // last row.
+      ctx.scrollActiveTo(Number.POSITIVE_INFINITY)
+    },
+  },
+]
+
+export function dispatchKey(input: string, key: Key, ctx: KeyContext): boolean {
+  for (const binding of BINDINGS) {
+    if (!binding.when(ctx.state, ctx.inputMode)) continue
+    if (!binding.match(input, key)) continue
+    binding.run(ctx, input, key)
+    return true
+  }
+  return false
+}
