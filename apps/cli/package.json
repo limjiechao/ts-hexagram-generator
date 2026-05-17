@@ -5,6 +5,10 @@
   "private": true,
   "description": "Yijing hexagram oracle CLI bins (hexagram-random, hexagram-interactive)",
   "license": "MIT",
+  "bin": {
+    "hexagram-interactive": "./dist/interactive.mjs",
+    "hexagram-random": "./dist/random.mjs"
+  },
   "files": [
     "dist"
   ],

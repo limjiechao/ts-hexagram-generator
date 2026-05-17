@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import process from 'node:process'
 
 import {
@@ -36,16 +38,7 @@ ${epilogueStyle}${epilogue}${NORMAL}
   `.trim()
 }
 
-// Re-export the library half so test imports of '../src/interactive' that
-// reach for these stay valid during the transition. Will be dropped in
-// commit 5 along with this file.
-export {
-  getHexagramViaInteraction,
-  getOneLineViaInteraction,
-} from '@hexagram/viewer-ui'
-
-// Main CLI function
-export async function main(): Promise<void> {
+async function main(): Promise<void> {
   console.info(welcomeOutput`
     ${BOLD_GREY}Welcome to the Interactive Yijing Yarrow Stalk Oracle
     ${NORMAL}Divide the stalks 18 times, 3 times per line to get 6 lines to form a hexagram.
@@ -83,3 +76,5 @@ export async function main(): Promise<void> {
     process.exit(1)
   }
 }
+
+await main()

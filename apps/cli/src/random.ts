@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import process from 'node:process'
 
 import { generateRandomConsultation } from '@hexagram/core/random'
@@ -9,9 +11,7 @@ import {
   runConsultationViewer,
 } from '@hexagram/viewer-ui'
 
-export * from '@hexagram/core/random'
-
-export async function main(): Promise<void> {
+async function main(): Promise<void> {
   try {
     if (resolveOutputMode() === 'plain') {
       // Plain mode keeps the terminal-side Inquirer prompt for the query;
@@ -36,3 +36,5 @@ export async function main(): Promise<void> {
     process.exit(1)
   }
 }
+
+await main()

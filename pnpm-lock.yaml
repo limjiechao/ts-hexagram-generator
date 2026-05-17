@@ -7,34 +7,6 @@ settings:
 importers:
 
   .:
-    dependencies:
-      '@hexagram/core':
-        specifier: workspace:*
-        version: link:packages/core
-      '@hexagram/types':
-        specifier: workspace:*
-        version: link:packages/types
-      '@hexagram/viewer-ui':
-        specifier: workspace:*
-        version: link:packages/viewer-ui
-      '@inquirer/prompts':
-        specifier: ^8.4.3
-        version: 8.4.3(@types/node@24.12.4)
-      ink:
-        specifier: ^7.0.3
-        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
-      react:
-        specifier: ^19.2.6
-        version: 19.2.6
-      slice-ansi:
-        specifier: ^9.0.0
-        version: 9.0.0
-      string-width:
-        specifier: ^8.2.1
-        version: 8.2.1
-      wrap-ansi:
-        specifier: ^10.0.0
-        version: 10.0.0
     devDependencies:
       '@sxzz/eslint-config':
         specifier: ^8.1.0
@@ -48,15 +20,15 @@ importers:
       bumpp:
         specifier: ^11.1.0
         version: 11.1.0
-      dayjs:
-        specifier: ^1.11.20
-        version: 1.11.20
       eslint:
         specifier: ^10.3.0
         version: 10.3.0(jiti@2.7.0)
       eslint-plugin-oxlint:
         specifier: ^1.64.0
         version: 1.64.0(oxlint@1.64.0)
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
       ink-testing-library:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
@@ -66,6 +38,9 @@ importers:
       oxlint:
         specifier: ^1.64.0
         version: 1.64.0
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
       tsdown:
         specifier: ^0.22.0
         version: 0.22.0(tsx@4.21.0)(typescript@6.0.3)
@@ -131,6 +106,13 @@ importers:
       wrap-ansi:
         specifier: ^10.0.0
         version: 10.0.0
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      ink-testing-library:
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.2.14)
 
 packages:
 
