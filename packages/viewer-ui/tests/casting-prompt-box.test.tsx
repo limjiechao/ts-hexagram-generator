@@ -5,6 +5,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { CastingPromptBox, SliderInput } from '../src/casting-prompt-box'
 import { tick } from './helpers/async'
 import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
+import { pickFromFrame } from './helpers/slider'
 
 function CastingPromptBoxHost({
   onSubmit,
@@ -94,12 +95,16 @@ describe('CastingPromptBox', () => {
 // ── SliderInput ──────────────────────────────────────────────────────────────
 
 describe('SliderInput', () => {
-  it('renders the initial position at min', () => {
+  it('renders the initial position at min with the initial spinner glyph', () => {
     const { lastFrame, unmount } = render(
       <SliderInput min={1} max={10} focused onSubmit={() => {}} tickMs={50} />,
     )
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('pick: 1 / 10')
+    // Position is read from the bar (cursor cell location), not the readout.
+    expect(pickFromFrame(frame)).toBe(1)
+    // Readout no longer leaks the numeric position — first Braille glyph
+    // (`⠋`) stands in for it, and the spinner restarts here on mount.
+    expect(frame).toContain('pick: ⠋ / 10')
     // Bar should be present: 1 cursor cell (█) + 9 empty cells (░), bordered.
     expect(frame).toContain('█')
     expect(frame).toContain('░')
@@ -119,7 +124,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 1 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(1)
       vi.advanceTimersByTime(50)
       rerender(
         <SliderInput
@@ -130,7 +135,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 2 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(2)
       vi.advanceTimersByTime(50)
       rerender(
         <SliderInput
@@ -141,7 +146,44 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('cycles the spinner glyph one frame per tick', () => {
+    // Verifies that the readout's Braille glyph advances in lockstep with the
+    // cursor, so the user sees motion in the row below the bar without the
+    // numeric position being revealed. The 10-glyph cycle is `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏`.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, rerender, unmount } = render(
+        <SliderInput
+          min={1}
+          max={20}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: ⠋ / 20')
+      const expected = ['⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏', '⠋']
+      for (const glyph of expected) {
+        vi.advanceTimersByTime(50)
+        rerender(
+          <SliderInput
+            min={1}
+            max={20}
+            focused
+            onSubmit={onSubmit}
+            tickMs={50}
+          />,
+        )
+        expect(lastFrame() ?? '').toContain(`pick: ${glyph} / 20`)
+      }
       unmount()
     } finally {
       vi.useRealTimers()
@@ -160,18 +202,18 @@ describe('SliderInput', () => {
       rerender(
         <SliderInput min={1} max={3} focused onSubmit={onSubmit} tickMs={50} />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 2 / 3')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(2)
       vi.advanceTimersByTime(50)
       rerender(
         <SliderInput min={1} max={3} focused onSubmit={onSubmit} tickMs={50} />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 3 / 3')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
       // Next tick should bounce back to 2 (max-1), not overflow.
       vi.advanceTimersByTime(50)
       rerender(
         <SliderInput min={1} max={3} focused onSubmit={onSubmit} tickMs={50} />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 2 / 3')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(2)
       unmount()
     } finally {
       vi.useRealTimers()
@@ -238,18 +280,21 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 5 / 10')
-      // New cast — narrower range. Position should rewind to 1.
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(5)
+      // New cast — narrower range. Position should rewind to 1, and the
+      // spinner should restart at `⠋` for the new cast.
       rerender(
         <SliderInput min={1} max={5} focused onSubmit={onSubmit} tickMs={50} />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 1 / 5')
+      const reset = lastFrame() ?? ''
+      expect(pickFromFrame(reset)).toBe(1)
+      expect(reset).toContain('pick: ⠋ / 5')
       // And direction should be +1: next tick goes to 2.
       vi.advanceTimersByTime(50)
       rerender(
         <SliderInput min={1} max={5} focused onSubmit={onSubmit} tickMs={50} />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 2 / 5')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(2)
       unmount()
     } finally {
       vi.useRealTimers()
@@ -280,7 +325,7 @@ describe('SliderInput', () => {
         />,
       )
       // Should still show the initial position.
-      expect(lastFrame() ?? '').toContain('pick: 1 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(1)
       unmount()
     } finally {
       vi.useRealTimers()
@@ -329,7 +374,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
       // Lose focus: interval should stop, position should hold.
       rerender(
         <SliderInput
@@ -350,7 +395,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
       // Regain focus: ticking resumes from where it left off.
       rerender(
         <SliderInput
@@ -371,7 +416,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 4 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(4)
       unmount()
     } finally {
       vi.useRealTimers()
@@ -405,7 +450,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 2 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(2)
 
       // Drop tickMs to 20 — the store should re-arm the interval at the new
       // rate, so one 20ms tick advances by one cell.
@@ -428,7 +473,7 @@ describe('SliderInput', () => {
           tickMs={20}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
 
       // A second 20ms tick confirms the new cadence is steady-state, not a
       // one-off restart artefact.
@@ -442,7 +487,7 @@ describe('SliderInput', () => {
           tickMs={20}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: 4 / 10')
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(4)
       unmount()
     } finally {
       vi.useRealTimers()
@@ -470,7 +515,8 @@ describe('CastingPromptBox (slider mode)', () => {
     expect(frame).toContain(
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
     )
-    expect(frame).toContain('pick: 1 / 48')
+    expect(pickFromFrame(frame)).toBe(1)
+    expect(frame).toContain('pick: ⠋ / 48')
     // Bar should be rendered as well.
     expect(frame).toContain('█')
     unmount()

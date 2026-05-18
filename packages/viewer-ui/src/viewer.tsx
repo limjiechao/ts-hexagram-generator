@@ -405,7 +405,10 @@ export function ConsultationViewer({
             `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — Press SPACE to part the stalks`,
           ),
           currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
-          stringWidth(`pick: ${currentMax} / ${currentMax}`),
+          // Readout below the bar is `pick: <spinner> / max` — the spinner
+          // glyph measures one display column, so width is bounded by max's
+          // digit count plus the fixed scaffolding.
+          stringWidth(`pick: ⠋ / ${currentMax}`),
         )
       : 0
   const castingInnerWidth = Math.max(1, innerCols - 2) // subtract round border

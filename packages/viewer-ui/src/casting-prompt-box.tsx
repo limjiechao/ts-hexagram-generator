@@ -9,12 +9,34 @@ import { BOLD_RED, NORMAL } from './output-palette.js'
 
 // ── Slider primitives ───────────────────────────────────────────────────────
 
+// Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`. The
+// spinner replaces the cursor's numeric position in the readout below the
+// bar — see `<SliderInput>` / `<SliderCastingPrompt>` — so the user sees
+// motion (the slider is alive) but not the value (the cast stays unbiased).
+const BRAILLE_SPINNER = [
+  '⠋',
+  '⠙',
+  '⠹',
+  '⠸',
+  '⠼',
+  '⠴',
+  '⠦',
+  '⠧',
+  '⠇',
+  '⠏',
+] as const
+
 interface UseSliderBounceArgs {
   min: number
   max: number
   focused: boolean
   tickMs: number
   onSubmit: (value: number) => void
+}
+
+interface SliderSnapshot {
+  position: number
+  tickCount: number
 }
 
 /**
@@ -37,6 +59,10 @@ class BouncingSliderStore {
   private min: number
   private max: number
   private tickMs: number
+  private tickCount = 0
+  // Cached so `getSnapshot` returns a referentially-stable reference between
+  // ticks — `useSyncExternalStore`'s `Object.is` check relies on this.
+  private snapshot: SliderSnapshot
   private readonly listeners = new Set<() => void>()
   private intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -45,6 +71,7 @@ class BouncingSliderStore {
     this.max = max
     this.tickMs = tickMs
     this.position = min
+    this.snapshot = { position: min, tickCount: 0 }
   }
 
   readonly subscribe = (listener: () => void): (() => void) => {
@@ -56,7 +83,7 @@ class BouncingSliderStore {
     }
   }
 
-  readonly getSnapshot = (): number => this.position
+  readonly getSnapshot = (): SliderSnapshot => this.snapshot
 
   // Called from the hook's render phase. Mutates synchronously so the same
   // render's `getSnapshot()` reflects any rewind (range change) or interval
@@ -72,11 +99,15 @@ class BouncingSliderStore {
     this.tickMs = tickMs
     // Only rewind on a true range change — a bare tickMs change (per-cast
     // sweep duration recalc) re-arms the interval at the new rate but keeps
-    // the cursor where it is so the user doesn't see a visual jump.
+    // the cursor where it is so the user doesn't see a visual jump. The
+    // spinner's tick counter also resets so each new cast restarts at the
+    // first glyph (`⠋`).
     if (rangeChanged) {
       this.position = min
       this.direction = 1
       this.committed = false
+      this.tickCount = 0
+      this.snapshot = { position: min, tickCount: 0 }
     }
     // Restart the tick timer so the next tick is a full `tickMs` away and
     // picks up the new interval — matches the pre-refactor
@@ -106,6 +137,8 @@ class BouncingSliderStore {
         next = this.min + 1
       }
       this.position = next
+      this.tickCount += 1
+      this.snapshot = { position: next, tickCount: this.tickCount }
       this.notify()
     }, this.tickMs)
   }
@@ -147,7 +180,7 @@ function useSliderBounce({
   focused,
   tickMs,
   onSubmit,
-}: UseSliderBounceArgs): number {
+}: UseSliderBounceArgs): SliderSnapshot {
   const storeRef = useRef<BouncingSliderStore | null>(null)
   storeRef.current ??= new BouncingSliderStore(min, max, tickMs)
   // Render-phase sync — preserves zero-frame-lag rewind on cast-boundary
@@ -155,7 +188,7 @@ function useSliderBounce({
   // prevRangeRef branch.
   storeRef.current.setRange(min, max, tickMs)
 
-  const position = useSyncExternalStore(
+  const snapshot = useSyncExternalStore(
     focused ? storeRef.current.subscribe : noopSubscribe,
     storeRef.current.getSnapshot,
     storeRef.current.getSnapshot,
@@ -171,7 +204,7 @@ function useSliderBounce({
     { isActive: focused },
   )
 
-  return position
+  return snapshot
 }
 
 // Build the bar string from a position. `▕` + (cursorIndex × ░) + `█` +
@@ -200,10 +233,14 @@ interface SliderInputProps {
  * and `max`; pressing SPACE commits the current value via `onSubmit`. Bar
  * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
  *
- * Renders two centred rows (bar + `pick: N / max` readout) via Ink flexbox.
- * `<CastingPromptBox>` uses `useSliderBounce` directly so it can pre-slice
- * the bar/readout strings for horizontal scrolling on narrow terminals; this
- * component is the testable surface for the slider in isolation.
+ * Renders two centred rows via Ink flexbox: the bar, and a `pick: <glyph> /
+ * max` readout where `<glyph>` is a Braille spinner advanced one frame per
+ * tick. The spinner deliberately hides the live cursor value so the user
+ * commits without bias toward a specific number; the bar already conveys
+ * motion visually. `<CastingPromptBox>` uses `useSliderBounce` directly so
+ * it can pre-slice the bar/readout strings for horizontal scrolling on
+ * narrow terminals; this component is the testable surface for the slider
+ * in isolation.
  */
 export function SliderInput({
   min,
@@ -212,15 +249,22 @@ export function SliderInput({
   onSubmit,
   tickMs = 80,
 }: SliderInputProps): ReactElement {
-  const position = useSliderBounce({ min, max, focused, tickMs, onSubmit })
+  const { position, tickCount } = useSliderBounce({
+    min,
+    max,
+    focused,
+    tickMs,
+    onSubmit,
+  })
   const bar = buildSliderBar(position, min, max)
+  const glyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
   return (
     <Box flexDirection="column" flexShrink={0}>
       <Box justifyContent="center">
         <Text>{bar}</Text>
       </Box>
       <Box justifyContent="center">
-        <Text>{`pick: ${position} / ${max}`}</Text>
+        <Text>{`pick: ${glyph} / ${max}`}</Text>
       </Box>
     </Box>
   )
@@ -290,10 +334,11 @@ interface CastingPromptBoxProps {
  *
  * Two visual modes:
  *  - **slider** (default): three-row layout — verbatim title, centred
- *    bouncing-slider bar, centred `pick: N / max` readout. Rows are
- *    pre-built strings padded to at least the inner box width and sliced
- *    via `sliceAnsi` against `horizontalOffset`, so the box never reflows on
- *    narrow terminals (←/→ in the viewer pans it).
+ *    bouncing-slider bar, centred `pick: <spinner> / max` readout (Braille
+ *    glyph advanced one frame per tick — the live cursor value stays
+ *    hidden). Rows are pre-built strings padded to at least the inner box
+ *    width and sliced via `sliceAnsi` against `horizontalOffset`, so the
+ *    box never reflows on narrow terminals (←/→ in the viewer pans it).
  *  - **number**: the legacy typed-number prompt + `<NumberInput>` row.
  *    Unchanged from before the slider feature; opted into via
  *    `--numeric-input`.
@@ -390,7 +435,7 @@ function SliderCastingPrompt({
   horizontalOffset,
   onSubmit,
 }: SliderCastingPromptProps): ReactElement {
-  const position = useSliderBounce({
+  const { position, tickCount } = useSliderBounce({
     min,
     max,
     focused: true,
@@ -400,7 +445,8 @@ function SliderCastingPrompt({
 
   const title = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
   const bar = buildSliderBar(position, min, max)
-  const readout = `pick: ${position} / ${max}`
+  const glyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
+  const readout = `pick: ${glyph} / ${max}`
 
   const titleWidth = stringWidth(title)
   const barWidth = stringWidth(bar)

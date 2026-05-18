@@ -16,6 +16,7 @@ import {
   SPACE,
   TAB,
 } from './helpers/keystrokes'
+import { pickFromFrame } from './helpers/slider'
 import {
   STUB_CASTING,
   STUB_SAVED_PATH,
@@ -928,10 +929,10 @@ describe('ConsultationViewer (slider mode)', () => {
     stdin.write(SPACE)
     await tick()
     // After committing 1 for cast 1, the prompt should now show cast 2
-    // starting at pick: 1 again.
+    // with the bar rewound to position 1 (cursor at the leftmost cell).
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Cast 2/3')
-    expect(frame).toContain('pick: 1 /')
+    expect(pickFromFrame(frame)).toBe(1)
     unmount()
   })
 
@@ -952,7 +953,7 @@ describe('ConsultationViewer (slider mode)', () => {
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
-    expect(frame).toContain('pick: 1 / 48')
+    expect(pickFromFrame(frame)).toBe(1)
     unmount()
   })
 
