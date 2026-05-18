@@ -209,35 +209,35 @@ function castRight(text: string, width: number, color?: string): string {
 // `tests/fixtures/plain-output-*.txt` byte-identity tests guard this).
 export function castingSection(casting: PartialCastingRecord): string {
   const TOP =
-    '┌──────┬────────────────────────────────┬────────────────────────────────┬────────────────────────────────┐'
+    '┌──────┬─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐'
   const SUB =
-    '│      ├────────┬───────────┬───────────┼────────┬───────────┬───────────┼────────┬───────────┬───────────┤'
+    '│      ├────────┬───────────┬────────────┼────────┬───────────┬────────────┼────────┬───────────┬────────────┤'
   const MID =
-    '├──────┼────────┼───────────┼───────────┼────────┼───────────┼───────────┼────────┼───────────┼───────────┤'
+    '├──────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┤'
   const BOTTOM =
-    '└──────┴────────┴───────────┴───────────┴────────┴───────────┴───────────┴────────┴───────────┴───────────┘'
+    '└──────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┘'
 
   // Plain (default-fg) cells leave the structural framing — cast names, the
   // Line/Stalks/Heap headers, and the row labels — calm against the bold-grey
   // Stalks scaffolding and the bold-white heap counts.
   const castRow =
-    `│      │${castCenter('1st Cast', 32, HEADING_GREY)}│` +
-    `${castCenter('2nd Cast', 32, HEADING_GREY)}│` +
-    `${castCenter('3rd Cast', 32, HEADING_GREY)}│`
+    `│      │${castCenter('1st Cast', 33, HEADING_GREY)}│` +
+    `${castCenter('2nd Cast', 33, HEADING_GREY)}│` +
+    `${castCenter('3rd Cast', 33, HEADING_GREY)}│`
 
   const colRow =
     `│${castCenter('Line', 6, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 11, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 11, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 11, HEADING_GREY)}│`
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│` +
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│` +
+    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│`
 
   // All numeric body cells right-align so multi-digit values line up against
   // the right column edge. Pending cells get a `·` in all three sub-columns,
   // dimmed so the eye reads them as "not yet picked".
   const cell = (split: PartialSplitRecord): string =>
     split === null
-      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 11, PLACEHOLDER_GREY)}│${castRight('·', 11, PLACEHOLDER_GREY)}`
-      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 11, BOLD_WHITE)}│${castRight(String(split.max - split.pick), 11, BOLD_WHITE)}`
+      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 11, PLACEHOLDER_GREY)}│${castRight('·', 12, PLACEHOLDER_GREY)}`
+      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 11, BOLD_WHITE)}│${castRight(String(split.max - split.pick), 12, BOLD_WHITE)}`
 
   // `casting` is a 6-tuple and the literal source `[6, 5, 4, 3, 2, 1]` covers
   // every valid index, but TS can't narrow `lineNumber - 1` to `0..5` from a
