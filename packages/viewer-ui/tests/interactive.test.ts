@@ -15,10 +15,10 @@ const main = async (): Promise<void> => {}
 vi.mock('node:fs/promises')
 const mockedFs = vi.mocked(fs)
 
-// Mock `node:process` with the surface `cli-utils-mode.getCliFlags()` reads:
+// Mock `node:process` with the surface `utils-mode.resolveCliFlags()` reads:
 // argv (no flags → defaults), stdout.isTTY (`false` so resolveOutputMode
 // returns 'plain' and the test exercises the Inquirer flow), env (empty so
-// the a11y NO_COLOR/CI fallback stays off).
+// the a11y NO_COLOR/CI override stays off).
 vi.mock('node:process', () => ({
   default: {
     exit: vi.fn(),

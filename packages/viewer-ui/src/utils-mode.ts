@@ -27,10 +27,12 @@ export const MAX_TICK_MS = 250
 /**
  * Per-cast tick interval that keeps the end-to-end slider sweep at
  * roughly `sweepMs` regardless of `max`. Clamped so very small or very
- * large sweep budgets stay visually sensible.
+ * large sweep budgets stay visually sensible. The cell count mirrors
+ * `buildSliderBar` in `casting-prompt-box.tsx` (1 cell per value),
+ * so a full left↔right sweep crosses exactly `sweepMs` end-to-end.
  */
 export function deriveTickMs(sweepMs: number, max: number, min = 1): number {
-  const cells = Math.max(1, max - min)
+  const cells = max - min + 1
   const raw = Math.round(sweepMs / cells)
   return Math.max(MIN_TICK_MS, Math.min(MAX_TICK_MS, raw))
 }
@@ -124,8 +126,8 @@ export function shouldForceNumericForAccessibility(envVars: {
 /**
  * Resolve all CLI flags from an explicit environment snapshot. Pure — the
  * single source of truth for how argv + TTY state + env vars combine into
- * runtime configuration. Tests call this directly; production callers go
- * through `getCliFlags()`.
+ * runtime configuration. Tests call this directly with crafted envs;
+ * production callers go through `resolveCliFlags()`.
  */
 export function parseCliFlags(env: CliEnv): CliFlags {
   const outputMode: OutputMode =
@@ -140,35 +142,33 @@ export function parseCliFlags(env: CliEnv): CliFlags {
   return { outputMode, inputMode, wrapWidth, sliderSweepMs }
 }
 
-let cachedFlags: CliFlags | undefined
-
 /**
- * Lazy-memoised flag resolution from `process.argv` / `process.stdout.isTTY`
- * / `process.env`. Each Node process invokes `main()` once, so caching the
- * parse is safe; tests should call `parseCliFlags()` directly instead.
+ * Resolve CLI flags from the live `process.argv` / `process.stdout.isTTY` /
+ * `process.env`. Thin wrapper around `parseCliFlags()` that snapshots the
+ * current process state. Each `resolve*()` helper calls this fresh — the
+ * cost is microseconds and avoids a module-level cache that test runs would
+ * have to reason about.
  */
-export function getCliFlags(): CliFlags {
-  if (cachedFlags !== undefined) return cachedFlags
-  cachedFlags = parseCliFlags({
+function resolveCliFlags(): CliFlags {
+  return parseCliFlags({
     argv: process.argv.slice(2),
     isTTY: Boolean(process.stdout.isTTY),
     envVars: { NO_COLOR: process.env.NO_COLOR, CI: process.env.CI },
   })
-  return cachedFlags
 }
 
 export function resolveOutputMode(): OutputMode {
-  return getCliFlags().outputMode
+  return resolveCliFlags().outputMode
 }
 
 export function resolveInputMode(): InputMode {
-  return getCliFlags().inputMode
+  return resolveCliFlags().inputMode
 }
 
 export function resolveWrapWidth(): number {
-  return getCliFlags().wrapWidth
+  return resolveCliFlags().wrapWidth
 }
 
 export function resolveSliderSweepMs(): number {
-  return getCliFlags().sliderSweepMs
+  return resolveCliFlags().sliderSweepMs
 }
