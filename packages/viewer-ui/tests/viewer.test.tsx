@@ -909,8 +909,17 @@ describe('ConsultationViewer (slider mode)', () => {
     // With render-phase reset, each new cast starts at pick: 1. Pressing
     // SPACE immediately commits 1 for every split — visible in the casting
     // table after the first split lands.
+    //
+    // Use a large `sliderSweepMs` so the per-cast tickMs lands at
+    // MAX_TICK_MS (250 ms), well above the 50 ms `tick()` wait. Otherwise
+    // the slider would tick once before the assertion runs and the
+    // position would no longer be 1.
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="slider"
+        sliderSweepMs={60_000}
+      />,
     )
     stdin.write('Q')
     await tick()
