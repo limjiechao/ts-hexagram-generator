@@ -1,7 +1,11 @@
 import { expect, test } from 'vitest'
 
 import {
+  deriveTickMs,
+  MAX_TICK_MS,
+  MIN_TICK_MS,
   parseCliFlags,
+  parseSliderSweepMs,
   parseWrapWidth,
   shouldForceNumericForAccessibility,
   shouldUseNumericInput,
@@ -47,6 +51,58 @@ test('parseWrapWidth() ignores non-positive-integer values', () => {
   expect(parseWrapWidth(['--wrap-width', '0'])).toBe(120)
   expect(parseWrapWidth(['--wrap-width', '-5'])).toBe(120)
   expect(parseWrapWidth(['--wrap-width'])).toBe(120)
+})
+
+test('parseSliderSweepMs() reads --slider-sweep-ms <n>', () => {
+  expect(parseSliderSweepMs(['--slider-sweep-ms', '5000'])).toBe(5000)
+})
+
+test('parseSliderSweepMs() reads --slider-sweep-ms=<n>', () => {
+  expect(parseSliderSweepMs(['--slider-sweep-ms=4500'])).toBe(4500)
+})
+
+test('parseSliderSweepMs() defaults to 3000 without the flag', () => {
+  expect(parseSliderSweepMs([])).toBe(3000)
+  expect(parseSliderSweepMs(['--plain'])).toBe(3000)
+})
+
+test('parseSliderSweepMs() ignores non-positive-integer values', () => {
+  expect(parseSliderSweepMs(['--slider-sweep-ms', 'abc'])).toBe(3000)
+  expect(parseSliderSweepMs(['--slider-sweep-ms=0'])).toBe(3000)
+  expect(parseSliderSweepMs(['--slider-sweep-ms', '-5'])).toBe(3000)
+  expect(parseSliderSweepMs(['--slider-sweep-ms'])).toBe(3000)
+})
+
+test('parseSliderSweepMs() returns the first occurrence when given multiple', () => {
+  expect(
+    parseSliderSweepMs(['--slider-sweep-ms=2000', '--slider-sweep-ms=8000']),
+  ).toBe(2000)
+})
+
+test('deriveTickMs() divides the sweep budget across (max - min) cells', () => {
+  // Cast 1 of every line: max=48 stalks. 3000ms / 47 = ~64ms per tick.
+  expect(deriveTickMs(3000, 48)).toBe(64)
+  // A plausible cast 3 range: max=31 → 3000 / 30 = 100ms per tick.
+  expect(deriveTickMs(3000, 31)).toBe(100)
+  // Honours an explicit min.
+  expect(deriveTickMs(2000, 21, 1)).toBe(100)
+})
+
+test('deriveTickMs() clamps to MIN_TICK_MS when the budget is too small', () => {
+  // 100ms sweep / 47 cells = 2.1ms — well below MIN_TICK_MS (30).
+  expect(deriveTickMs(100, 48)).toBe(MIN_TICK_MS)
+})
+
+test('deriveTickMs() clamps to MAX_TICK_MS when the budget is huge', () => {
+  // 60_000ms sweep / 47 cells ≈ 1277ms — above MAX_TICK_MS (250).
+  expect(deriveTickMs(60_000, 48)).toBe(MAX_TICK_MS)
+})
+
+test('deriveTickMs() avoids divide-by-zero when max equals min', () => {
+  // Degenerate range — fall back to a single-cell denominator so the formula
+  // still produces a sensible (clamped) tick rather than Infinity / NaN.
+  expect(deriveTickMs(3000, 1, 1)).toBe(MAX_TICK_MS)
+  expect(deriveTickMs(20, 1, 1)).toBe(MIN_TICK_MS)
 })
 
 test('shouldUseNumericInput() detects --numeric-input', () => {
@@ -107,6 +163,7 @@ test('parseCliFlags() composes argv + TTY + env into a single config', () => {
     outputMode: 'ink',
     inputMode: 'slider',
     wrapWidth: 120,
+    sliderSweepMs: 3000,
   })
 })
 
@@ -153,4 +210,13 @@ test('parseCliFlags() picks up --wrap-width', () => {
     envVars: { NO_COLOR: undefined, CI: undefined },
   })
   expect(flags.wrapWidth).toBe(64)
+})
+
+test('parseCliFlags() picks up --slider-sweep-ms', () => {
+  const flags = parseCliFlags({
+    argv: ['--slider-sweep-ms', '5000'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.sliderSweepMs).toBe(5000)
 })

@@ -32,11 +32,13 @@ export {
 // Inquirer prompt for the user's consultation query.
 export { getUserQuery } from './prompts.js'
 
-// CLI flag resolution (output mode, input mode, wrap width).
+// CLI flag resolution (output mode, input mode, wrap width, slider sweep ms).
 export {
   DEFAULT_MAX_WRAP_WIDTH,
+  DEFAULT_SLIDER_SWEEP_MS,
   resolveInputMode,
   resolveOutputMode,
+  resolveSliderSweepMs,
   resolveWrapWidth,
   type InputMode,
   type OutputMode,

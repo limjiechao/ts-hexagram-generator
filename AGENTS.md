@@ -41,6 +41,9 @@ pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 # `-- --wrap-width <n>` caps the viewer's content wrap width (default 120).
 # `-- --numeric-input` switches the interactive casting prompt from the
 # default bouncing slider back to the legacy typed-number input.
+# `-- --slider-sweep-ms <n>` sets the constant end-to-end sweep duration
+# (in ms) for the bouncing slider; per-cast tickMs is derived as
+# `sweepMs / (max − min)` and clamped to [30, 250] ms (default 3000).
 # The slider also auto-falls-back to typed input when `NO_COLOR=1` or
 # `CI=true` is set, so screen-reader and automation environments don't get
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
@@ -92,7 +95,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   The viewer owns a state machine (`packages/viewer-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
   - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/editors.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):
-    - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `pick: N / max` readout are both centred and stay anchored as the cursor moves. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
+    - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The per-cast tickMs is derived from `--slider-sweep-ms` so each end-to-end sweep takes roughly the same time regardless of the cast's stalk count. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `pick: N / max` readout are both centred and stay anchored as the cursor moves. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
     - **`inputMode: 'number'`** — the legacy typed-`<NumberInput>` prompt; Enter commits, out-of-range values are rejected with an inline error.
 
     Each commit advances the per-line `makeLineGenerator` and fills the matching cell in the table. While casting is in flight, all non-Casting tabs are locked and rendered with `dimColor`; only Escape and Ctrl+C exit.

@@ -42,7 +42,12 @@ import {
 } from './output-composers.js'
 import { consultationFileOutput } from './output-file.js'
 import { BOLD_GREY, NORMAL } from './output-palette.js'
-import { DEFAULT_MAX_WRAP_WIDTH, type InputMode } from './utils-mode.js'
+import {
+  DEFAULT_MAX_WRAP_WIDTH,
+  DEFAULT_SLIDER_SWEEP_MS,
+  deriveTickMs,
+  type InputMode,
+} from './utils-mode.js'
 import {
   FooterBar,
   KEY_HINTS_FLOW_DEFAULT,
@@ -96,6 +101,9 @@ interface ConsultationViewerProps {
   sections?: ConsultationSections
   savedPath?: string
   maxWrapWidth?: number
+  // End-to-end slider sweep duration in ms; each cast derives its own
+  // `tickMs` from this so wider ranges move faster cell-by-cell.
+  sliderSweepMs?: number
 }
 
 export function ConsultationViewer({
@@ -104,6 +112,7 @@ export function ConsultationViewer({
   sections: prebuiltSections,
   savedPath: prebuiltSavedPath,
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
+  sliderSweepMs = DEFAULT_SLIDER_SWEEP_MS,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   const { columns, rows: windowRows } = useWindowSize()
@@ -607,6 +616,7 @@ export function ConsultationViewer({
             error={state.error}
             width={innerCols}
             inputMode={inputMode}
+            tickMs={deriveTickMs(sliderSweepMs, currentMax)}
             horizontalOffset={castingHorizontalOffset}
             onChange={(value) =>
               dispatch({ type: 'castingBufferChange', value })
@@ -655,7 +665,12 @@ export function ConsultationViewer({
  */
 export async function runConsultationViewer(
   argsOrSections:
-    | { flowKind: FlowKind; inputMode?: InputMode; maxWrapWidth?: number }
+    | {
+        flowKind: FlowKind
+        inputMode?: InputMode
+        maxWrapWidth?: number
+        sliderSweepMs?: number
+      }
     | ConsultationSections,
   maybeSavedPath?: string,
   maybeMaxWrapWidth?: number,
@@ -667,6 +682,7 @@ export async function runConsultationViewer(
             flowKind={argsOrSections.flowKind}
             inputMode={argsOrSections.inputMode}
             maxWrapWidth={argsOrSections.maxWrapWidth}
+            sliderSweepMs={argsOrSections.sliderSweepMs}
           />,
           { alternateScreen: true },
         )

@@ -931,6 +931,27 @@ describe('ConsultationViewer (slider mode)', () => {
     unmount()
   })
 
+  it('accepts and forwards sliderSweepMs without breaking the slider mount', async () => {
+    // Wiring smoke test: with a custom sliderSweepMs prop the viewer should
+    // still mount the slider casting prompt at cast 1 of line 1 and show the
+    // bar starting at pick 1 / 48. The precise per-tick timing is covered
+    // mathematically by deriveTickMs unit tests in utils-mode.test.ts and
+    // mechanically by editors.test.tsx's "store re-arms on tickMs change"
+    // case; reproducing it here through the full Ink/React/fake-timer stack
+    // was too coupled to wall-clock interleaving to be reliable.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" sliderSweepMs={4800} />,
+    )
+    stdin.write('Q')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
+    expect(frame).toContain('pick: 1 / 48')
+    unmount()
+  })
+
   it('pans the casting prompt box horizontally with ←/→ on narrow terminals', async () => {
     // 50-col terminal → innerCols 47 → box content 45 cols, but the title
     // is 53 chars. The end of the title ("part the stalks") is initially

@@ -10,6 +10,7 @@ import {
   NORMAL,
   resolveInputMode,
   resolveOutputMode,
+  resolveSliderSweepMs,
   resolveWrapWidth,
   runConsultationViewer,
 } from '@hexagram/viewer-ui'
@@ -59,6 +60,7 @@ async function main(): Promise<void> {
         flowKind: 'interactive',
         inputMode: resolveInputMode(),
         maxWrapWidth: resolveWrapWidth(),
+        sliderSweepMs: resolveSliderSweepMs(),
       })
     }
 

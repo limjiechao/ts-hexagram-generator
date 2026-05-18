@@ -209,7 +209,7 @@ class BouncingSliderStore {
   private committed = false
   private min: number
   private max: number
-  private readonly tickMs: number
+  private tickMs: number
   private readonly listeners = new Set<() => void>()
   private intervalId: ReturnType<typeof setInterval> | null = null
 
@@ -232,22 +232,29 @@ class BouncingSliderStore {
   readonly getSnapshot = (): number => this.position
 
   // Called from the hook's render phase. Mutates synchronously so the same
-  // render's `getSnapshot()` returns the rewound position — no `notify()`,
-  // which would fire the `useSyncExternalStore` subscriber mid-render and
-  // trigger React's "setState while rendering" warning. The render that
-  // triggered the rewind already commits with the new position.
-  setRange(min: number, max: number): void {
-    if (this.min === min && this.max === max) return
+  // render's `getSnapshot()` reflects any rewind (range change) or interval
+  // re-arm (tickMs change) — no `notify()`, which would fire the
+  // `useSyncExternalStore` subscriber mid-render and trigger React's
+  // "setState while rendering" warning. The triggering render commits with
+  // the updated state.
+  setRange(min: number, max: number, tickMs: number): void {
+    if (this.min === min && this.max === max && this.tickMs === tickMs) return
+    const rangeChanged = this.min !== min || this.max !== max
     this.min = min
     this.max = max
-    this.position = min
-    this.direction = 1
-    this.committed = false
-    // Restart the tick timer so the next interval tick is a full `tickMs`
-    // away — matches the pre-refactor `useEffect([min, max, …])` behaviour
-    // where changing the range cleared and re-installed the interval, giving
-    // the user a fresh window to react to the new range before the cursor
-    // moves off `min`.
+    this.tickMs = tickMs
+    // Only rewind on a true range change — a bare tickMs change (per-cast
+    // sweep duration recalc) re-arms the interval at the new rate but keeps
+    // the cursor where it is so the user doesn't see a visual jump.
+    if (rangeChanged) {
+      this.position = min
+      this.direction = 1
+      this.committed = false
+    }
+    // Restart the tick timer so the next tick is a full `tickMs` away and
+    // picks up the new interval — matches the pre-refactor
+    // `useEffect([min, max, …])` behaviour for range changes, and also re-arms
+    // the interval at the new rate when only `tickMs` changes.
     if (this.intervalId !== null) {
       this.stopTicking()
       this.startTicking()
@@ -303,8 +310,9 @@ const noopSubscribe = (): (() => void) => () => {}
  *
  * Reset semantics: whenever `min` or `max` changes (i.e. a new cast), the
  * position rewinds to `min`, the direction flips back to +1, and the commit
- * flag clears. `setRange` runs in the hook's render phase so the reset is
- * visible on the same frame — no `useEffect` lag.
+ * flag clears. A bare `tickMs` change re-arms the interval at the new rate
+ * but preserves the cursor position. `setRange` runs in the hook's render
+ * phase so the reset is visible on the same frame — no `useEffect` lag.
  */
 function useSliderBounce({
   min,
@@ -316,8 +324,9 @@ function useSliderBounce({
   const storeRef = useRef<BouncingSliderStore | null>(null)
   storeRef.current ??= new BouncingSliderStore(min, max, tickMs)
   // Render-phase sync — preserves zero-frame-lag rewind on cast-boundary
-  // range changes, exactly like the previous prevRangeRef branch.
-  storeRef.current.setRange(min, max)
+  // range changes (or tickMs changes), exactly like the previous
+  // prevRangeRef branch.
+  storeRef.current.setRange(min, max, tickMs)
 
   const position = useSyncExternalStore(
     focused ? storeRef.current.subscribe : noopSubscribe,

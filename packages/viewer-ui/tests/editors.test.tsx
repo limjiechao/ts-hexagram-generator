@@ -791,6 +791,77 @@ describe('SliderInput', () => {
       vi.useRealTimers()
     }
   })
+
+  it('re-arms the interval at the new rate when tickMs changes mid-prompt', () => {
+    // The store captures `tickMs` and must restart its interval whenever the
+    // prop changes — otherwise per-cast tick rates would only take effect at
+    // store construction. Verifies the setRange(min, max, tickMs) flow.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, rerender, unmount } = render(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      // One 50ms tick → position 2.
+      vi.advanceTimersByTime(50)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 2 / 10')
+
+      // Drop tickMs to 20 — the store should re-arm the interval at the new
+      // rate, so one 20ms tick advances by one cell.
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={20}
+        />,
+      )
+      vi.advanceTimersByTime(20)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={20}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 3 / 10')
+
+      // A second 20ms tick confirms the new cadence is steady-state, not a
+      // one-off restart artefact.
+      vi.advanceTimersByTime(20)
+      rerender(
+        <SliderInput
+          min={1}
+          max={10}
+          focused
+          onSubmit={onSubmit}
+          tickMs={20}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('pick: 4 / 10')
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
 })
 
 // ── CastingPromptBox in slider mode ──────────────────────────────────────────

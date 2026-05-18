@@ -13,12 +13,27 @@ export interface CliFlags {
   outputMode: OutputMode
   inputMode: InputMode
   wrapWidth: number
+  sliderSweepMs: number
 }
 
 const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
 const NUMERIC_INPUT_FLAGS = new Set(['--numeric-input'])
 
 export const DEFAULT_MAX_WRAP_WIDTH = 120
+export const DEFAULT_SLIDER_SWEEP_MS = 1800
+export const MIN_TICK_MS = 30
+export const MAX_TICK_MS = 250
+
+/**
+ * Per-cast tick interval that keeps the end-to-end slider sweep at
+ * roughly `sweepMs` regardless of `max`. Clamped so very small or very
+ * large sweep budgets stay visually sensible.
+ */
+export function deriveTickMs(sweepMs: number, max: number, min = 1): number {
+  const cells = Math.max(1, max - min)
+  const raw = Math.round(sweepMs / cells)
+  return Math.max(MIN_TICK_MS, Math.min(MAX_TICK_MS, raw))
+}
 
 /**
  * Whether the given CLI arguments request the plain (non-Ink) output mode.
@@ -61,6 +76,29 @@ export function parseWrapWidth(argv: readonly string[]): number {
 }
 
 /**
+ * Parse the `--slider-sweep-ms <n>` / `--slider-sweep-ms=<n>` flag. Pure —
+ * takes `argv` explicitly so it can be unit-tested without `process`. Falls
+ * back to `DEFAULT_SLIDER_SWEEP_MS` when the flag is absent or the value is
+ * not a positive integer.
+ */
+export function parseSliderSweepMs(argv: readonly string[]): number {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === '--slider-sweep-ms') {
+      value = argv[index + 1]
+    } else if (argument?.startsWith('--slider-sweep-ms=') === true) {
+      value = argument.slice('--slider-sweep-ms='.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number.parseInt(value, 10)
+      if (parsed > 0) return parsed
+    }
+  }
+  return DEFAULT_SLIDER_SWEEP_MS
+}
+
+/**
  * Accessibility-driven force-numeric heuristic. The Ink slider is purely
  * visual (a bouncing cursor with no semantic value at any frame), so any
  * environment that signals "no animation/colour" or "non-interactive
@@ -98,7 +136,8 @@ export function parseCliFlags(env: CliEnv): CliFlags {
       ? 'number'
       : 'slider'
   const wrapWidth = parseWrapWidth(env.argv)
-  return { outputMode, inputMode, wrapWidth }
+  const sliderSweepMs = parseSliderSweepMs(env.argv)
+  return { outputMode, inputMode, wrapWidth, sliderSweepMs }
 }
 
 let cachedFlags: CliFlags | undefined
@@ -128,4 +167,8 @@ export function resolveInputMode(): InputMode {
 
 export function resolveWrapWidth(): number {
   return getCliFlags().wrapWidth
+}
+
+export function resolveSliderSweepMs(): number {
+  return getCliFlags().sliderSweepMs
 }
