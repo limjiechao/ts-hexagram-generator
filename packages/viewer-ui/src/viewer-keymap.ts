@@ -9,7 +9,7 @@ import type { FlowState } from './viewer-flow.js'
 // and `match` predicate both hold; first match wins.
 //
 // The 16 bindings here replace the previous 81-line `if/else` chain inside
-// `cli-viewer.tsx`'s `useInput` callback. Behaviour is preserved bit-for-bit:
+// `viewer.tsx`'s `useInput` callback. Behaviour is preserved bit-for-bit:
 // global Escape / Ctrl+C exits; ←/→ during a slider-mode cast pan the
 // casting prompt; once `done`, the full Tab / digit / arrow / page / Home /
 // End binding set applies. Shift-modified arrows pan by `innerCols - 1`
@@ -186,7 +186,7 @@ export const BINDINGS: readonly KeyBinding[] = [
     match: (input, key) => key.end === true || input === 'G',
     run: (ctx) => {
       // `scrollActiveTo` clamps against the active tab's `maxOffset` (see
-      // its closure in cli-viewer.tsx), so +Infinity safely lands on the
+      // its closure in `viewer.tsx`), so +Infinity safely lands on the
       // last row.
       ctx.scrollActiveTo(Number.POSITIVE_INFINITY)
     },

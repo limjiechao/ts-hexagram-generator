@@ -44,7 +44,7 @@ export type FlowAction =
     }
   | { type: 'computeFailed'; error: Error }
 
-// Use the same ANSI-pattern regex as cli-viewer-layout to avoid duplicating
+// Use the same ANSI-pattern regex as `viewer-layout.ts` to avoid duplicating
 // the suppression. Inlined here so this module has no dependency on the
 // layout module (keeps the flow reducer leaf-pure).
 // oxlint-disable-next-line no-control-regex

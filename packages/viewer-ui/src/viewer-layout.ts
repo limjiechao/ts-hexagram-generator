@@ -3,7 +3,7 @@ import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
 // Pure layout primitives used by the Ink viewer. Kept separate so the
-// orchestrator (cli-viewer.tsx) doesn't have to inline geometry maths and
+// orchestrator (`viewer.tsx`) doesn't have to inline geometry maths and
 // helper functions, and so anyone wanting to test wrap/truncate behaviour
 // doesn't need to mount React.
 

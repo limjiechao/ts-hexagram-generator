@@ -7,7 +7,7 @@ import { truncateEnd, truncateStart } from './viewer-layout.js'
 
 // Presentational chrome for the Ink viewer. Each component is a "dumb"
 // React component — props in, JSX out. No state, no side effects.
-// `<ConsultationViewer>` (in cli-viewer.tsx) is the orchestrator; it owns
+// `<ConsultationViewer>` (in viewer.tsx) is the orchestrator; it owns
 // the flow and composes these pieces.
 
 // ── Tab descriptor ───────────────────────────────────────────────────────────
@@ -20,7 +20,7 @@ export interface TabDescriptor {
   wrapMode: 'wrap' | 'never'
 }
 
-// Used by TabBar / the activeTab lookup in cli-viewer.tsx. The viewer
+// Used by TabBar / the activeTab lookup in viewer.tsx. The viewer
 // always has at least the `casting` tab, so encoding non-emptiness in the
 // type lets `tabs[0]` serve as a safe fallback for the activeIndex lookup
 // under noUncheckedIndexedAccess.

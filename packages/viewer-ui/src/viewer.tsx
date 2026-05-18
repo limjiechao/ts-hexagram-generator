@@ -270,7 +270,8 @@ export function ConsultationViewer({
 
   // Casting prompt box height — sourced from the component so a new input
   // mode can't drift the reserved vertical space out of sync with what the
-  // component actually renders. See `getCastingPromptHeight` in cli-editors.
+  // component actually renders. See `getCastingPromptHeight` in
+  // `casting-prompt-box.tsx`.
   const castingPromptHeight =
     state.mode === 'casting'
       ? getCastingPromptHeight(inputMode, state.error !== null)
@@ -421,7 +422,7 @@ export function ConsultationViewer({
   // set applies. `q` is intentionally NOT a quit shortcut anymore; the only
   // exits are Esc and Ctrl+C.
   //
-  // The dispatch table lives in `cli-viewer-keymap.ts` (a pure module);
+  // The dispatch table lives in `viewer-keymap.ts` (a pure module);
   // here we just assemble the per-frame `KeyContext` and delegate. Each
   // pan / scroll closure clamps internally against its current ceiling, so
   // the bindings can stay maths-free.
