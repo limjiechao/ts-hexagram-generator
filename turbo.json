@@ -1,6 +1,15 @@
 {
   "$schema": "https://turbo.build/schema.json",
   "tasks": {
+    "//#check:affected": {},
+    "//#format:check": {},
+    "//#format:fix": {
+      "cache": false
+    },
+    "//#lint:check": {},
+    "//#lint:fix": {
+      "cache": false
+    },
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
