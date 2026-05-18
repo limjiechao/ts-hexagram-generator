@@ -229,6 +229,11 @@ class BouncingSliderStore {
 
   readonly getSnapshot = (): number => this.position
 
+  // Called from the hook's render phase. Mutates synchronously so the same
+  // render's `getSnapshot()` returns the rewound position — no `notify()`,
+  // which would fire the `useSyncExternalStore` subscriber mid-render and
+  // trigger React's "setState while rendering" warning. The render that
+  // triggered the rewind already commits with the new position.
   setRange(min: number, max: number): void {
     if (this.min === min && this.max === max) return
     this.min = min
@@ -245,7 +250,6 @@ class BouncingSliderStore {
       this.stopTicking()
       this.startTicking()
     }
-    this.notify()
   }
 
   commit(): number {
