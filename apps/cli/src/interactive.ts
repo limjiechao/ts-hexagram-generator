@@ -40,17 +40,18 @@ ${epilogueStyle}${epilogue}${NORMAL}
 }
 
 async function main(): Promise<void> {
-  console.info(welcomeOutput`
-    ${BOLD_GREY}Welcome to the Interactive Yijing Yarrow Stalk Oracle
-    ${NORMAL}Divide the stalks 18 times, 3 times per line to get 6 lines to form a hexagram.
-    ${BOLD_WHITE}Let your instinct guide the division of the stalks.
-  `)
-
   try {
     if (resolveOutputMode() === 'plain') {
       // Plain mode keeps the Inquirer-driven terminal flow: gather the
       // query and 18 splits at the prompt, then print + save the formatted
-      // reading.
+      // reading. The welcome banner is plain-only — in Ink mode the
+      // alternate-screen viewer takes over stdout immediately.
+      console.info(welcomeOutput`
+        ${BOLD_GREY}Welcome to the Interactive Yijing Yarrow Stalk Oracle
+        ${NORMAL}Divide the stalks 18 times, 3 times per line to get 6 lines to form a hexagram.
+        ${BOLD_WHITE}Let your instinct guide the division of the stalks.
+      `)
+
       const { query, hexagram, casting } = await getHexagramViaInteraction()
       await logAndSaveConsultationOutput(query, hexagram, casting)
     } else {
