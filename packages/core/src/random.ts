@@ -15,8 +15,12 @@ import {
 import { makeLineGenerator, stalksBeforeParting } from './index'
 
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
+// `randomInt(min, max)` is exclusive on `max`, so passing `length` here yields
+// picks in `[1, length-1]` — matching the inclusive upper bound the interactive
+// prompt offers (`interactive-flow.ts` uses `max = unpartedStalks.length - 1`)
+// and the `SplitRecord.max` we record alongside each pick.
 export const splitStalksRandomly = (unpartedStalks: number[]): number =>
-  randomInt(1, unpartedStalks.length - 1)
+  randomInt(1, unpartedStalks.length)
 
 export const getOneRandomLine = function* (): Generator<
   /* Yield */ LineGeneratorResult,
@@ -123,9 +127,7 @@ export const generateRandomConsultation = (): {
 export const generateRandomHexagrams = (
   hexagramCount = 1_000,
 ): [Line, Line, Line, Line, Line, Line][] =>
-  Array.from({ length: hexagramCount }, () => generateRandomHexagram()).map(
-    () => generateRandomHexagram(),
-  )
+  Array.from({ length: hexagramCount }, () => generateRandomHexagram())
 
 const roundToPrecision = (number: number, precision = 4) =>
   number.toPrecision(precision)
