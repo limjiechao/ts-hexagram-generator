@@ -12,7 +12,7 @@ import { truncateEnd, truncateStart } from './viewer-layout.js'
 
 // ── Tab descriptor ───────────────────────────────────────────────────────────
 
-export type TabId = 'casting' | 'transformation' | 'originating' | 'resultant'
+export type TabId = 'casting' | 'transformation' | 'standing' | 'emerging'
 
 export interface TabDescriptor {
   id: TabId

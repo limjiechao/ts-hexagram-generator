@@ -78,34 +78,34 @@ describe('buildConsultationSections (fixture parity)', () => {
 })
 
 describe('buildConsultationSections', () => {
-  it('omits the resultant section when there are no moving lines', () => {
+  it('omits the emerging section when there are no moving lines', () => {
     const sections = buildConsultationSections(
       'q',
       STUB_STATIC_HEXAGRAM,
       sampleCasting,
     )
-    expect(sections.resultant).toBeNull()
+    expect(sections.emerging).toBeNull()
     expect(sections.transformation).toContain('(No transformation)')
   })
 
-  it('includes the resultant section for one moving line', () => {
+  it('includes the emerging section for one moving line', () => {
     const sections = buildConsultationSections(
       'q',
       [6, 7, 8, 7, 8, 7],
       sampleCasting,
     )
-    expect(sections.resultant).not.toBeNull()
-    expect(sections.originating).toContain('(One moving line)')
+    expect(sections.emerging).not.toBeNull()
+    expect(sections.standing).toContain('(One moving line)')
   })
 
-  it('includes the resultant section for multiple moving lines', () => {
+  it('includes the emerging section for multiple moving lines', () => {
     const sections = buildConsultationSections(
       'q',
       [6, 9, 7, 8, 7, 8],
       sampleCasting,
     )
-    expect(sections.resultant).not.toBeNull()
-    expect(sections.originating).toContain('(Multiple moving lines)')
+    expect(sections.emerging).not.toBeNull()
+    expect(sections.standing).toContain('(Multiple moving lines)')
   })
 
   it('always populates the query, casting and transformation sections', () => {

@@ -81,7 +81,7 @@ partTheStalks → suspendOneFromTheRight → sortLeftAndRightIntoFours → setAs
 - `6` = old yin / moving yin (broken, changes to yang)
 - `9` = old yang / moving yang (solid, changes to yin)
 
-Lines 6 and 9 are "moving lines". The resultant hexagram is obtained by flipping them: 6→7, 9→8.
+Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping them: 6→7, 9→8.
 
 ### Random vs. interactive
 
@@ -91,7 +91,7 @@ Lines 6 and 9 are "moving lines". The resultant hexagram is obtained by flipping
 
 Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/viewer-ui/src/utils-mode.ts`:
 
-- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Originating / Resultant), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` renders it on the alternate screen.
+- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` renders it on the alternate screen.
 
   The viewer owns a state machine (`packages/viewer-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
   - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):

@@ -1,6 +1,6 @@
 import {
+  getEmergingHexagram,
   getHexagramRecord,
-  getResultantHexagram,
   getTrigramRecord,
 } from '@hexagram/core/getters'
 import type {
@@ -96,66 +96,66 @@ ${BOLD_GREY}TRANSFORMATION:
 ${NORMAL}(No transformation)
 `.trim()
 
-  const resultant = getResultantHexagram(hexagram)
-  const { Name: originatingName, Metadata: originatingMetadata } =
+  const emerging = getEmergingHexagram(hexagram)
+  const { Name: standingName, Metadata: standingMetadata } =
     getHexagramRecord(hexagram)
-  const { Name: resultantName, Metadata: resultantMetadata } =
-    getHexagramRecord(resultant)
+  const { Name: emergingName, Metadata: emergingMetadata } =
+    getHexagramRecord(emerging)
 
   const [
-    originatingLine1,
-    originatingLine2,
-    originatingLine3,
-    originatingLine4,
-    originatingLine5,
-    originatingLine6,
+    standingLine1,
+    standingLine2,
+    standingLine3,
+    standingLine4,
+    standingLine5,
+    standingLine6,
   ] = hexagram
   const [
-    resultantLine1,
-    resultantLine2,
-    resultantLine3,
-    resultantLine4,
-    resultantLine5,
-    resultantLine6,
-  ] = resultant
+    emergingLine1,
+    emergingLine2,
+    emergingLine3,
+    emergingLine4,
+    emergingLine5,
+    emergingLine6,
+  ] = emerging
 
   const pairs: [
     Line,
     Line,
     (typeof POSITION_LABELS)[keyof typeof POSITION_LABELS],
   ][] = [
-    [originatingLine6, resultantLine6, POSITION_LABELS[6]],
-    [originatingLine5, resultantLine5, POSITION_LABELS[5]],
-    [originatingLine4, resultantLine4, POSITION_LABELS[4]],
-    [originatingLine3, resultantLine3, POSITION_LABELS[3]],
-    [originatingLine2, resultantLine2, POSITION_LABELS[2]],
-    [originatingLine1, resultantLine1, POSITION_LABELS[1]],
+    [standingLine6, emergingLine6, POSITION_LABELS[6]],
+    [standingLine5, emergingLine5, POSITION_LABELS[5]],
+    [standingLine4, emergingLine4, POSITION_LABELS[4]],
+    [standingLine3, emergingLine3, POSITION_LABELS[3]],
+    [standingLine2, emergingLine2, POSITION_LABELS[2]],
+    [standingLine1, emergingLine1, POSITION_LABELS[1]],
   ]
 
   const headerLine =
-    `${BOLD_GREY}${padToColumn('  Originating', RIGHT_COLUMN)}${NORMAL}` +
-    `${BOLD_GREY}Resultant${NORMAL}`
+    `${BOLD_GREY}${padToColumn('  Standing', RIGHT_COLUMN)}${NORMAL}` +
+    `${BOLD_GREY}Emerging${NORMAL}`
 
   const lineRows = pairs
-    .map(([originatingLine, resultantLine, pos]) => {
-      const moving = isMovingLine(originatingLine)
-      const originatingColor = moving ? BOLD_RED : BOLD_WHITE
+    .map(([standingLine, emergingLine, pos]) => {
+      const moving = isMovingLine(standingLine)
+      const standingColor = moving ? BOLD_RED : BOLD_WHITE
       const gap = moving ? MOVING_ARROW : STATIC_GAP
-      const left = `  ${originatingColor}${originatingLine}${NORMAL}  ${originatingColor}${hexagramLineDiagramMap[originatingLine]}${NORMAL}  ${pos}`
-      const right = `${BOLD_WHITE}${resultantLine}${NORMAL}  ${BOLD_WHITE}${hexagramLineDiagramMap[resultantLine]}${NORMAL}  ${pos}`
+      const left = `  ${standingColor}${standingLine}${NORMAL}  ${standingColor}${hexagramLineDiagramMap[standingLine]}${NORMAL}  ${pos}`
+      const right = `${BOLD_WHITE}${emergingLine}${NORMAL}  ${BOLD_WHITE}${hexagramLineDiagramMap[emergingLine]}${NORMAL}  ${pos}`
       return `${left}${gap}${right}`
     })
     .join('\n')
 
   // Footer line 1: #N Chinese（pinyin）  — aligned to RIGHT_COLUMN
-  const originatingFooter1 = `  #${originatingMetadata.Order.WenWang} ${originatingName.Chinese.Traditional}（${originatingMetadata.Pronunciation.Pinyin}）`
-  const resultantFooter1 = `#${resultantMetadata.Order.WenWang} ${resultantName.Chinese.Traditional}（${resultantMetadata.Pronunciation.Pinyin}）`
-  const footer1 = `${BOLD_WHITE}${padToColumn(originatingFooter1, RIGHT_COLUMN)}${resultantFooter1}${NORMAL}`
+  const standingFooter1 = `  #${standingMetadata.Order.WenWang} ${standingName.Chinese.Traditional}（${standingMetadata.Pronunciation.Pinyin}）`
+  const emergingFooter1 = `#${emergingMetadata.Order.WenWang} ${emergingName.Chinese.Traditional}（${emergingMetadata.Pronunciation.Pinyin}）`
+  const footer1 = `${BOLD_WHITE}${padToColumn(standingFooter1, RIGHT_COLUMN)}${emergingFooter1}${NORMAL}`
 
-  // Footer line 2: English — exactly 6 spaces after originating name
-  const originatingFooter2 = `  ${originatingName.English.WilhelmBaynes}`
-  const resultantFooter2 = resultantName.English.WilhelmBaynes
-  const footer2 = `${NORMAL_GREY}${padToColumn(originatingFooter2, RIGHT_COLUMN, 6)}${resultantFooter2}${NORMAL}`
+  // Footer line 2: English — exactly 6 spaces after standing name
+  const standingFooter2 = `  ${standingName.English.WilhelmBaynes}`
+  const emergingFooter2 = emergingName.English.WilhelmBaynes
+  const footer2 = `${NORMAL_GREY}${padToColumn(standingFooter2, RIGHT_COLUMN, 6)}${emergingFooter2}${NORMAL}`
 
   return `
 ${BOLD_GREY}TRANSFORMATION:
@@ -432,14 +432,14 @@ ${NORMAL_GREY}[English, James Legge]
 `
 }
 
-export function originatingHexagramSection(hexagram: Hexagram): string {
-  return hexagramSection(hexagram, 'ORIGINATING', getLineColor)
+export function standingHexagramSection(hexagram: Hexagram): string {
+  return hexagramSection(hexagram, 'STANDING', getLineColor)
 }
 
-export function resultantHexagramSection(hexagram: Hexagram): string {
+export function emergingHexagramSection(hexagram: Hexagram): string {
   return hexagramSection(
-    getResultantHexagram(hexagram),
-    'RESULTANT',
+    getEmergingHexagram(hexagram),
+    'EMERGING',
     () => BOLD_WHITE,
   )
 }

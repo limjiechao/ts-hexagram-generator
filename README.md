@@ -51,8 +51,8 @@ import {
 
 // Hexagram / trigram record lookup.
 import {
+  getEmergingHexagram,
   getHexagramRecord,
-  getResultantHexagram,
   getTrigramRecord,
 } from '@hexagram/core/getters'
 
@@ -80,7 +80,7 @@ import {
 
 The CLI bins are exposed by the `@hexagram/cli` workspace package. Until publishing lands you can install them globally from your local clone.
 
-Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Originating / Resultant tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
+Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 

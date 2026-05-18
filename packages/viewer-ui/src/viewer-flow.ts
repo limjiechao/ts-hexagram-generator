@@ -68,8 +68,8 @@ export const EMPTY_SECTIONS: ConsultationSections = {
   query: '',
   casting: '',
   transformation: '',
-  originating: '',
-  resultant: null,
+  standing: '',
+  emerging: null,
 }
 
 export function initialFlowState(

@@ -39,15 +39,15 @@ for (const { name, query, hexagram, casting } of cases) {
       `Case ${name}: empty query section despite a non-empty query`,
     )
   }
-  if (!sections.casting || !sections.transformation || !sections.originating) {
+  if (!sections.casting || !sections.transformation || !sections.standing) {
     throw new Error(`Case ${name}: missing a load-bearing section`)
   }
-  if (hasMovingLines && sections.resultant === null) {
-    throw new Error(`Case ${name}: moving lines without a resultant section`)
+  if (hasMovingLines && sections.emerging === null) {
+    throw new Error(`Case ${name}: moving lines without an emerging section`)
   }
-  if (!hasMovingLines && sections.resultant !== null) {
+  if (!hasMovingLines && sections.emerging !== null) {
     throw new Error(
-      `Case ${name}: resultant section present without moving lines`,
+      `Case ${name}: emerging section present without moving lines`,
     )
   }
   const inkPath = path.join(fixturesDirectory, `ink-sections-${name}.json`)

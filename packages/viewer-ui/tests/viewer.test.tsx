@@ -96,25 +96,25 @@ describe('ConsultationViewer', () => {
     expect(frame).toContain('Should I take the journey?')
     expect(frame).toContain('Casting')
     expect(frame).toContain('Transformation')
-    expect(frame).toContain('Originating')
-    expect(frame).toContain('Resultant')
+    expect(frame).toContain('Standing Hexagram')
+    expect(frame).toContain('Emerging Hexagram')
     expect(frame).toContain(`saved to ${SAVED_PATH}`)
 
     unmount()
   })
 
   it('shows two tabs when there are no moving lines', () => {
-    // Static hexagrams collapse the tab bar to Casting + Originating —
-    // Transformation and Resultant are hidden.
+    // Static hexagrams collapse the tab bar to Casting + Standing Hexagram —
+    // Transformation and Emerging Hexagram are hidden.
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
 
     expect(frame).toContain('Casting')
-    expect(frame).toContain('Originating')
+    expect(frame).toContain('Standing Hexagram')
     expect(frame).not.toContain('Transformation')
-    expect(frame).not.toContain('Resultant')
+    expect(frame).not.toContain('Emerging Hexagram')
 
     unmount()
   })
@@ -288,7 +288,7 @@ describe('ConsultationViewer', () => {
       />,
     )
 
-    // Switch to the prose-heavy Originating tab.
+    // Switch to the prose-heavy Standing Hexagram tab.
     stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
@@ -426,8 +426,8 @@ describe('ConsultationViewer (interactive flow)', () => {
     expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(frame).toContain('Casting')
     expect(frame).not.toContain('Transformation')
-    expect(frame).not.toContain('Originating')
-    expect(frame).not.toContain('Resultant')
+    expect(frame).not.toContain('Standing Hexagram')
+    expect(frame).not.toContain('Emerging Hexagram')
     expect(frame).not.toContain('TRANSFORMATION:')
     unmount()
   })
@@ -453,8 +453,8 @@ describe('ConsultationViewer (interactive flow)', () => {
 
   it('unlocks Tab once the random flow reaches done', async () => {
     // The random-flow mock produces a static hexagram (no moving lines), so
-    // only Casting + Originating tabs exist in done mode. One Tab advance
-    // lands on Originating — proves the lock is released.
+    // only Casting + Standing Hexagram tabs exist in done mode. One Tab advance
+    // lands on Standing Hexagram — proves the lock is released.
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="random" />,
     )
@@ -465,7 +465,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('ORIGINATING HEXAGRAM')
+    expect(frame).toContain('STANDING HEXAGRAM')
     unmount()
   })
 
@@ -525,9 +525,9 @@ describe('ConsultationViewer (T3 refinements)', () => {
     unmount()
   })
 
-  it('Resultant tab wraps prose to wrap-width and shows wrap chip', async () => {
+  it('Emerging Hexagram tab wraps prose to wrap-width and shows wrap chip', async () => {
     // T3.5 — `wrap N` chip in the status row when wrapMode='wrap' AND the
-    // content is actually being cut. The resultant section has prose lines
+    // content is actually being cut. The emerging section has prose lines
     // ~188 cols wide, so a 60-col terminal definitely triggers wrap.
     windowSize.current = { columns: 60, rows: 30 }
     const { lastFrame, stdin, unmount } = render(
@@ -537,7 +537,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
         maxWrapWidth={120}
       />,
     )
-    // Jump directly to Resultant (tab #4).
+    // Jump directly to Emerging Hexagram (tab #4).
     stdin.write('4')
     await tick()
     const frame = lastFrame() ?? ''
@@ -557,8 +557,8 @@ describe('ConsultationViewer (T3 refinements)', () => {
     const frame = lastFrame() ?? ''
     expect(frame).toContain(' Casting ')
     expect(frame).not.toContain('Transformation')
-    expect(frame).not.toContain('Originating')
-    expect(frame).not.toContain('Resultant')
+    expect(frame).not.toContain('Standing Hexagram')
+    expect(frame).not.toContain('Emerging Hexagram')
     unmount()
   })
 
@@ -586,7 +586,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
   })
 
   it('Digit shortcut beyond tabs.length is a no-op', async () => {
-    // Static hexagram → only 2 tabs (Casting + Originating). `5` is OOR
+    // Static hexagram → only 2 tabs (Casting + Standing Hexagram). `5` is OOR
     // and must not change anything.
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
@@ -642,15 +642,15 @@ describe('ConsultationViewer (T3 refinements)', () => {
 
   it('Transformation tab is hidden when there are no moving lines', () => {
     // Tab bar in done mode + static hexagram shows only Casting and
-    // Originating, separated by ` · `.
+    // Standing Hexagram, separated by ` · `.
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={staticSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
     expect(frame).toContain(' Casting ')
-    expect(frame).toContain(' Originating ')
+    expect(frame).toContain(' Standing Hexagram ')
     expect(frame).not.toContain('Transformation')
-    expect(frame).not.toContain('Resultant')
+    expect(frame).not.toContain('Emerging Hexagram')
     // Exactly one separator between the two tabs.
     expect(frame.split(' · ').length - 1).toBeGreaterThanOrEqual(1)
     unmount()

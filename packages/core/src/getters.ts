@@ -15,7 +15,7 @@ const HexagramLineToKey = {
 
 // Moving lines collapse to their non-moving counterparts: 6→7, 9→8;
 // static lines pass through.
-const RESULTANT_LINE = {
+const EMERGING_LINE = {
   6: 7,
   7: 7,
   8: 8,
@@ -43,6 +43,6 @@ export function getHexagramRecord(hexagram: Hexagram): GenericHexagramRecord {
   return HEXAGRAM_RECORDS[hexagramKey]
 }
 
-export function getResultantHexagram(hexagram: Hexagram): Hexagram {
-  return hexagram.map((line) => RESULTANT_LINE[line]) as Hexagram
+export function getEmergingHexagram(hexagram: Hexagram): Hexagram {
+  return hexagram.map((line) => EMERGING_LINE[line]) as Hexagram
 }

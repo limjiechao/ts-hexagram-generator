@@ -1,4 +1,4 @@
-import { getResultantHexagram } from '@hexagram/core/getters'
+import { getEmergingHexagram } from '@hexagram/core/getters'
 import type {
   CastingRecord,
   Hexagram,
@@ -7,11 +7,11 @@ import type {
 
 import {
   castingSection,
+  emergingHexagramSection,
   linesBlock,
   noMovingLinesSection,
-  originatingHexagramSection,
   querySection,
-  resultantHexagramSection,
+  standingHexagramSection,
   transformationSection,
 } from './output-sections.js'
 import { isMovingLine } from './utils-validators.js'
@@ -24,15 +24,15 @@ import { isMovingLine } from './utils-validators.js'
  * - `casting` always renders — every consultation has eighteen divisions.
  * - `transformation` always renders (it shows "(No transformation)" when
  *   there are no moving lines).
- * - `resultant` is `null` when there are no moving lines — the resultant
- *   hexagram is identical to the originating one, so there is no resultant tab.
+ * - `emerging` is `null` when there are no moving lines — the emerging
+ *   hexagram is identical to the standing one, so there is no emerging tab.
  */
 export interface ConsultationSections {
   query: string
   casting: string
   transformation: string
-  originating: string
-  resultant: string | null
+  standing: string
+  emerging: string | null
 }
 
 /**
@@ -50,11 +50,11 @@ export function buildConsultationSections(
     query: querySection(query),
     casting: castingSection(casting),
     transformation: transformationSection(hexagram),
-    originating:
-      `${originatingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
-    resultant:
+    standing:
+      `${standingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
+    emerging:
       movingLines.length > 0
-        ? `${resultantHexagramSection(hexagram)}\n\n${noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false })}`.trim()
+        ? `${emergingHexagramSection(hexagram)}\n\n${noMovingLinesSection(getEmergingHexagram(hexagram), { showNoMovingLinesNotice: false })}`.trim()
         : null,
   }
 }
@@ -63,7 +63,7 @@ export function buildConsultationSections(
  * Build just the two sections that render while the casting is still being
  * collected — the query (frozen once submitted) and the partial casting
  * table. Used by the Ink viewer for transient mid-flow rendering; the other
- * sections (transformation, originating, resultant) are only meaningful after
+ * sections (transformation, standing, emerging) are only meaningful after
  * the hexagram is complete and are built via `buildConsultationSections`.
  */
 export function buildPartialCastingSections(
@@ -96,12 +96,12 @@ ${castingSection(casting)}
 
 ${transformationSection(hexagram)}
 
-${originatingHexagramSection(hexagram)}
+${standingHexagramSection(hexagram)}
 
 ${linesBlock(hexagram)}
 
-${movingLines.length > 0 ? resultantHexagramSection(hexagram) : ''}
+${movingLines.length > 0 ? emergingHexagramSection(hexagram) : ''}
 
-${movingLines.length > 0 ? noMovingLinesSection(getResultantHexagram(hexagram), { showNoMovingLinesNotice: false }) : ''}
+${movingLines.length > 0 ? noMovingLinesSection(getEmergingHexagram(hexagram), { showNoMovingLinesNotice: false }) : ''}
 `
 }

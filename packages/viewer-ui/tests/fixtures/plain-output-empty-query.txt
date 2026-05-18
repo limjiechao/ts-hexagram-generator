@@ -23,7 +23,7 @@
 [0m(No transformation)
 
 
-[1;90mORIGINATING HEXAGRAM 1:
+[1;90mSTANDING HEXAGRAM 1:
 
 [0m(Line at bottom is first)
 
@@ -38,7 +38,7 @@
 
   [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7
 
-[1;90mORIGINATING HEXAGRAM NAME AND PRONUNCIATION:
+[1;90mSTANDING HEXAGRAM NAME AND PRONUNCIATION:
 
 [90m[Traditional Chinese]
 

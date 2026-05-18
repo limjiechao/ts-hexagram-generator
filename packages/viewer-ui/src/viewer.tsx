@@ -172,13 +172,13 @@ export function ConsultationViewer({
 
   // ── Section selection + tab bar ─────────────────────────────────────────
 
-  // While the flow is running we don't yet know whether resultant will exist
+  // While the flow is running we don't yet know whether emerging will exist
   // — show Transformation optimistically; the locked tab bar hides every
-  // non-active tab anyway. Once `done`, Transformation + Resultant are
+  // non-active tab anyway. Once `done`, Transformation + Emerging Hexagram are
   // dropped whenever there are no moving lines.
   const tabs = useMemo<NonEmpty<TabDescriptor>>(() => {
     const hasMovingLines =
-      state.mode !== 'done' || state.sections?.resultant != null
+      state.mode !== 'done' || state.sections?.emerging != null
     // Seed with the always-present Casting tab so the result is provably
     // non-empty under noUncheckedIndexedAccess.
     const result: [TabDescriptor, ...TabDescriptor[]] = [
@@ -191,9 +191,17 @@ export function ConsultationViewer({
         wrapMode: 'never',
       })
     }
-    result.push({ id: 'originating', label: 'Originating', wrapMode: 'wrap' })
+    result.push({
+      id: 'standing',
+      label: 'Standing Hexagram',
+      wrapMode: 'wrap',
+    })
     if (hasMovingLines) {
-      result.push({ id: 'resultant', label: 'Resultant', wrapMode: 'wrap' })
+      result.push({
+        id: 'emerging',
+        label: 'Emerging Hexagram',
+        wrapMode: 'wrap',
+      })
     }
     return result
   }, [state.mode, state.sections])
@@ -246,8 +254,8 @@ export function ConsultationViewer({
             query: partial.query,
             casting: partial.casting,
             transformation: '',
-            originating: '',
-            resultant: null,
+            standing: '',
+            emerging: null,
           }
         })()
 
@@ -297,8 +305,8 @@ export function ConsultationViewer({
   const activeContent: string = {
     casting: effectiveSections.casting,
     transformation: effectiveSections.transformation,
-    originating: effectiveSections.originating,
-    resultant: effectiveSections.resultant ?? '',
+    standing: effectiveSections.standing,
+    emerging: effectiveSections.emerging ?? '',
   }[activeTab.id]
 
   const intrinsicWidth = useMemo(

@@ -21,7 +21,7 @@
 
 [1;90mTRANSFORMATION:
 
-[0m[1;90m  Originating                                 [0m[1;90mResultant[0m
+[0m[1;90m  Standing                                    [0m[1;90mEmerging[0m
 
   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （六, 6th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （六, 6th）
   [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）
@@ -34,7 +34,7 @@
 [90m  Wei Chi / Before Completion                 K’uei / Opposition[0m
 
 
-[1;90mORIGINATING HEXAGRAM 64:
+[1;90mSTANDING HEXAGRAM 64:
 
 [0m(Line at bottom is first)
 
@@ -49,7 +49,7 @@
 
   [1;91m6, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
 
-[1;90mORIGINATING HEXAGRAM NAME AND PRONUNCIATION:
+[1;90mSTANDING HEXAGRAM NAME AND PRONUNCIATION:
 
 [90m[Traditional Chinese]
 
@@ -109,7 +109,7 @@
   [1;97m1. 'His tail gets immersed:'--this is the very height of ignorance.
 
 
-[1;90mRESULTANT HEXAGRAM 38:
+[1;90mEMERGING HEXAGRAM 38:
 
 [0m(Line at bottom is first)
 
@@ -124,7 +124,7 @@
 
   [1;97m7, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
 
-[1;90mRESULTANT HEXAGRAM NAME AND PRONUNCIATION:
+[1;90mEMERGING HEXAGRAM NAME AND PRONUNCIATION:
 
 [90m[Traditional Chinese]
 

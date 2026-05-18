@@ -30,7 +30,7 @@ async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
 /**
  * Drive one line's three-split casting with the Inquirer prompt. Each split
  * advances the per-line `makeLineGenerator` and the returned object captures
- * both the resultant Line and the three SplitRecords for replay.
+ * both the resulting Line and the three SplitRecords for replay.
  */
 export async function getOneLineViaInteraction(): Promise<LineGeneratorResult> {
   const firstSplit = await getSplitIndex(stalksBeforeParting)
