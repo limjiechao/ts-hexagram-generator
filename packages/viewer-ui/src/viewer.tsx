@@ -1,14 +1,9 @@
-import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
 import { generateRandomConsultation } from '@hexagram/core/random'
 import {
   assertIsCastingRecord,
-  assertIsFourOperationsResult,
   assertIsHexagram,
-  assertIsLine,
   type CastingRecord,
-  type FourOperationsResult,
   type Hexagram,
-  type Line,
 } from '@hexagram/types'
 import {
   Box,
@@ -32,8 +27,7 @@ import stringWidth from 'string-width'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
-  QueryEditor,
-} from './editors.js'
+} from './casting-prompt-box.js'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
@@ -42,6 +36,8 @@ import {
 } from './output-composers.js'
 import { consultationFileOutput } from './output-file.js'
 import { BOLD_GREY, NORMAL } from './output-palette.js'
+import { QueryEditor } from './query-editor.js'
+import { useLineGenerator } from './use-line-generator.js'
 import {
   DEFAULT_MAX_WRAP_WIDTH,
   DEFAULT_SLIDER_SWEEP_MS,
@@ -81,14 +77,6 @@ import {
 } from './viewer-layout.js'
 
 export { type FlowKind } from './viewer-flow.js'
-// Re-export the pure layout helpers so callers (notably the existing
-// `tests/cli-viewer.test.tsx`) can import them from the same entry point.
-// The implementations live in `viewer-layout.ts`.
-export {
-  computeWrapWidth,
-  truncateEnd,
-  truncateStart,
-} from './viewer-layout.js'
 
 interface ConsultationViewerProps {
   // Production callers pass a flowKind; the viewer then owns the entire flow.
@@ -127,30 +115,7 @@ export function ConsultationViewer({
     ),
   )
 
-  // Per-line generator. Held in a ref so reducer reductions stay pure; we
-  // advance it imperatively when the user submits a split and dispatch the
-  // resulting `splitCommitted` action with the next slot's `max` and (on the
-  // third cast) the returned Line.
-  const lineGeneratorRef = useRef<Generator<
-    FourOperationsResult,
-    Line,
-    number
-  > | null>(null)
-  const currentMaxRef = useRef<number>(stalksBeforeParting.length - 1)
-
-  // (Re)create the generator when the casting phase starts a new line.
-  useEffect(() => {
-    if (state.mode !== 'casting') return
-    if (state.castIndex !== 0) return
-    if (lineGeneratorRef.current !== null) return // already initialised for this line
-    const generator = makeLineGenerator({
-      unpartedStalks: stalksBeforeParting,
-      suspendedFromNextRound: [],
-      partStalksAtIndex: 1, // placeholder; the real pick goes in via .next(pick) on the 2nd round
-    })
-    lineGeneratorRef.current = generator
-    currentMaxRef.current = stalksBeforeParting.length - 1
-  }, [state.mode, state.castIndex, state.lineIndex])
+  const { submitSplit, currentMax } = useLineGenerator(state, dispatch)
 
   // The compute effect derives the hexagram + casting (for random) and
   // persists the consultation to disk. Fires exactly once per
@@ -204,53 +169,6 @@ export function ConsultationViewer({
     state.completedLines,
     state.partialCasting,
   ])
-
-  // Submit a casting split: synchronously advance the line generator,
-  // capture the next round's `max` (and the returned Line on the third
-  // cast), then dispatch `splitCommitted`.
-  const submitSplit = (pick: number): void => {
-    if (state.mode !== 'casting') return
-    const generator = lineGeneratorRef.current
-    if (generator === null) return
-    const max = currentMaxRef.current
-    if (state.castIndex === 0) {
-      // First cast: this `pick` is the seed parted-at index. Re-create the
-      // generator with the real pick, then drive it forward to yield round
-      // one's result and capture the selectable range for round two.
-      const fresh = makeLineGenerator({
-        unpartedStalks: stalksBeforeParting,
-        suspendedFromNextRound: [],
-        partStalksAtIndex: pick,
-      })
-      const round1 = fresh.next().value
-      assertIsFourOperationsResult(round1)
-      lineGeneratorRef.current = fresh
-      currentMaxRef.current = round1.unpartedStalks.length - 1
-      dispatch({ type: 'splitCommitted', pick, max })
-      return
-    }
-    if (state.castIndex === 1) {
-      const round2 = generator.next(pick).value
-      assertIsFourOperationsResult(round2)
-      currentMaxRef.current = round2.unpartedStalks.length - 1
-      dispatch({ type: 'splitCommitted', pick, max })
-      return
-    }
-    // Third cast — pump the final round, then read the returned Line.
-    const round3 = generator.next(pick).value
-    assertIsFourOperationsResult(round3)
-    const { value: line } = generator.next()
-    assertIsLine(line)
-    lineGeneratorRef.current = null // ready for the next line
-    // Reset the displayed max synchronously so the immediate re-render shows
-    // the new line's first-cast range (1..48) instead of the stale third-cast
-    // max from this line. The line-boundary `useEffect` above will
-    // idempotently confirm the same value when it re-creates the placeholder
-    // generator, but that effect fires only after render — too late on its
-    // own.
-    currentMaxRef.current = stalksBeforeParting.length - 1
-    dispatch({ type: 'splitCommitted', pick, max, line })
-  }
 
   // ── Section selection + tab bar ─────────────────────────────────────────
 
@@ -471,7 +389,6 @@ export function ConsultationViewer({
   // Used to drive ←/→ pan during the slider-mode casting flow; the box
   // itself stays at `innerCols` so it never reflows.
   const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
-  const currentMax = currentMaxRef.current
   const castingPromptContentWidth =
     state.mode === 'casting' && inputMode === 'slider'
       ? Math.max(
