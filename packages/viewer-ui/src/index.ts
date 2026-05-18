@@ -1,8 +1,5 @@
 // Inquirer-driven interactive flow (plain mode and library use).
-export {
-  getHexagramViaInteraction,
-  getOneLineViaInteraction,
-} from './interactive-flow.js'
+export { getHexagramViaInteraction } from './interactive-flow.js'
 
 // Output composers — assemble per-tab strings for the viewer or the plain
 // console renderer.
@@ -17,7 +14,6 @@ export {
 export {
   consultationFileOutput,
   logAndSaveConsultationOutput,
-  saveConsultation,
 } from './output-file.js'
 
 // ANSI palette constants used by the formatted output.

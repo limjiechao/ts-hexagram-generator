@@ -4,8 +4,6 @@ import {
   type Line,
 } from '@hexagram/types'
 
-export * from '@hexagram/types'
-
 type SortedStalks =
   | [number, number, number, number]
   | [number, number, number]
