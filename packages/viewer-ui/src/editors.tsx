@@ -83,15 +83,16 @@ export function QueryEditor({
   )
 
   if (value.length === 0 && placeholder !== undefined) {
-    // Cursor sits at column 0 (where typing will actually appear, since the
-    // buffer is empty and input is appended) with the placeholder dimmed
-    // immediately after it. A previous version split the placeholder at its
-    // first space and put the cursor mid-text, which read like the prefix
-    // was already typed.
+    // `paddingX={1}` inset the cursor and placeholder one column from the
+    // border so they line up with the read-only `<QueryBox>` (which renders
+    // its content with a leading space). The cursor still sits at content
+    // column 0 — i.e. immediately where the next typed character will
+    // appear — and the placeholder follows on the same row.
     return (
       <Box
         borderStyle="round"
         borderColor={focused ? 'cyan' : undefined}
+        paddingX={1}
         width={width}
         flexShrink={0}
       >
@@ -105,6 +106,7 @@ export function QueryEditor({
     <Box
       borderStyle="round"
       borderColor={focused ? 'cyan' : undefined}
+      paddingX={1}
       width={width}
       flexShrink={0}
     >

@@ -105,7 +105,7 @@ describe('QueryEditor', () => {
     unmount()
   })
 
-  it('places the cursor at the start of the placeholder', () => {
+  it('places the cursor at the start of the placeholder, inside the padding', () => {
     const onSubmit = vi.fn()
     const { lastFrame, unmount } = render(
       <QueryEditor
@@ -124,10 +124,26 @@ describe('QueryEditor', () => {
     const cursorIndex = frame.indexOf(INVERSE)
     const before = frame.slice(0, cursorIndex)
     const after = frame.slice(cursorIndex + INVERSE.length)
-    // Cursor sits before the placeholder text — column 0 is where typing
-    // appends to, since the buffer is empty.
+    // Cursor sits before the placeholder text — column 0 of the editable
+    // area, where typing appends, since the buffer is empty.
     expect(before).not.toContain('Enter')
     expect(after).toContain('Enter your query')
+
+    // …and the editable area is inset by `paddingX={1}` from the rounded
+    // border, so the cursor cell is *not* flush against `│`. Find the row
+    // that carries the inverse cursor and assert the visible character
+    // immediately before the SGR is the padding space sitting on top of
+    // the left border `│`.
+    const cursorRow = frame
+      .split('\n')
+      .find((row) => row.includes(INVERSE)) as string
+    expect(cursorRow).toBeDefined()
+    const rowCursorIndex = cursorRow.indexOf(INVERSE)
+    const visibleBefore = cursorRow
+      .slice(0, rowCursorIndex)
+      // eslint-disable-next-line no-control-regex
+      .replace(/\[[\d;]*m/g, '')
+    expect(visibleBefore.endsWith('│ ')).toBe(true)
     unmount()
   })
 
@@ -189,7 +205,19 @@ describe('QueryEditor', () => {
     )
     stdin.write('Hi')
     await tick()
-    expect(lastFrame() ?? '').toContain('Hi')
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Hi')
+
+    // The typed text also sits inside the `paddingX={1}` gutter — the
+    // first visible character on the input row is a space (the padding)
+    // followed by `H`, never `│H` flush against the border.
+    const inputRow = frame
+      .split('\n')
+      .find((row) => row.includes('Hi')) as string
+    expect(inputRow).toBeDefined()
+    const stripped = inputRow.replace(/\x1b\[[\d;]*m/g, '')
+    expect(stripped).toContain('│ Hi')
+    expect(stripped).not.toContain('│Hi')
     unmount()
   })
 
