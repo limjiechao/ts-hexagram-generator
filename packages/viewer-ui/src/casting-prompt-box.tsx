@@ -24,10 +24,15 @@ export const SLIDER_COMMIT_REVEAL_MS = 500
 
 // ── Slider primitives ───────────────────────────────────────────────────────
 
-// Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`. The
-// spinner replaces the cursor's numeric position in the readout below the
-// bar — see `<SliderInput>` / `<SliderCastingPrompt>` — so the user sees
-// motion (the slider is alive) but not the value (the cast stays unbiased).
+// Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`.
+// During the ticking state the spinner replaces the cursor's numeric
+// position in the readout below the bar — see `<SliderInput>` /
+// `<SliderCastingPrompt>` — so the user sees motion (the slider is alive)
+// but not the value (the cast stays unbiased). After SPACE,
+// `<SliderCastingPrompt>` swaps the glyphs for the concrete
+// `Left Heap: <pick> | Right Heap: <max − pick>` numbers for
+// `SLIDER_COMMIT_REVEAL_MS` before advancing. `<SliderInput>` has no
+// reveal — it keeps the spinner readout for its whole lifetime.
 const BRAILLE_SPINNER = [
   '⠋',
   '⠙',
