@@ -562,11 +562,17 @@ describe('CastingPromptBox (slider mode)', () => {
     unmount()
   })
 
-  it('commits the position when SPACE is pressed', async () => {
+  it('reveals the numeric Left/Right Heap on SPACE, then defers onSubmit by commitRevealMs', async () => {
+    // SPACE freezes the cursor and swaps the rotating Braille glyphs for the
+    // concrete `Left Heap: <pick> | Right Heap: <max − pick>` numbers. The
+    // parent's `onSubmit` only fires after the reveal window so the user has
+    // time to see the cast they just made. Use a custom `commitRevealMs` so
+    // the test's fake-time math is decoupled from the prod constant.
+    const REVEAL_MS = 600
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
       const onSubmit = vi.fn()
-      const { stdin, rerender, unmount } = render(
+      const { lastFrame, stdin, rerender, unmount } = render(
         <CastingPromptBox
           lineNumber={2}
           castIndex={1}
@@ -575,9 +581,11 @@ describe('CastingPromptBox (slider mode)', () => {
           width={80}
           inputMode="slider"
           tickMs={50}
+          commitRevealMs={REVEAL_MS}
           onSubmit={onSubmit}
         />,
       )
+      // Four ticks: 1 → 2 → 3 → 4 → 5.
       vi.advanceTimersByTime(200)
       rerender(
         <CastingPromptBox
@@ -588,10 +596,25 @@ describe('CastingPromptBox (slider mode)', () => {
           width={80}
           inputMode="slider"
           tickMs={50}
+          commitRevealMs={REVEAL_MS}
           onSubmit={onSubmit}
         />,
       )
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(5)
       stdin.write(SPACE)
+      await tick()
+      // Reveal in progress: numeric heaps shown, cursor parked, parent not
+      // yet notified.
+      const revealFrame = lastFrame() ?? ''
+      expect(revealFrame).toContain(
+        'Stalks: 40 | Left Heap: 5 | Right Heap: 35',
+      )
+      expect(pickFromFrame(revealFrame)).toBe(5)
+      expect(onSubmit).not.toHaveBeenCalled()
+      // Cross the reveal boundary — onSubmit fires exactly once with the pick.
+      // shouldAdvanceTime drift during await tick() is ~50ms, so REVEAL_MS is
+      // ample headroom for one advance call to span the timer.
+      vi.advanceTimersByTime(REVEAL_MS)
       await tick()
       expect(onSubmit).toHaveBeenCalledTimes(1)
       expect(onSubmit).toHaveBeenCalledWith(5)

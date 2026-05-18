@@ -871,7 +871,11 @@ describe('ConsultationViewer (slider mode)', () => {
 
   it('commits one split per SPACE press and advances the progress bar', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="slider"
+        sliderCommitRevealMs={0}
+      />,
     )
     stdin.write('Q')
     await tick()
@@ -894,7 +898,11 @@ describe('ConsultationViewer (slider mode)', () => {
 
   it('drives the full 18-split flow to done with SPACE', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="interactive" inputMode="slider" />,
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="slider"
+        sliderCommitRevealMs={0}
+      />,
     )
     stdin.write('A question')
     await tick()
@@ -925,6 +933,7 @@ describe('ConsultationViewer (slider mode)', () => {
         flowKind="interactive"
         inputMode="slider"
         sliderSweepMs={60_000}
+        sliderCommitRevealMs={0}
       />,
     )
     stdin.write('Q')

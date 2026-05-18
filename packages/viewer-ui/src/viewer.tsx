@@ -27,6 +27,7 @@ import stringWidth from 'string-width'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
+  SLIDER_COMMIT_REVEAL_MS,
 } from './casting-prompt-box.js'
 import {
   buildConsultationSections,
@@ -92,6 +93,10 @@ interface ConsultationViewerProps {
   // End-to-end slider sweep duration in ms; each cast derives its own
   // `tickMs` from this so wider ranges move faster cell-by-cell.
   sliderSweepMs?: number
+  // How long the slider's post-SPACE numeric reveal holds before the cast
+  // commits upstream. Forwarded to `<CastingPromptBox commitRevealMs>`;
+  // tests pass `0` to bypass the dwell.
+  sliderCommitRevealMs?: number
 }
 
 export function ConsultationViewer({
@@ -101,6 +106,7 @@ export function ConsultationViewer({
   savedPath: prebuiltSavedPath,
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
   sliderSweepMs = DEFAULT_SLIDER_SWEEP_MS,
+  sliderCommitRevealMs = SLIDER_COMMIT_REVEAL_MS,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   const { columns, rows: windowRows } = useWindowSize()
@@ -537,6 +543,7 @@ export function ConsultationViewer({
       {state.mode === 'casting' && (
         <Box marginTop={MARGIN_CONTENT_TO_NEXT} flexShrink={0}>
           <CastingPromptBox
+            key={`${lineNumber}-${state.castIndex}`}
             lineNumber={lineNumber}
             castIndex={state.castIndex}
             min={1}
@@ -546,6 +553,7 @@ export function ConsultationViewer({
             width={innerCols}
             inputMode={inputMode}
             tickMs={deriveTickMs(sliderSweepMs, currentMax)}
+            commitRevealMs={sliderCommitRevealMs}
             horizontalOffset={castingHorizontalOffset}
             onChange={(value) =>
               dispatch({ type: 'castingBufferChange', value })

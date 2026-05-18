@@ -1,11 +1,26 @@
 import { Box, Text, useInput } from 'ink'
-import { useRef, useSyncExternalStore, type ReactElement } from 'react'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+} from 'react'
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
 import { isGlobalExitKey } from './editor-primitives.js'
 import { NumberInput } from './number-input.js'
 import { BOLD_RED, NORMAL } from './output-palette.js'
+
+// How long `<SliderCastingPrompt>` holds the numeric Left/Right Heap readout
+// after the user presses SPACE before forwarding `onSubmit` to the parent
+// flow. Long enough that the user can register the cast they just made, short
+// enough that 18 reveals don't drag. The viewer remounts the prompt per cast
+// (see `viewer.tsx` `<CastingPromptBox key=…>`), so this state is local to a
+// single cast.
+export const SLIDER_COMMIT_REVEAL_MS = 500
 
 // ── Slider primitives ───────────────────────────────────────────────────────
 
@@ -340,6 +355,13 @@ interface CastingPromptBoxProps {
    * phase. Ignored in number mode (which has no overflow).
    */
   horizontalOffset?: number
+  /**
+   * Slider-mode reveal duration in ms — how long the post-SPACE numeric
+   * `Left Heap` / `Right Heap` readout holds before `onSubmit` fires upstream.
+   * Defaults to `SLIDER_COMMIT_REVEAL_MS`. Tests opt out by passing `0` to
+   * keep multi-cast flow assertions snappy.
+   */
+  commitRevealMs?: number
 }
 
 /**
@@ -351,9 +373,13 @@ interface CastingPromptBoxProps {
  *    `Stalks: <max> | Left Heap: <spinner> | Right Heap: <spinner>` readout
  *    (both Braille glyphs advanced one frame per tick — the left walks the
  *    cycle clockwise, the right anticlockwise; the live cursor value stays
- *    hidden). Rows are pre-built strings padded to at least the inner box
- *    width and sliced via `sliceAnsi` against `horizontalOffset`, so the
- *    box never reflows on narrow terminals (←/→ in the viewer pans it).
+ *    hidden). On SPACE, the cursor freezes and the readout swaps the glyphs
+ *    for the concrete `Left Heap: <pick> | Right Heap: <max − pick>` for
+ *    `SLIDER_COMMIT_REVEAL_MS` before `onSubmit` fires upstream — see the
+ *    state list on `<SliderCastingPrompt>`. Rows are pre-built strings
+ *    padded to at least the inner box width and sliced via `sliceAnsi`
+ *    against `horizontalOffset`, so the box never reflows on narrow
+ *    terminals (←/→ in the viewer pans it).
  *  - **number**: the legacy typed-number prompt + `<NumberInput>` row.
  *    Unchanged from before the slider feature; opted into via
  *    `--numeric-input`.
@@ -376,6 +402,7 @@ export function CastingPromptBox({
   onSubmit,
   tickMs = 80,
   horizontalOffset = 0,
+  commitRevealMs = SLIDER_COMMIT_REVEAL_MS,
 }: CastingPromptBoxProps): ReactElement {
   if (inputMode === 'slider') {
     return (
@@ -387,6 +414,7 @@ export function CastingPromptBox({
         width={width}
         tickMs={tickMs}
         horizontalOffset={horizontalOffset}
+        commitRevealMs={commitRevealMs}
         onSubmit={onSubmit}
       />
     )
@@ -426,6 +454,7 @@ interface SliderCastingPromptProps {
   width: number
   tickMs: number
   horizontalOffset: number
+  commitRevealMs: number
   onSubmit: (value: number) => void
 }
 
@@ -434,6 +463,19 @@ interface SliderCastingPromptProps {
  * `useSliderBounce` and renders five sliced rows (title, blank, bar, blank,
  * readout) so the box content never reflows on narrow terminals — the viewer
  * can pan ←/→ to scroll instead.
+ *
+ * Three visual states drive the readout row:
+ *  1. **Ticking** — the cursor sweeps and the readout shows two
+ *     counter-rotating Braille spinners (live cursor value hidden so the
+ *     cast stays unbiased).
+ *  2. **Reveal** — SPACE captures the picked value into local `committed`
+ *     state; the cursor freezes (`BouncingSliderStore.commit()` sets the
+ *     internal flag) and the readout swaps the glyphs for the concrete
+ *     `Left Heap: <pick> | Right Heap: <max − pick>` numbers.
+ *  3. **Advance** — after `SLIDER_COMMIT_REVEAL_MS`, the parent's `onSubmit`
+ *     fires and the viewer advances to the next cast (which remounts a
+ *     fresh `<SliderCastingPrompt>` via the keyed `<CastingPromptBox>` in
+ *     `viewer.tsx`).
  *
  * `focused: true` is hardcoded because this component is only mounted while
  * the casting prompt is active; `useSliderBounce`'s `noopSubscribe` branch
@@ -449,21 +491,44 @@ function SliderCastingPrompt({
   width,
   tickMs,
   horizontalOffset,
+  commitRevealMs,
   onSubmit,
 }: SliderCastingPromptProps): ReactElement {
+  const [committed, setCommitted] = useState<number | null>(null)
+
+  const handleStoreCommit = useCallback((value: number) => {
+    setCommitted(value)
+  }, [])
+
+  useEffect(() => {
+    if (committed === null) return
+    const timer = setTimeout(() => {
+      onSubmit(committed)
+    }, commitRevealMs)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [committed, commitRevealMs, onSubmit])
+
   const { position, tickCount } = useSliderBounce({
     min,
     max,
     focused: true,
     tickMs,
-    onSubmit,
+    onSubmit: handleStoreCommit,
   })
 
   const title = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
   const bar = buildSliderBar(position, min, max)
-  const leftGlyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
-  const rightGlyph = reverseBrailleGlyph(tickCount)
-  const readout = `Stalks: ${max} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph}`
+  const leftCell =
+    committed === null
+      ? BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
+      : String(committed)
+  const rightCell =
+    committed === null
+      ? reverseBrailleGlyph(tickCount)
+      : String(max - committed)
+  const readout = `Stalks: ${max} | Left Heap: ${leftCell} | Right Heap: ${rightCell}`
 
   const titleWidth = stringWidth(title)
   const barWidth = stringWidth(bar)
