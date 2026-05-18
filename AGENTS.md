@@ -43,8 +43,8 @@ pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 # default bouncing slider back to the legacy typed-number input.
 # `-- --slider-sweep-ms <n>` sets the constant end-to-end sweep duration
 # (in ms) for the bouncing slider; per-cast tickMs is derived as
-# `sweepMs / (max − min)` and clamped to [30, 250] ms (default 3000).
-# The slider also auto-falls-back to typed input when `NO_COLOR=1` or
+# `sweepMs / (max - min + 1)` and clamped to [30, 250] ms (default 1800).
+# The slider is also force-overridden to typed input when `NO_COLOR=1` or
 # `CI=true` is set, so screen-reader and automation environments don't get
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
 
@@ -72,7 +72,7 @@ The statistical distribution test (`generateLines() should return valid report` 
 partTheStalks → suspendOneFromTheRight → sortLeftAndRightIntoFours → setAsideRemainderFromSortedLeftAndRight
 ```
 
-`makeLineGenerator` is a synchronous generator that runs this pipeline three times (三變成爻) and yields a `FourOperationsResult` after each round, receiving the next `partStalksAtIndex` via `generator.next(index)`. After all three rounds, it returns a `Line` (6 | 7 | 8 | 9). The `index.ts` re-exports everything from `@hexagram/types` so consumers can `import { Line, makeLineGenerator } from '@hexagram/core'` in one go.
+`makeLineGenerator` is a synchronous generator that runs this pipeline three times (三變成爻) and yields a `FourOperationsResult` after each round, receiving the next `partStalksAtIndex` via `generator.next(index)`. After all three rounds, it returns a `Line` (6 | 7 | 8 | 9). `packages/core/src/index.ts` exposes the runtime algorithm (`makeLineGenerator`, `stalksBeforeParting`, etc.); types like `Line`, `Hexagram`, and `CastingRecord` are imported directly from `@hexagram/types`.
 
 **Line semantics:**
 
@@ -94,7 +94,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 - **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Originating / Resultant), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` renders it on the alternate screen.
 
   The viewer owns a state machine (`packages/viewer-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
-  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/editors.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):
+  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):
     - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The per-cast tickMs is derived from `--slider-sweep-ms` so each end-to-end sweep takes roughly the same time regardless of the cast's stalk count. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `pick: N / max` readout are both centred and stay anchored as the cursor moves. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
     - **`inputMode: 'number'`** — the legacy typed-`<NumberInput>` prompt; Enter commits, out-of-range values are rejected with an inline error.
 
@@ -102,7 +102,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown (so `inputMode` is moot for random).
 
-  The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/viewer-ui/src/viewer.tsx`), where `N` is the number of committed splits.
+  The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/viewer-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
 
   After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `packages/viewer-ui/src/utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
 
@@ -137,7 +137,7 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/viewer-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
-- `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `models/hexagrams`, `models/trigrams` (one per exported subpath).
+- `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
 - `packages/viewer-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
 - `apps/cli/tsdown.config.ts` — two entries (`interactive`, `random`) matching the two `bin` map entries.
 
