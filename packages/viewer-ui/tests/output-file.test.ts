@@ -8,8 +8,8 @@ import { consultationFileOutput } from '../src/output-file'
 
 vi.mock('node:fs/promises', () => ({
   default: {
-    mkdir: vi.fn().mockResolvedValue(undefined),
-    writeFile: vi.fn().mockResolvedValue(undefined),
+    mkdir: vi.fn(() => Promise.resolve()),
+    writeFile: vi.fn(() => Promise.resolve()),
   },
 }))
 

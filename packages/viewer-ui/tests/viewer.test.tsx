@@ -11,8 +11,21 @@ import {
   truncateStart,
 } from '../src/viewer'
 import { tick } from './helpers/async'
-import { ARROW_DOWN, ARROW_LEFT, ARROW_RIGHT } from './helpers/keystrokes'
-import { STUB_CASTING } from './helpers/stubs'
+import {
+  ARROW_DOWN,
+  ARROW_LEFT,
+  ARROW_RIGHT,
+  CTRL_C,
+  ENTER,
+  ESCAPE,
+  SPACE,
+  TAB,
+} from './helpers/keystrokes'
+import {
+  STUB_CASTING,
+  STUB_SAVED_PATH,
+  STUB_STATIC_HEXAGRAM,
+} from './helpers/stubs'
 
 // Stub the filesystem-touching `cli-output-file` module so the interactive-
 // mode tests can drive the viewer to completion without writing real files
@@ -70,7 +83,7 @@ const movingSections = buildConsultationSections(
 )
 const staticSections = buildConsultationSections(
   'Will the harvest be plentiful?',
-  [7, 8, 7, 8, 7, 8],
+  STUB_STATIC_HEXAGRAM,
   sampleCasting,
 )
 
@@ -127,7 +140,7 @@ describe('ConsultationViewer', () => {
     )
     const before = lastFrame() ?? ''
 
-    stdin.write('\t')
+    stdin.write(TAB)
     await tick()
     const after = lastFrame() ?? ''
 
@@ -220,7 +233,7 @@ describe('ConsultationViewer', () => {
 
       expect(lastFrame() ?? '').toContain('(1/4)')
 
-      stdin.write('\t')
+      stdin.write(TAB)
       await tick()
       expect(lastFrame() ?? '').toContain('(2/4)')
 
@@ -281,7 +294,7 @@ describe('ConsultationViewer', () => {
     )
 
     // Switch to the prose-heavy Originating tab.
-    stdin.write('\t')
+    stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
 
@@ -320,7 +333,7 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     const before = lastFrame() ?? ''
-    stdin.write('\t')
+    stdin.write(TAB)
     await tick()
     const after = lastFrame() ?? ''
     expect(after).toContain('your query for the oracle.')
@@ -336,7 +349,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Hi')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
@@ -352,13 +365,13 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Query')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     // 99 is above the round-1 max of 48 — pressing Enter should surface the
     // canonical error line and stay on the same cast.
     stdin.write('99')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Pick a number from 1 to 48.')
@@ -377,22 +390,22 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Query')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     // Picks (24, 20, 16) are within range for rounds 1/2/3 of an unmodified
     // 49-stalk casting and produce a valid Line (6) — concrete enough to
     // exercise the real generator end-to-end rather than mocking it.
     stdin.write('24')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('20')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('16')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 2/6 · Cast 1/3')
@@ -408,9 +421,9 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Query')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
-    stdin.write('\t')
+    stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
     // Tab must not have advanced the active tab — Casting prompt still shown
@@ -430,11 +443,11 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Will the harvest be plentiful?')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     // Give the compute effect (microtask + mocked file write) time to settle.
     await tick(150)
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('saved to /tmp/consultation-mocked.txt')
+    expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
     expect(randomConsultationMock).toHaveBeenCalledTimes(1)
     expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
     // No casting prompt box was ever rendered — the random flow skips that
@@ -452,9 +465,9 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     stdin.write('Query')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick(150)
-    stdin.write('\t')
+    stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('ORIGINATING HEXAGRAM')
@@ -465,7 +478,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     const { stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
-    expect(() => stdin.write('')).not.toThrow()
+    expect(() => stdin.write(ESCAPE)).not.toThrow()
     await tick()
     unmount()
   })
@@ -474,7 +487,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     const { stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
-    expect(() => stdin.write('')).not.toThrow()
+    expect(() => stdin.write(CTRL_C)).not.toThrow()
     await tick()
     unmount()
   })
@@ -544,7 +557,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     stdin.write('Query')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain(' Casting ')
@@ -599,7 +612,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('□□□□□□□□□□□□□□□□□□  0/18')
@@ -612,20 +625,20 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     // Three valid picks that drive Line 1 to completion.
     stdin.write('24')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('20')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('16')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('■■■□□□□□□□□□□□□□□□  3/18')
@@ -716,7 +729,7 @@ describe('ConsultationViewer (Pass #2)', () => {
   it('renders QUERY: header on its own row above the box (done)', () => {
     const customSections = buildConsultationSections(
       'what say you',
-      [7, 8, 7, 8, 7, 8],
+      STUB_STATIC_HEXAGRAM,
       sampleCasting,
     )
     const { lastFrame, unmount } = render(
@@ -752,7 +765,7 @@ describe('ConsultationViewer (Pass #2)', () => {
       line.includes(' Casting '),
     )
     expect(beforeIndex).toBeGreaterThanOrEqual(0)
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const afterFrame = lastFrame() ?? ''
     const afterLines = afterFrame.split('\n')
@@ -793,7 +806,7 @@ describe('ConsultationViewer (Pass #2)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const initialFrame = lastFrame() ?? ''
     expect(initialFrame).toContain('□□□')
@@ -801,15 +814,15 @@ describe('ConsultationViewer (Pass #2)', () => {
     // Drive Line 1 through 3 valid splits.
     stdin.write('24')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('20')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     stdin.write('16')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const afterFrame = lastFrame() ?? ''
     expect(afterFrame).toContain('■■■')
@@ -830,7 +843,7 @@ describe('ConsultationViewer (slider mode)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain(
@@ -847,7 +860,7 @@ describe('ConsultationViewer (slider mode)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Casting in progress ·  ')
@@ -861,16 +874,16 @@ describe('ConsultationViewer (slider mode)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     expect(lastFrame() ?? '').toContain('0/18')
-    stdin.write(' ')
+    stdin.write(SPACE)
     await tick()
     expect(lastFrame() ?? '').toContain('1/18')
-    stdin.write(' ')
+    stdin.write(SPACE)
     await tick()
     expect(lastFrame() ?? '').toContain('2/18')
-    stdin.write(' ')
+    stdin.write(SPACE)
     await tick()
     expect(lastFrame() ?? '').toContain('3/18')
     // Three splits committed → progress bar shows three ■ followed by □s.
@@ -884,16 +897,16 @@ describe('ConsultationViewer (slider mode)', () => {
     )
     stdin.write('A question')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
     for (let index = 0; index < 18; index += 1) {
-      stdin.write(' ')
+      stdin.write(SPACE)
       await tick()
     }
     // Compute effect + mocked file write — give them a beat to settle.
     await tick(150)
     expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
-    expect(lastFrame() ?? '').toContain('saved to /tmp/consultation-mocked.txt')
+    expect(lastFrame() ?? '').toContain(`saved to ${STUB_SAVED_PATH}`)
     unmount()
   })
 
@@ -906,9 +919,9 @@ describe('ConsultationViewer (slider mode)', () => {
     )
     stdin.write('Q')
     await tick()
-    stdin.write('\r')
+    stdin.write(ENTER)
     await tick()
-    stdin.write(' ')
+    stdin.write(SPACE)
     await tick()
     // After committing 1 for cast 1, the prompt should now show cast 2
     // starting at pick: 1 again.
@@ -929,14 +942,14 @@ describe('ConsultationViewer (slider mode)', () => {
       )
       stdin.write('Q')
       await tick()
-      stdin.write('\r')
+      stdin.write(ENTER)
       await tick()
       // Right-arrow several times — sliceAnsi shifts the visible window.
       const initialFrame = lastFrame() ?? ''
       expect(initialFrame).toContain('Line 1/6')
       // Pan right by a generous chunk so we see the right edge of the title.
       for (let index = 0; index < 20; index += 1) {
-        stdin.write('[C') // right arrow
+        stdin.write(ARROW_RIGHT)
         await tick()
       }
       const pannedFrame = lastFrame() ?? ''

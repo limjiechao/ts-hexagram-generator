@@ -13,3 +13,5 @@ export const ARROW_UP = '[A'
 export const ARROW_DOWN = '[B'
 export const ARROW_RIGHT = '[C'
 export const ARROW_LEFT = '[D'
+
+export const TAB = '\t'

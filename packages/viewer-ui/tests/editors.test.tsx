@@ -9,7 +9,7 @@ import {
   SliderInput,
 } from '../src/editors'
 import { tick } from './helpers/async'
-import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
+import { BACKSPACE, CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
 
 // Controlled-state host so tests exercise the editor exactly the way the
 // viewer will — buffer lifted into a parent component.
@@ -141,8 +141,8 @@ describe('QueryEditor', () => {
     const rowCursorIndex = cursorRow.indexOf(INVERSE)
     const visibleBefore = cursorRow
       .slice(0, rowCursorIndex)
-      // eslint-disable-next-line no-control-regex
-      .replace(/\[[\d;]*m/g, '')
+      // oxlint-disable-next-line no-control-regex
+      .replaceAll(/\u001B\[[\d;]*m/g, '')
     expect(visibleBefore.endsWith('│ ')).toBe(true)
     unmount()
   })
@@ -215,7 +215,8 @@ describe('QueryEditor', () => {
       .split('\n')
       .find((row) => row.includes('Hi')) as string
     expect(inputRow).toBeDefined()
-    const stripped = inputRow.replace(/\x1b\[[\d;]*m/g, '')
+    // oxlint-disable-next-line no-control-regex
+    const stripped = inputRow.replaceAll(/\u001B\[[\d;]*m/g, '')
     expect(stripped).toContain('│ Hi')
     expect(stripped).not.toContain('│Hi')
     unmount()
@@ -615,7 +616,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      stdin.write(' ')
+      stdin.write(SPACE)
       await tick()
       expect(onSubmit).toHaveBeenCalledTimes(1)
       expect(onSubmit).toHaveBeenCalledWith(3)
@@ -847,7 +848,7 @@ describe('CastingPromptBox (slider mode)', () => {
           onSubmit={onSubmit}
         />,
       )
-      stdin.write(' ')
+      stdin.write(SPACE)
       await tick()
       expect(onSubmit).toHaveBeenCalledTimes(1)
       expect(onSubmit).toHaveBeenCalledWith(5)

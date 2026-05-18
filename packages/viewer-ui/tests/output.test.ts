@@ -12,6 +12,7 @@ import {
 } from '../src/output-composers'
 import { castingSection } from '../src/output-sections'
 import { cases } from './fixtures/cases'
+import { STUB_STATIC_HEXAGRAM } from './helpers/stubs'
 
 const fixturesDirectory = path.join(
   path.dirname(fileURLToPath(import.meta.url)),
@@ -80,7 +81,7 @@ describe('buildConsultationSections', () => {
   it('omits the resultant section when there are no moving lines', () => {
     const sections = buildConsultationSections(
       'q',
-      [7, 8, 7, 8, 7, 8],
+      STUB_STATIC_HEXAGRAM,
       sampleCasting,
     )
     expect(sections.resultant).toBeNull()
