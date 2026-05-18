@@ -26,6 +26,16 @@ const BRAILLE_SPINNER = [
   '⠏',
 ] as const
 
+// `BRAILLE_SPINNER` cycles the dots clockwise. The slider's right-heap glyph
+// mirrors the left's motion, so step through the same glyphs in reverse order.
+// At `tickCount = 0` both directions show `⠋`; from `tickCount = 1` onward
+// the right glyph walks backward through the cycle (⠏, ⠇, ⠧, …).
+function reverseBrailleGlyph(tickCount: number): string {
+  const length = BRAILLE_SPINNER.length
+  const index = (length - (tickCount % length)) % length
+  return BRAILLE_SPINNER[index]!
+}
+
 interface UseSliderBounceArgs {
   min: number
   max: number
@@ -233,14 +243,15 @@ interface SliderInputProps {
  * and `max`; pressing SPACE commits the current value via `onSubmit`. Bar
  * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
  *
- * Renders two centred rows via Ink flexbox: the bar, and a `pick: <glyph> /
- * max` readout where `<glyph>` is a Braille spinner advanced one frame per
- * tick. The spinner deliberately hides the live cursor value so the user
- * commits without bias toward a specific number; the bar already conveys
- * motion visually. `<CastingPromptBox>` uses `useSliderBounce` directly so
- * it can pre-slice the bar/readout strings for horizontal scrolling on
- * narrow terminals; this component is the testable surface for the slider
- * in isolation.
+ * Renders two centred rows via Ink flexbox: the bar, and a
+ * `Stalks: <max> | Left Heap: <glyph> | Right Heap: <glyph>` readout where
+ * both glyphs are Braille spinners advanced one frame per tick — the left
+ * walks the cycle clockwise, the right walks it anticlockwise. The spinners
+ * deliberately hide the live cursor value so the user commits without bias
+ * toward a specific number; the bar already conveys motion visually.
+ * `<CastingPromptBox>` uses `useSliderBounce` directly so it can pre-slice
+ * the bar/readout strings for horizontal scrolling on narrow terminals; this
+ * component is the testable surface for the slider in isolation.
  */
 export function SliderInput({
   min,
@@ -257,14 +268,15 @@ export function SliderInput({
     onSubmit,
   })
   const bar = buildSliderBar(position, min, max)
-  const glyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
+  const leftGlyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
+  const rightGlyph = reverseBrailleGlyph(tickCount)
   return (
     <Box flexDirection="column" flexShrink={0}>
       <Box justifyContent="center">
         <Text>{bar}</Text>
       </Box>
       <Box justifyContent="center">
-        <Text>{`pick: ${glyph} / ${max}`}</Text>
+        <Text>{`Stalks: ${max} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph}`}</Text>
       </Box>
     </Box>
   )
@@ -280,14 +292,15 @@ export type CastingInputMode = 'slider' | 'number'
  * vertical space for the prompt before mounting it — keeping the contract
  * here means a new input mode can't drift the two numbers out of sync.
  *
- *   slider mode → 3 content rows (title + bar + readout) → 5 with border
+ *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
+ *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
  */
 export function getCastingPromptHeight(
   inputMode: CastingInputMode,
   hasError: boolean,
 ): number {
-  if (inputMode === 'slider') return 5
+  if (inputMode === 'slider') return 7
   return hasError ? 6 : 5
 }
 
@@ -333,9 +346,11 @@ interface CastingPromptBoxProps {
  * The bordered prompt that hosts the casting input during the flow.
  *
  * Two visual modes:
- *  - **slider** (default): three-row layout — verbatim title, centred
- *    bouncing-slider bar, centred `pick: <spinner> / max` readout (Braille
- *    glyph advanced one frame per tick — the live cursor value stays
+ *  - **slider** (default): five-row layout — verbatim title, blank spacer,
+ *    centred bouncing-slider bar, blank spacer, centred
+ *    `Stalks: <max> | Left Heap: <spinner> | Right Heap: <spinner>` readout
+ *    (both Braille glyphs advanced one frame per tick — the left walks the
+ *    cycle clockwise, the right anticlockwise; the live cursor value stays
  *    hidden). Rows are pre-built strings padded to at least the inner box
  *    width and sliced via `sliceAnsi` against `horizontalOffset`, so the
  *    box never reflows on narrow terminals (←/→ in the viewer pans it).
@@ -343,7 +358,7 @@ interface CastingPromptBoxProps {
  *    Unchanged from before the slider feature; opted into via
  *    `--numeric-input`.
  *
- * Rendered height: slider mode = 5 (border 2 + 3 content rows). Number mode
+ * Rendered height: slider mode = 7 (border 2 + 5 content rows). Number mode
  * = 5 rows normally, 6 when `error !== null`. The viewer's layout maths
  * accounts for both via `castingPromptHeight`.
  */
@@ -416,8 +431,9 @@ interface SliderCastingPromptProps {
 
 /**
  * Slider-mode body of `<CastingPromptBox>`. Owns the bouncing state via
- * `useSliderBounce` and renders three sliced rows so the box content never
- * reflows on narrow terminals — the viewer can pan ←/→ to scroll instead.
+ * `useSliderBounce` and renders five sliced rows (title, blank, bar, blank,
+ * readout) so the box content never reflows on narrow terminals — the viewer
+ * can pan ←/→ to scroll instead.
  *
  * `focused: true` is hardcoded because this component is only mounted while
  * the casting prompt is active; `useSliderBounce`'s `noopSubscribe` branch
@@ -445,8 +461,9 @@ function SliderCastingPrompt({
 
   const title = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
   const bar = buildSliderBar(position, min, max)
-  const glyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
-  const readout = `pick: ${glyph} / ${max}`
+  const leftGlyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
+  const rightGlyph = reverseBrailleGlyph(tickCount)
+  const readout = `Stalks: ${max} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph}`
 
   const titleWidth = stringWidth(title)
   const barWidth = stringWidth(bar)
@@ -465,6 +482,7 @@ function SliderCastingPrompt({
   const titleRow = slice(padCenter(title, titleWidth, renderWidth))
   const barRow = slice(padCenter(bar, barWidth, renderWidth))
   const readoutRow = slice(padCenter(readout, readoutWidth, renderWidth))
+  const blankRow = slice(padCenter('', 0, renderWidth))
 
   return (
     <Box
@@ -475,7 +493,9 @@ function SliderCastingPrompt({
       flexDirection="column"
     >
       <Text dimColor>{titleRow}</Text>
+      <Text>{blankRow}</Text>
       <Text>{barRow}</Text>
+      <Text>{blankRow}</Text>
       <Text>{readoutRow}</Text>
     </Box>
   )

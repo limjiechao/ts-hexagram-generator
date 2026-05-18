@@ -102,9 +102,10 @@ describe('SliderInput', () => {
     const frame = lastFrame() ?? ''
     // Position is read from the bar (cursor cell location), not the readout.
     expect(pickFromFrame(frame)).toBe(1)
-    // Readout no longer leaks the numeric position — first Braille glyph
-    // (`⠋`) stands in for it, and the spinner restarts here on mount.
-    expect(frame).toContain('pick: ⠋ / 10')
+    // Readout no longer leaks the numeric position — both Braille spinners
+    // (left clockwise, right anticlockwise) stand in for it, and both restart
+    // at `⠋` on mount.
+    expect(frame).toContain('Stalks: 10 | Left Heap: ⠋ | Right Heap: ⠋')
     // Bar should be present: 1 cursor cell (█) + 9 empty cells (░), bordered.
     expect(frame).toContain('█')
     expect(frame).toContain('░')
@@ -153,10 +154,11 @@ describe('SliderInput', () => {
     }
   })
 
-  it('cycles the spinner glyph one frame per tick', () => {
-    // Verifies that the readout's Braille glyph advances in lockstep with the
-    // cursor, so the user sees motion in the row below the bar without the
-    // numeric position being revealed. The 10-glyph cycle is `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏`.
+  it('cycles the left-heap glyph clockwise one frame per tick', () => {
+    // Verifies that the readout's left-heap Braille glyph advances in lockstep
+    // with the cursor, so the user sees motion in the row below the bar
+    // without the numeric position being revealed. The 10-glyph clockwise
+    // cycle is `⠋⠙⠹⠸⠼⠴⠦⠧⠇⠏`.
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
       const onSubmit = vi.fn()
@@ -169,7 +171,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('pick: ⠋ / 20')
+      expect(lastFrame() ?? '').toContain('Left Heap: ⠋ ')
       const expected = ['⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏', '⠋']
       for (const glyph of expected) {
         vi.advanceTimersByTime(50)
@@ -182,7 +184,45 @@ describe('SliderInput', () => {
             tickMs={50}
           />,
         )
-        expect(lastFrame() ?? '').toContain(`pick: ${glyph} / 20`)
+        expect(lastFrame() ?? '').toContain(`Left Heap: ${glyph} `)
+      }
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('cycles the right-heap glyph anticlockwise one frame per tick', () => {
+    // Mirror of the left-heap test: the right-heap glyph walks the same
+    // 10-glyph cycle in reverse so the two spinners visibly counter-rotate.
+    // At tickCount=0 both show `⠋`; from tickCount=1 the right glyph runs
+    // `⠏⠇⠧⠦⠴⠼⠸⠹⠙⠋`.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, rerender, unmount } = render(
+        <SliderInput
+          min={1}
+          max={20}
+          focused
+          onSubmit={onSubmit}
+          tickMs={50}
+        />,
+      )
+      expect(lastFrame() ?? '').toContain('Right Heap: ⠋')
+      const expected = ['⠏', '⠇', '⠧', '⠦', '⠴', '⠼', '⠸', '⠹', '⠙', '⠋']
+      for (const glyph of expected) {
+        vi.advanceTimersByTime(50)
+        rerender(
+          <SliderInput
+            min={1}
+            max={20}
+            focused
+            onSubmit={onSubmit}
+            tickMs={50}
+          />,
+        )
+        expect(lastFrame() ?? '').toContain(`Right Heap: ${glyph}`)
       }
       unmount()
     } finally {
@@ -281,14 +321,14 @@ describe('SliderInput', () => {
         />,
       )
       expect(pickFromFrame(lastFrame() ?? '')).toBe(5)
-      // New cast — narrower range. Position should rewind to 1, and the
-      // spinner should restart at `⠋` for the new cast.
+      // New cast — narrower range. Position should rewind to 1, and both
+      // spinners should restart at `⠋` for the new cast.
       rerender(
         <SliderInput min={1} max={5} focused onSubmit={onSubmit} tickMs={50} />,
       )
       const reset = lastFrame() ?? ''
       expect(pickFromFrame(reset)).toBe(1)
-      expect(reset).toContain('pick: ⠋ / 5')
+      expect(reset).toContain('Stalks: 5 | Left Heap: ⠋ | Right Heap: ⠋')
       // And direction should be +1: next tick goes to 2.
       vi.advanceTimersByTime(50)
       rerender(
@@ -516,7 +556,7 @@ describe('CastingPromptBox (slider mode)', () => {
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
     )
     expect(pickFromFrame(frame)).toBe(1)
-    expect(frame).toContain('pick: ⠋ / 48')
+    expect(frame).toContain('Stalks: 48 | Left Heap: ⠋ | Right Heap: ⠋')
     // Bar should be rendered as well.
     expect(frame).toContain('█')
     unmount()

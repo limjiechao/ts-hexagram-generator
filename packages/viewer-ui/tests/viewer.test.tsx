@@ -167,6 +167,11 @@ describe('ConsultationViewer', () => {
   })
 
   it('does not switch tabs on the arrow keys (they pan instead)', async () => {
+    // Use a wide-enough viewport for the 107-col casting table so ARROW_RIGHT
+    // is a no-op pan (no overflow → nothing to scroll). The test verifies the
+    // key does not advance the tab; pan side-effects would falsify the
+    // `CASTING:` substring check by shifting it off the left edge.
+    windowSize.current = { columns: 120, rows: 30 }
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
