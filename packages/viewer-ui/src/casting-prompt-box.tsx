@@ -373,6 +373,12 @@ interface SliderCastingPromptProps {
  * Slider-mode body of `<CastingPromptBox>`. Owns the bouncing state via
  * `useSliderBounce` and renders three sliced rows so the box content never
  * reflows on narrow terminals — the viewer can pan ←/→ to scroll instead.
+ *
+ * `focused: true` is hardcoded because this component is only mounted while
+ * the casting prompt is active; `useSliderBounce`'s `noopSubscribe` branch
+ * is therefore unreachable in current callers. If a future change passes a
+ * dynamic `focused` prop, audit `useSliderBounce` to add a real
+ * stop-ticking path on unsubscribe.
  */
 function SliderCastingPrompt({
   lineNumber,
