@@ -53,6 +53,7 @@ casting:
     - pick: 30
       max: 39
 ---
+
 ## QUERY
 
 Will the harvest be plentiful?

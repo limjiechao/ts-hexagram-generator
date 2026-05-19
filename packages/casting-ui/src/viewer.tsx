@@ -1,3 +1,4 @@
+import { saveConsultationFile } from '@hexagram/consultation/file'
 import { generateRandomConsultation } from '@hexagram/core/random'
 import {
   assertIsCastingRecord,
@@ -34,7 +35,6 @@ import {
   buildPartialCastingSections,
   type ConsultationSections,
 } from './output-composers.js'
-import { saveConsultationFile } from '@hexagram/consultation/file'
 import { BOLD_GREY, NORMAL } from './output-palette.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'

@@ -1,5 +1,3 @@
-import matter from 'gray-matter'
-
 import {
   isCastingRecord,
   isHexagram,
@@ -7,6 +5,7 @@ import {
   type Hexagram,
   type LineCasting,
 } from '@hexagram/types'
+import matter from 'gray-matter'
 
 export const CURRENT_SCHEMA_VERSION = 1
 
@@ -64,7 +63,10 @@ export function serializeFrontmatter(
     hexagram: envelope.hexagram,
     casting: castingToYaml(envelope.casting),
   }
-  return matter.stringify(body, data, {
+  // Prepend a newline so that matter.stringify emits a blank line between
+  // the closing `---` and the first Markdown section — matching what
+  // oxfmt enforces for YAML-frontmatter documents.
+  return matter.stringify(`\n${body}`, data, {
     language: 'yaml',
   })
 }

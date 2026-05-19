@@ -53,6 +53,7 @@ casting:
     - pick: 16
       max: 39
 ---
+
 ## QUERY
 
 _(Query not provided)_

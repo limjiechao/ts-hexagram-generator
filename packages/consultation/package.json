@@ -32,8 +32,12 @@
     },
     "./package.json": "./package.json"
   },
-  "files": ["dist"],
-  "publishConfig": { "access": "public" },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
   "scripts": {
     "build": "tsdown",
     "generate-fixtures": "tsx scripts/generate-fixtures.ts",

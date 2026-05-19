@@ -53,6 +53,7 @@ casting:
     - pick: 7
       max: 39
 ---
+
 ## QUERY
 
 Should I take the new position?

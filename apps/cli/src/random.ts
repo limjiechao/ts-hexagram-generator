@@ -2,7 +2,6 @@
 
 import process from 'node:process'
 
-import { generateRandomConsultation } from '@hexagram/core/random'
 import {
   getUserQuery,
   logAndSaveConsultationOutput,
@@ -11,6 +10,7 @@ import {
   resolveWrapWidth,
   runConsultationViewer,
 } from '@hexagram/casting-ui'
+import { generateRandomConsultation } from '@hexagram/core/random'
 
 async function main(): Promise<void> {
   try {

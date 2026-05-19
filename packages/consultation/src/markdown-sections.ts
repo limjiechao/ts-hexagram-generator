@@ -3,7 +3,12 @@ import {
   getHexagramRecord,
   getTrigramRecord,
 } from '@hexagram/core/getters'
-import type { CastingRecord, Hexagram, Line, PartialSplitRecord } from '@hexagram/types'
+import type {
+  CastingRecord,
+  Hexagram,
+  Line,
+  PartialSplitRecord,
+} from '@hexagram/types'
 
 // Pure column-padding helpers (no ANSI). Mirrors the geometry used in the
 // casting-ui `castingSection`, but emits plain text inside a ```text fence.

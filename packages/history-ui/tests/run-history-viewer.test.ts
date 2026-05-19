@@ -1,12 +1,12 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import {
   markdownConsultationBody,
   serializeFrontmatter,
 } from '@hexagram/consultation'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { rerenderOnDisk } from '../src/history-app'
 
