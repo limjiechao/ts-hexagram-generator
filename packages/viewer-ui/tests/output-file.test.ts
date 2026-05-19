@@ -58,3 +58,21 @@ describe('consultationFileOutput default directory', () => {
     expect(savedPath.startsWith(`${customDirectory}${path.sep}`)).toBe(true)
   })
 })
+
+describe('consultationFileOutput plain text stripping', () => {
+  it('strips all ANSI escape bytes from the saved .txt file (regression: monorepo refactor dropped the ESC anchor in the strip regex)', async () => {
+    await consultationFileOutput('Test query for ESC byte assertion')
+    // The mock captures every fs.writeFile call. Find the one that wrote the
+    // plain-text consultation (the .txt path, not any sidecar JSON).
+    const calls = mockedFs.writeFile.mock.calls
+    const txtCall = calls.find(
+      ([p]) => typeof p === 'string' && p.endsWith('.txt'),
+    )
+    expect(txtCall).toBeDefined()
+    const content = String(txtCall![1])
+    // Bug regression: every styled segment used to leave a lone ESC (0x1B)
+    // byte in the file because the strip regex matched only `[…m` without
+    // the ESC anchor. Assert the saved plain text is free of all ESC bytes.
+    expect(content.includes('')).toBe(false)
+  })
+})

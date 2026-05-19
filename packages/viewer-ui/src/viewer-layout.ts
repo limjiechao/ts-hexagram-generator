@@ -32,7 +32,7 @@ export const MIN_CONTENT_WIDTH = 100
 // placeholder rows before handing them to Ink so the entire region reads as
 // uniformly dim.
 // oxlint-disable-next-line no-control-regex
-export const ANSI_PATTERN: RegExp = /\[[0-9;]*m/g
+export const ANSI_PATTERN: RegExp = /\u001B\[[0-9;]*m/g
 
 export function stripAnsi(text: string): string {
   return text.replaceAll(ANSI_PATTERN, '')

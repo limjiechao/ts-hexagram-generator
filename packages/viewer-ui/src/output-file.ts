@@ -27,7 +27,7 @@ export async function consultationFileOutput(
 ): Promise<string> {
   // Strip ANSI color codes for the saved file.
   // oxlint-disable-next-line no-control-regex
-  const textOutput = consoleOutput.replaceAll(/\[[0-9;]*m/g, '')
+  const textOutput = consoleOutput.replaceAll(/\u001B\[[0-9;]*m/g, '')
 
   // Ensure output directory exists (create if needed)
   await fs.mkdir(outputDirectory, { recursive: true })

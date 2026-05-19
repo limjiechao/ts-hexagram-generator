@@ -48,7 +48,7 @@ export type FlowAction =
 // the suppression. Inlined here so this module has no dependency on the
 // layout module (keeps the flow reducer leaf-pure).
 // oxlint-disable-next-line no-control-regex
-const ANSI_PATTERN: RegExp = /\[[0-9;]*m/g
+const ANSI_PATTERN: RegExp = /\u001B\[[0-9;]*m/g
 
 /**
  * Recover the user's plain query text from a pre-built `querySection()`
