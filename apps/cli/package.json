@@ -6,6 +6,7 @@
   "description": "Yijing hexagram oracle CLI bins (hexagram-random, hexagram-interactive)",
   "license": "MIT",
   "bin": {
+    "hexagram-history": "./dist/history.mjs",
     "hexagram-interactive": "./dist/interactive.mjs",
     "hexagram-random": "./dist/random.mjs"
   },
@@ -18,7 +19,9 @@
   },
   "dependencies": {
     "@hexagram/casting-ui": "workspace:*",
+    "@hexagram/consultation": "workspace:*",
     "@hexagram/core": "workspace:*",
+    "@hexagram/history-ui": "workspace:*",
     "@hexagram/types": "workspace:*"
   }
 }

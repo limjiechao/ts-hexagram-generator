@@ -62,9 +62,15 @@ importers:
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../../packages/casting-ui
+      '@hexagram/consultation':
+        specifier: workspace:*
+        version: link:../../packages/consultation
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../packages/core
+      '@hexagram/history-ui':
+        specifier: workspace:*
+        version: link:../../packages/history-ui
       '@hexagram/types':
         specifier: workspace:*
         version: link:../../packages/types
