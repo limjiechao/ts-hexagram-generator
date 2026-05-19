@@ -3,6 +3,12 @@ import oxlint from 'eslint-plugin-oxlint'
 
 export default sxzz().append(
   {
+    // Planning docs under docs/ contain illustrative TypeScript snippets
+    // (often partial/incomplete) that should not be held to source-grade
+    // lint rules.
+    ignores: ['docs/**/*.md'],
+  },
+  {
     rules: {
       'prettier/prettier': 'off',
       'perfectionist/sort-imports': 'off',
