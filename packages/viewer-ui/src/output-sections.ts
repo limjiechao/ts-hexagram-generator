@@ -194,11 +194,13 @@ function castRight(text: string, width: number, color?: string): string {
 }
 
 // The eighteen stalk divisions (十有八變) that produced the hexagram, laid out
-// as a single 6×3 table — rows are lines in hexagram order (Line 6 at top,
-// matching the diagram sections), columns are the three casts. Each cast shows
-// the stalks present before the division (`Stalks`, the round's selectable
-// range) alongside the two heaps the stalks were parted into (`Left Heap` =
-// the index parted at, `Right Heap` = `Stalks − Left Heap`). The query is not
+// as a single 6×9 grid under a hierarchical header. Rows are lines in
+// hexagram order (Line 6 at top, matching the diagram sections); columns are
+// grouped under a top-level `Cast` banner, split into three ordinals
+// (`1st` / `2nd` / `3rd`), and within each cast the leaf columns are
+// `Stalks` (the round's selectable range) and a `Heap → {Left, Right}`
+// subgroup recording the two heaps the stalks were parted into (`Left` is
+// the index parted at, `Right` is `Stalks − Left`). The query is not
 // repeated here — it has its own section.
 //
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
@@ -209,35 +211,43 @@ function castRight(text: string, width: number, color?: string): string {
 // `tests/fixtures/plain-output-*.txt` byte-identity tests guard this).
 export function castingSection(casting: PartialCastingRecord): string {
   const TOP =
-    '┌──────┬─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐'
-  const SUB =
-    '│      ├────────┬───────────┬────────────┼────────┬───────────┬────────────┼────────┬───────────┬────────────┤'
+    '┌──────┬──────────────────────────────────────────────────────────────────────────┐'
+  const CAST_OUTER_DIVIDER =
+    '│      ├────────────────────────┬────────────────────────┬────────────────────────┤'
+  const CAST_INNER_DIVIDER =
+    '│      ├────────┬───────────────┼────────┬───────────────┼────────┬───────────────┤'
+  const HEAP_INNER_DIVIDER =
+    '│      │        ├───────┬───────┤        ├───────┬───────┤        ├───────┬───────┤'
   const MID =
-    '├──────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┤'
+    '├──────┼────────┼───────┼───────┼────────┼───────┼───────┼────────┼───────┼───────┤'
   const BOTTOM =
-    '└──────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┘'
+    '└──────┴────────┴───────┴───────┴────────┴───────┴───────┴────────┴───────┴───────┘'
 
-  // Plain (default-fg) cells leave the structural framing — cast names, the
-  // Line/Stalks/Heap headers, and the row labels — calm against the bold-grey
-  // Stalks scaffolding and the bold-white heap counts.
-  const castRow =
-    `│      │${castCenter('1st Cast', 33, HEADING_GREY)}│` +
-    `${castCenter('2nd Cast', 33, HEADING_GREY)}│` +
-    `${castCenter('3rd Cast', 33, HEADING_GREY)}│`
+  // Header rows, top-down: a `Cast` banner spanning all three casts; three
+  // ordinal labels (`1st` / `2nd` / `3rd`); a `Heap` subgroup banner over the
+  // `Left` / `Right` pair within each cast (the `Stalks` slot is left blank
+  // so the column header below visually owns it); and the leaf labels.
+  // Spanning labels are `castCenter`-ed over their group; leaf labels use
+  // `castRight` so they share the one-column trailing gutter of the numeric
+  // body cells below.
+  const CAST_LABEL = `│      │${castCenter('Cast', 74, HEADING_GREY)}│`
 
-  const colRow =
-    `│${castCenter('Line', 6, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│` +
-    `${castCenter('Stalks', 8, HEADING_GREY)}│${castCenter('Left Heap', 11, HEADING_GREY)}│${castCenter('Right Heap', 12, HEADING_GREY)}│`
+  const nthCell = (text: string): string => castCenter(text, 24, HEADING_GREY)
+  const NTH_LABEL = `│      │${nthCell('1st')}│${nthCell('2nd')}│${nthCell('3rd')}│`
+
+  const heapBanner = `        │${castCenter('Heap', 15, HEADING_GREY)}`
+  const HEAP_LABEL = `│      │${heapBanner}│${heapBanner}│${heapBanner}│`
+
+  const colCell = `${castRight('Stalks', 8, HEADING_GREY)}│${castRight('Left', 7, HEADING_GREY)}│${castRight('Right', 7, HEADING_GREY)}`
+  const COL_LABELS = `│${castRight('Line', 6, HEADING_GREY)}│${colCell}│${colCell}│${colCell}│`
 
   // All numeric body cells right-align so multi-digit values line up against
   // the right column edge. Pending cells get a `·` in all three sub-columns,
   // dimmed so the eye reads them as "not yet picked".
   const cell = (split: PartialSplitRecord): string =>
     split === null
-      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 11, PLACEHOLDER_GREY)}│${castRight('·', 12, PLACEHOLDER_GREY)}`
-      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 11, BOLD_WHITE)}│${castRight(String(split.max - split.pick), 12, BOLD_WHITE)}`
+      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}`
+      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}│${castRight(String(split.max - split.pick), 7, BOLD_WHITE)}`
 
   // `casting` is a 6-tuple and the literal source `[6, 5, 4, 3, 2, 1]` covers
   // every valid index, but TS can't narrow `lineNumber - 1` to `0..5` from a
@@ -262,9 +272,13 @@ export function castingSection(casting: PartialCastingRecord): string {
 ${BOLD_GREY}CASTING:${NORMAL}
 
 ${TOP}
-${castRow}
-${SUB}
-${colRow}
+${CAST_LABEL}
+${CAST_OUTER_DIVIDER}
+${NTH_LABEL}
+${CAST_INNER_DIVIDER}
+${HEAP_LABEL}
+${HEAP_INNER_DIVIDER}
+${COL_LABELS}
 ${MID}
 ${dataRows}
 ${BOTTOM}

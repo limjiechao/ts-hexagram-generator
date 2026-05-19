@@ -142,7 +142,7 @@ describe('castingSection (partial)', () => {
 
   it('renders a `·` placeholder for null cells', () => {
     const empty = castingSection(emptyPartialCastingRecord())
-    // 6 lines × 3 casts × 3 sub-columns (Stalks + Left Heap + Right Heap) = 54 dots.
+    // 6 lines × 3 casts × 3 leaf sub-columns (Stalks + Heap.Left + Heap.Right) = 54 dots.
     const dots = (stripAnsi(empty).match(/·/g) ?? []).length
     expect(dots).toBe(54)
   })
@@ -151,8 +151,8 @@ describe('castingSection (partial)', () => {
     const mixed = emptyPartialCastingRecord()
     mixed[0][0] = { pick: 20, max: 48 }
     const rendered = stripAnsi(castingSection(mixed))
-    // Line 1's first cast cell shows `48` (Stalks), `20` (Left Heap), and
-    // `28` (Right Heap = max - pick); the remaining 17 cells stay as 3-dot
+    // Line 1's first cast cell shows `48` (Stalks), `20` (Heap.Left), and
+    // `28` (Heap.Right = max - pick); the remaining 17 cells stay as 3-dot
     // placeholders, so 54 − 3 = 51 dots remain.
     expect(rendered).toContain(' 48 ')
     expect(rendered).toContain(' 20 ')
