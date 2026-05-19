@@ -599,7 +599,7 @@ export function ConsultationViewer({
  * prior contents are restored on exit.
  *
  * Two call shapes:
- *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` —
+ *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` —
  *     production: the viewer owns the flow (collects the query and 18 picks
  *     in-tab).
  *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` —
@@ -613,6 +613,7 @@ export async function runConsultationViewer(
         inputMode?: InputMode
         maxWrapWidth?: number
         sliderSweepMs?: number
+        sliderCommitRevealMs?: number
       }
     | ConsultationSections,
   maybeSavedPath?: string,
@@ -626,6 +627,7 @@ export async function runConsultationViewer(
             inputMode={argsOrSections.inputMode}
             maxWrapWidth={argsOrSections.maxWrapWidth}
             sliderSweepMs={argsOrSections.sliderSweepMs}
+            sliderCommitRevealMs={argsOrSections.sliderCommitRevealMs}
           />,
           { alternateScreen: true },
         )
