@@ -16,7 +16,7 @@ import {
 // Pure unit tests for the data-driven viewer keymap. No ink-testing-library
 // here — every binding is exercised against a stub `KeyContext` whose
 // callbacks are `vi.fn()` spies. Behavioural parity with the previous
-// inline `useInput` chain is asserted in `cli-viewer.test.tsx`; this file
+// inline `useInput` chain is asserted in `viewer.test.tsx`; this file
 // pins the table itself (binding count, ids, dispatch order, predicates).
 
 // ── Test helpers ─────────────────────────────────────────────────────────────

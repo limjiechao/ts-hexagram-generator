@@ -24,7 +24,7 @@ export interface ConsultationCase {
 }
 
 // The four scenarios the plain-output fixtures are captured from, shared by the
-// byte-identity test (`cli-utils-output.test.ts`) and the fixture regeneration
+// byte-identity test (`output.test.ts`) and the fixture regeneration
 // script (`scripts/generate-fixtures.ts`).
 //
 // The casting picks are illustrative: `castingSection` is purely presentational,
