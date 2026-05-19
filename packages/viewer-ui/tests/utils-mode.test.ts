@@ -88,27 +88,27 @@ test('parseSliderSweepMs() returns the first occurrence when given multiple', ()
   ).toBe(2000)
 })
 
-test('deriveTickMs() divides the sweep budget across (max - min + 1) cells', () => {
-  // Cast 1 of every line: max=48 stalks, 48 cells. 3000ms / 48 = 62.5 → 63ms.
-  expect(deriveTickMs(3000, 48)).toBe(63)
-  // A plausible cast 3 range: max=31 → 31 cells → 3000 / 31 = 96.77 → 97ms.
-  expect(deriveTickMs(3000, 31)).toBe(97)
-  // Honours an explicit min.
-  expect(deriveTickMs(2000, 21, 1)).toBe(95)
+test('deriveTickMs() divides the sweep budget across (max - min) transitions', () => {
+  // Cast 1 of every line: max=48 stalks, 48-1 = 47 transitions. 3000ms / 47 ≈ 63.83 → 64ms.
+  expect(deriveTickMs(3000, 48)).toBe(64)
+  // A plausible cast 3 range: max=31 → 31 - 1 = 30 transitions. 3000ms / 30 = 100ms.
+  expect(deriveTickMs(3000, 31)).toBe(100)
+  // Honours an explicit min: 21 - 1 = 20 transitions. 2000ms / 20 = 100ms.
+  expect(deriveTickMs(2000, 21, 1)).toBe(100)
 })
 
 test('deriveTickMs() clamps to MIN_TICK_MS when the budget is too small', () => {
-  // 100ms sweep / 48 cells ≈ 2ms — well below MIN_TICK_MS (30).
+  // 100ms sweep / Math.max(1, 48 - 1) = 47 transitions ≈ 2ms — well below MIN_TICK_MS (30).
   expect(deriveTickMs(100, 48)).toBe(MIN_TICK_MS)
 })
 
 test('deriveTickMs() clamps to MAX_TICK_MS when the budget is huge', () => {
-  // 60_000ms sweep / 48 cells ≈ 1250ms — above MAX_TICK_MS (250).
+  // 60_000ms sweep / Math.max(1, 48 - 1) = 47 transitions ≈ 1276ms — above MAX_TICK_MS (250).
   expect(deriveTickMs(60_000, 48)).toBe(MAX_TICK_MS)
 })
 
 test('deriveTickMs() handles the degenerate single-cell range', () => {
-  // max === min → 1 cell, denominator never zero.
+  // max === min → Math.max(1, max - min) = 1, denominator never zero.
   expect(deriveTickMs(3000, 1, 1)).toBe(MAX_TICK_MS)
   expect(deriveTickMs(20, 1, 1)).toBe(MIN_TICK_MS)
 })

@@ -25,15 +25,16 @@ export const MIN_TICK_MS = 30
 export const MAX_TICK_MS = 250
 
 /**
- * Per-cast tick interval that keeps the end-to-end slider sweep at
- * roughly `sweepMs` regardless of `max`. Clamped so very small or very
- * large sweep budgets stay visually sensible. The cell count mirrors
- * `buildSliderBar` in `casting-prompt-box.tsx` (1 cell per value),
- * so a full left↔right sweep crosses exactly `sweepMs` end-to-end.
+ * Per-cast tick interval that keeps the end-to-end slider sweep at roughly
+ * `sweepMs` regardless of `max`. The cursor moves cell-by-cell across a
+ * `max - min + 1` cell bar; a full one-way sweep traverses `max - min`
+ * TRANSITIONS between cells, so the per-cast tickMs is `sweepMs / (max - min)`.
+ * Clamped to [MIN_TICK_MS, MAX_TICK_MS] so degenerate ranges (max === min) and
+ * extreme sweep budgets stay visually sensible.
  */
 export function deriveTickMs(sweepMs: number, max: number, min = 1): number {
-  const cells = max - min + 1
-  const raw = Math.round(sweepMs / cells)
+  const transitions = Math.max(1, max - min)
+  const raw = Math.round(sweepMs / transitions)
   return Math.max(MIN_TICK_MS, Math.min(MAX_TICK_MS, raw))
 }
 
