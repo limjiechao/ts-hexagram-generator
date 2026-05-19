@@ -11,9 +11,11 @@ ts-hexagram-generator/         # workspace root (private)
 ├── packages/
 │   ├── types/                 # @hexagram/types — public type defs + assertions
 │   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
-│   └── casting-ui/             # @hexagram/casting-ui — Ink viewer, Inquirer flow, output formatters
+│   ├── consultation/          # @hexagram/consultation — file format (Markdown + YAML frontmatter), renderers, legacy converter
+│   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer, Inquirer flow, ANSI section renderers
+│   └── history-ui/            # @hexagram/history-ui — Ink history browser
 └── apps/
-    └── cli/                   # @hexagram/cli (private) — hexagram-random + hexagram-interactive bins
+    └── cli/                   # @hexagram/cli (private) — hexagram-random + hexagram-interactive + hexagram-history bins
 ```
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
@@ -23,7 +25,7 @@ Library packages publish via `package.json#exports` only (no `main`/`module`/`ty
 All commands run from the worktree root unless noted. Most fan out across packages via Turborepo.
 
 ```bash
-pnpm install            # install + link the four workspace packages
+pnpm install            # install + link the workspace packages
 pnpm build              # turbo run build (tsdown per package, topological order)
 pnpm test               # turbo run test (vitest per package)
 pnpm type:check         # turbo run type:check (tsc --noEmit per package)
@@ -35,9 +37,11 @@ pnpm format:fix         # oxfmt --write at root
 # Run the CLIs directly (no build needed — tsx + the `source` exports condition)
 pnpm hexagram-random        # tsx apps/cli/src/random.ts
 pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
+pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
+pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
 
-# Both CLIs default to a full-screen tabbed viewer; append `-- --plain`
-# (or `-- --no-ui`) for the classic scrolling console output.
+# hexagram-random and hexagram-interactive default to a full-screen tabbed viewer;
+# append `-- --plain` (or `-- --no-ui`) for the classic scrolling console output.
 # `-- --wrap-width <n>` caps the viewer's content wrap width (default 120).
 # `-- --numeric-input` switches the interactive casting prompt from the
 # default bouncing slider back to the legacy typed-number input.
@@ -47,6 +51,8 @@ pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 # The slider is also force-overridden to typed input when `NO_COLOR=1` or
 # `CI=true` is set, so screen-reader and automation environments don't get
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
+# hexagram-history does NOT have a --plain mode — it is Ink-only and exits
+# with an error message and code 1 in non-TTY contexts.
 
 # Per-package operations (use --filter for a single package)
 pnpm --filter @hexagram/core test
@@ -108,7 +114,33 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 
-Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/casting-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/casting-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` output (and the saved file) is locked byte-for-byte by fixtures in `packages/casting-ui/tests/fixtures/` — after intentionally changing a section builder, regenerate them with `pnpm generate-fixtures` (driven by the shared cases in `packages/casting-ui/tests/fixtures/cases.ts`).
+Either way the reading is saved as a timestamped `.md` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/casting-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/casting-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` stdout output is locked byte-for-byte by fixtures in `packages/casting-ui/tests/fixtures/`. The `.md` save output (frontmatter + body) is locked separately by fixtures in `packages/consultation/tests/fixtures/`. Regenerate both sets together with `pnpm generate-fixtures` after intentionally changing a section builder (driven by the shared cases in `packages/casting-ui/tests/fixtures/cases.ts`).
+
+### Consultation file format — `@hexagram/consultation`
+
+Every saved consultation is a Markdown file with a YAML frontmatter envelope. The frontmatter is the canonical model — five fields:
+
+- `schemaVersion: 1` (strict-equal on load; mismatch surfaces row as `[unreadable]` in `hexagram-history`)
+- `timestamp` (ISO 8601 with offset, e.g. `2026-05-19T14:23:11+0800`)
+- `query` (YAML `|` block scalar for multi-line)
+- `hexagram` (flat 6-element array, bottom-first — matches the in-memory `Hexagram` tuple)
+- `casting` (mapping keyed `L6..L1` — visual top-first; a converter inverts to/from the bottom-first `CastingRecord` tuple at the package boundary)
+
+The Markdown body below the frontmatter is **decorative**: re-rendered from the envelope by `markdownConsultationBody` on every load. On open, the history flow byte-compares the freshly-rendered body against disk and rewrites if they differ (so renderer upgrades self-heal old files). Derived data — hex name, emerging hex, scripture/exegesis text, translations — is never persisted; it's recomputed via `@hexagram/core/getters` every render.
+
+Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation/file`.
+
+Legacy `.txt` files (pre-Markdown era) are migrated by `pnpm hexagram-history --convert-legacy`, which parses each `.txt` via `convertLegacyTxt`, writes the corresponding `.md`, and moves the original into `consultations/legacy/`. The migration handles both **Shape A** (recent format with CASTING table — full casting recovered) and **Shape B** (older format without CASTING — synthesizes sentinel casting, marks `castingRecovered: false`). `consultations/legacy/` is never scanned by `hexagram-history`.
+
+### History browser — `@hexagram/history-ui`
+
+`hexagram-history` mounts an Ink list of `consultations/*.md` (newest-first by frontmatter timestamp).
+
+Two-line rows: `[YYYY-MM-DD HH:mm] <truncated query>` + indented `#<wenwang> <chinese> <english>` (with `──▶ #<emerging>` suffix when moving lines exist).
+
+Controls: `↑/↓` row nav, `PgUp/PgDn` page nav, `g/G` first/last, Enter to load, `/` to live-filter on case-insensitive query substring, ESC to clear filter or exit.
+
+Pressing Enter loads the file, re-renders the body, byte-compares with disk, and rewrites if drifted (with a `_Body refreshed; data unchanged._` notice). Ink-only: in non-TTY contexts (`NO_COLOR=1`, `CI=true`, or piped stdout), the bin exits with `"hexagram-history requires an interactive terminal"` and code 1.
 
 ### Data model — `packages/core/src/models/`
 
@@ -134,12 +166,14 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/casting-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
 - `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
+- `packages/consultation/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
 - `packages/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
-- `apps/cli/tsdown.config.ts` — two entries (`interactive`, `random`) matching the two `bin` map entries.
+- `packages/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
+- `apps/cli/tsdown.config.ts` — three entries (`interactive`, `random`, `history`) matching the three `bin` map entries.
 
 ### Linting
 
