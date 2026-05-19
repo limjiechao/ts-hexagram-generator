@@ -60,7 +60,7 @@ pnpm generate-json-files    # turbo run generate-json-files --filter=@hexagram/c
 pnpm generate-fixtures      # turbo run generate-fixtures --filter=@hexagram/viewer-ui
 ```
 
-The statistical distribution test (`generateLines() should return valid report` in `packages/core/tests/random.test.ts`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random.test.ts` (or a `-t` filter that excludes its describe block).
+The statistical distribution test (`generateLines() should return valid report` in `packages/core/tests/random.test.ts`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random.test.ts` (or `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` to drop only the slow describe block).
 
 ## Architecture
 
