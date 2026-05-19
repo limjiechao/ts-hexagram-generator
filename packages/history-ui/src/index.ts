@@ -1,3 +1,4 @@
+export { HistoryList } from './history-list.js'
 export {
   scanConsultations,
   type HistoryEntry,
