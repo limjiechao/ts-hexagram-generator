@@ -1,4 +1,9 @@
 export {
+  loadConsultationFile,
+  saveConsultationFile,
+  type LoadResult,
+} from './file.js'
+export {
   castingFromYaml,
   castingToYaml,
   CURRENT_SCHEMA_VERSION,
@@ -18,3 +23,7 @@ export {
   transformationMarkdownSection,
 } from './markdown-sections.js'
 export { markdownConsultationBody } from './markdown.js'
+export {
+  getFilesystemSafeTimestamp,
+  getIsoTimestamp,
+} from './utils-timestamp.js'
