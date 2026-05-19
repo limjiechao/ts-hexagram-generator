@@ -5,7 +5,7 @@ import {
   type FourOperationsResult,
   type Line,
 } from '@hexagram/types'
-import { useEffect, useRef, type Dispatch } from 'react'
+import { useRef, type Dispatch } from 'react'
 
 import type { FlowAction, FlowState } from './viewer-flow.js'
 
@@ -27,10 +27,15 @@ interface UseLineGeneratorResult {
  * triggered by the reducer dispatch in `submitSplit`, so the displayed
  * range stays in sync without manual `forceRender` calls.
  *
- * The line-boundary effect (re)creates the generator at the start of each
- * new line (`castIndex === 0`, no live generator). The third-cast branch
- * inside `submitSplit` nulls the generator out so the effect can re-arm it
- * for the next line.
+ * The generator is built lazily inside `submitSplit` on the first cast of
+ * each line — the `castIndex === 0` branch constructs a fresh
+ * `makeLineGenerator` with the real `partStalksAtIndex: pick`, advances it
+ * synchronously through round one, and stashes it in the ref. The second
+ * and third casts pump that same generator via `.next(pick)`, and the
+ * third-cast branch nulls the ref out so the next line starts clean. No
+ * effects are needed: the placeholder-then-overwrite pattern of the prior
+ * implementation was unreachable, since the first-cast branch always
+ * replaced the placeholder before any read could observe it.
  */
 export function useLineGenerator(
   state: FlowState,
@@ -43,32 +48,17 @@ export function useLineGenerator(
   > | null>(null)
   const currentMaxRef = useRef<number>(stalksBeforeParting.length - 1)
 
-  // (Re)create the generator when the casting phase starts a new line.
-  useEffect(() => {
-    if (state.mode !== 'casting') return
-    if (state.castIndex !== 0) return
-    if (lineGeneratorRef.current !== null) return // already initialised for this line
-    const generator = makeLineGenerator({
-      unpartedStalks: stalksBeforeParting,
-      suspendedFromNextRound: [],
-      partStalksAtIndex: 1, // placeholder; the real pick goes in via .next(pick) on the 2nd round
-    })
-    lineGeneratorRef.current = generator
-    currentMaxRef.current = stalksBeforeParting.length - 1
-  }, [state.mode, state.castIndex, state.lineIndex])
-
   // Submit a casting split: synchronously advance the line generator,
   // capture the next round's `max` (and the returned Line on the third
   // cast), then dispatch `splitCommitted`.
   const submitSplit = (pick: number): void => {
     if (state.mode !== 'casting') return
-    const generator = lineGeneratorRef.current
-    if (generator === null) return
     const max = currentMaxRef.current
     if (state.castIndex === 0) {
-      // First cast: this `pick` is the seed parted-at index. Re-create the
-      // generator with the real pick, then drive it forward to yield round
-      // one's result and capture the selectable range for round two.
+      // First cast: this `pick` is the seed parted-at index. Build a fresh
+      // generator from `stalksBeforeParting` with the real pick, drive it
+      // forward to yield round one's result, and capture the selectable
+      // range for round two.
       const fresh = makeLineGenerator({
         unpartedStalks: stalksBeforeParting,
         suspendedFromNextRound: [],
@@ -81,6 +71,8 @@ export function useLineGenerator(
       dispatch({ type: 'splitCommitted', pick, max })
       return
     }
+    const generator = lineGeneratorRef.current
+    if (generator === null) return // defensive: 2nd/3rd cast must follow a 1st cast
     if (state.castIndex === 1) {
       const round2 = generator.next(pick).value
       assertIsFourOperationsResult(round2)
@@ -96,10 +88,7 @@ export function useLineGenerator(
     lineGeneratorRef.current = null // ready for the next line
     // Reset the displayed max synchronously so the immediate re-render shows
     // the new line's first-cast range (1..48) instead of the stale third-cast
-    // max from this line. The line-boundary `useEffect` above will
-    // idempotently confirm the same value when it re-creates the placeholder
-    // generator, but that effect fires only after render — too late on its
-    // own.
+    // max from this line.
     currentMaxRef.current = stalksBeforeParting.length - 1
     dispatch({ type: 'splitCommitted', pick, max, line })
   }
