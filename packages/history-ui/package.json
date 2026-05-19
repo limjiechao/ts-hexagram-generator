@@ -1,0 +1,33 @@
+{
+  "name": "@hexagram/history-ui",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Terminal UI for the Yijing hexagram oracle (history flow): Ink-based browser for saved consultations",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/consultation": "workspace:*",
+    "@hexagram/core": "workspace:*",
+    "@hexagram/types": "workspace:*",
+    "ink": "^7.0.3",
+    "react": "^19.2.6"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.14",
+    "ink-testing-library": "^4.0.0"
+  }
+}
