@@ -43,7 +43,7 @@ pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 # default bouncing slider back to the legacy typed-number input.
 # `-- --slider-sweep-ms <n>` sets the constant end-to-end sweep duration
 # (in ms) for the bouncing slider; per-cast tickMs is derived as
-# `sweepMs / (max - min + 1)` and clamped to [30, 250] ms (default 1800).
+# `sweepMs / max(1, max - min)` and clamped to [30, 250] ms (default 1800).
 # The slider is also force-overridden to typed input when `NO_COLOR=1` or
 # `CI=true` is set, so screen-reader and automation environments don't get
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
@@ -91,7 +91,7 @@ Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping 
 
 Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/viewer-ui/src/utils-mode.ts`:
 
-- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth })` renders it on the alternate screen.
+- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` renders it on the alternate screen.
 
   The viewer owns a state machine (`packages/viewer-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
   - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):
