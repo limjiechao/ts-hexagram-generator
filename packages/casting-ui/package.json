@@ -1,8 +1,8 @@
 {
-  "name": "@hexagram/viewer-ui",
+  "name": "@hexagram/casting-ui",
   "type": "module",
   "version": "0.0.0",
-  "description": "Terminal UI for the Yijing hexagram oracle: Ink-based tabbed viewer, Inquirer fallback flow, and formatted output sections",
+  "description": "Terminal UI for the Yijing hexagram oracle (casting flow): Ink-based tabbed viewer, Inquirer fallback flow, and ANSI section renderers",
   "license": "MIT",
   "exports": {
     ".": {
@@ -25,10 +25,10 @@
     "generate-fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
+    "@hexagram/consultation": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/types": "workspace:*",
     "@inquirer/prompts": "^8.4.3",
-    "dayjs": "^1.11.20",
     "ink": "^7.0.3",
     "react": "^19.2.6",
     "slice-ansi": "^9.0.0",

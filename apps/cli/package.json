@@ -17,8 +17,8 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hexagram/casting-ui": "workspace:*",
     "@hexagram/core": "workspace:*",
-    "@hexagram/types": "workspace:*",
-    "@hexagram/viewer-ui": "workspace:*"
+    "@hexagram/types": "workspace:*"
   }
 }

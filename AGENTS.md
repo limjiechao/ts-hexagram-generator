@@ -11,7 +11,7 @@ ts-hexagram-generator/         # workspace root (private)
 ├── packages/
 │   ├── types/                 # @hexagram/types — public type defs + assertions
 │   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
-│   └── viewer-ui/             # @hexagram/viewer-ui — Ink viewer, Inquirer flow, output formatters
+│   └── casting-ui/             # @hexagram/casting-ui — Ink viewer, Inquirer flow, output formatters
 └── apps/
     └── cli/                   # @hexagram/cli (private) — hexagram-random + hexagram-interactive bins
 ```
@@ -50,14 +50,14 @@ pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 
 # Per-package operations (use --filter for a single package)
 pnpm --filter @hexagram/core test
-pnpm --filter @hexagram/viewer-ui build
+pnpm --filter @hexagram/casting-ui build
 pnpm --filter @hexagram/types type:check
 
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files    # turbo run generate-json-files --filter=@hexagram/core
 
 # Regenerate the plain-output test fixtures after changing a section builder
-pnpm generate-fixtures      # turbo run generate-fixtures --filter=@hexagram/viewer-ui
+pnpm generate-fixtures      # turbo run generate-fixtures --filter=@hexagram/casting-ui
 ```
 
 The statistical distribution test (`generateLines() should return valid report` in `packages/core/tests/random.test.ts`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random.test.ts` (or `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` to drop only the slow describe block).
@@ -86,15 +86,15 @@ Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping 
 ### Random vs. interactive
 
 - **`packages/core/src/random.ts`** — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record. Pure library code — no CLI entry.
-- **`packages/viewer-ui/src/interactive-flow.ts`** — same generator wired to `@inquirer/prompts` for the plain-mode terminal flow (`getHexagramViaInteraction`, `getOneLineViaInteraction`).
-- **`apps/cli/src/{random,interactive}.ts`** — the two bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random` and the viewer + output helpers from `@hexagram/viewer-ui`.
+- **`packages/casting-ui/src/interactive-flow.ts`** — same generator wired to `@inquirer/prompts` for the plain-mode terminal flow (`getHexagramViaInteraction`, `getOneLineViaInteraction`).
+- **`apps/cli/src/{random,interactive}.ts`** — the two bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random` and the viewer + output helpers from `@hexagram/casting-ui`.
 
-Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/viewer-ui/src/utils-mode.ts`:
+Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/casting-ui/src/utils-mode.ts`:
 
-- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/viewer-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` renders it on the alternate screen.
+- **Ink viewer (default)** — a full-screen tabbed viewer (`packages/casting-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` renders it on the alternate screen.
 
-  The viewer owns a state machine (`packages/viewer-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
-  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/viewer-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/viewer-ui/src/utils-mode.ts`):
+  The viewer owns a state machine (`packages/casting-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
+  - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/casting-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/casting-ui/src/utils-mode.ts`):
     - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The per-cast tickMs is derived from `--slider-sweep-ms` so each end-to-end sweep takes roughly the same time regardless of the cast's stalk count. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `Stalks: N | Left Heap: <glyph> | Right Heap: <glyph>` readout are both centred and stay anchored as the cursor moves, separated by blank spacer rows above and below the bar. The two Braille spinners counter-rotate (left clockwise, right anticlockwise) so the user sees lively motion without ever seeing the cursor's numeric value. On SPACE the cursor freezes on the chosen cell, the readout swaps the two spinner glyphs for the concrete `Left Heap: <pick> | Right Heap: <max − pick>`, and the viewer auto-advances to the next cast after `SLIDER_COMMIT_REVEAL_MS` (≈1 s, set in `casting-prompt-box.tsx`; tests opt out by passing `0` via the viewer's `sliderCommitRevealMs` prop). The 18th cast (line 6 / cast 3) reveals the same way before the viewer transitions to `computing`. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
     - **`inputMode: 'number'`** — the legacy typed-`<NumberInput>` prompt; Enter commits, out-of-range values are rejected with an inline error.
 
@@ -102,13 +102,13 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown (so `inputMode` is moot for random).
 
-  The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/viewer-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
+  The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/casting-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
 
-  After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `packages/viewer-ui/src/utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
+  After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `packages/casting-ui/src/utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
 
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 
-Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/viewer-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/viewer-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` output (and the saved file) is locked byte-for-byte by fixtures in `packages/viewer-ui/tests/fixtures/` — after intentionally changing a section builder, regenerate them with `pnpm generate-fixtures` (driven by the shared cases in `packages/viewer-ui/tests/fixtures/cases.ts`).
+Either way the reading is saved as a timestamped `.txt` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/casting-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/casting-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` output (and the saved file) is locked byte-for-byte by fixtures in `packages/casting-ui/tests/fixtures/` — after intentionally changing a section builder, regenerate them with `pnpm generate-fixtures` (driven by the shared cases in `packages/casting-ui/tests/fixtures/cases.ts`).
 
 ### Data model — `packages/core/src/models/`
 
@@ -134,11 +134,11 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/viewer-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/casting-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
 - `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
-- `packages/viewer-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
+- `packages/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
 - `apps/cli/tsdown.config.ts` — two entries (`interactive`, `random`) matching the two `bin` map entries.
 
 ### Linting

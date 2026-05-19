@@ -13,7 +13,7 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
   runConsultationViewer,
-} from '@hexagram/viewer-ui'
+} from '@hexagram/casting-ui'
 
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
 

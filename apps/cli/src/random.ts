@@ -10,7 +10,7 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
   runConsultationViewer,
-} from '@hexagram/viewer-ui'
+} from '@hexagram/casting-ui'
 
 async function main(): Promise<void> {
   try {
