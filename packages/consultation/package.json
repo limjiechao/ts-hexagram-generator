@@ -36,6 +36,7 @@
   "publishConfig": { "access": "public" },
   "scripts": {
     "build": "tsdown",
+    "generate-fixtures": "tsx scripts/generate-fixtures.ts",
     "test": "vitest run --passWithNoTests",
     "type:check": "tsc --noEmit"
   },
