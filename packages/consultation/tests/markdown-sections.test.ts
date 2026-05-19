@@ -1,6 +1,13 @@
 import { describe, expect, it } from 'vitest'
 
-import { castingMarkdownSection } from '../src/markdown-sections'
+import {
+  castingMarkdownSection,
+  emergingHexagramMarkdownSection,
+  linesMarkdownBlock,
+  queryMarkdownSection,
+  standingHexagramMarkdownSection,
+  transformationMarkdownSection,
+} from '../src/markdown-sections'
 
 const casting = [
   [
@@ -58,5 +65,82 @@ describe('castingMarkdownSection', () => {
     // Check for ANSI escape sequences using Unicode escape
     const escapeChar = ''
     expect(text.includes(escapeChar)).toBe(false)
+  })
+})
+
+describe('queryMarkdownSection', () => {
+  it('emits ## QUERY and the query paragraph', () => {
+    expect(queryMarkdownSection('Will it rain?')).toBe(
+      '## QUERY\n\nWill it rain?\n',
+    )
+  })
+  it('shows a placeholder for empty query', () => {
+    expect(queryMarkdownSection('')).toBe(
+      '## QUERY\n\n_(Query not provided)_\n',
+    )
+  })
+})
+
+describe('transformationMarkdownSection', () => {
+  it('emits an italic caption for no moving lines', () => {
+    const text = transformationMarkdownSection([7, 8, 7, 8, 7, 8])
+    expect(text).toMatch(/^## TRANSFORMATION\n\n_\(No transformation\)_\n$/)
+  })
+
+  it('emits a fenced text block for moving lines', () => {
+    const text = transformationMarkdownSection([6, 7, 8, 7, 8, 7])
+    expect(text).toMatch(/^## TRANSFORMATION\n/)
+    expect(text).toContain('```text\n')
+    expect(text).toContain('Standing')
+    expect(text).toContain('Emerging')
+    expect(text).toContain('▶')
+  })
+})
+
+describe('standingHexagramMarkdownSection', () => {
+  it('emits ## STANDING HEXAGRAM <N> with translations', () => {
+    const text = standingHexagramMarkdownSection([7, 8, 7, 8, 7, 8])
+    expect(text).toMatch(/^## STANDING HEXAGRAM 63\n/)
+    expect(text).toContain('_Line at bottom is first._')
+    expect(text).toContain('```text\n')
+    expect(text).toContain('_First is line at bottom._')
+    expect(text).toContain('### Traditional Chinese')
+    expect(text).toContain('### Simplified Chinese')
+    expect(text).toContain('### English, Wilhelm-Baynes')
+    expect(text).toContain('### English, James Legge')
+    // Name + pronunciation appear directly under each translation heading:
+    expect(text).toContain('既濟（ㄐㄧˋ ㄐㄧˋ）')
+    expect(text).toContain('Chi Chi / After Completion')
+  })
+})
+
+describe('emergingHexagramMarkdownSection', () => {
+  it('emits ## EMERGING HEXAGRAM <N>', () => {
+    const text = emergingHexagramMarkdownSection([6, 7, 8, 7, 8, 7])
+    expect(text).toMatch(/^## EMERGING HEXAGRAM 38\n/)
+  })
+})
+
+describe('linesMarkdownBlock', () => {
+  it('emits one-moving-line mode', () => {
+    const text = linesMarkdownBlock([6, 7, 8, 7, 8, 7])
+    expect(text).toMatch(/^## LINES\n/)
+    expect(text).toContain('_One moving line._')
+    expect(text).toContain('### Traditional Chinese')
+    expect(text).toContain('#### Scripture')
+    expect(text).toContain('#### Exegesis')
+  })
+  it('emits no-moving-lines mode', () => {
+    const text = linesMarkdownBlock([7, 8, 7, 8, 7, 8])
+    expect(text).toContain('_No moving lines._')
+    expect(text).toContain('#### Scripture')
+    expect(text).toContain('#### Exegesis')
+  })
+  it('emits multiple-moving-lines mode', () => {
+    const text = linesMarkdownBlock([6, 9, 7, 8, 7, 8])
+    expect(text).toContain('_Multiple moving lines._')
+    expect(text).toContain(
+      'No available reference scripture or exegesis for multiple moving lines.',
+    )
   })
 })
