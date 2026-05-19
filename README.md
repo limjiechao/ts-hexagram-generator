@@ -84,7 +84,7 @@ Both CLIs present the reading in a full-screen tabbed viewer by default (Casting
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 
-Pass `--slider-sweep-ms <n>` (default 3000) to set the end-to-end sweep duration of the interactive bouncing slider; the per-cast tick is derived so each sweep takes the same time regardless of stalk count.
+Pass `--slider-sweep-ms <n>` (default 1800) to set the end-to-end sweep duration of the interactive bouncing slider; the per-cast tick is derived so each sweep takes the same time regardless of stalk count.
 
 ### Option 1 — `pnpm link --global` from `apps/cli` (live development)
 
