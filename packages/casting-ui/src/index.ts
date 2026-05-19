@@ -1,6 +1,9 @@
 // Inquirer-driven interactive flow (plain mode and library use).
 export { getHexagramViaInteraction } from './interactive-flow.js'
 
+// Plain-mode print + .md save shim.
+export { logAndSaveConsultationOutput } from './log-and-save.js'
+
 // Output composers — assemble per-tab strings for the viewer or the plain
 // console renderer.
 export {
@@ -9,12 +12,6 @@ export {
   consultationConsoleOutput,
   type ConsultationSections,
 } from './output-composers.js'
-
-// File I/O — writes the saved consultation under `consultations/`.
-export {
-  consultationFileOutput,
-  logAndSaveConsultationOutput,
-} from './output-file.js'
 
 // ANSI palette constants used by the formatted output.
 export {

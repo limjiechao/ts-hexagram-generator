@@ -23,16 +23,17 @@ import {
   STUB_STATIC_HEXAGRAM,
 } from './helpers/stubs'
 
-// Stub the filesystem-touching `cli-output-file` module so the interactive-
-// mode tests can drive the viewer to completion without writing real files
-// to `consultations/`. `buildConsultationSections` / `consultationConsole
-// Output` (in `cli-output-composers`) stay live — they're pure.
+// Stub the filesystem-touching `@hexagram/consultation/file` module so the
+// interactive-mode tests can drive the viewer to completion without writing
+// real files to `consultations/`. `buildConsultationSections` (in
+// `output-composers`) stays live — it's pure.
 const consultationFileOutputMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve('/tmp/consultation-mocked.txt')),
 )
-vi.mock('../src/output-file', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/output-file')>()
-  return { ...actual, consultationFileOutput: consultationFileOutputMock }
+vi.mock('@hexagram/consultation/file', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@hexagram/consultation/file')>()
+  return { ...actual, saveConsultationFile: consultationFileOutputMock }
 })
 
 // `generateRandomConsultation` is deterministic for the random-flow tests so

@@ -32,10 +32,9 @@ import {
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-  consultationConsoleOutput,
   type ConsultationSections,
 } from './output-composers.js'
-import { consultationFileOutput } from './output-file.js'
+import { saveConsultationFile } from '@hexagram/consultation/file'
 import { BOLD_GREY, NORMAL } from './output-palette.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'
@@ -148,12 +147,11 @@ export function ConsultationViewer({
           hexagram,
           casting,
         )
-        const plainOutput = consultationConsoleOutput(
-          state.query,
+        const savedPath = await saveConsultationFile({
+          query: state.query,
           hexagram,
           casting,
-        )
-        const savedPath = await consultationFileOutput(plainOutput)
+        })
         if (!cancelled)
           dispatch({ type: 'computeSucceeded', sections, savedPath })
       } catch (error) {
