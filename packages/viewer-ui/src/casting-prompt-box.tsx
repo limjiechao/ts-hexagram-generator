@@ -505,15 +505,26 @@ function SliderCastingPrompt({
     setCommitted(value)
   }, [])
 
+  // Ref pattern: the timer must read the LATEST onSubmit when it fires, but
+  // the effect must NOT re-run when onSubmit's identity changes. Otherwise
+  // any parent re-render (e.g. ←/→ pan during the post-SPACE reveal) would
+  // produce a new inline-arrow onSubmit, cleanup the pending timeout, and
+  // restart the 1-second dwell from zero — potentially stalling indefinitely
+  // on the 18th cast.
+  const onSubmitRef = useRef(onSubmit)
+  useEffect(() => {
+    onSubmitRef.current = onSubmit
+  })
+
   useEffect(() => {
     if (committed === null) return
     const timer = setTimeout(() => {
-      onSubmit(committed)
+      onSubmitRef.current(committed)
     }, commitRevealMs)
     return () => {
       clearTimeout(timer)
     }
-  }, [committed, commitRevealMs, onSubmit])
+  }, [committed, commitRevealMs])
 
   const { position, tickCount } = useSliderBounce({
     min,
