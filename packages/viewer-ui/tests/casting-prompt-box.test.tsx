@@ -104,8 +104,10 @@ describe('SliderInput', () => {
     expect(pickFromFrame(frame)).toBe(1)
     // Readout no longer leaks the numeric position — both Braille spinners
     // (left clockwise, right anticlockwise) stand in for it, and both restart
-    // at `⠋` on mount.
-    expect(frame).toContain('Stalks: 10 | Left Heap: ⠋ | Right Heap: ⠋')
+    // at `⠋` on mount. Each heap cell is padded to 2 cols (leading space
+    // before the 1-col glyph) so the row width matches the post-commit
+    // numeric form in `<SliderCastingPrompt>`.
+    expect(frame).toContain('Stalks: 10 | Left Heap:  ⠋ | Right Heap:  ⠋')
     // Bar should be present: 1 cursor cell (█) + 9 empty cells (░), bordered.
     expect(frame).toContain('█')
     expect(frame).toContain('░')
@@ -171,7 +173,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('Left Heap: ⠋ ')
+      expect(lastFrame() ?? '').toContain('Left Heap:  ⠋ ')
       const expected = ['⠙', '⠹', '⠸', '⠼', '⠴', '⠦', '⠧', '⠇', '⠏', '⠋']
       for (const glyph of expected) {
         vi.advanceTimersByTime(50)
@@ -184,7 +186,7 @@ describe('SliderInput', () => {
             tickMs={50}
           />,
         )
-        expect(lastFrame() ?? '').toContain(`Left Heap: ${glyph} `)
+        expect(lastFrame() ?? '').toContain(`Left Heap:  ${glyph} `)
       }
       unmount()
     } finally {
@@ -209,7 +211,7 @@ describe('SliderInput', () => {
           tickMs={50}
         />,
       )
-      expect(lastFrame() ?? '').toContain('Right Heap: ⠋')
+      expect(lastFrame() ?? '').toContain('Right Heap:  ⠋')
       const expected = ['⠏', '⠇', '⠧', '⠦', '⠴', '⠼', '⠸', '⠹', '⠙', '⠋']
       for (const glyph of expected) {
         vi.advanceTimersByTime(50)
@@ -222,7 +224,7 @@ describe('SliderInput', () => {
             tickMs={50}
           />,
         )
-        expect(lastFrame() ?? '').toContain(`Right Heap: ${glyph}`)
+        expect(lastFrame() ?? '').toContain(`Right Heap:  ${glyph}`)
       }
       unmount()
     } finally {
@@ -328,7 +330,7 @@ describe('SliderInput', () => {
       )
       const reset = lastFrame() ?? ''
       expect(pickFromFrame(reset)).toBe(1)
-      expect(reset).toContain('Stalks: 5 | Left Heap: ⠋ | Right Heap: ⠋')
+      expect(reset).toContain('Stalks: 5 | Left Heap:  ⠋ | Right Heap:  ⠋')
       // And direction should be +1: next tick goes to 2.
       vi.advanceTimersByTime(50)
       rerender(
@@ -556,7 +558,7 @@ describe('CastingPromptBox (slider mode)', () => {
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
     )
     expect(pickFromFrame(frame)).toBe(1)
-    expect(frame).toContain('Stalks: 48 | Left Heap: ⠋ | Right Heap: ⠋')
+    expect(frame).toContain('Stalks: 48 | Left Heap:  ⠋ | Right Heap:  ⠋')
     // Bar should be rendered as well.
     expect(frame).toContain('█')
     unmount()
@@ -607,7 +609,7 @@ describe('CastingPromptBox (slider mode)', () => {
       // yet notified.
       const revealFrame = lastFrame() ?? ''
       expect(revealFrame).toContain(
-        'Stalks: 40 | Left Heap: 5 | Right Heap: 35',
+        'Stalks: 40 | Left Heap:  5 | Right Heap: 35',
       )
       expect(pickFromFrame(revealFrame)).toBe(5)
       expect(onSubmit).not.toHaveBeenCalled()

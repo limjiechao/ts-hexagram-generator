@@ -28,11 +28,14 @@ export const SLIDER_COMMIT_REVEAL_MS = 500
 // During the ticking state the spinner replaces the cursor's numeric
 // position in the readout below the bar — see `<SliderInput>` /
 // `<SliderCastingPrompt>` — so the user sees motion (the slider is alive)
-// but not the value (the cast stays unbiased). After SPACE,
+// but not the value (the cast stays unbiased). The glyphs render as
+// ` ⠋`/` ⠏` (leading space + 1-column glyph) so each cell is 2 columns
+// wide, matching the post-commit padded number. After SPACE,
 // `<SliderCastingPrompt>` swaps the glyphs for the concrete
-// `Left Heap: <pick> | Right Heap: <max − pick>` numbers for
-// `SLIDER_COMMIT_REVEAL_MS` before advancing. `<SliderInput>` has no
-// reveal — it keeps the spinner readout for its whole lifetime.
+// `Left Heap:  <pick> | Right Heap: <max − pick>` numbers (each pick
+// padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
+// advancing. `<SliderInput>` has no reveal — it keeps the padded spinner
+// readout for its whole lifetime.
 const BRAILLE_SPINNER = [
   '⠋',
   '⠙',
@@ -264,9 +267,12 @@ interface SliderInputProps {
  * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
  *
  * Renders two centred rows via Ink flexbox: the bar, and a
- * `Stalks: <max> | Left Heap: <glyph> | Right Heap: <glyph>` readout where
- * both glyphs are Braille spinners advanced one frame per tick — the left
- * walks the cycle clockwise, the right walks it anticlockwise. The spinners
+ * `Stalks: <max> | Left Heap:  <glyph> | Right Heap:  <glyph>` readout
+ * where both glyphs are Braille spinners advanced one frame per tick —
+ * the left walks the cycle clockwise, the right walks it anticlockwise.
+ * Each heap cell is pre-padded with a leading space so its rendered width
+ * (2 columns) matches the post-commit numeric form in
+ * `<SliderCastingPrompt>` — no lateral shift between modes. The spinners
  * deliberately hide the live cursor value so the user commits without bias
  * toward a specific number; the bar already conveys motion visually.
  * `<CastingPromptBox>` uses `useSliderBounce` directly so it can pre-slice
@@ -288,8 +294,11 @@ export function SliderInput({
     onSubmit,
   })
   const bar = buildSliderBar(position, min, max)
-  const leftGlyph = BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
-  const rightGlyph = reverseBrailleGlyph(tickCount)
+  // Pad to a stable 2-column cell width so the readout never shifts laterally
+  // when the glyph swaps to a 1- or 2-digit pick (see `<SliderCastingPrompt>`
+  // for the post-commit numeric form).
+  const leftGlyph = ` ${BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!}`
+  const rightGlyph = ` ${reverseBrailleGlyph(tickCount)}`
   return (
     <Box flexDirection="column" flexShrink={0}>
       <Box justifyContent="center">
@@ -375,16 +384,21 @@ interface CastingPromptBoxProps {
  * Two visual modes:
  *  - **slider** (default): five-row layout — verbatim title, blank spacer,
  *    centred bouncing-slider bar, blank spacer, centred
- *    `Stalks: <max> | Left Heap: <spinner> | Right Heap: <spinner>` readout
- *    (both Braille glyphs advanced one frame per tick — the left walks the
- *    cycle clockwise, the right anticlockwise; the live cursor value stays
- *    hidden). On SPACE, the cursor freezes and the readout swaps the glyphs
- *    for the concrete `Left Heap: <pick> | Right Heap: <max − pick>` for
- *    `SLIDER_COMMIT_REVEAL_MS` before `onSubmit` fires upstream — see the
- *    state list on `<SliderCastingPrompt>`. Rows are pre-built strings
- *    padded to at least the inner box width and sliced via `sliceAnsi`
- *    against `horizontalOffset`, so the box never reflows on narrow
- *    terminals (←/→ in the viewer pans it).
+ *    `Stalks: <max> | Left Heap:  <spinner> | Right Heap:  <spinner>`
+ *    readout (both Braille glyphs advanced one frame per tick — the left
+ *    walks the cycle clockwise, the right anticlockwise; the live cursor
+ *    value stays hidden). Each heap cell — both glyph and pick — is
+ *    rendered at a stable 2-column width so the readout never shifts
+ *    laterally across the ticking → reveal transition or across
+ *    (pick, max − pick) splits of differing digit counts. On SPACE, the
+ *    cursor freezes and the readout swaps the glyphs for the concrete
+ *    `Left Heap: <pick> | Right Heap: <max − pick>` (each value
+ *    padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
+ *    `onSubmit` fires upstream — see the state list on
+ *    `<SliderCastingPrompt>`. Rows are pre-built strings padded to at
+ *    least the inner box width and sliced via `sliceAnsi` against
+ *    `horizontalOffset`, so the box never reflows on narrow terminals
+ *    (←/→ in the viewer pans it).
  *  - **number**: the legacy typed-number prompt + `<NumberInput>` row.
  *    Unchanged from before the slider feature; opted into via
  *    `--numeric-input`.
@@ -476,7 +490,8 @@ interface SliderCastingPromptProps {
  *  2. **Reveal** — SPACE captures the picked value into local `committed`
  *     state; the cursor freezes (`BouncingSliderStore.commit()` sets the
  *     internal flag) and the readout swaps the glyphs for the concrete
- *     `Left Heap: <pick> | Right Heap: <max − pick>` numbers.
+ *     `Left Heap: <pick> | Right Heap: <max − pick>` numbers, each
+ *     padStart'd to 2 columns so the row width matches the ticking state.
  *  3. **Advance** — after `SLIDER_COMMIT_REVEAL_MS`, the parent's `onSubmit`
  *     fires and the viewer advances to the next cast (which remounts a
  *     fresh `<SliderCastingPrompt>` via the keyed `<CastingPromptBox>` in
@@ -536,14 +551,18 @@ function SliderCastingPrompt({
 
   const title = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
   const bar = buildSliderBar(position, min, max)
+  // Both cells render at a stable 2-column width — leading-space + glyph
+  // during ticking, and padStart(2) on the numeric pick after commit — so the
+  // centred readout never shifts laterally across the ticking → reveal
+  // transition or between (pick, max − pick) splits of differing digit counts.
   const leftCell =
     committed === null
-      ? BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!
-      : String(committed)
+      ? ` ${BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!}`
+      : String(committed).padStart(2, ' ')
   const rightCell =
     committed === null
-      ? reverseBrailleGlyph(tickCount)
-      : String(max - committed)
+      ? ` ${reverseBrailleGlyph(tickCount)}`
+      : String(max - committed).padStart(2, ' ')
   const readout = `Stalks: ${max} | Left Heap: ${leftCell} | Right Heap: ${rightCell}`
 
   const titleWidth = stringWidth(title)

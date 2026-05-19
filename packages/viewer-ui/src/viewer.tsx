@@ -412,24 +412,13 @@ export function ConsultationViewer({
           ),
           currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
           // Readout below the bar is
-          // `Stalks: <max> | Left Heap: <…> | Right Heap: <…>`. During ticking
-          // the glyphs are single-column Braille spinners; after SPACE they
-          // swap to the numeric `pick` / `max − pick`. Since `pick` and
-          // `max − pick` sum to `max` (they can't both equal `max`), the widest
-          // post-commit reveal is whichever split maximises
-          // `digits(pick) + digits(max - pick)`. Scan all valid picks so the
-          // ceiling never underestimates the rendered width on narrow
-          // terminals. Matches the readout assembled in `SliderCastingPrompt`.
-          ((): number => {
-            let widest = 0
-            for (let pick = 0; pick <= currentMax; pick++) {
-              const w = stringWidth(
-                `Stalks: ${currentMax} | Left Heap: ${pick} | Right Heap: ${currentMax - pick}`,
-              )
-              if (w > widest) widest = w
-            }
-            return widest
-          })(),
+          // `Stalks: <max> | Left Heap: <cell> | Right Heap: <cell>`, where
+          // each heap cell renders at a stable 2-column width — leading-space
+          // + glyph during ticking, padStart(2) on the numeric pick after
+          // commit (see `<SliderCastingPrompt>`). Width is therefore a pure
+          // function of `currentMax`; two 2-digit placeholders model the
+          // post-commit form exactly.
+          stringWidth(`Stalks: ${currentMax} | Left Heap: 99 | Right Heap: 99`),
         )
       : 0
   const castingInnerWidth = Math.max(1, innerCols - 2) // subtract round border
