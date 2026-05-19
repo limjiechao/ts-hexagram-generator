@@ -15,6 +15,11 @@ export {
   type YamlCasting,
 } from './frontmatter.js'
 export {
+  convertLegacyTxt,
+  type LegacyConvertResult,
+  type LegacyEnvelope,
+} from './legacy-converter.js'
+export {
   castingMarkdownSection,
   emergingHexagramMarkdownSection,
   linesMarkdownBlock,

@@ -1,0 +1,24 @@
+QUERY:
+
+  What will it be like?
+
+HEXAGRAM 6:
+
+(Line at bottom is first)
+
+  9  ━━━━○━━━━  （六, 6th）──┐
+  9  ━━━━○━━━━  （五, 5th）──┼── 天（上卦）
+  9  ━━━━○━━━━  （四, 4th）──┘   heaven (upper trigram)
+  8  ━━━   ━━━  （三, 3rd）──┐
+  7  ━━━━━━━━━  （二, 2nd）──┼── 水（下卦）
+  8  ━━━   ━━━  （初, 1st）──┘   water (lower trigram)
+
+(First is line at bottom)
+
+  8, 7, 8, 9, 9, 9
+
+HEXAGRAM NAME AND PRONUNCIATION:
+
+[Traditional Chinese]
+
+  訟（ㄙㄨㄥˋ）

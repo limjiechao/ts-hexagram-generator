@@ -1,0 +1,108 @@
+
+
+[1;90mQUERY:
+
+  [1;97mWill the harvest be plentiful?
+
+[1;90mCASTING:[0m
+
+┌──────┬──────────────────────────────────────────────────────────────────────────┐
+│      │                                   [1;90mCast[0m                                   │
+│      ├────────────────────────┬────────────────────────┬────────────────────────┤
+│      │          [1;90m1st[0m           │          [1;90m2nd[0m           │          [1;90m3rd[0m           │
+│      ├────────┬───────────────┼────────┬───────────────┼────────┬───────────────┤
+│      │        │     [1;90mHeap[0m      │        │     [1;90mHeap[0m      │        │     [1;90mHeap[0m      │
+│      │        ├───────┬───────┤        ├───────┬───────┤        ├───────┬───────┤
+│ [1;90mLine[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │
+├──────┼────────┼───────┼───────┼────────┼───────┼───────┼────────┼───────┼───────┤
+│    6 │     [90m48[0m │    [1;97m12[0m │    [1;97m36[0m │     [90m39[0m │    [1;97m20[0m │    [1;97m19[0m │     [90m31[0m │    [1;97m18[0m │    [1;97m13[0m │
+│    5 │     [90m48[0m │    [1;97m10[0m │    [1;97m38[0m │     [90m43[0m │    [1;97m26[0m │    [1;97m17[0m │     [90m39[0m │    [1;97m33[0m │     [1;97m6[0m │
+│    4 │     [90m48[0m │    [1;97m22[0m │    [1;97m26[0m │     [90m43[0m │    [1;97m34[0m │     [1;97m9[0m │     [90m39[0m │    [1;97m25[0m │    [1;97m14[0m │
+│    3 │     [90m48[0m │    [1;97m17[0m │    [1;97m31[0m │     [90m43[0m │    [1;97m24[0m │    [1;97m19[0m │     [90m35[0m │    [1;97m14[0m │    [1;97m21[0m │
+│    2 │     [90m48[0m │    [1;97m22[0m │    [1;97m26[0m │     [90m43[0m │    [1;97m23[0m │    [1;97m20[0m │     [90m35[0m │    [1;97m29[0m │     [1;97m6[0m │
+│    1 │     [90m48[0m │    [1;97m27[0m │    [1;97m21[0m │     [90m43[0m │    [1;97m28[0m │    [1;97m15[0m │     [90m39[0m │    [1;97m30[0m │     [1;97m9[0m │
+└──────┴────────┴───────┴───────┴────────┴───────┴───────┴────────┴───────┴───────┘
+
+[1;90mTRANSFORMATION:
+[0m(No transformation)
+
+
+[1;90mSTANDING HEXAGRAM 63:
+
+[0m(Line at bottom is first)
+
+  [1;97m8  ━━━   ━━━  [0m（六, 6th）──┐
+  [1;97m7  ━━━━━━━━━  [0m（五, 5th）──┼── 水（上卦）
+  [1;97m8  ━━━   ━━━  [0m（四, 4th）──┘   water (upper trigram)
+  [1;97m7  ━━━━━━━━━  [0m（三, 3rd）──┐
+  [1;97m8  ━━━   ━━━  [0m（二, 2nd）──┼── 火（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   fire (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7, [1;97m8
+
+[1;90mSTANDING HEXAGRAM NAME AND PRONUNCIATION:
+
+[90m[Traditional Chinese]
+
+  [1;97m既濟（ㄐㄧˋ ㄐㄧˋ）
+
+[90m[Simplified Chinese]
+
+  [1;97m既济（jì jì）
+
+[90m[English, Wilhelm-Baynes]
+
+  [1;97mChi Chi / After Completion
+
+[90m[English, James Legge]
+
+  [1;97mLXIII. The Kî Žî Hexagram
+
+
+[1;90mLINES:
+[0m(No moving lines)
+
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m既濟：亨，小利貞，初吉終亂。
+
+  [0m(Exegesis)
+  [1;97m水在火上，既濟；君子以思患而預防之。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m既济：亨，小利贞，初吉终乱。
+
+  [0m(Exegesis)
+  [1;97m水在火上，既济；君子以思患而预防之。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mAFTER COMPLETION. Success in small matters.
+  Perseverance furthers.
+  At the beginning good fortune,
+  At the end disorder.
+
+  [0m(Exegesis)
+  [1;97mWater over fire: the image of the condition
+  In AFTER COMPLETION.
+  Thus the superior man
+  Takes thought of misfortune
+  And arms himself against it in advance.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97mKî Žî intimates progress and success in small matters. There will be advantage in being firm and correct. There has been good fortune in the beginning; there may be disorder in the end.
+
+  [0m(Exegesis)
+  [1;97mLXIII. (The trigram representing) fire and that for water above it form Kî Žî. The superiorman, in accordance with this, thinks of evil (that may come), and beforehand guards against it.
+
+
+
+

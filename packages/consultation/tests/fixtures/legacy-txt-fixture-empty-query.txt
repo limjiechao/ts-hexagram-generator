@@ -1,0 +1,103 @@
+
+
+[1;90mQUERY:
+
+  [1;97m(Query not provided)
+
+[1;90mCASTING:[0m
+
+┌──────┬──────────────────────────────────────────────────────────────────────────┐
+│      │                                   [1;90mCast[0m                                   │
+│      ├────────────────────────┬────────────────────────┬────────────────────────┤
+│      │          [1;90m1st[0m           │          [1;90m2nd[0m           │          [1;90m3rd[0m           │
+│      ├────────┬───────────────┼────────┬───────────────┼────────┬───────────────┤
+│      │        │     [1;90mHeap[0m      │        │     [1;90mHeap[0m      │        │     [1;90mHeap[0m      │
+│      │        ├───────┬───────┤        ├───────┬───────┤        ├───────┬───────┤
+│ [1;90mLine[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │ [1;90mStalks[0m │  [1;90mLeft[0m │ [1;90mRight[0m │
+├──────┼────────┼───────┼───────┼────────┼───────┼───────┼────────┼───────┼───────┤
+│    6 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+│    5 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+│    4 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+│    3 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+│    2 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+│    1 │     [90m48[0m │    [1;97m24[0m │    [1;97m24[0m │     [90m43[0m │    [1;97m20[0m │    [1;97m23[0m │     [90m39[0m │    [1;97m16[0m │    [1;97m23[0m │
+└──────┴────────┴───────┴───────┴────────┴───────┴───────┴────────┴───────┴───────┘
+
+[1;90mTRANSFORMATION:
+[0m(No transformation)
+
+
+[1;90mSTANDING HEXAGRAM 1:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（六, 6th）──┐
+  [1;97m7  ━━━━━━━━━  [0m（五, 5th）──┼── 天（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   heaven (upper trigram)
+  [1;97m7  ━━━━━━━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 天（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   heaven (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7
+
+[1;90mSTANDING HEXAGRAM NAME AND PRONUNCIATION:
+
+[90m[Traditional Chinese]
+
+  [1;97m乾（ㄑㄧㄢˊ）
+
+[90m[Simplified Chinese]
+
+  [1;97m乾（qián）
+
+[90m[English, Wilhelm-Baynes]
+
+  [1;97mCh’ien / The Creative
+
+[90m[English, James Legge]
+
+  [1;97mI. The Khien Hexagram
+
+
+[1;90mLINES:
+[0m(No moving lines)
+
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m乾：元亨，利貞。
+
+  [0m(Exegesis)
+  [1;97m天行健，君子以自強不息。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m乾：元亨，利贞。
+
+  [0m(Exegesis)
+  [1;97m天行健，君子以自强不息。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mTHE CREATIVE works sublime success,
+  Furthering through perseverance.
+
+  [0m(Exegesis)
+  [1;97mThe movement of heaven is full of power.
+  Thus the superior man makes himself strong and untiring.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97mKhien (represents) what is great and originating, penetrating, advantageous, correct and firm.
+
+  [0m(Exegesis)
+  [1;97mI. Heaven, in its motion, (gives the idea of) strength. The superior man, in accordance with this, nerves himself to ceaseless activity.
+
+
+
+
