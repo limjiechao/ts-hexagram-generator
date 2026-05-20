@@ -64,7 +64,7 @@ describe('<HistoryList>', () => {
     expect(frame).not.toContain('PgUp/PgDn')
   })
 
-  it('renders inside a bordered "Past Consultations" container', () => {
+  it('renders inside ScreenShell with the "Past Consultations" title (no round border)', () => {
     const { lastFrame } = render(
       <HistoryList
         entries={fakeEntries}
@@ -74,12 +74,43 @@ describe('<HistoryList>', () => {
         onPick={() => {}}
       />,
     )
-    const frame = lastFrame() ?? ''
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Title line must be present.
     expect(frame).toContain('Past Consultations')
-    // Round border corner.
-    expect(frame).toContain('╭')
+    // No round-border corner — ScreenShell is borderless.
+    expect(frame).not.toContain('╭')
     // Keybinding footer.
     expect(frame).toContain('PgUp/PgDn page')
+  })
+
+  it('includes consultation count in the title', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('2 consultations')
+    // No unreadable files — the clause must be absent.
+    expect(frame).not.toContain('unreadable')
+  })
+
+  it('shows the unreadable count in the title only when unreadable > 0', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('1 unreadable')
   })
 
   it('renders one two-line row per entry, newest first', () => {
@@ -120,7 +151,7 @@ describe('<HistoryList>', () => {
     }
   })
 
-  it('shows the filter text and match count in the border title', async () => {
+  it('shows the filter text and match count in the title', async () => {
     const { lastFrame, stdin } = render(
       <HistoryList
         entries={fakeEntries}
@@ -134,12 +165,12 @@ describe('<HistoryList>', () => {
     await tick()
     stdin.write('study')
     await tick()
-    const frame = lastFrame() ?? ''
+    const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('filter: "study"')
     expect(frame).toContain('1 match')
   })
 
-  it('windows a long list and shows the "… N more" indicator', () => {
+  it('windows a long list and uses the scrollbar gutter (no "… N more" indicator)', () => {
     const many = Array.from({ length: 40 }, (_, i) => ({
       path: `/x/${i}.md`,
       envelope: {
@@ -161,8 +192,117 @@ describe('<HistoryList>', () => {
       />,
     )
     const frame = lastFrame() ?? ''
-    expect(frame).toMatch(/… \d+ more/)
+    // Text "… N more" indicators must be gone — scrollbar gutter is used instead.
+    expect(frame).not.toMatch(/… \d+ more/)
     expect(frame).not.toMatch(/… \d+ above/)
+    // Scrollbar gutter track characters must be present.
+    expect(frame).toMatch(/[░█]/)
+    // Scroll position in footer: ▲ start–end of total ▼.
+    expect(stripAnsi(frame)).toMatch(/▲ \d+–\d+ of 40 ▼/)
+  })
+
+  it('footer status row shows the scroll position counted in consultations', () => {
+    const many = Array.from({ length: 20 }, (_, i) => ({
+      path: `/x/${i}.md`,
+      envelope: {
+        schemaVersion: 1,
+        timestamp: `2026-03-${String(20 - i).padStart(2, '0')}T10:00:00+0800`,
+        query: `Consultation ${i}`,
+        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+        casting: [] as never,
+      },
+      body: '',
+    }))
+    const { lastFrame } = render(
+      <HistoryList
+        entries={many}
+        unreadable={[]}
+        cols={80}
+        rows={16}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Footer must report position counted in consultations (not display lines).
+    expect(frame).toMatch(/▲ \d+–\d+ of 20 ▼/)
+  })
+
+  it('footer bottom row shows the focused file path', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Focused row is the first entry by default.
+    expect(frame).toContain('a.md')
+  })
+
+  it('statusLine overrides the footer bottom row with Loading…', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        statusLine={{ text: 'Loading…', tone: 'dim' }}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Loading…')
+  })
+
+  it('statusLine with error tone overrides the footer bottom row', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        statusLine={{ text: 'Failed to load', tone: 'error' }}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Failed to load')
+  })
+
+  it('footer bottom line starts with a leading space in both the normal and statusLine paths', () => {
+    // Normal path: focused file path has a leading space.
+    const { lastFrame: normalFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const normalLines = stripAnsi(normalFrame() ?? '').split('\n')
+    const pathLine = normalLines.find((l) => l.includes('a.md'))
+    expect(pathLine).toBeDefined()
+    expect(pathLine!.startsWith(' ')).toBe(true)
+
+    // statusLine path: the status text must also have a leading space.
+    const { lastFrame: statusFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        statusLine={{ text: 'Loading…', tone: 'dim' }}
+        onPick={() => {}}
+      />,
+    )
+    const statusLines = stripAnsi(statusFrame() ?? '').split('\n')
+    const loadingLine = statusLines.find((l) => l.includes('Loading…'))
+    expect(loadingLine).toBeDefined()
+    expect(loadingLine!.startsWith(' ')).toBe(true)
   })
 
   it('renders dimmed unreadable rows with the filename on line 2', () => {

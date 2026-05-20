@@ -1,6 +1,18 @@
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/types'
+import {
+  BOLD_GREY,
+  computeInnerCols,
+  FOOTER_HEIGHT,
+  NORMAL,
+  ScreenShell,
+  ScrollbarTrack,
+  truncateEnd,
+  truncateStart,
+} from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
+import path from 'node:path'
+import process from 'node:process'
 import { useMemo, useReducer, type ReactElement } from 'react'
 
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
@@ -137,6 +149,30 @@ function entrySummaryLine(entry: HistoryEntry, innerWidth: number): string {
   )}`
 }
 
+/**
+ * Build the shell title string.
+ * `Past Consultations · consultations/ · N consultations [· M unreadable]`
+ * The `· M unreadable` clause appears only when M > 0.
+ */
+function buildTitle(
+  consultationCount: number,
+  unreadableCount: number,
+  filterMode: boolean,
+  filter: string,
+  matchCount: number,
+): string {
+  if (filter.length > 0 || filterMode) {
+    const suffix = filter.length > 0 ? `filter: "${filter}" · ${matchCount} ${matchCount === 1 ? 'match' : 'matches'}` : 'filter: _'
+    return `Past Consultations · ${suffix}`
+  }
+  const countClause = `${consultationCount} ${consultationCount === 1 ? 'consultation' : 'consultations'}`
+  const unreadableClause =
+    unreadableCount > 0
+      ? ` · ${unreadableCount} unreadable`
+      : ''
+  return `Past Consultations · consultations/ · ${countClause}${unreadableClause}`
+}
+
 export function HistoryList({
   entries,
   unreadable,
@@ -180,15 +216,17 @@ export function HistoryList({
 
   const focus = Math.min(state.focus, Math.max(0, listRows.length - 1))
 
-  // The bordered container occupies the full terminal height. Inside it, two
-  // border rows + two padding rows are chrome; the remaining lines hold the
-  // windowed rows. Each entry is two display lines, and the "… N above" /
-  // "… N more" indicators each consume one line when present.
-  const innerWidth = Math.max(10, cols - 4)
-  const contentHeight = Math.max(2, rows - 4)
-  // Reserve a line for each indicator that may appear. Rows are 2 lines each.
-  const rowsCapacity = Math.max(1, Math.floor((contentHeight - 2) / 2))
-  const windowHeight = Math.min(rowsCapacity, Math.max(1, listRows.length))
+  // ScreenShell owns paddingX (1 each side) + 1-column scrollbar gutter.
+  // innerCols = cols - 2 - 1 (same as computeInnerCols).
+  const innerCols = computeInnerCols(cols)
+
+  // Content height = rows minus title (1) minus footer (2).
+  // FOOTER_HEIGHT = 2, title = 1.
+  const TITLE_HEIGHT = 1
+  const contentHeight = Math.max(2, rows - TITLE_HEIGHT - FOOTER_HEIGHT)
+
+  // Each entry is two display lines. Window capacity in rows (consultation count).
+  const windowHeight = Math.max(1, Math.floor(contentHeight / 2))
 
   const win = resolveRowWindow(
     listRows.length,
@@ -241,7 +279,6 @@ export function HistoryList({
       <Box flexDirection="column" width={cols} height={rows}>
         <Box
           flexGrow={1}
-          borderStyle="round"
           flexDirection="column"
           alignItems="center"
           justifyContent="center"
@@ -265,62 +302,116 @@ export function HistoryList({
     )
   }
 
-  const title = isFiltering
-    ? `Past Consultations ─── filter: "${state.filter}" ── ${listRows.length} ${
-        listRows.length === 1 ? 'match' : 'matches'
-      } `
-    : 'Past Consultations '
+  const title = buildTitle(
+    entries.length,
+    unreadable.length,
+    state.filterMode,
+    state.filter,
+    listRows.length,
+  )
 
   const visibleRows = listRows.slice(win.start, win.end)
 
-  const hintFooter = state.filterMode
+  // Key hint line (top line of footer).
+  const hintLine = state.filterMode
     ? ` filter: ${state.filter}_ · ESC clear · Enter load`
     : ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ESC exit'
 
-  return (
-    <Box flexDirection="column" width={cols} height={rows}>
-      <Box flexGrow={1} borderStyle="round" flexDirection="column" paddingX={1}>
-        <Text>{title}</Text>
-        {win.above > 0 ? <Text dimColor>{`… ${win.above} above`}</Text> : null}
-        {visibleRows.map((row, index) => {
-          const absoluteIndex = win.start + index
-          const isFocused = absoluteIndex === focus
-          if (row.kind === 'unreadable') {
-            return (
-              <Box key={row.item.path} flexDirection="column">
-                <Text inverse={isFocused} dimColor>
-                  {truncate(`[unreadable — ${row.item.reason}]`, innerWidth)}
-                </Text>
-                <Text inverse={isFocused} dimColor>
-                  {' '.repeat(TIMESTAMP_PREFIX_WIDTH) +
-                    truncate(
-                      row.item.path,
-                      innerWidth - TIMESTAMP_PREFIX_WIDTH,
-                    )}
-                </Text>
-              </Box>
-            )
-          }
-          return (
-            <Box key={row.entry.path} flexDirection="column">
-              <Text inverse={isFocused}>
-                {entryHeadLine(row.entry, innerWidth)}
-              </Text>
-              <Text inverse={isFocused}>
-                {entrySummaryLine(row.entry, innerWidth)}
-              </Text>
-            </Box>
-          )
-        })}
-        {win.below > 0 ? <Text dimColor>{`… ${win.below} more`}</Text> : null}
-      </Box>
-      {statusLine === null || state.filterMode ? (
-        <Text dimColor>{hintFooter}</Text>
+  // Scroll position status — counted in consultations, not display lines.
+  const totalConsultations = listRows.length
+  const scrollStatus =
+    totalConsultations > windowHeight
+      ? `▲ ${win.start + 1}–${win.end} of ${totalConsultations} ▼   `
+      : ''
+
+  const statusLine1 = truncateEnd(
+    `${scrollStatus}${hintLine.trimStart()}`,
+    innerCols,
+  )
+
+  // Bottom line: focused file path (relative to cwd), or statusLine override.
+  const focusedRow = listRows[focus]
+  let focusedPath = ''
+  if (focusedRow != null) {
+    focusedPath =
+      focusedRow.kind === 'entry'
+        ? path.relative(process.cwd(), focusedRow.entry.path)
+        : path.relative(process.cwd(), focusedRow.item.path)
+  }
+
+  const bottomLineRaw =
+    statusLine === null ? focusedPath : statusLine.text
+
+  const bottomLine = truncateStart(bottomLineRaw, innerCols)
+
+  const footerNode = (
+    <Box flexDirection="column" flexShrink={0}>
+      <Text dimColor>{` ${statusLine1}`}</Text>
+      {statusLine === null ? (
+        <Text>{`${BOLD_GREY} ${bottomLine}${NORMAL}`}</Text>
       ) : (
         <Text color={statusLine.tone === 'error' ? 'red' : undefined} dimColor>
-          {` ${statusLine.text}`}
+          {`${BOLD_GREY} ${bottomLine}${NORMAL}`}
         </Text>
       )}
     </Box>
+  )
+
+  const contentNode = (
+    <Box flexDirection="column">
+      {visibleRows.map((row, index) => {
+        const absoluteIndex = win.start + index
+        const isFocused = absoluteIndex === focus
+        if (row.kind === 'unreadable') {
+          return (
+            <Box key={row.item.path} flexDirection="column">
+              <Text inverse={isFocused} dimColor>
+                {truncate(`[unreadable — ${row.item.reason}]`, innerCols)}
+              </Text>
+              <Text inverse={isFocused} dimColor>
+                {' '.repeat(TIMESTAMP_PREFIX_WIDTH) +
+                  truncate(
+                    row.item.path,
+                    innerCols - TIMESTAMP_PREFIX_WIDTH,
+                  )}
+              </Text>
+            </Box>
+          )
+        }
+        return (
+          <Box key={row.entry.path} flexDirection="column">
+            <Text inverse={isFocused}>
+              {entryHeadLine(row.entry, innerCols)}
+            </Text>
+            <Text inverse={isFocused}>
+              {entrySummaryLine(row.entry, innerCols)}
+            </Text>
+          </Box>
+        )
+      })}
+    </Box>
+  )
+
+  // Scrollbar: treat consultations as the unit — totalRows and offset are in
+  // consultation-row space, not display-line space.
+  const scrollbarNode = (
+    <ScrollbarTrack
+      offset={win.start}
+      totalRows={totalConsultations}
+      viewportHeight={windowHeight}
+    />
+  )
+
+  return (
+    <ScreenShell
+      cols={cols}
+      rows={rows}
+      title={title}
+      aboveContent={null}
+      contentSlot={contentNode}
+      scrollbarSlot={scrollbarNode}
+      belowContent={null}
+      footerSlot={footerNode}
+    />
   )
 }

@@ -194,7 +194,7 @@ describe('<HistoryApp> — loaded readout', () => {
     stdin.write(ESC)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    // Back on the list — the bordered container is shown again.
+    // Back on the list — the shell-hosted list is shown again.
     expect(frame).toContain('Past Consultations')
     expect(frame).not.toContain('Consultation · loaded')
   })
