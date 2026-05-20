@@ -1,0 +1,164 @@
+import fs from 'node:fs/promises'
+import os from 'node:os'
+import path from 'node:path'
+
+import {
+  markdownConsultationBody,
+  serializeFrontmatter,
+  type ConsultationEnvelope,
+} from '@hexagram/consultation'
+import type { CastingRecord, Hexagram } from '@hexagram/types'
+import { render } from 'ink-testing-library'
+import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+
+import { HistoryApp } from '../src/history-app'
+
+// Matches ANSI SGR escape sequences (ESC[...m). Stripped before assertions
+// so text matching is robust to Ink's colour codes.
+const ANSI_PATTERN = new RegExp(
+  String.raw`${String.fromCodePoint(0x1b)}\[[0-9;]*m`,
+  'g',
+)
+function stripAnsi(text: string): string {
+  return text.replace(ANSI_PATTERN, '')
+}
+
+/** Yield to the event loop so Ink can process queued stdin + re-render. */
+const tick = (ms = 60): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+
+const ESC = String.fromCodePoint(0x1b)
+const ENTER = '\r'
+
+const CASTING: CastingRecord = Array.from({ length: 6 }, () => [
+  { pick: 1, max: 48 },
+  { pick: 2, max: 43 },
+  { pick: 3, max: 39 },
+]) as CastingRecord
+
+/** A consultation with moving lines (6 and 9 present → all four tabs). */
+const MOVING_ENVELOPE: ConsultationEnvelope = {
+  schemaVersion: 1,
+  timestamp: '2025-08-13T09:02:14+0800',
+  query: 'Why did this happen?',
+  hexagram: [6, 7, 8, 9, 7, 8] as Hexagram,
+  casting: CASTING,
+}
+
+/** A consultation with a null casting — e.g. migrated from a legacy `.txt`. */
+const NULL_CASTING_ENVELOPE: ConsultationEnvelope = {
+  schemaVersion: 1,
+  timestamp: '2024-02-01T11:30:00+0800',
+  query: 'A consultation with no recorded casting.',
+  hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+  casting: null,
+}
+
+let tmpDir: string
+
+/** Write a consultation `.md` file with a freshly-rendered (in-sync) body. */
+async function writeFresh(envelope: ConsultationEnvelope): Promise<string> {
+  const body = markdownConsultationBody(
+    envelope.query,
+    envelope.hexagram,
+    envelope.casting,
+  )
+  const filePath = path.join(
+    tmpDir,
+    `consultation-${envelope.timestamp.replaceAll(':', '-')}.md`,
+  )
+  await fs.writeFile(filePath, serializeFrontmatter(envelope, body), 'utf8')
+  return filePath
+}
+
+/** Write a consultation `.md` file whose body has drifted from the renderer. */
+async function writeStale(envelope: ConsultationEnvelope): Promise<string> {
+  const filePath = path.join(
+    tmpDir,
+    `consultation-${envelope.timestamp.replaceAll(':', '-')}.md`,
+  )
+  await fs.writeFile(
+    filePath,
+    serializeFrontmatter(envelope, 'STALE BODY'),
+    'utf8',
+  )
+  return filePath
+}
+
+beforeEach(async () => {
+  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'history-app-'))
+})
+afterEach(async () => {
+  await fs.rm(tmpDir, { recursive: true, force: true })
+})
+
+describe('<HistoryApp> — loaded readout', () => {
+  it('opens the four-tab readout with the loaded-timestamp title on Enter', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Past Consultation · loaded 2025-08-13 09:02')
+    // All four tabs available in the unlocked `done` state.
+    expect(frame).toContain('Casting')
+    expect(frame).toContain('Transformation')
+    expect(frame).toContain('Standing Hexagram')
+    expect(frame).toContain('Emerging Hexagram')
+  })
+
+  it('shows "Casting not recorded" for a null-casting consultation', async () => {
+    await writeFresh(NULL_CASTING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Past Consultation · loaded 2024-02-01 11:30')
+    expect(frame).toContain('Casting not recorded')
+  })
+
+  it('shows the body-refreshed notice when the on-disk body had drifted', async () => {
+    const filePath = await writeStale(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Body refreshed; data unchanged.')
+    // The drifted file was rewritten in place.
+    const after = await fs.readFile(filePath, 'utf8')
+    expect(after).not.toContain('STALE BODY')
+    expect(after).toContain('## QUERY')
+  })
+
+  it('does not show the notice — and leaves the file untouched — when the body matched', async () => {
+    const filePath = await writeFresh(MOVING_ENVELOPE)
+    const before = await fs.stat(filePath)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).not.toContain('Body refreshed')
+    // Byte-identical body → no write, no mtime bump.
+    const after = await fs.stat(filePath)
+    expect(after.mtimeMs).toBe(before.mtimeMs)
+  })
+
+  it('ESC from the readout returns to the list (does not exit)', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultation')
+    stdin.write(ESC)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Back on the list — the bordered container is shown again.
+    expect(frame).toContain('Past Consultations')
+    expect(frame).not.toContain('Past Consultation · loaded')
+  })
+})

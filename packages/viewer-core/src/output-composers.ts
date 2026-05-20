@@ -38,11 +38,15 @@ export interface ConsultationSections {
 /**
  * Build the consultation's presentational sections. This is the
  * content-generation layer shared by the plain output and the Ink viewer.
+ *
+ * `casting` is `null` for a consultation with no recorded casting (e.g. one
+ * migrated from a pre-CASTING legacy `.txt`); the casting tab then renders a
+ * "Casting not recorded" notice.
  */
 export function buildConsultationSections(
   query: string,
   hexagram: Hexagram,
-  casting: CastingRecord,
+  casting: CastingRecord | null,
 ): ConsultationSections {
   const movingLines = hexagram.filter(isMovingLine)
 

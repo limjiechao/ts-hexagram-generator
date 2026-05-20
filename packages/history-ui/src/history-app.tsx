@@ -1,10 +1,17 @@
 import fs from 'node:fs/promises'
+import path from 'node:path'
+import process from 'node:process'
 
 import {
   markdownConsultationBody,
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation'
+import {
+  buildConsultationSections,
+  ConsultationReadout,
+  QueryBox,
+} from '@hexagram/viewer-core'
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import { useEffect, useState, type ReactElement } from 'react'
 
@@ -27,12 +34,26 @@ export async function rerenderOnDisk(
   return { rewrote: true, body }
 }
 
+/**
+ * The local-naive `YYYY-MM-DD HH:mm` form used in the history list rows and
+ * the loaded-readout title — the date/time as written in the frontmatter
+ * timestamp, offset dropped.
+ */
+function formatLoadedTimestamp(iso: string): string {
+  return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`
+}
+
+/**
+ * Cap on the loaded readout's content wrap width — mirrors the casting bins'
+ * default so a loaded consultation reads the same as a freshly cast one.
+ */
+const DEFAULT_MAX_WRAP_WIDTH = 120
+
 type AppState =
   | { mode: 'list'; loading: boolean; error: string | null }
   | {
       mode: 'view'
       entry: HistoryEntry
-      body: string
       rewroteOnLoad: boolean
     }
 
@@ -61,12 +82,13 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
       })
   }, [dir])
 
+  // ESC / Ctrl+C handling for the list view. The readout owns its own ESC
+  // (wired to the `onExit` prop below) — it returns to the list rather than
+  // exiting the program — so this handler is a no-op while in `view` mode to
+  // avoid double-handling the keypress.
   useInput((input, key) => {
+    if (state.mode !== 'list') return
     if (key.escape || (key.ctrl && input === 'c')) {
-      if (state.mode === 'view') {
-        setState({ mode: 'list', loading: false, error: null })
-        return
-      }
       exit()
     }
   })
@@ -102,7 +124,6 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
               setState({
                 mode: 'view',
                 entry,
-                body: r.body,
                 rewroteOnLoad: r.rewrote,
               })
             })
@@ -120,16 +141,34 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
     )
   }
 
+  // ── Loaded consultation — the four-tab readout in the `done` state ────────
+  const { envelope } = state.entry
+  const sections = buildConsultationSections(
+    envelope.query,
+    envelope.hexagram,
+    envelope.casting,
+  )
+  const querySlot = (innerCols: number): ReactElement => (
+    <QueryBox query={envelope.query} width={innerCols} />
+  )
+
   return (
-    <Box flexDirection="column">
-      <Text>
-        {state.entry.envelope.timestamp} · {state.entry.envelope.query}
-      </Text>
-      {state.rewroteOnLoad ? (
-        <Text dimColor>(Re-rendered body to match current renderer.)</Text>
-      ) : null}
-      <Text>{state.body}</Text>
-      <Text dimColor>ESC to return to list</Text>
-    </Box>
+    <ConsultationReadout
+      sections={sections}
+      locked={false}
+      savedPath={path.relative(process.cwd(), state.entry.path)}
+      maxWrapWidth={DEFAULT_MAX_WRAP_WIDTH}
+      querySlot={querySlot}
+      queryText={envelope.query}
+      title={`Past Consultation · loaded ${formatLoadedTimestamp(
+        envelope.timestamp,
+      )}`}
+      notice={
+        state.rewroteOnLoad ? '✓ Body refreshed; data unchanged.' : undefined
+      }
+      onExit={() => {
+        setState({ mode: 'list', loading: false, error: null })
+      }}
+    />
   )
 }

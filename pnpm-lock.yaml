@@ -154,6 +154,9 @@ importers:
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
       ink:
         specifier: ^7.0.3
         version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
