@@ -475,7 +475,6 @@ export function ConsultationReadout({
         flowHint={flowHint}
         inFlow={locked}
         flowKeyHints={flowKeyHints}
-        tabsLength={tabs.length}
       />
     </Box>
   )

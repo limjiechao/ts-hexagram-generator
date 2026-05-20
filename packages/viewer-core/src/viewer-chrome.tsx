@@ -28,8 +28,8 @@ export type NonEmpty<T> = readonly [T, ...T[]]
 
 // ── Key-hint formatters ──────────────────────────────────────────────────────
 
-export const KEY_HINTS_TEMPLATE = (tabCount: number): string =>
-  `Tab/1-${tabCount}: switch   ↑↓/PgUp/PgDn: scroll   ←→: pan   g/G: top/bottom   Esc/Ctrl+C: quit`
+export const KEY_HINTS_TEMPLATE = (): string =>
+  `Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc quit`
 
 /**
  * Footer key hints during the casting phase. The slider's load-bearing key
@@ -187,7 +187,6 @@ export function FooterBar({
   flowHint,
   inFlow,
   flowKeyHints,
-  tabsLength,
 }: {
   savedPath: string
   cols: number
@@ -197,14 +196,18 @@ export function FooterBar({
   flowHint: string | null
   inFlow: boolean
   flowKeyHints: string
-  tabsLength: number
 }): ReactElement {
-  const segments: string[] = []
-  if (verticalStatus) segments.push(verticalStatus)
-  if (horizontalStatus) segments.push(horizontalStatus)
-  if (wrapChip) segments.push(wrapChip)
-  segments.push(inFlow ? flowKeyHints : KEY_HINTS_TEMPLATE(tabsLength))
-  const status = truncateEnd(segments.join('   '), cols)
+  // Hints are rendered first (left) so they are never the thing that
+  // truncates. Scroll/pan/wrap status is pushed to the right — that is what
+  // degrades gracefully on overflow (it is regenerable glance-info).
+  const hints = inFlow ? flowKeyHints : KEY_HINTS_TEMPLATE()
+  const statusParts: string[] = []
+  if (verticalStatus) statusParts.push(verticalStatus)
+  if (horizontalStatus) statusParts.push(horizontalStatus)
+  if (wrapChip) statusParts.push(wrapChip)
+  const statusStr = statusParts.join('   ')
+  const full = statusStr ? `${hints}   ${statusStr}` : hints
+  const status = truncateEnd(full, cols)
   // During the flow, replace the saved-path line with a one-line progress
   // hint — there's no saved file yet.
   const bottomLineRaw = inFlow

@@ -514,7 +514,8 @@ describe('ConsultationViewer (T3 refinements)', () => {
   it('Casting tab does not wrap on narrow terminals', () => {
     // T3.1 — `wrapMode: 'never'`. The casting table's intrinsic width (~59)
     // must emerge verbatim even on a 40-col terminal; the right portion is
-    // reached via horizontal pan. Horizontal status pill must be present.
+    // reached via horizontal pan. Horizontal status is pushed right in the
+    // footer (hints go first) so on a 40-col terminal it may be truncated.
     windowSize.current = { columns: 40, rows: 30 }
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
@@ -526,17 +527,20 @@ describe('ConsultationViewer (T3 refinements)', () => {
     // before checking the literal substring.
     const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
     expect(stripped).toContain('│ Line │')
-    // The pan-status pill renders, proving the row is wider than the cols.
-    expect(frame).toContain('◀')
-    expect(frame).toContain('▶')
+    // The key hints remain fully visible in the footer (hints rendered first;
+    // horizontal status is pushed right and may be truncated on narrow terminals
+    // by design — scroll position is regenerable glance-info).
+    expect(frame).toContain('Tab switch')
     unmount()
   })
 
   it('Emerging Hexagram tab wraps prose to wrap-width and shows wrap chip', async () => {
     // T3.5 — `wrap N` chip in the status row when wrapMode='wrap' AND the
     // content is actually being cut. The emerging section has prose lines
-    // ~188 cols wide, so a 60-col terminal definitely triggers wrap.
-    windowSize.current = { columns: 60, rows: 30 }
+    // ~188 cols wide, so wrapping to maxWrapWidth=120 on a 160-col terminal
+    // triggers the chip. Hints are rendered first (left); the wrap chip is
+    // pushed right but fully visible because 160 cols is wide enough.
+    windowSize.current = { columns: 160, rows: 30 }
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         sections={movingSections}
@@ -548,7 +552,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     stdin.write('4')
     await tick()
     const frame = lastFrame() ?? ''
-    // `wrap` chip is in the status row (e.g. `wrap 100`).
+    // `wrap` chip is in the status row (e.g. `wrap 120`).
     expect(frame).toMatch(/wrap \d+/)
     unmount()
   })
@@ -792,13 +796,14 @@ describe('ConsultationViewer (Pass #2)', () => {
     unmount()
   })
 
-  it('KEY_HINTS_TEMPLATE merges Tab and digit hints', () => {
+  it('KEY_HINTS_TEMPLATE renders compact hint string with Tab and navigation cues', () => {
     const { lastFrame, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
-    expect(frame.includes('Tab/')).toBe(true)
-    expect(frame.includes('1-4: jump')).toBe(false)
+    // New compact wording: "Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc quit"
+    expect(frame.includes('Tab switch')).toBe(true)
+    expect(frame.includes('scroll')).toBe(true)
     unmount()
   })
 
