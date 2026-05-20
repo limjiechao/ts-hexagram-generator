@@ -60,5 +60,25 @@ describe('saveConsultationFile + loadConsultationFile', () => {
     if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
     expect(loaded.envelope.query).toBe('Will it rain?')
     expect(loaded.envelope.hexagram).toEqual([7, 8, 7, 8, 7, 8])
+    expect(loaded.envelope.casting).not.toBeNull()
+  })
+
+  it('saves a null-casting consultation with no casting key and loads it back as null', async () => {
+    const savedPath = await saveConsultationFile({
+      query: 'What will it be like?',
+      hexagram: [8, 7, 8, 9, 9, 9],
+      casting: null,
+      dir: tmpDir,
+    })
+
+    const text = await fs.readFile(savedPath, 'utf8')
+    expect(text).not.toMatch(/^casting:/m)
+    expect(text).toContain('_Casting not recorded._')
+
+    const loaded = await loadConsultationFile(savedPath)
+    if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
+    expect(loaded.envelope.query).toBe('What will it be like?')
+    expect(loaded.envelope.hexagram).toEqual([8, 7, 8, 9, 9, 9])
+    expect(loaded.envelope.casting).toBeNull()
   })
 })

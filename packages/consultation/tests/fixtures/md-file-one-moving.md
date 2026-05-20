@@ -3,12 +3,12 @@ schemaVersion: 1
 timestamp: '2026-05-19T14:23:11+0800'
 query: Should I take the new position?
 hexagram:
-  - 6
-  - 7
-  - 8
-  - 7
-  - 8
-  - 7
+  L6: 7
+  L5: 8
+  L4: 7
+  L3: 8
+  L2: 7
+  L1: 6
 casting:
   L6:
     - pick: 21

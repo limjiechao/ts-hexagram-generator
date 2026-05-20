@@ -22,8 +22,8 @@ describe('convertLegacyTxt (Shape A — current fixtures with CASTING table)', (
     if (!result.ok) return
     expect(result.envelope.query).toBe('Should I take the new position?')
     expect(result.envelope.hexagram).toEqual([6, 7, 8, 7, 8, 7])
-    expect(result.envelope.casting[0][0]).toEqual({ pick: 5, max: 48 })
-    expect(result.envelope.castingRecovered).toBe(true)
+    expect(result.envelope.casting).not.toBeNull()
+    expect(result.envelope.casting?.[0][0]).toEqual({ pick: 5, max: 48 })
   })
 
   it('handles empty-query', () => {
@@ -39,7 +39,7 @@ describe('convertLegacyTxt (Shape A — current fixtures with CASTING table)', (
 })
 
 describe('convertLegacyTxt (Shape B — older format without CASTING)', () => {
-  it('recovers query + hexagram, marks casting as unrecovered, fills with zeros', () => {
+  it('recovers query + hexagram, leaves casting null when no table is present', () => {
     const result = convertLegacyTxt({
       text: read('legacy-shape-b.txt'),
       filenameTimestamp: '2026-03-16T13-28-33+0800',
@@ -48,8 +48,7 @@ describe('convertLegacyTxt (Shape B — older format without CASTING)', () => {
     if (!result.ok) return
     expect(result.envelope.query).toBe('What will it be like?')
     expect(result.envelope.hexagram).toEqual([8, 7, 8, 9, 9, 9])
-    expect(result.envelope.castingRecovered).toBe(false)
-    expect(result.envelope.casting[0][0]).toEqual({ pick: 0, max: 0 })
+    expect(result.envelope.casting).toBeNull()
   })
 })
 
@@ -72,7 +71,8 @@ describe('Shape A converted → md round-trips through serialize', () => {
       filenameTimestamp: '2026-01-15T18-16-38+0800',
     })
     if (!result.ok) throw new Error(result.reason)
-    const { castingRecovered, ...envelope } = result.envelope
+    const { envelope } = result
+    expect(envelope.casting).not.toBeNull()
     const body = markdownConsultationBody(
       envelope.query,
       envelope.hexagram,
@@ -81,6 +81,26 @@ describe('Shape A converted → md round-trips through serialize', () => {
     const md = serializeFrontmatter(envelope, body)
     expect(md.startsWith('---\n')).toBe(true)
     expect(md).toContain('## CASTING')
-    expect(castingRecovered).toBe(true)
+  })
+})
+
+describe('Shape B converted → md renders "Casting not recorded"', () => {
+  it('omits the casting key from frontmatter and shows the null caption', () => {
+    const result = convertLegacyTxt({
+      text: read('legacy-shape-b.txt'),
+      filenameTimestamp: '2026-03-16T13-28-33+0800',
+    })
+    if (!result.ok) throw new Error(result.reason)
+    const { envelope } = result
+    expect(envelope.casting).toBeNull()
+    const body = markdownConsultationBody(
+      envelope.query,
+      envelope.hexagram,
+      envelope.casting,
+    )
+    const md = serializeFrontmatter(envelope, body)
+    expect(md.startsWith('---\n')).toBe(true)
+    expect(md).not.toMatch(/^casting:/m)
+    expect(body).toContain('_Casting not recorded._')
   })
 })

@@ -3,12 +3,12 @@ schemaVersion: 1
 timestamp: '2026-05-19T14:23:11+0800'
 query: ''
 hexagram:
-  - 7
-  - 7
-  - 7
-  - 7
-  - 7
-  - 7
+  L6: 7
+  L5: 7
+  L4: 7
+  L3: 7
+  L2: 7
+  L1: 7
 casting:
   L6:
     - pick: 24

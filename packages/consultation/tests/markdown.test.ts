@@ -59,4 +59,12 @@ describe('markdownConsultationBody', () => {
     expect(body).not.toContain('## EMERGING HEXAGRAM')
     expect(body).toContain('_(No transformation)_')
   })
+
+  it('renders "Casting not recorded" when casting is null', () => {
+    const hex: Hexagram = [6, 7, 8, 7, 8, 7]
+    const body = markdownConsultationBody('Q', hex, null)
+    expect(body).toContain('## CASTING\n\n_Casting not recorded._')
+    // The rest of the body still renders.
+    expect(body).toContain('## STANDING HEXAGRAM')
+  })
 })

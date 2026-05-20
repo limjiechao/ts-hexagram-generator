@@ -209,7 +209,18 @@ function castRight(text: string, width: number, color?: string): string {
 // never shift as cells fill in. `CastingRecord` is structurally a subtype, so
 // fully-populated callers keep producing byte-identical output (the four
 // `tests/fixtures/plain-output-*.txt` byte-identity tests guard this).
-export function castingSection(casting: PartialCastingRecord): string {
+//
+// A `null` casting (a consultation with no recorded casting — e.g. one
+// migrated from a pre-CASTING legacy `.txt`) renders a "Casting not recorded"
+// caption instead of the table.
+export function castingSection(casting: PartialCastingRecord | null): string {
+  if (casting === null)
+    return `
+${BOLD_GREY}CASTING:${NORMAL}
+
+${NORMAL}Casting not recorded
+`.trim()
+
   const TOP =
     '┌──────┬──────────────────────────────────────────────────────────────────────────┐'
   const CAST_OUTER_DIVIDER =

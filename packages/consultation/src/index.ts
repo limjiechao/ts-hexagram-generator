@@ -7,17 +7,19 @@ export {
   castingFromYaml,
   castingToYaml,
   CURRENT_SCHEMA_VERSION,
+  hexagramFromYaml,
+  hexagramToYaml,
   parseFrontmatter,
   serializeFrontmatter,
   type ConsultationEnvelope,
   type ParseFailureReason,
   type ParseResult,
   type YamlCasting,
+  type YamlHexagram,
 } from './frontmatter.js'
 export {
   convertLegacyTxt,
   type LegacyConvertResult,
-  type LegacyEnvelope,
 } from './legacy-converter.js'
 export {
   castingMarkdownSection,

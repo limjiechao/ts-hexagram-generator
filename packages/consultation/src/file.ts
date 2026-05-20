@@ -36,7 +36,7 @@ export type LoadResult =
 export async function saveConsultationFile(params: {
   query: string
   hexagram: Hexagram
-  casting: CastingRecord
+  casting: CastingRecord | null
   dir?: string
 }): Promise<string> {
   const dir = params.dir ?? path.join(process.cwd(), 'consultations')

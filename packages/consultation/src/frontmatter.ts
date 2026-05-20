@@ -3,6 +3,7 @@ import {
   isHexagram,
   type CastingRecord,
   type Hexagram,
+  type Line,
   type LineCasting,
 } from '@hexagram/types'
 import matter from 'gray-matter'
@@ -44,12 +45,34 @@ export function castingFromYaml(yaml: YamlCasting): CastingRecord {
   return [yaml.L1, yaml.L2, yaml.L3, yaml.L4, yaml.L5, yaml.L6]
 }
 
+export type YamlHexagram = {
+  L6: Line
+  L5: Line
+  L4: Line
+  L3: Line
+  L2: Line
+  L1: Line
+}
+
+/** Convert bottom-first `Hexagram` tuple → top-first YAML mapping (`L6` first). */
+export function hexagramToYaml(hexagram: Hexagram): YamlHexagram {
+  const [L1, L2, L3, L4, L5, L6] = hexagram
+  return { L6, L5, L4, L3, L2, L1 }
+}
+
+/** Convert top-first YAML mapping → bottom-first `Hexagram` tuple. */
+export function hexagramFromYaml(yaml: YamlHexagram): Hexagram {
+  return [yaml.L1, yaml.L2, yaml.L3, yaml.L4, yaml.L5, yaml.L6]
+}
+
 export interface ConsultationEnvelope {
   schemaVersion: number
   timestamp: string
   query: string
   hexagram: Hexagram
-  casting: CastingRecord
+  /** `null` when the consultation has no recorded casting (e.g. migrated from
+   * a legacy `.txt` that predates the CASTING table). */
+  casting: CastingRecord | null
 }
 
 export type ParseResult =
@@ -64,8 +87,9 @@ export type ParseFailureReason =
 
 /**
  * Serialize an envelope + body into the full Markdown text. The frontmatter
- * is YAML; `casting` is emitted L6→L1 (visual top-first); `hexagram` is a
- * flat bottom-first array; multi-line `query` becomes a `|` block scalar.
+ * is YAML; both `hexagram` and `casting` are emitted as `L6..L1` mappings
+ * (visual top-first); a `null` `casting` omits the `casting` key entirely;
+ * multi-line `query` becomes a `|` block scalar.
  */
 export function serializeFrontmatter(
   envelope: ConsultationEnvelope,
@@ -75,8 +99,12 @@ export function serializeFrontmatter(
     schemaVersion: envelope.schemaVersion,
     timestamp: envelope.timestamp,
     query: envelope.query,
-    hexagram: envelope.hexagram,
-    casting: castingToYaml(envelope.casting),
+    hexagram: hexagramToYaml(envelope.hexagram),
+    // A null casting is omitted from the frontmatter entirely — "no casting"
+    // is the absence of the key, not a sentinel value.
+    ...(envelope.casting === null
+      ? {}
+      : { casting: castingToYaml(envelope.casting) }),
   }
   // Prepend a newline so that matter.stringify emits a blank line between
   // the closing `---` and the first Markdown section — matching what
@@ -117,12 +145,22 @@ export function parseFrontmatter(text: string): ParseResult {
   if (typeof timestamp !== 'string' || typeof query !== 'string') {
     return { ok: false, reason: 'invalid-shape' }
   }
-  if (!isHexagram(hexagram)) return { ok: false, reason: 'invalid-shape' }
 
-  if (!isYamlCasting(casting)) return { ok: false, reason: 'invalid-shape' }
-  const castingRecord = castingFromYaml(casting)
-  if (!isCastingRecord(castingRecord)) {
-    return { ok: false, reason: 'invalid-shape' }
+  if (!isYamlHexagram(hexagram)) return { ok: false, reason: 'invalid-shape' }
+  const hexagramTuple = hexagramFromYaml(hexagram)
+  if (!isHexagram(hexagramTuple)) return { ok: false, reason: 'invalid-shape' }
+
+  // `casting` is optional: an absent key means "no casting recorded" and
+  // parses back as `null`. When present it must be a valid `L6..L1` mapping.
+  let castingRecord: CastingRecord | null
+  if (casting === undefined) {
+    castingRecord = null
+  } else {
+    if (!isYamlCasting(casting)) return { ok: false, reason: 'invalid-shape' }
+    castingRecord = castingFromYaml(casting)
+    if (!isCastingRecord(castingRecord)) {
+      return { ok: false, reason: 'invalid-shape' }
+    }
   }
 
   return {
@@ -132,7 +170,7 @@ export function parseFrontmatter(text: string): ParseResult {
         schemaVersion,
         timestamp,
         query,
-        hexagram,
+        hexagram: hexagramTuple,
         casting: castingRecord,
       },
       body: content,
@@ -145,6 +183,11 @@ function isPlainObject(value: unknown): value is Record<string, unknown> {
 }
 
 function isYamlCasting(value: unknown): value is YamlCasting {
+  if (!isPlainObject(value)) return false
+  return ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].every((key) => key in value)
+}
+
+function isYamlHexagram(value: unknown): value is YamlHexagram {
   if (!isPlainObject(value)) return false
   return ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'].every((key) => key in value)
 }

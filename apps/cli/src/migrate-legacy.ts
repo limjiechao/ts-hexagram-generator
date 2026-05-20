@@ -31,7 +31,7 @@ export async function migrateLegacy(dir: string): Promise<void> {
       process.stderr.write(`SKIP ${name}: ${r.reason}\n`)
       continue
     }
-    const { castingRecovered, ...envelope } = r.envelope
+    const { envelope } = r
     const body = markdownConsultationBody(
       envelope.query,
       envelope.hexagram,
@@ -42,7 +42,7 @@ export async function migrateLegacy(dir: string): Promise<void> {
     await fs.writeFile(mdPath, md, 'utf8')
     await fs.rename(filePath, path.join(legacyDir, name))
     process.stdout.write(
-      `OK ${name} → ${path.basename(mdPath)}${castingRecovered ? '' : ' (casting unrecovered)'}\n`,
+      `OK ${name} → ${path.basename(mdPath)}${envelope.casting === null ? ' (casting unrecovered)' : ''}\n`,
     )
     migrated += 1
   }

@@ -1,13 +1,16 @@
-import type { CastingRecord, LineCasting } from '@hexagram/types'
+import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/types'
 import { describe, expect, it } from 'vitest'
 
 import {
   castingFromYaml,
   castingToYaml,
+  hexagramFromYaml,
+  hexagramToYaml,
   parseFrontmatter,
   serializeFrontmatter,
   type ConsultationEnvelope,
   type YamlCasting,
+  type YamlHexagram,
 } from '../src/frontmatter'
 
 const sampleLine = (a: number, b: number, c: number): LineCasting => [
@@ -48,6 +51,39 @@ describe('round-trip', () => {
   })
 })
 
+const sampleHexagram: Hexagram = [7, 8, 7, 8, 9, 6]
+
+describe('hexagramToYaml', () => {
+  it('writes L6 first, L1 last, preserving bottom-first content', () => {
+    const yaml: YamlHexagram = hexagramToYaml(sampleHexagram)
+    expect(Object.keys(yaml)).toEqual(['L6', 'L5', 'L4', 'L3', 'L2', 'L1'])
+    expect(yaml.L1).toBe(7) // bottom line
+    expect(yaml.L6).toBe(6) // top line
+  })
+})
+
+describe('hexagramFromYaml', () => {
+  it('inverts back to a bottom-first 6-tuple', () => {
+    expect(hexagramFromYaml(hexagramToYaml(sampleHexagram))).toEqual(
+      sampleHexagram,
+    )
+  })
+})
+
+describe('hexagram round-trip', () => {
+  it('is identity against the in-memory bottom-first tuple', () => {
+    const hexagrams: Hexagram[] = [
+      [7, 7, 7, 7, 7, 7],
+      [8, 8, 8, 8, 8, 8],
+      [6, 7, 8, 9, 6, 7],
+      [9, 6, 8, 7, 9, 8],
+    ]
+    for (const hexagram of hexagrams) {
+      expect(hexagramFromYaml(hexagramToYaml(hexagram))).toEqual(hexagram)
+    }
+  })
+})
+
 const envelope: ConsultationEnvelope = {
   schemaVersion: 1,
   timestamp: '2026-05-19T14:23:11+0800',
@@ -62,7 +98,12 @@ describe('serializeFrontmatter', () => {
     expect(text.startsWith('---\n')).toBe(true)
     expect(text).toMatch(/schemaVersion: 1/)
     expect(text).toMatch(/timestamp: '2026-05-19T14:23:11\+0800'/)
-    expect(text).toMatch(/hexagram:\n[ \t]+- 7/)
+    // hexagram is a keyed L6..L1 map (visual top-first):
+    expect(text).toMatch(/hexagram:\n[ \t]+L6:/)
+    const hexagramBlock = text.split('hexagram:')[1]!.split('casting:')[0]!
+    expect(hexagramBlock.indexOf('L6:')).toBeLessThan(
+      hexagramBlock.indexOf('L1:'),
+    )
     expect(text).toMatch(/casting:/)
     // L6 comes before L1 in casting:
     const castingBlock = text.split('casting:')[1]!
@@ -111,10 +152,44 @@ describe('parseFrontmatter', () => {
 
   it('reports `unreadable` when hexagram is malformed', () => {
     const bad = serializeFrontmatter(envelope, 'BODY').replace(
-      '- 7\n  - 8\n  - 7\n  - 8\n  - 7\n  - 8',
-      '- 7\n  - 99',
+      'L6: 8',
+      'L6: 99',
     )
     const result = parseFrontmatter(bad)
     expect(result.ok).toBe(false)
+  })
+
+  it('reports `unreadable` when a hexagram key is missing', () => {
+    const bad = serializeFrontmatter(envelope, 'BODY').replace(
+      /\n {2}L1: \d/,
+      '',
+    )
+    const result = parseFrontmatter(bad)
+    expect(result.ok).toBe(false)
+  })
+})
+
+describe('nullable casting', () => {
+  const noCasting: ConsultationEnvelope = { ...envelope, casting: null }
+
+  it('omits the casting key entirely when casting is null', () => {
+    const text = serializeFrontmatter(noCasting, 'BODY')
+    expect(text).not.toMatch(/^casting:/m)
+    // hexagram is still present:
+    expect(text).toMatch(/hexagram:\n[ \t]+L6:/)
+  })
+
+  it('parses frontmatter with the casting key absent, yielding casting: null', () => {
+    const text = serializeFrontmatter(noCasting, 'BODY')
+    const result = parseFrontmatter(text)
+    if (!result.ok) throw new Error(`expected ok, got ${result.reason}`)
+    expect(result.data.envelope.casting).toBeNull()
+  })
+
+  it('round-trips a null-casting envelope through serialize → parse', () => {
+    const text = serializeFrontmatter(noCasting, 'BODY')
+    const result = parseFrontmatter(text)
+    if (!result.ok) throw new Error(`expected ok, got ${result.reason}`)
+    expect(result.data.envelope).toEqual(noCasting)
   })
 })

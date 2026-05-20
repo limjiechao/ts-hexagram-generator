@@ -12,12 +12,8 @@ import type { ConsultationEnvelope } from './frontmatter.js'
 // oxlint-disable-next-line no-control-regex
 const ANSI = /\u001B\[[0-9;]*m/g
 
-export type LegacyEnvelope = ConsultationEnvelope & {
-  castingRecovered: boolean
-}
-
 export type LegacyConvertResult =
-  | { ok: true; envelope: LegacyEnvelope }
+  | { ok: true; envelope: ConsultationEnvelope }
   | { ok: false; reason: 'no-hexagram-line' | 'invalid-hexagram' }
 
 interface ConvertInput {
@@ -33,6 +29,8 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
   if (hexagram === null) return { ok: false, reason: 'no-hexagram-line' }
   if (!isHexagram(hexagram)) return { ok: false, reason: 'invalid-hexagram' }
 
+  // A legacy `.txt` without a CASTING table has no recoverable casting —
+  // expressed directly as `null` (no sentinel value).
   const casting = extractCasting(text)
   return {
     ok: true,
@@ -41,8 +39,7 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
       timestamp: filenameTimestampToIso(input.filenameTimestamp),
       query,
       hexagram,
-      casting: casting ?? sentinelCasting(),
-      castingRecovered: casting !== null,
+      casting,
     },
   }
 }
@@ -113,13 +110,4 @@ function extractCasting(text: string): CastingRecord | null {
     lineCasting(5),
     lineCasting(6),
   ]
-}
-
-function sentinelCasting(): CastingRecord {
-  const empty: LineCasting = [
-    { pick: 0, max: 0 },
-    { pick: 0, max: 0 },
-    { pick: 0, max: 0 },
-  ]
-  return [empty, empty, empty, empty, empty, empty]
 }

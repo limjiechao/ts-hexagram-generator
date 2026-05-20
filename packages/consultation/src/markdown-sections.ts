@@ -38,9 +38,12 @@ const BOTTOM =
 /**
  * Markdown version of the casting table. Same box-drawing geometry as the
  * casting-ui renderer, but no ANSI styling — content is wrapped in a
- * ```text fence so monospace is preserved when rendered.
+ * ```text fence so monospace is preserved when rendered. A `null` `casting`
+ * renders an italic "Casting not recorded" caption instead of the table.
  */
-export function castingMarkdownSection(casting: CastingRecord): string {
+export function castingMarkdownSection(casting: CastingRecord | null): string {
+  if (casting === null) return `## CASTING\n\n_Casting not recorded._\n`
+
   const castLabel = `│      │${castCenter('Cast', 74)}│`
   const nth = (text: string): string => castCenter(text, 24)
   const nthLabel = `│      │${nth('1st')}│${nth('2nd')}│${nth('3rd')}│`

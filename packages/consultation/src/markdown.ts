@@ -15,12 +15,13 @@ function hasMovingLines(hexagram: Hexagram): boolean {
 
 /**
  * Compose the Markdown body for a consultation. The frontmatter envelope is
- * applied separately by `serializeFrontmatter`.
+ * applied separately by `serializeFrontmatter`. A `null` `casting` renders
+ * the CASTING section as "Casting not recorded".
  */
 export function markdownConsultationBody(
   query: string,
   hexagram: Hexagram,
-  casting: CastingRecord,
+  casting: CastingRecord | null,
 ): string {
   const parts = [
     queryMarkdownSection(query),

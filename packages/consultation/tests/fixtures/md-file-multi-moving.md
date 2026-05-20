@@ -3,12 +3,12 @@ schemaVersion: 1
 timestamp: '2026-05-19T14:23:11+0800'
 query: How will the journey unfold?
 hexagram:
-  - 6
-  - 9
-  - 7
-  - 8
-  - 7
-  - 8
+  L6: 8
+  L5: 7
+  L4: 8
+  L3: 7
+  L2: 9
+  L1: 6
 casting:
   L6:
     - pick: 3

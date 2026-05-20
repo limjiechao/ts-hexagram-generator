@@ -159,6 +159,14 @@ describe('castingSection (partial)', () => {
     expect(rendered).toContain(' 28 ')
     expect((rendered.match(/·/g) ?? []).length).toBe(51)
   })
+
+  it('renders "Casting not recorded" when casting is null', () => {
+    const rendered = stripAnsi(castingSection(null))
+    expect(rendered).toContain('CASTING:')
+    expect(rendered).toContain('Casting not recorded')
+    // No table is drawn for a null casting.
+    expect(rendered).not.toContain('│')
+  })
 })
 
 describe('buildPartialCastingSections', () => {

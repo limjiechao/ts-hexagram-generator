@@ -66,6 +66,12 @@ describe('castingMarkdownSection', () => {
     const escapeChar = ''
     expect(text.includes(escapeChar)).toBe(false)
   })
+
+  it('renders "Casting not recorded" when casting is null', () => {
+    expect(castingMarkdownSection(null)).toBe(
+      '## CASTING\n\n_Casting not recorded._\n',
+    )
+  })
 })
 
 describe('queryMarkdownSection', () => {
