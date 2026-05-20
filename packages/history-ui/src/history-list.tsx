@@ -2,9 +2,12 @@ import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/types'
 import {
   BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
   computeInnerCols,
   FOOTER_HEIGHT,
   NORMAL,
+  NORMAL_GREY,
   ScreenShell,
   ScrollbarTrack,
   truncateEnd,
@@ -122,31 +125,54 @@ function truncate(text: string, max: number): string {
   return `${text.slice(0, Math.max(0, max - 1))}…`
 }
 
-function summarizeHex(hexagram: Hexagram): string {
-  const standing = getHexagramRecord(hexagram)
-  const hasMoving = hexagram.some((line) => line === 6 || line === 9)
-  const left = `#${standing.Metadata.Order.WenWang} ${standing.Name.Chinese.Traditional} ${standing.Name.English.WilhelmBaynes.split(' / ')[0] ?? standing.Name.English.WilhelmBaynes}`
-  if (!hasMoving) return left
-  const emerging = getHexagramRecord(getEmergingHexagram(hexagram))
-  const right = `#${emerging.Metadata.Order.WenWang} ${emerging.Name.Chinese.Traditional} ${emerging.Name.English.WilhelmBaynes.split(' / ')[0] ?? emerging.Name.English.WilhelmBaynes}`
-  return `${left} ──▶ ${right}`
+/**
+ * Structured parts of the hexagram summary line for palette-colored rendering.
+ * `movingSegment` is non-null only when there are moving lines.
+ */
+interface HexSummaryParts {
+  standingText: string
+  movingSegment: string | null
 }
 
-/** First line of a row: `[timestamp] <query>`, truncated to the inner width. */
-function entryHeadLine(entry: HistoryEntry, innerWidth: number): string {
+function summarizeHexParts(hexagram: Hexagram): HexSummaryParts {
+  const standing = getHexagramRecord(hexagram)
+  const hasMoving = hexagram.some((line) => line === 6 || line === 9)
+  const standingText = `#${standing.Metadata.Order.WenWang} ${standing.Name.Chinese.Traditional} ${standing.Name.English.WilhelmBaynes.split(' / ')[0] ?? standing.Name.English.WilhelmBaynes}`
+  if (!hasMoving) return { standingText, movingSegment: null }
+  const emerging = getHexagramRecord(getEmergingHexagram(hexagram))
+  const emergingText = `#${emerging.Metadata.Order.WenWang} ${emerging.Name.Chinese.Traditional} ${emerging.Name.English.WilhelmBaynes.split(' / ')[0] ?? emerging.Name.English.WilhelmBaynes}`
+  return { standingText, movingSegment: ` ──▶ ${emergingText}` }
+}
+
+/**
+ * Structured parts of the first row line for palette-colored rendering.
+ */
+interface HeadLineParts {
+  prefix: string
+  query: string
+}
+
+/** First line parts of a row: `[timestamp]` prefix and truncated query. */
+function entryHeadLineParts(
+  entry: HistoryEntry,
+  innerWidth: number,
+): HeadLineParts {
   const query =
     entry.envelope.query.length > 0 ? entry.envelope.query : '(no query)'
   const prefix = `[${shortenTimestamp(entry.envelope.timestamp)}] `
-  return `${prefix}${truncate(query, innerWidth - TIMESTAMP_PREFIX_WIDTH)}`
+  return {
+    prefix,
+    query: truncate(query, innerWidth - TIMESTAMP_PREFIX_WIDTH),
+  }
 }
 
-/** Second line of a row: indented hexagram summary, truncated. */
-function entrySummaryLine(entry: HistoryEntry, innerWidth: number): string {
-  const indent = ' '.repeat(TIMESTAMP_PREFIX_WIDTH)
-  return `${indent}${truncate(
-    summarizeHex(entry.envelope.hexagram),
-    innerWidth - TIMESTAMP_PREFIX_WIDTH,
-  )}`
+/**
+ * Pad a plain text string to `width` with trailing spaces, so that an inverse
+ * highlight spans edge to edge on the focused row.
+ */
+function padToWidth(text: string, width: number): string {
+  if (text.length >= width) return text
+  return text + ' '.repeat(width - text.length)
 }
 
 /**
@@ -378,13 +404,58 @@ export function HistoryList({
             </Box>
           )
         }
+
+        // Readable entry row.
+        const headParts = entryHeadLineParts(row.entry, innerCols)
+        const hexParts = summarizeHexParts(row.entry.envelope.hexagram)
+
+        // Summary line: indent + standing text (+ optional moving segment).
+        const indent = ' '.repeat(TIMESTAMP_PREFIX_WIDTH)
+        const summaryAvailable = innerCols - TIMESTAMP_PREFIX_WIDTH
+        // Measure standing text; if moving segment exists, allocate remaining.
+        const standingTruncated = truncate(hexParts.standingText, summaryAvailable)
+        const movingTruncated =
+          hexParts.movingSegment === null
+            ? null
+            : truncate(
+                hexParts.movingSegment,
+                summaryAvailable - standingTruncated.length,
+              )
+
+        if (isFocused) {
+          // Focused row: full-width plain bold inverse bar — no per-segment color.
+          const headLine = padToWidth(
+            headParts.prefix + headParts.query,
+            innerCols,
+          )
+          const summaryLine = padToWidth(
+            indent + standingTruncated + (movingTruncated ?? ''),
+            innerCols,
+          )
+          return (
+            <Box key={row.entry.path} flexDirection="column">
+              <Text bold inverse>
+                {headLine}
+              </Text>
+              <Text bold inverse>
+                {summaryLine}
+              </Text>
+            </Box>
+          )
+        }
+
+        // Unfocused row: palette-colored segments.
         return (
           <Box key={row.entry.path} flexDirection="column">
-            <Text inverse={isFocused}>
-              {entryHeadLine(row.entry, innerCols)}
+            {/* Line 1: dim timestamp prefix + bold-white query */}
+            <Text>
+              {`${NORMAL_GREY}${headParts.prefix}${NORMAL}${BOLD_WHITE}${headParts.query}${NORMAL}`}
             </Text>
-            <Text inverse={isFocused}>
-              {entrySummaryLine(row.entry, innerCols)}
+            {/* Line 2: default-weight standing name + BOLD_RED moving segment */}
+            <Text>
+              {movingTruncated === null
+                ? `${indent}${standingTruncated}`
+                : `${indent}${standingTruncated}${BOLD_RED}${movingTruncated}${NORMAL}`}
             </Text>
           </Box>
         )
