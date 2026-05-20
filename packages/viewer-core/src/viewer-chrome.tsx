@@ -1,9 +1,9 @@
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 
-import { BOLD_GREY, NORMAL } from './output-palette.js'
+import { BOLD_GREY, BOLD_WHITE, NORMAL } from './output-palette.js'
 import type { InputMode } from './viewer-keymap.js'
-import { truncateEnd, truncateStart } from './viewer-layout.js'
+import { truncateEnd, truncateStart, wrapToWidth } from './viewer-layout.js'
 
 // Presentational chrome for the Ink viewer. Each component is a "dumb"
 // React component — props in, JSX out. No state, no side effects.
@@ -48,6 +48,14 @@ export const KEY_HINTS_FLOW_DEFAULT = 'Esc/Ctrl+C: quit'
 
 // ── Components ───────────────────────────────────────────────────────────────
 
+// Accent-bar prefix width: `▌ ` = 2 display columns.
+export const QUERY_ACCENT_BAR_PREFIX = '▌ '
+export const QUERY_ACCENT_PREFIX_WIDTH = 2
+
+/**
+ * Read-only query display. Renders the query with a left `▌` accent bar on
+ * every wrapped line, query text in `BOLD_WHITE`, no border.
+ */
 export function QueryBox({
   query,
   width,
@@ -55,9 +63,17 @@ export function QueryBox({
   query: string
   width: number
 }): ReactElement {
+  const textWidth = Math.max(1, width - QUERY_ACCENT_PREFIX_WIDTH)
+  const wrapped = wrapToWidth(query.length === 0 ? ' ' : query, textWidth)
+  const lines = wrapped.split('\n')
   return (
-    <Box borderStyle="round" width={width} flexShrink={0}>
-      <Text>{` ${query}`}</Text>
+    <Box flexDirection="column" flexShrink={0}>
+      {lines.map((line, index) => (
+        <Text key={index}>
+          <Text dimColor>{QUERY_ACCENT_BAR_PREFIX}</Text>
+          <Text>{`${BOLD_WHITE}${line}${NORMAL}`}</Text>
+        </Text>
+      ))}
     </Box>
   )
 }

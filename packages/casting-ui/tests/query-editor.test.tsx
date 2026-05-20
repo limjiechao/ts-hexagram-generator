@@ -40,7 +40,7 @@ describe('QueryEditor', () => {
     unmount()
   })
 
-  it('places the cursor at the start of the placeholder, inside the padding', () => {
+  it('renders the accent bar before the cursor and placeholder when empty', () => {
     const onSubmit = vi.fn()
     const { lastFrame, unmount } = render(
       <QueryEditor
@@ -54,7 +54,7 @@ describe('QueryEditor', () => {
     )
     const frame = lastFrame() ?? ''
     // Inverse SGR marks the rendered cursor cell.
-    const INVERSE = '[7m'
+    const INVERSE = '[7m'
     expect(frame).toContain(INVERSE)
     const cursorIndex = frame.indexOf(INVERSE)
     const before = frame.slice(0, cursorIndex)
@@ -63,25 +63,10 @@ describe('QueryEditor', () => {
     // area, where typing appends, since the buffer is empty.
     expect(before).not.toContain('Enter')
     expect(after).toContain('Enter your query')
-
-    // …and the editable area is inset by `paddingX={1}` from the rounded
-    // border, so the cursor cell is *not* flush against `│`. Find the row
-    // that carries the inverse cursor and assert the visible character
-    // immediately before the SGR is the padding space sitting on top of
-    // the left border `│`.
-    const cursorRow = frame
-      .split('\n')
-      .find((row) => row.includes(INVERSE)) as string
-    expect(cursorRow).toBeDefined()
-    const rowCursorIndex = cursorRow.indexOf(INVERSE)
-    const visibleBefore = cursorRow
-      .slice(0, rowCursorIndex)
-      // oxlint-disable-next-line no-control-regex
-      .replaceAll(/\u001B\[[\d;]*m/g, '')
-    expect(visibleBefore.endsWith('│ ')).toBe(true)
+    // The accent bar (▌) appears before the cursor — no border character.
+    expect(before).toContain('▌')
     unmount()
   })
-
   it('blinks the cursor every 500ms', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
@@ -95,7 +80,7 @@ describe('QueryEditor', () => {
           onSubmit={() => {}}
         />,
       )
-      const INVERSE = '[7m'
+      const INVERSE = '[7m'
       const initial = lastFrame() ?? ''
       expect(initial).toContain(INVERSE)
 
@@ -143,17 +128,13 @@ describe('QueryEditor', () => {
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Hi')
 
-    // The typed text also sits inside the `paddingX={1}` gutter — the
-    // first visible character on the input row is a space (the padding)
-    // followed by `H`, never `│H` flush against the border.
+    // The typed text follows the `▌ ` accent bar — no border character.
     const inputRow = frame
       .split('\n')
       .find((row) => row.includes('Hi')) as string
     expect(inputRow).toBeDefined()
-    // oxlint-disable-next-line no-control-regex
-    const stripped = inputRow.replaceAll(/\u001B\[[\d;]*m/g, '')
-    expect(stripped).toContain('│ Hi')
-    expect(stripped).not.toContain('│Hi')
+    expect(inputRow).toContain('▌')
+    expect(inputRow).not.toContain('│')
     unmount()
   })
 

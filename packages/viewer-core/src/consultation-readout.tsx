@@ -15,6 +15,7 @@ import { computeInnerCols, ScreenShell } from './screen-shell.js'
 import {
   FooterBar,
   KEY_HINTS_FLOW_DEFAULT,
+  QUERY_ACCENT_PREFIX_WIDTH,
   ScrollableSection,
   ScrollbarTrack,
   TabBar,
@@ -228,14 +229,17 @@ export function ConsultationReadout({
   // gutter (1) — same formula as ScreenShell's computeInnerCols.
   const innerCols = computeInnerCols(cols)
 
+  // The accent-bar prefix `▌ ` occupies 2 display columns on every line, so
+  // wrap at innerCols − 2 so the text never overflows onto a new line.
   const wrappedQuery = useMemo(
     () =>
       wrapToWidth(
         queryText.length === 0 ? ' ' : queryText,
-        Math.max(1, innerCols - 2),
+        Math.max(1, innerCols - QUERY_ACCENT_PREFIX_WIDTH),
       ),
     [queryText, innerCols],
   )
+  // QUERY_BORDER_HEIGHT is 0 — the accent-bar treatment has no border rows.
   const queryBoxHeight = wrappedQuery.split('\n').length + QUERY_BORDER_HEIGHT
 
   const titleHeight = title == null ? 0 : 1

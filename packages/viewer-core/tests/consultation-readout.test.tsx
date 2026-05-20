@@ -1,5 +1,5 @@
 import type { CastingRecord, Hexagram } from '@hexagram/types'
-import { Box, Text } from 'ink'
+import { Text } from 'ink'
 import { render } from 'ink-testing-library'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -47,12 +47,14 @@ const staticSections = buildConsultationSections(
   STUB_CASTING,
 )
 
-// A minimal read-only query box stub for the slot.
+// A minimal read-only query box stub for the slot (no border — uses the
+// accent-bar form matching the production `<QueryBox>`).
 function queryBoxSlot(query: string) {
-  return (innerCols: number) => (
-    <Box borderStyle="round" width={innerCols}>
-      <Text>{` ${query}`}</Text>
-    </Box>
+  return () => (
+    <Text>
+      <Text dimColor>{'▌ '}</Text>
+      <Text>{query}</Text>
+    </Text>
   )
 }
 

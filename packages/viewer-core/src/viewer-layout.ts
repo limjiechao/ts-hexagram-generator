@@ -12,7 +12,7 @@ import wrapAnsi from 'wrap-ansi'
 export const HEADER_HEIGHT = 1
 export const TAB_BAR_HEIGHT = 1
 export const FOOTER_HEIGHT = 2
-export const QUERY_BORDER_HEIGHT = 2
+export const QUERY_BORDER_HEIGHT = 0
 export const MARGIN_QUERY_TO_TABS = 1
 export const MARGIN_CONTENT_TO_NEXT = 1
 

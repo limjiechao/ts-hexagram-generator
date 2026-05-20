@@ -1,4 +1,9 @@
-import { Box, Text, useInput } from 'ink'
+import {
+  BOLD_WHITE,
+  NORMAL,
+  QUERY_ACCENT_BAR_PREFIX,
+} from '@hexagram/viewer-core'
+import { Text, useInput } from 'ink'
 import type { ReactElement } from 'react'
 
 import { Cursor, isGlobalExitKey } from './editor-primitives.js'
@@ -15,17 +20,16 @@ interface QueryEditorProps {
 /**
  * Single-line editable query box. Controlled — caller owns the buffer.
  *
+ * Renders with the same left `▌` accent-bar treatment as the read-only
+ * `<QueryBox>` so the editable and frozen variants look consistent.
+ *
  * Accepts printable characters (including 'q'), Backspace/Delete, and Enter.
  * Ignores Escape and Ctrl+C so the viewer's global handler can exit cleanly.
  */
-export function QueryEditor({
-  value,
-  focused,
-  width,
-  placeholder,
-  onChange,
-  onSubmit,
-}: QueryEditorProps): ReactElement {
+export function QueryEditor(props: QueryEditorProps): ReactElement {
+  const { value, focused, placeholder, onChange, onSubmit } = props
+  // `props.width` is kept in the interface for call-site compatibility but
+  // the accent-bar form renders inline text with no fixed-width constraint.
   useInput(
     (input, key) => {
       if (isGlobalExitKey(input, key)) return
@@ -50,35 +54,21 @@ export function QueryEditor({
   )
 
   if (value.length === 0 && placeholder !== undefined) {
-    // `paddingX={1}` inset the cursor and placeholder one column from the
-    // border so they line up with the read-only `<QueryBox>` (which renders
-    // its content with a leading space). The cursor still sits at content
-    // column 0 — i.e. immediately where the next typed character will
-    // appear — and the placeholder follows on the same row.
+    // Empty buffer: accent bar + cursor (if focused) + dimmed placeholder.
     return (
-      <Box
-        borderStyle="round"
-        borderColor={focused ? 'cyan' : undefined}
-        paddingX={1}
-        width={width}
-        flexShrink={0}
-      >
+      <Text>
+        <Text dimColor>{QUERY_ACCENT_BAR_PREFIX}</Text>
         {focused && <Cursor />}
         <Text dimColor>{placeholder}</Text>
-      </Box>
+      </Text>
     )
   }
 
   return (
-    <Box
-      borderStyle="round"
-      borderColor={focused ? 'cyan' : undefined}
-      paddingX={1}
-      width={width}
-      flexShrink={0}
-    >
-      <Text>{value}</Text>
+    <Text>
+      <Text dimColor>{QUERY_ACCENT_BAR_PREFIX}</Text>
+      <Text>{`${BOLD_WHITE}${value}${NORMAL}`}</Text>
       {focused && <Cursor />}
-    </Box>
+    </Text>
   )
 }

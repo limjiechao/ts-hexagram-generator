@@ -726,9 +726,9 @@ describe('ConsultationViewer (Pass #2)', () => {
     const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0)
     expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
     expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
-    // The next line should contain a top border character.
+    // The next line should contain the accent bar.
     const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
-    expect(nextLine.includes('╭') || nextLine.includes('─')).toBe(true)
+    expect(nextLine.includes('▌')).toBe(true)
     unmount()
   })
 
@@ -747,14 +747,14 @@ describe('ConsultationViewer (Pass #2)', () => {
     expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
     expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
     const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
-    expect(nextLine.includes('╭') || nextLine.includes('─')).toBe(true)
-    // The query text appears inside the box on a subsequent non-border line.
-    const queryLine = lines.find(
-      (line) =>
-        line.includes('what say you') &&
-        !line.includes('╭') &&
-        !line.includes('╰'),
-    )
+    expect(nextLine.includes('▌')).toBe(true)
+    // The query text appears on the accent-bar line itself.
+    const queryLine = lines.find((line) => line.includes('what say you'))
+
+
+
+
+
     expect(queryLine).toBeDefined()
     unmount()
   })
