@@ -43,6 +43,13 @@ export {
   transformationSection,
 } from './output-sections.js'
 
+// Generic screen frame shared by the Readout and the History list.
+export {
+  computeInnerCols,
+  ScreenShell,
+  type ScreenShellProps,
+} from './screen-shell.js'
+
 // Pure validators / type guards shared by the renderers.
 export {
   assertLine1ToLine6,

@@ -11,6 +11,7 @@ import stringWidth from 'string-width'
 
 import type { ConsultationSections } from './output-composers.js'
 import { BOLD_GREY, NORMAL } from './output-palette.js'
+import { computeInnerCols, ScreenShell } from './screen-shell.js'
 import {
   FooterBar,
   KEY_HINTS_FLOW_DEFAULT,
@@ -224,8 +225,8 @@ export function ConsultationReadout({
   const activeIndex = activeIndexRef.current
 
   // Inner content width: terminal cols minus paddingX (2) and the scrollbar
-  // gutter (1).
-  const innerCols = Math.max(1, cols - 2 - 1)
+  // gutter (1) — same formula as ScreenShell's computeInnerCols.
+  const innerCols = computeInnerCols(cols)
 
   const wrappedQuery = useMemo(
     () =>
@@ -414,9 +415,8 @@ export function ConsultationReadout({
       ? `wrap ${wrapWidth}`
       : null
 
-  return (
-    <Box flexDirection="column" paddingX={1} width={cols} height={termRows}>
-      {title != null && <Text>{`${BOLD_GREY}${title}${NORMAL}`}</Text>}
+  const aboveContent = (
+    <>
       <Text>{`${BOLD_GREY}QUERY:${NORMAL}`}</Text>
       {querySlot(innerCols)}
       <Box marginTop={MARGIN_QUERY_TO_TABS} flexShrink={0}>
@@ -427,60 +427,75 @@ export function ConsultationReadout({
           locked={locked}
         />
       </Box>
-      <Box flexGrow={1} flexShrink={1} flexDirection="row" overflow="hidden">
-        <Box flexDirection="column" flexGrow={1}>
-          {dimContent ? (
-            // Dim the placeholder content while the query is still being
-            // typed. Embedded SGR codes inside the partial output would
-            // cancel Ink's `[2m` mid-stream, so strip them first.
-            <Box height={viewportHeight} flexDirection="column">
-              <Text dimColor>{stripAnsi(visibleRows.join('\n'))}</Text>
-            </Box>
-          ) : (
-            <ScrollableSection
-              rows={visibleRows}
-              viewportHeight={viewportHeight}
-            />
-          )}
-        </Box>
-        <Box width={1} flexShrink={0}>
-          <ScrollbarTrack
-            offset={offset}
-            totalRows={totalRows}
-            viewportHeight={viewportHeight}
-          />
-        </Box>
-      </Box>
-      {notice != null && (
-        <Box flexShrink={0}>
-          <Text dimColor>{notice}</Text>
-        </Box>
-      )}
-      {aboveFooterSlot != null && aboveFooterHeight > 0 && (
-        <Box marginTop={MARGIN_CONTENT_TO_NEXT} flexShrink={0}>
-          {aboveFooterSlot(innerCols, castingHorizontalOffset)}
-        </Box>
-      )}
-      <Box
-        marginTop={
-          aboveFooterSlot != null && aboveFooterHeight > 0
-            ? 0
-            : MARGIN_CONTENT_TO_NEXT
-        }
-        flexShrink={0}
-      >
-        <FooterBar
-          savedPath={savedPath}
-          cols={innerCols}
-          verticalStatus={verticalStatus}
-          horizontalStatus={horizontalStatus}
-          wrapChip={wrapChip}
-          flowHint={flowHint}
-          inFlow={locked}
-          flowKeyHints={flowKeyHints}
-          tabsLength={tabs.length}
-        />
-      </Box>
+    </>
+  )
+
+  const contentNode = dimContent ? (
+    // Dim the placeholder content while the query is still being
+    // typed. Embedded SGR codes inside the partial output would
+    // cancel Ink's `[2m` mid-stream, so strip them first.
+    <Box height={viewportHeight} flexDirection="column">
+      <Text dimColor>{stripAnsi(visibleRows.join('\n'))}</Text>
     </Box>
+  ) : (
+    <ScrollableSection rows={visibleRows} viewportHeight={viewportHeight} />
+  )
+
+  const belowContent =
+    notice != null || (aboveFooterSlot != null && aboveFooterHeight > 0) ? (
+      <>
+        {notice != null && (
+          <Box flexShrink={0}>
+            <Text dimColor>{notice}</Text>
+          </Box>
+        )}
+        {aboveFooterSlot != null && aboveFooterHeight > 0 && (
+          <Box marginTop={MARGIN_CONTENT_TO_NEXT} flexShrink={0}>
+            {aboveFooterSlot(innerCols, castingHorizontalOffset)}
+          </Box>
+        )}
+      </>
+    ) : null
+
+  const footerNode = (
+    <Box
+      marginTop={
+        aboveFooterSlot != null && aboveFooterHeight > 0
+          ? 0
+          : MARGIN_CONTENT_TO_NEXT
+      }
+      flexShrink={0}
+    >
+      <FooterBar
+        savedPath={savedPath}
+        cols={innerCols}
+        verticalStatus={verticalStatus}
+        horizontalStatus={horizontalStatus}
+        wrapChip={wrapChip}
+        flowHint={flowHint}
+        inFlow={locked}
+        flowKeyHints={flowKeyHints}
+        tabsLength={tabs.length}
+      />
+    </Box>
+  )
+
+  return (
+    <ScreenShell
+      cols={cols}
+      rows={termRows}
+      title={title}
+      aboveContent={aboveContent}
+      contentSlot={contentNode}
+      scrollbarSlot={
+        <ScrollbarTrack
+          offset={offset}
+          totalRows={totalRows}
+          viewportHeight={viewportHeight}
+        />
+      }
+      belowContent={belowContent}
+      footerSlot={footerNode}
+    />
   )
 }
