@@ -1,7 +1,5 @@
 import type { Key } from 'ink'
 
-import type { FlowState } from './viewer-flow.js'
-
 // Data-driven keymap for the consultation viewer. Pure module — no React or
 // Ink imports beyond the `Key` type — so each binding is unit-testable
 // without mounting ink-testing-library. `dispatchKey()` walks `BINDINGS` in
@@ -18,8 +16,20 @@ import type { FlowState } from './viewer-flow.js'
 
 export type InputMode = 'slider' | 'number'
 
+// The viewer's flow modes. The keymap only ever inspects `state.mode`, so it
+// depends on this string union rather than the full `FlowState` interface
+// (which lives in `casting-ui`'s `viewer-flow.ts` and would otherwise create
+// a circular package dependency). Any state object with a `mode` field of
+// this type is structurally accepted.
+export type FlowMode = 'awaitingQuery' | 'casting' | 'computing' | 'done'
+
+// Minimal structural slice of the viewer flow state the keymap reads.
+export interface FlowStateSlice {
+  readonly mode: FlowMode
+}
+
 export interface KeyContext {
-  readonly state: FlowState
+  readonly state: FlowStateSlice
   readonly inputMode: InputMode
   readonly viewportHeight: number
   readonly exit: () => void
@@ -41,15 +51,15 @@ export interface KeyContext {
 
 export interface KeyBinding {
   readonly id: string
-  readonly when: (state: FlowState, inputMode: InputMode) => boolean
+  readonly when: (state: FlowStateSlice, inputMode: InputMode) => boolean
   readonly match: (input: string, key: Key) => boolean
   readonly run: (ctx: KeyContext, input: string, key: Key) => void
 }
 
 export const ALWAYS = (): boolean => true
-export const IN_CASTING_SLIDER = (s: FlowState, im: InputMode): boolean =>
+export const IN_CASTING_SLIDER = (s: FlowStateSlice, im: InputMode): boolean =>
   s.mode === 'casting' && im === 'slider'
-export const IN_DONE = (s: FlowState): boolean => s.mode === 'done'
+export const IN_DONE = (s: FlowStateSlice): boolean => s.mode === 'done'
 
 export const BINDINGS: readonly KeyBinding[] = [
   // ── Global ───────────────────────────────────────────────────────────────

@@ -2,7 +2,7 @@ import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 
 import { BOLD_GREY, NORMAL } from './output-palette.js'
-import type { InputMode } from './utils-mode.js'
+import type { InputMode } from './viewer-keymap.js'
 import { truncateEnd, truncateStart } from './viewer-layout.js'
 
 // Presentational chrome for the Ink viewer. Each component is a "dumb"

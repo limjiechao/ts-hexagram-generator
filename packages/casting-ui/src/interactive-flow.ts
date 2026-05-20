@@ -7,9 +7,9 @@ import {
   type LineGeneratorResult,
   type SplitRecord,
 } from '@hexagram/types'
+import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 import { number } from '@inquirer/prompts'
 
-import { BOLD_GREY, NORMAL } from './output-palette.js'
 import { getUserQuery } from './prompts.js'
 
 async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {

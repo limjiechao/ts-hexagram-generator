@@ -1,3 +1,4 @@
+import { BOLD_RED, NORMAL } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
   useCallback,
@@ -12,7 +13,6 @@ import stringWidth from 'string-width'
 
 import { isGlobalExitKey } from './editor-primitives.js'
 import { NumberInput } from './number-input.js'
-import { BOLD_RED, NORMAL } from './output-palette.js'
 
 // How long `<SliderCastingPrompt>` holds the numeric Left/Right Heap readout
 // after the user presses SPACE before forwarding `onSubmit` to the parent

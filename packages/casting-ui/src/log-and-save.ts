@@ -1,8 +1,8 @@
 import { saveConsultationFile } from '@hexagram/consultation/file'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
+import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 
 import { consultationConsoleOutput } from './output-composers.js'
-import { BOLD_GREY, NORMAL } from './output-palette.js'
 
 /**
  * Plain-mode terminal flow: print the ANSI-styled console output, then save

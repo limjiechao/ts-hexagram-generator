@@ -3,10 +3,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import {
-  buildConsultationSections,
-  consultationConsoleOutput,
-} from '../src/output-composers'
+import { buildConsultationSections } from '@hexagram/viewer-core'
+
+import { consultationConsoleOutput } from '../src/output-composers'
 import { cases } from '../tests/fixtures/cases'
 
 // Regenerate the byte-locked fixtures from `consultationConsoleOutput` and

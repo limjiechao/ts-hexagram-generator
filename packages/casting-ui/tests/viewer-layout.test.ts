@@ -1,10 +1,9 @@
-import { describe, expect, it } from 'vitest'
-
 import {
   computeWrapWidth,
   truncateEnd,
   truncateStart,
-} from '../src/viewer-layout'
+} from '@hexagram/viewer-core'
+import { describe, expect, it } from 'vitest'
 
 describe('computeWrapWidth', () => {
   it('caps wrapping at maxWrapWidth on a wide terminal', () => {

@@ -5,27 +5,10 @@ export { getHexagramViaInteraction } from './interactive-flow.js'
 export { logAndSaveConsultationOutput } from './log-and-save.js'
 
 // Output composers — assemble per-tab strings for the viewer or the plain
-// console renderer.
-export {
-  buildConsultationSections,
-  buildPartialCastingSections,
-  consultationConsoleOutput,
-  type ConsultationSections,
-} from './output-composers.js'
-
-// ANSI palette constants used by the formatted output.
-export {
-  BOLD_GREY,
-  BOLD_RED,
-  BOLD_WHITE,
-  HEADING_GREY,
-  MUTED_GREY,
-  NORMAL,
-  NORMAL_GREY,
-  PLACEHOLDER_GREY,
-  VALUE_WHITE,
-} from './output-palette.js'
-
+// console renderer. The pure section builders + `ConsultationSections` live
+// in `@hexagram/viewer-core`; `consultationConsoleOutput` is the plain-mode
+// save composer kept local to this package.
+export { consultationConsoleOutput } from './output-composers.js'
 // Inquirer prompt for the user's consultation query.
 export { getUserQuery } from './prompts.js'
 
@@ -43,3 +26,22 @@ export {
 
 // Ink viewer entry — full-screen tabbed consultation flow.
 export { runConsultationViewer, type FlowKind } from './viewer.js'
+
+export {
+  buildConsultationSections,
+  buildPartialCastingSections,
+  type ConsultationSections,
+} from '@hexagram/viewer-core'
+
+// ANSI palette constants used by the formatted output.
+export {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  HEADING_GREY,
+  MUTED_GREY,
+  NORMAL,
+  NORMAL_GREY,
+  PLACEHOLDER_GREY,
+  VALUE_WHITE,
+} from '@hexagram/viewer-core'

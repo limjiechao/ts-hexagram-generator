@@ -1,9 +1,9 @@
 import type { CastingRecord, Hexagram } from '@hexagram/types'
+import { buildConsultationSections } from '@hexagram/viewer-core'
 import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { buildConsultationSections } from '../src/output-composers'
 import { ConsultationViewer } from '../src/viewer'
 import { tick } from './helpers/async'
 import {

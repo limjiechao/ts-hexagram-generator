@@ -86,6 +86,9 @@ importers:
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
       '@inquirer/prompts':
         specifier: ^8.4.3
         version: 8.4.3(@types/node@24.12.4)
@@ -166,6 +169,34 @@ importers:
         version: 4.0.0(@types/react@19.2.14)
 
   packages/types: {}
+
+  packages/viewer-core:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../types
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+      slice-ansi:
+        specifier: ^9.0.0
+        version: 9.0.0
+      string-width:
+        specifier: ^8.2.1
+        version: 8.2.1
+      wrap-ansi:
+        specifier: ^10.0.0
+        version: 10.0.0
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
 
 packages:
 

@@ -7,6 +7,35 @@ import {
   type Hexagram,
 } from '@hexagram/types'
 import {
+  BOLD_GREY,
+  buildConsultationSections,
+  buildPartialCastingSections,
+  clamp,
+  computeWrapWidth,
+  dispatchKey,
+  FOOTER_HEIGHT,
+  FooterBar,
+  HEADER_HEIGHT,
+  KEY_HINTS_FLOW_DEFAULT,
+  keyHintsForCasting,
+  MARGIN_CONTENT_TO_NEXT,
+  MARGIN_QUERY_TO_TABS,
+  NORMAL,
+  QUERY_BORDER_HEIGHT,
+  QueryBox,
+  renderProgressBar,
+  ScrollableSection,
+  ScrollbarTrack,
+  stripAnsi,
+  TAB_BAR_HEIGHT,
+  TabBar,
+  wrapToWidth,
+  type ConsultationSections,
+  type KeyContext,
+  type NonEmpty,
+  type TabDescriptor,
+} from '@hexagram/viewer-core'
+import {
   Box,
   render,
   Text,
@@ -30,12 +59,6 @@ import {
   getCastingPromptHeight,
   SLIDER_COMMIT_REVEAL_MS,
 } from './casting-prompt-box.js'
-import {
-  buildConsultationSections,
-  buildPartialCastingSections,
-  type ConsultationSections,
-} from './output-composers.js'
-import { BOLD_GREY, NORMAL } from './output-palette.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
@@ -45,36 +68,11 @@ import {
   type InputMode,
 } from './utils-mode.js'
 import {
-  FooterBar,
-  KEY_HINTS_FLOW_DEFAULT,
-  keyHintsForCasting,
-  QueryBox,
-  ScrollableSection,
-  ScrollbarTrack,
-  TabBar,
-  type NonEmpty,
-  type TabDescriptor,
-} from './viewer-chrome.js'
-import {
   EMPTY_SECTIONS,
   flowReducer,
   initialFlowState,
   type FlowKind,
 } from './viewer-flow.js'
-import { dispatchKey, type KeyContext } from './viewer-keymap.js'
-import {
-  clamp,
-  computeWrapWidth,
-  FOOTER_HEIGHT,
-  HEADER_HEIGHT,
-  MARGIN_CONTENT_TO_NEXT,
-  MARGIN_QUERY_TO_TABS,
-  QUERY_BORDER_HEIGHT,
-  renderProgressBar,
-  stripAnsi,
-  TAB_BAR_HEIGHT,
-  wrapToWidth,
-} from './viewer-layout.js'
 
 export { type FlowKind } from './viewer-flow.js'
 

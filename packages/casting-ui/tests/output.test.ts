@@ -3,14 +3,14 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { emptyPartialCastingRecord } from '@hexagram/types'
-import { describe, expect, it } from 'vitest'
-
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-  consultationConsoleOutput,
-} from '../src/output-composers'
-import { castingSection } from '../src/output-sections'
+  castingSection,
+} from '@hexagram/viewer-core'
+import { describe, expect, it } from 'vitest'
+
+import { consultationConsoleOutput } from '../src/output-composers'
 import { cases } from './fixtures/cases'
 import { STUB_STATIC_HEXAGRAM } from './helpers/stubs'
 

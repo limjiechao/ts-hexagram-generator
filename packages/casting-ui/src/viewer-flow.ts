@@ -4,8 +4,7 @@ import {
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/types'
-
-import type { ConsultationSections } from './output-composers.js'
+import type { ConsultationSections } from '@hexagram/viewer-core'
 
 // Pure flow state machine for the Ink consultation viewer. Lives in its own
 // module (no React, no Ink imports) so transitions can be unit-tested with
