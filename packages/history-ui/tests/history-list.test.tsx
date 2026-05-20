@@ -1,6 +1,6 @@
 import type { Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
-import { describe, expect, it } from 'vitest'
+import { describe, expect, it, vi } from 'vitest'
 
 import { HistoryList } from '../src/history-list'
 
@@ -15,6 +15,8 @@ const ANSI_PATTERN = new RegExp(
 function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, '')
 }
+
+const ESC = String.fromCodePoint(0x1b)
 
 /** Yield to the event loop so Ink can process queued stdin + re-render. */
 const tick = (ms = 50): Promise<void> =>
@@ -151,7 +153,7 @@ describe('<HistoryList>', () => {
     }
   })
 
-  it('shows the filter text and match count in the title', async () => {
+  it('/ opens a dedicated filter row with "Filter" label and match count', async () => {
     const { lastFrame, stdin } = render(
       <HistoryList
         entries={fakeEntries}
@@ -166,8 +168,216 @@ describe('<HistoryList>', () => {
     stdin.write('study')
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('filter: "study"')
+    // Dedicated filter row must show "Filter" label and match count.
+    expect(frame).toContain('Filter ')
     expect(frame).toContain('1 match')
+    // Filter text must NOT appear in the title.
+    expect(frame).not.toContain('filter: "study"')
+    // Title stays as the normal count title.
+    expect(frame).toContain('Past Consultations')
+  })
+
+  it('filter row appears between the title and the list rows', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    const titlePos = frame.indexOf('Past Consultations')
+    const filterPos = frame.indexOf('Filter ')
+    const rowPos = frame.indexOf('2026-03-16')
+    expect(titlePos).toBeGreaterThanOrEqual(0)
+    expect(filterPos).toBeGreaterThan(titlePos)
+    expect(rowPos).toBeGreaterThan(filterPos)
+  })
+
+  it('filter row has no border, accent bar, or inverse (no ╭ ▌ or invert codes)', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('raven')
+    await tick()
+    const rawFrame = lastFrame() ?? ''
+    // No round border corner.
+    expect(rawFrame).not.toContain('╭')
+    // No accent bar character.
+    expect(rawFrame).not.toContain('▌')
+    // Filter row must not contain the inverse-video ESC code (ESC[7m).
+    const invertCode = `${String.fromCodePoint(0x1b)}[7m`
+    // The filter row itself — find lines containing "Filter" and check them.
+    const filterLines = rawFrame
+      .split('\n')
+      .filter((l) => stripAnsi(l).includes('Filter '))
+    expect(filterLines.length).toBeGreaterThan(0)
+    for (const line of filterLines) {
+      expect(line).not.toContain(invertCode)
+    }
+  })
+
+  it('footer hints swap to "ESC clear · Enter load" while filter row is active', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('ESC clear')
+    expect(frame).toContain('Enter load')
+    // Normal nav hints must be absent during filter mode.
+    expect(frame).not.toContain('PgUp/PgDn page')
+  })
+
+  it('ESC closes the filter row and restores normal footer hints', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('study')
+    await tick()
+    // Press ESC to close.
+    stdin.write(ESC)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Filter row must be gone.
+    expect(frame).not.toContain('Filter ')
+    // Normal footer hints restored.
+    expect(frame).toContain('PgUp/PgDn page')
+    // Count-based title restored.
+    expect(frame).toContain('2 consultations')
+  })
+
+  it('filter row shows 0 matches when no entry query matches', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('zzznomatch')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('0 matches')
+  })
+
+  it('filter matching is case-insensitive', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    // "STUDY" should still match the entry with "study"
+    stdin.write('STUDY')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('1 match')
+    expect(frame).toContain('Should I study')
+  })
+
+  it('unreadable files are excluded from filter matches', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    // Type something that would match nothing readable.
+    stdin.write('zzz')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Unreadable file must not appear as a match.
+    expect(frame).not.toContain('[unreadable')
+    expect(frame).toContain('0 matches')
+  })
+
+  it('filter row match count excludes unreadable files even when filter text is empty', async () => {
+    // Two readable consultations + one unreadable file.
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    // Press `/` to open the filter row — filter text is empty at this point.
+    stdin.write('/')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Filter row is open.
+    expect(frame).toContain('Filter ')
+    // Match count must equal the number of readable consultations (2), NOT 3.
+    // The unreadable file must not be counted.
+    expect(frame).toContain('2 matches')
+    expect(frame).not.toContain('3 matches')
+  })
+
+  it('Enter in filter mode calls onPick with the focused entry', async () => {
+    const ENTER = '\r'
+    const onPick = vi.fn()
+    const { stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={onPick}
+      />,
+    )
+    // Open filter mode, type a substring that matches only the second entry.
+    stdin.write('/')
+    await tick()
+    stdin.write('study')
+    await tick()
+    // Press Enter — should call onPick with the focused (only matching) entry.
+    stdin.write(ENTER)
+    await tick()
+    expect(onPick).toHaveBeenCalledOnce()
+    expect(onPick).toHaveBeenCalledWith(fakeEntries[1])
   })
 
   it('windows a long list and uses the scrollbar gutter (no "… N more" indicator)', () => {

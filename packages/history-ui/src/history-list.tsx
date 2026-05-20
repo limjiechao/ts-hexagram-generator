@@ -47,6 +47,15 @@ const TIMESTAMP_PREFIX_WIDTH = 19
 /** Page size for PgUp / PgDn. */
 const PAGE_SIZE = 10
 
+/** Height consumed by the title row. */
+const TITLE_HEIGHT = 1
+
+/** Label prefix for the dedicated filter row. */
+const FILTER_LABEL = 'Filter '
+
+/** Cursor character appended to the filter input. */
+const FILTER_CURSOR = '_'
+
 /** A unified list row — either a readable entry or an unreadable file. */
 type ListRow =
   | { kind: 'entry'; entry: HistoryEntry }
@@ -183,14 +192,7 @@ function padToWidth(text: string, width: number): string {
 function buildTitle(
   consultationCount: number,
   unreadableCount: number,
-  filterMode: boolean,
-  filter: string,
-  matchCount: number,
 ): string {
-  if (filter.length > 0 || filterMode) {
-    const suffix = filter.length > 0 ? `filter: "${filter}" · ${matchCount} ${matchCount === 1 ? 'match' : 'matches'}` : 'filter: _'
-    return `Past Consultations · ${suffix}`
-  }
   const countClause = `${consultationCount} ${consultationCount === 1 ? 'consultation' : 'consultations'}`
   const unreadableClause =
     unreadableCount > 0
@@ -215,7 +217,6 @@ export function HistoryList({
   })
 
   const isEmpty = entries.length === 0 && unreadable.length === 0
-  const isFiltering = state.filter.length > 0
 
   // While filtering, only readable entries whose query matches show; the
   // unreadable rows have no query field and are excluded. With no filter,
@@ -225,7 +226,7 @@ export function HistoryList({
       kind: 'entry',
       entry,
     }))
-    if (isFiltering) {
+    if (state.filter.length > 0) {
       const needle = state.filter.toLowerCase()
       return entryRows.filter(
         (row) =>
@@ -238,7 +239,7 @@ export function HistoryList({
       item,
     }))
     return [...entryRows, ...unreadableRows]
-  }, [entries, unreadable, isFiltering, state.filter])
+  }, [entries, unreadable, state.filter])
 
   const focus = Math.min(state.focus, Math.max(0, listRows.length - 1))
 
@@ -246,10 +247,10 @@ export function HistoryList({
   // innerCols = cols - 2 - 1 (same as computeInnerCols).
   const innerCols = computeInnerCols(cols)
 
-  // Content height = rows minus title (1) minus footer (2).
-  // FOOTER_HEIGHT = 2, title = 1.
-  const TITLE_HEIGHT = 1
-  const contentHeight = Math.max(2, rows - TITLE_HEIGHT - FOOTER_HEIGHT)
+  // Content height = rows minus title (1) minus filter row (1 when visible)
+  // minus footer (2). FOOTER_HEIGHT = 2, title = 1.
+  const FILTER_ROW_HEIGHT = state.filterMode ? 1 : 0
+  const contentHeight = Math.max(2, rows - TITLE_HEIGHT - FILTER_ROW_HEIGHT - FOOTER_HEIGHT)
 
   // Each entry is two display lines. Window capacity in rows (consultation count).
   const windowHeight = Math.max(1, Math.floor(contentHeight / 2))
@@ -331,16 +332,13 @@ export function HistoryList({
   const title = buildTitle(
     entries.length,
     unreadable.length,
-    state.filterMode,
-    state.filter,
-    listRows.length,
   )
 
   const visibleRows = listRows.slice(win.start, win.end)
 
   // Key hint line (top line of footer).
   const hintLine = state.filterMode
-    ? ` filter: ${state.filter}_ · ESC clear · Enter load`
+    ? ' ESC clear · Enter load'
     : ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ESC exit'
 
   // Scroll position status — counted in consultations, not display lines.
@@ -473,12 +471,58 @@ export function HistoryList({
     />
   )
 
+  // Dedicated filter row — plain labeled form field: dim "Filter" label, bold
+  // typed text, right-aligned dim match count. No border, no accent bar, no
+  // inverse. Only shown while filterMode is active.
+  //
+  // Match count is always derived from readable `entries` only — unreadable
+  // files have no query field and must never appear in the count, even when
+  // the filter text is empty (spec: "unreadable files are excluded from matches").
+  const filterMatchCount = useMemo(() => {
+    if (state.filter.length === 0) return entries.length
+    const needle = state.filter.toLowerCase()
+    return entries.filter((e) => e.envelope.query.toLowerCase().includes(needle))
+      .length
+  }, [entries, state.filter])
+
+  const filterRowNode = state.filterMode
+    ? (filterInnerCols: number) => {
+        const matchLabel = `${filterMatchCount} ${filterMatchCount === 1 ? 'match' : 'matches'}`
+        // Width available for the text field between label and match count.
+        // matchLabel length + 1 space gap on the right.
+        const matchLabelWidth = matchLabel.length
+        const textWidth = Math.max(
+          0,
+          filterInnerCols - FILTER_LABEL.length - matchLabelWidth - 1,
+        )
+        // Truncate the filter text to fit the available width (keep tail).
+        const displayText =
+          state.filter.length > textWidth - 1
+            ? `…${state.filter.slice(-(textWidth - 2))}${FILTER_CURSOR}`
+            : `${state.filter}${FILTER_CURSOR}`
+        const gap = ' '.repeat(
+          Math.max(
+            0,
+            filterInnerCols - FILTER_LABEL.length - displayText.length - matchLabelWidth,
+          ),
+        )
+        return (
+          <Box flexDirection="row" flexShrink={0}>
+            <Text dimColor>{FILTER_LABEL}</Text>
+            <Text bold>{displayText}</Text>
+            <Text>{gap}</Text>
+            <Text dimColor>{matchLabel}</Text>
+          </Box>
+        )
+      }
+    : null
+
   return (
     <ScreenShell
       cols={cols}
       rows={rows}
       title={title}
-      aboveContent={null}
+      aboveContent={filterRowNode}
       contentSlot={contentNode}
       scrollbarSlot={scrollbarNode}
       belowContent={null}
