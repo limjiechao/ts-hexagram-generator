@@ -3,6 +3,14 @@
 // scrolling), layout maths, the data-driven keymap, the ANSI palette, and the
 // section/composer renderers that turn a consultation into per-tab strings.
 
+// Tabbed scrollable consultation readout shell — generic chrome engine that
+// serves both the casting-flow view and standalone readouts via slots.
+export {
+  ConsultationReadout,
+  type CastingPromptPan,
+  type ConsultationReadoutProps,
+} from './consultation-readout.js'
+
 // Output composers — assemble the per-tab section strings consumed by the
 // viewer and the plain console renderer.
 export {
