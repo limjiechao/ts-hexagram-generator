@@ -576,7 +576,6 @@ describe('<HistoryList>', () => {
     // The BOLD_RED ANSI escape must appear in the frame. Ink may split bold and
     // colour into separate codes ([1m followed by [91m) rather than the combined
     // [1;91m form — check for the bright-red colour code directly.
-    const ESC = String.fromCodePoint(0x1b)
     expect(frame).toContain(`${ESC}[91m`)
   })
 
@@ -615,7 +614,6 @@ describe('<HistoryList>', () => {
       />,
     )
     const frame = lastFrame() ?? ''
-    const ESC = String.fromCodePoint(0x1b)
 
     // Ink emits inverse-video as \x1b[7m around the focused text.
     expect(frame).toContain(`${ESC}[7m`)
@@ -663,7 +661,6 @@ describe('<HistoryList>', () => {
       />,
     )
     const frame = lastFrame() ?? ''
-    const ESC = String.fromCodePoint(0x1b)
 
     // Collect the lines that carry the inverse-video attribute — those are the
     // focused row's two lines.
@@ -698,7 +695,6 @@ describe('<HistoryList>', () => {
       />,
     )
     const frame = lastFrame() ?? ''
-    const ESC = String.fromCodePoint(0x1b)
     // NORMAL_GREY (\x1b[90m) for the dim timestamp prefix must be present.
     // Ink may emit this as the standalone [90m code (bright-black/dark-grey).
     expect(frame).toContain(`${ESC}[90m`)
