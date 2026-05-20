@@ -16,6 +16,10 @@ function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, '')
 }
 
+/** Yield to the event loop so Ink can process queued stdin + re-render. */
+const tick = (ms = 50): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, ms))
+
 const fakeEntries = [
   {
     path: '/x/a.md',
@@ -42,11 +46,40 @@ const fakeEntries = [
 ]
 
 describe('<HistoryList>', () => {
-  it('renders an empty-state line when entries are empty', () => {
+  it('renders a centered empty-state when there are no entries', () => {
     const { lastFrame } = render(
-      <HistoryList entries={[]} unreadable={[]} cols={80} onPick={() => {}} />,
+      <HistoryList
+        entries={[]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
     )
-    expect(lastFrame()).toContain('No consultations yet')
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('No consultations yet.')
+    expect(frame).toContain('Run hexagram-random or hexagram-interactive')
+    // Empty state suppresses nav/filter hints — footer is just ESC exit.
+    expect(frame).toContain('ESC exit')
+    expect(frame).not.toContain('PgUp/PgDn')
+  })
+
+  it('renders inside a bordered "Past Consultations" container', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Past Consultations')
+    // Round border corner.
+    expect(frame).toContain('╭')
+    // Keybinding footer.
+    expect(frame).toContain('PgUp/PgDn page')
   })
 
   it('renders one two-line row per entry, newest first', () => {
@@ -55,6 +88,7 @@ describe('<HistoryList>', () => {
         entries={fakeEntries}
         unreadable={[]}
         cols={80}
+        rows={24}
         onPick={() => {}}
       />,
     )
@@ -65,7 +99,7 @@ describe('<HistoryList>', () => {
     expect(frame).toMatch(/#\d+/)
   })
 
-  it('truncates long queries to cols - 22', () => {
+  it('truncates long queries to fit the inner width', () => {
     const longQuery = 'x'.repeat(200)
     const { lastFrame } = render(
       <HistoryList
@@ -77,11 +111,72 @@ describe('<HistoryList>', () => {
         ]}
         unreadable={[]}
         cols={50}
+        rows={24}
         onPick={() => {}}
       />,
     )
-    expect(
-      stripAnsi((lastFrame() ?? '').split('\n')[0]!).length,
-    ).toBeLessThanOrEqual(50)
+    for (const line of (lastFrame() ?? '').split('\n')) {
+      expect(stripAnsi(line).length).toBeLessThanOrEqual(50)
+    }
+  })
+
+  it('shows the filter text and match count in the border title', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('study')
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('filter: "study"')
+    expect(frame).toContain('1 match')
+  })
+
+  it('windows a long list and shows the "… N more" indicator', () => {
+    const many = Array.from({ length: 40 }, (_, i) => ({
+      path: `/x/${i}.md`,
+      envelope: {
+        schemaVersion: 1,
+        timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
+        query: `Question number ${i}`,
+        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+        casting: [] as never,
+      },
+      body: '',
+    }))
+    const { lastFrame } = render(
+      <HistoryList
+        entries={many}
+        unreadable={[]}
+        cols={80}
+        rows={16}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toMatch(/… \d+ more/)
+    expect(frame).not.toMatch(/… \d+ above/)
+  })
+
+  it('renders dimmed unreadable rows with the filename on line 2', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('[unreadable — invalid-yaml]')
+    expect(frame).toContain('/x/broken.md')
   })
 })

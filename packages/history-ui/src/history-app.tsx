@@ -38,8 +38,9 @@ type AppState =
 
 export function HistoryApp({ dir }: { dir: string }): ReactElement {
   const { exit } = useApp()
-  const { columns } = useWindowSize()
+  const { columns, rows } = useWindowSize()
   const cols = columns || 80
+  const termRows = rows || 24
   const [scan, setScan] = useState<{
     entries: HistoryEntry[]
     unreadable: { path: string; reason: string }[]
@@ -79,39 +80,43 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
   }
 
   if (state.mode === 'list') {
+    let statusLine: { text: string; tone: 'dim' | 'error' } | null = null
+    if (state.loading) {
+      statusLine = { text: 'Loading…', tone: 'dim' }
+    } else if (state.error !== null) {
+      statusLine = { text: state.error, tone: 'error' }
+    }
     return (
-      <Box flexDirection="column">
-        <HistoryList
-          entries={scan.entries}
-          unreadable={scan.unreadable as never}
-          cols={cols}
-          onPick={(entry) => {
-            // Debounce: ignore further Enter presses while a load is in flight.
-            if (state.loading) return
-            setState({ mode: 'list', loading: true, error: null })
-            rerenderOnDisk(entry.path, entry.envelope)
-              .then((r) => {
-                setState({
-                  mode: 'view',
-                  entry,
-                  body: r.body,
-                  rewroteOnLoad: r.rewrote,
-                })
+      <HistoryList
+        entries={scan.entries}
+        unreadable={scan.unreadable as never}
+        cols={cols}
+        rows={termRows}
+        statusLine={statusLine}
+        onPick={(entry) => {
+          // Debounce: ignore further Enter presses while a load is in flight.
+          if (state.loading) return
+          setState({ mode: 'list', loading: true, error: null })
+          rerenderOnDisk(entry.path, entry.envelope)
+            .then((r) => {
+              setState({
+                mode: 'view',
+                entry,
+                body: r.body,
+                rewroteOnLoad: r.rewrote,
               })
-              .catch((error: unknown) => {
-                setState({
-                  mode: 'list',
-                  loading: false,
-                  error: `Failed to load ${entry.path}: ${
-                    error instanceof Error ? error.message : String(error)
-                  }`,
-                })
+            })
+            .catch((error: unknown) => {
+              setState({
+                mode: 'list',
+                loading: false,
+                error: `Failed to load ${entry.path}: ${
+                  error instanceof Error ? error.message : String(error)
+                }`,
               })
-          }}
-        />
-        {state.loading ? <Text dimColor>Loading…</Text> : null}
-        {state.error === null ? null : <Text color="red">{state.error}</Text>}
-      </Box>
+            })
+        }}
+      />
     )
   }
 

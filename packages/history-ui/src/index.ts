@@ -6,4 +6,9 @@ export {
   type ScanResult,
   type UnreadableEntry,
 } from './history-scan.js'
+export {
+  computeWindowStart,
+  resolveRowWindow,
+  type RowWindow,
+} from './row-window.js'
 export { runHistoryViewer } from './run-history-viewer.js'
