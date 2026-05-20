@@ -16,7 +16,7 @@ import {
 import { Box, Text, useInput } from 'ink'
 import path from 'node:path'
 import process from 'node:process'
-import { useMemo, useReducer, type ReactElement } from 'react'
+import { useMemo, useReducer, useState, type ReactElement } from 'react'
 
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
 import { computeWindowStart, resolveRowWindow } from './row-window.js'
@@ -216,6 +216,13 @@ export function HistoryList({
     filter: '',
   })
 
+  /**
+   * Set when `Enter` is pressed on an unreadable row; cleared on the next
+   * navigation key. Overrides the footer bottom row with
+   * `Cannot open — <reason>`.
+   */
+  const [cannotOpenStatus, setCannotOpenStatus] = useState<string | null>(null)
+
   const isEmpty = entries.length === 0 && unreadable.length === 0
 
   // While filtering, only readable entries whose query matches show; the
@@ -284,48 +291,72 @@ export function HistoryList({
       return
     }
     if (input === '/') {
+      setCannotOpenStatus(null)
       dispatch({ type: 'filterEnter' })
       return
     }
     const geom = { size: listRows.length, windowHeight }
-    if (key.upArrow) dispatch({ type: 'up', ...geom })
-    else if (key.downArrow) dispatch({ type: 'down', ...geom })
-    else if (key.pageUp) dispatch({ type: 'pageUp', ...geom })
-    else if (key.pageDown) dispatch({ type: 'pageDown', ...geom })
-    else if (input === 'g') dispatch({ type: 'first', ...geom })
-    else if (input === 'G') dispatch({ type: 'last', ...geom })
-    else if (key.return) {
+    if (key.upArrow) {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'up', ...geom })
+    } else if (key.downArrow) {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'down', ...geom })
+    } else if (key.pageUp) {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'pageUp', ...geom })
+    } else if (key.pageDown) {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'pageDown', ...geom })
+    } else if (input === 'g') {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'first', ...geom })
+    } else if (input === 'G') {
+      setCannotOpenStatus(null)
+      dispatch({ type: 'last', ...geom })
+    } else if (key.return) {
       const row = listRows[focus]
-      if (row?.kind === 'entry') onPick(row.entry)
+      if (row?.kind === 'entry') {
+        onPick(row.entry)
+      } else if (row?.kind === 'unreadable') {
+        setCannotOpenStatus(`Cannot open — ${row.item.reason}`)
+      }
     }
   })
 
-  // Mockup D — empty state: centered message, no nav/filter hints.
+  // Empty state — no consultations and no unreadable files.
+  // Renders inside ScreenShell so the chrome is consistent with the populated
+  // list. Title shows "0 consultations"; footer is just "ESC exit".
   if (isEmpty) {
-    return (
-      <Box flexDirection="column" width={cols} height={rows}>
-        <Box
-          flexGrow={1}
-          flexDirection="column"
-          alignItems="center"
-          justifyContent="center"
-        >
-          <Text>No consultations yet.</Text>
-          <Text dimColor>
-            Run hexagram-random or hexagram-interactive first.
-          </Text>
-        </Box>
-        {statusLine === null ? (
-          <Text dimColor> ESC exit</Text>
-        ) : (
-          <Text
-            color={statusLine.tone === 'error' ? 'red' : undefined}
-            dimColor
-          >
-            {` ${statusLine.text}`}
-          </Text>
-        )}
+    const emptyTitle = 'Past Consultations · consultations/ · 0 consultations'
+    const emptyFooter = (
+      <Box flexDirection="column" flexShrink={0}>
+        <Text dimColor> ESC exit</Text>
+        <Text>{` `}</Text>
       </Box>
+    )
+    const emptyContent = (
+      <Box
+        flexDirection="column"
+        alignItems="center"
+        justifyContent="center"
+        flexGrow={1}
+      >
+        <Text>No consultations yet.</Text>
+        <Text dimColor>Run hexagram-random or hexagram-interactive first.</Text>
+      </Box>
+    )
+    return (
+      <ScreenShell
+        cols={cols}
+        rows={rows}
+        title={emptyTitle}
+        aboveContent={null}
+        contentSlot={emptyContent}
+        scrollbarSlot={null}
+        belowContent={null}
+        footerSlot={emptyFooter}
+      />
     )
   }
 
@@ -353,7 +384,8 @@ export function HistoryList({
     innerCols,
   )
 
-  // Bottom line: focused file path (relative to cwd), or statusLine override.
+  // Bottom line: focused file path (relative to cwd), or statusLine override,
+  // or cannotOpenStatus override (when Enter is pressed on an unreadable row).
   const focusedRow = listRows[focus]
   let focusedPath = ''
   if (focusedRow != null) {
@@ -363,19 +395,26 @@ export function HistoryList({
         : path.relative(process.cwd(), focusedRow.item.path)
   }
 
+  // cannotOpenStatus takes the highest priority; statusLine overrides the
+  // normal focused-path line; otherwise show the focused path.
+  const effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null =
+    cannotOpenStatus === null
+      ? statusLine
+      : { text: cannotOpenStatus, tone: 'error' }
+
   const bottomLineRaw =
-    statusLine === null ? focusedPath : statusLine.text
+    effectiveStatusLine === null ? focusedPath : effectiveStatusLine.text
 
   const bottomLine = truncateStart(bottomLineRaw, innerCols)
 
   const footerNode = (
     <Box flexDirection="column" flexShrink={0}>
       <Text dimColor>{` ${statusLine1}`}</Text>
-      {statusLine === null ? (
+      {effectiveStatusLine === null ? (
         <Text>{`${BOLD_GREY} ${bottomLine}${NORMAL}`}</Text>
       ) : (
-        <Text color={statusLine.tone === 'error' ? 'red' : undefined} dimColor>
-          {`${BOLD_GREY} ${bottomLine}${NORMAL}`}
+        <Text dimColor>
+          {`${effectiveStatusLine.tone === 'error' ? BOLD_RED : BOLD_GREY} ${bottomLine}${NORMAL}`}
         </Text>
       )}
     </Box>
@@ -389,8 +428,8 @@ export function HistoryList({
         if (row.kind === 'unreadable') {
           return (
             <Box key={row.item.path} flexDirection="column">
-              <Text inverse={isFocused} dimColor>
-                {truncate(`[unreadable — ${row.item.reason}]`, innerCols)}
+              <Text inverse={isFocused}>
+                {`${BOLD_RED}${truncate(`[unreadable — ${row.item.reason}]`, innerCols)}${NORMAL}`}
               </Text>
               <Text inverse={isFocused} dimColor>
                 {' '.repeat(TIMESTAMP_PREFIX_WIDTH) +

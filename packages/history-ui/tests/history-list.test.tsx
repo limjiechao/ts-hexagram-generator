@@ -706,4 +706,225 @@ describe('<HistoryList>', () => {
     // Check for the bright-white colour code that forms part of BOLD_WHITE.
     expect(frame).toContain(`${ESC}[97m`)
   })
+
+  // ── Issue #19: empty state inside ScreenShell ──────────────────────────────
+
+  it('empty state renders inside ScreenShell with "0 consultations" title', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Title must include "Past Consultations" and "0 consultations".
+    expect(frame).toContain('Past Consultations')
+    expect(frame).toContain('0 consultations')
+    // ScreenShell is borderless — no round-corner characters.
+    expect(frame).not.toContain('╭')
+  })
+
+  it('empty state footer shows only "ESC exit" — no nav hints', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('ESC exit')
+    // Nav / filter hints must be absent in the empty state.
+    expect(frame).not.toContain('PgUp/PgDn')
+    expect(frame).not.toContain('/ filter')
+  })
+
+  it('empty state content area shows the centered message and guidance', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('No consultations yet.')
+    expect(frame).toContain('Run hexagram-random or hexagram-interactive first.')
+  })
+
+  it('only-unreadable case is NOT treated as empty — still shows rows', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // The list must show the unreadable row and nav hints — not the empty-state message.
+    expect(frame).not.toContain('No consultations yet.')
+    expect(frame).toContain('[unreadable — invalid-yaml]')
+    expect(frame).toContain('PgUp/PgDn page')
+  })
+
+  // ── Issue #19: unreadable-row BOLD_RED label ────────────────────────────────
+
+  it('unreadable row label contains a bright-red ANSI SGR code', () => {
+    // Ink may split the combined '1;91m' into separate SGR codes '1m' and '91m'.
+    // We verify the bright-red SGR 91 is present in the raw (non-stripped) frame.
+    const BRIGHT_RED_SGR = '[91m'
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'schema-version-mismatch' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    // The raw frame must include the bright-red SGR code.
+    expect(frame).toContain(BRIGHT_RED_SGR)
+    expect(frame).toContain('[unreadable — schema-version-mismatch]')
+  })
+
+  it('unreadable row path line does not start with bright-red (dim path, not label)', () => {
+    // The path line (line 2) must NOT start with the bright-red SGR code — only
+    // the label (line 1) gets BOLD_RED; the path stays dim.
+    const BRIGHT_RED_SGR = '[91m'
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'schema-version-mismatch' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    const lines = frame.split('\n')
+    // The path line should NOT start with the bright-red SGR code.
+    const pathLine = lines.find((l) => stripAnsi(l).includes('broken.md'))
+    expect(pathLine).toBeDefined()
+    // Strip leading whitespace before checking — the path is indented.
+    expect(pathLine!.trimStart().startsWith(BRIGHT_RED_SGR)).toBe(false)
+  })
+
+  // ── Issue #19: Enter on unreadable row sets footer status ──────────────────
+
+  it('Enter on an unreadable row sets "Cannot open — <reason>" footer status', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    // The unreadable row is focused by default (only row in the list).
+    stdin.write('\r')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Cannot open — invalid-yaml')
+  })
+
+  it('Enter on readable entry does NOT set Cannot open status', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={[fakeEntries[0]!]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('\r')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).not.toContain('Cannot open')
+  })
+
+  it('Cannot open status is cleared on navigation', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={[fakeEntries[0]!]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    // Navigate to the unreadable row (second row, index 1) then press Enter.
+    stdin.write('[B') // down arrow
+    await tick()
+    stdin.write('\r')
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Cannot open — invalid-yaml')
+
+    // Navigate away — status should clear.
+    stdin.write('[A') // up arrow
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
+  })
+  // ── Finding #1: cannotOpenStatus cleared when entering filter mode ──────────
+
+  it('Cannot open status is cleared when pressing / to enter filter mode', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    // Press Enter on the unreadable row to set the "Cannot open" status.
+    stdin.write('\r')
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Cannot open — invalid-yaml')
+
+    // Press / to enter filter mode — the stale "Cannot open" status must clear.
+    stdin.write('/')
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
+  })
+
+  // ── Finding #2: error-tone footer status renders with red ANSI code ─────────
+
+  it('error-tone cannotOpenStatus footer renders with bright-red ANSI SGR code', async () => {
+    // The error tone must use BOLD_RED (SGR 91) rather than being overridden by
+    // the dead `color` prop fight — verify the raw frame contains the red code.
+    const BRIGHT_RED_SGR = '[91m'
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    // Press Enter on the unreadable row to trigger the "Cannot open" error status.
+    stdin.write('\r')
+    await tick()
+    // The raw (un-stripped) frame must include the bright-red SGR code on the
+    // footer line containing "Cannot open".
+    const frame = lastFrame() ?? ''
+    expect(stripAnsi(frame)).toContain('Cannot open — invalid-yaml')
+    const lines = frame.split('\n')
+    const errorLine = lines.find((l) => stripAnsi(l).includes('Cannot open'))
+    expect(errorLine).toBeDefined()
+    expect(errorLine).toContain(BRIGHT_RED_SGR)
+  })
+
 })
