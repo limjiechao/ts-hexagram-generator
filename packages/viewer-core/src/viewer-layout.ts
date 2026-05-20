@@ -13,6 +13,7 @@ export const HEADER_HEIGHT = 1
 export const TAB_BAR_HEIGHT = 1
 export const FOOTER_HEIGHT = 2
 export const QUERY_BORDER_HEIGHT = 0
+export const MARGIN_HEADER_TO_QUERY = 1
 export const MARGIN_QUERY_TO_TABS = 1
 export const MARGIN_CONTENT_TO_NEXT = 1
 
@@ -89,6 +90,19 @@ export function truncateStart(text: string, width: number): string {
   const total = stringWidth(text)
   if (total <= width) return text
   return `${ELLIPSIS}${sliceAnsi(text, total - Math.max(0, width - 1), total)}`
+}
+
+/**
+ * Pad `text` with trailing spaces until its *display width* reaches `width`
+ * columns. Display-width-aware: wide CJK glyphs count as two columns and
+ * embedded SGR codes count as zero — so a padded line fills an inverse
+ * highlight bar edge-to-edge without overshooting and wrapping. Returns
+ * `text` unchanged when it already meets or exceeds `width`.
+ */
+export function padEndToWidth(text: string, width: number): string {
+  const current = stringWidth(text)
+  if (current >= width) return text
+  return text + ' '.repeat(width - current)
 }
 
 // ── Footer / status formatters ───────────────────────────────────────────────

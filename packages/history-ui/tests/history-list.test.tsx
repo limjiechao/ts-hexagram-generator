@@ -229,7 +229,7 @@ describe('<HistoryList>', () => {
     }
   })
 
-  it('footer hints swap to "ESC clear · Enter load" while filter row is active', async () => {
+  it('footer hint reads "Esc close filter · Enter load" with an empty filter row', async () => {
     const { lastFrame, stdin } = render(
       <HistoryList
         entries={fakeEntries}
@@ -242,13 +242,13 @@ describe('<HistoryList>', () => {
     stdin.write('/')
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('ESC clear')
+    expect(frame).toContain('Esc close filter')
     expect(frame).toContain('Enter load')
     // Normal nav hints must be absent during filter mode.
     expect(frame).not.toContain('PgUp/PgDn page')
   })
 
-  it('ESC closes the filter row and restores normal footer hints', async () => {
+  it('ESC closes the empty filter row and restores normal footer hints', async () => {
     const { lastFrame, stdin } = render(
       <HistoryList
         entries={fakeEntries}
@@ -260,9 +260,7 @@ describe('<HistoryList>', () => {
     )
     stdin.write('/')
     await tick()
-    stdin.write('study')
-    await tick()
-    // Press ESC to close.
+    // Filter row is empty — a single ESC closes it.
     stdin.write(ESC)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
@@ -752,7 +750,9 @@ describe('<HistoryList>', () => {
     )
     const frame = lastFrame() ?? ''
     expect(frame).toContain('No consultations yet.')
-    expect(frame).toContain('Run hexagram-random or hexagram-interactive first.')
+    expect(frame).toContain(
+      'Run hexagram-random or hexagram-interactive first.',
+    )
   })
 
   it('only-unreadable case is NOT treated as empty — still shows rows', () => {
@@ -781,7 +781,9 @@ describe('<HistoryList>', () => {
     const { lastFrame } = render(
       <HistoryList
         entries={[]}
-        unreadable={[{ path: '/x/broken.md', reason: 'schema-version-mismatch' }]}
+        unreadable={[
+          { path: '/x/broken.md', reason: 'schema-version-mismatch' },
+        ]}
         cols={80}
         rows={24}
         onPick={() => {}}
@@ -800,7 +802,9 @@ describe('<HistoryList>', () => {
     const { lastFrame } = render(
       <HistoryList
         entries={[]}
-        unreadable={[{ path: '/x/broken.md', reason: 'schema-version-mismatch' }]}
+        unreadable={[
+          { path: '/x/broken.md', reason: 'schema-version-mismatch' },
+        ]}
         cols={80}
         rows={24}
         onPick={() => {}}
@@ -923,4 +927,210 @@ describe('<HistoryList>', () => {
     expect(errorLine).toContain(BRIGHT_RED_SGR)
   })
 
+  // ── Bug fix: wide-CJK rows must never wrap a stray third line ────────────────
+
+  it('focused row is exactly two inverse lines — wide CJK glyphs never wrap a third', () => {
+    // movingEntry's summary line carries CJK hexagram names (display width 2
+    // per glyph). A .length-based pad overshoots the inner width and wraps a
+    // stray third inverse line; display-width padding keeps it at two.
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[movingEntry]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const focusedLines = (lastFrame() ?? '')
+      .split('\n')
+      .filter((l) => l.includes(`${ESC}[7m`))
+    expect(focusedLines.length).toBe(2)
+  })
+
+  it('no rendered line exceeds the terminal width with wide CJK glyphs', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[movingEntry, staticEntry]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    for (const line of (lastFrame() ?? '').split('\n')) {
+      // CJK ideographs / kana / fullwidth forms render two columns wide; a
+      // .length check understates them. Count those ranges as 2, everything
+      // else (including the width-1 box-drawing arrow glyphs) as 1.
+      const stripped = stripAnsi(line)
+      let width = 0
+      for (const ch of stripped) {
+        const cp = ch.codePointAt(0) ?? 0
+        const wide =
+          (cp >= 0x1100 && cp <= 0x115f) || // Hangul Jamo
+          (cp >= 0x2e80 && cp <= 0x303e) || // CJK radicals / symbols
+          (cp >= 0x3041 && cp <= 0x33ff) || // kana, CJK symbols
+          (cp >= 0x3400 && cp <= 0x9fff) || // CJK ideographs
+          (cp >= 0xf900 && cp <= 0xfaff) || // CJK compatibility
+          (cp >= 0xff00 && cp <= 0xff60) // fullwidth forms
+        width += wide ? 2 : 1
+      }
+      expect(width).toBeLessThanOrEqual(80)
+    }
+  })
+
+  it('every windowed entry keeps its timestamp visible on a tall wide terminal (no overdraw)', () => {
+    // A focused row that wraps overflows the content box; flexbox then shrinks
+    // every row and the head (timestamp) lines overdraw. With clean two-line
+    // rows the first windowHeight timestamps stay visible.
+    const many = Array.from({ length: 40 }, (_, i) => ({
+      path: `/x/${i}.md`,
+      body: '',
+      envelope: {
+        schemaVersion: 1,
+        timestamp: `2026-04-${String(i + 1).padStart(2, '0')}T09:00:00+0800`,
+        query: `Question ${i} about the path ahead`,
+        hexagram: [9, 7, 8, 9, 7, 8] as Hexagram,
+        casting: [] as never,
+      },
+    }))
+    const { lastFrame } = render(
+      <HistoryList
+        entries={many}
+        unreadable={[]}
+        cols={237}
+        rows={53}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // windowHeight = floor((53 - 1 - 0 - 2) / 2) = 25 — first 25 visible.
+    for (let i = 0; i < 25; i += 1) {
+      expect(frame).toContain(`2026-04-${String(i + 1).padStart(2, '0')} 09:00`)
+    }
+  })
+
+  // ── Bug fix: navigation stays live while the filter row is open ──────────────
+
+  it('up/down arrows move the focused row while the filter row is open', async () => {
+    const onPick = vi.fn()
+    const { stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={onPick}
+      />,
+    )
+    // Open filter, type a substring matching BOTH entries (each query has 'i').
+    stdin.write('/')
+    await tick()
+    stdin.write('i')
+    await tick()
+    // Down then Enter must pick the second matching entry, not the first.
+    stdin.write(`${ESC}[B`)
+    await tick()
+    stdin.write('\r')
+    await tick()
+    expect(onPick).toHaveBeenCalledWith(fakeEntries[1])
+  })
+
+  // ── Bug fix: ESC semantics in and out of the filter row ─────────────────────
+
+  it('ESC with non-empty filter text clears the text but keeps the filter row open', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('study')
+    await tick()
+    stdin.write(ESC)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Filter row stays open; the cleared text shows all entries again.
+    expect(frame).toContain('Filter ')
+    expect(frame).toContain('2 matches')
+  })
+
+  it('ESC in normal mode calls onExit', async () => {
+    const onExit = vi.fn()
+    const { stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onExit={onExit}
+      />,
+    )
+    stdin.write(ESC)
+    await tick()
+    expect(onExit).toHaveBeenCalledOnce()
+  })
+
+  it('ESC does not call onExit while the filter row is open', async () => {
+    const onExit = vi.fn()
+    const { stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onExit={onExit}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write(ESC) // empty filter — closes the row, must not exit
+    await tick()
+    expect(onExit).not.toHaveBeenCalled()
+  })
+
+  it('filter footer hint reads "Esc clear filter" when the filter text is non-empty', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    stdin.write('study')
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Esc clear filter')
+  })
+
+  // ── Bug fix: blank line above and below the filter row ──────────────────────
+
+  it('filter row has a blank line above and below it', async () => {
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    stdin.write('/')
+    await tick()
+    const lines = stripAnsi(lastFrame() ?? '').split('\n')
+    const filterIndex = lines.findIndex((l) => l.includes('Filter '))
+    expect(filterIndex).toBeGreaterThan(0)
+    expect((lines[filterIndex - 1] ?? 'x').trim()).toBe('')
+    expect((lines[filterIndex + 1] ?? 'x').trim()).toBe('')
+  })
 })

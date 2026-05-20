@@ -49,6 +49,13 @@ function formatLoadedTimestamp(iso: string): string {
  */
 const DEFAULT_MAX_WRAP_WIDTH = 120
 
+/**
+ * Footer key hints for a consultation loaded from history. Escape returns to
+ * the list rather than quitting the program, so the hint says so verbatim.
+ */
+const LOADED_READOUT_KEY_HINTS =
+  'Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc back to history'
+
 type AppState =
   | { mode: 'list'; loading: boolean; error: string | null }
   | {
@@ -82,13 +89,12 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
       })
   }, [dir])
 
-  // ESC / Ctrl+C handling for the list view. The readout owns its own ESC
-  // (wired to the `onExit` prop below) — it returns to the list rather than
-  // exiting the program — so this handler is a no-op while in `view` mode to
-  // avoid double-handling the keypress.
+  // Ctrl+C always exits. Escape is owned entirely by the child views — the
+  // list (`onExit` below) so that, while its filter row is open, Escape
+  // clears/closes the filter instead of leaking through to an app-level
+  // exit; the readout (its own `onExit`) so Escape returns to the list.
   useInput((input, key) => {
-    if (state.mode !== 'list') return
-    if (key.escape || (key.ctrl && input === 'c')) {
+    if (key.ctrl && input === 'c') {
       exit()
     }
   })
@@ -115,6 +121,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         cols={cols}
         rows={termRows}
         statusLine={statusLine}
+        onExit={exit}
         onPick={(entry) => {
           // Debounce: ignore further Enter presses while a load is in flight.
           if (state.loading) return
@@ -163,6 +170,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
       title={`Consultation · loaded ${formatLoadedTimestamp(
         envelope.timestamp,
       )}`}
+      doneKeyHints={LOADED_READOUT_KEY_HINTS}
       notice={
         state.rewroteOnLoad ? '✓ Body refreshed; data unchanged.' : undefined
       }

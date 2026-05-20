@@ -33,6 +33,7 @@ import {
   FOOTER_HEIGHT,
   HEADER_HEIGHT,
   MARGIN_CONTENT_TO_NEXT,
+  MARGIN_HEADER_TO_QUERY,
   MARGIN_QUERY_TO_TABS,
   QUERY_BORDER_HEIGHT,
   stripAnsi,
@@ -123,6 +124,12 @@ export interface ConsultationReadoutProps {
   readonly flowHint?: string | null
   /** Footer key hints shown while `locked`. */
   readonly flowKeyHints?: string
+  /**
+   * Footer key hints shown in the done (unlocked) state. Defaults to the
+   * standard viewer hints; the loaded-history readout overrides it so the
+   * footer reads "Esc back to history" instead of "Esc quit".
+   */
+  readonly doneKeyHints?: string
   /** Input mode — forwarded to the keymap (`slider` enables prompt panning). */
   readonly inputMode?: InputMode
   /** Optional title (unused by the casting flow; reserved for standalone use). */
@@ -178,6 +185,7 @@ export function ConsultationReadout({
   castingPromptPan,
   flowHint = null,
   flowKeyHints = KEY_HINTS_FLOW_DEFAULT,
+  doneKeyHints,
   inputMode = 'slider',
   title,
   notice,
@@ -250,6 +258,7 @@ export function ConsultationReadout({
     termRows -
       titleHeight -
       HEADER_HEIGHT -
+      MARGIN_HEADER_TO_QUERY -
       queryBoxHeight -
       MARGIN_QUERY_TO_TABS -
       TAB_BAR_HEIGHT -
@@ -422,7 +431,10 @@ export function ConsultationReadout({
   const aboveContent = (
     <>
       <Text>{`${BOLD_GREY}QUERY:${NORMAL}`}</Text>
-      {querySlot(innerCols)}
+      {/* One blank line sets the QUERY: label off from the accent-bar query. */}
+      <Box marginTop={MARGIN_HEADER_TO_QUERY} flexShrink={0}>
+        {querySlot(innerCols)}
+      </Box>
       <Box marginTop={MARGIN_QUERY_TO_TABS} flexShrink={0}>
         <TabBar
           tabs={tabs}
@@ -479,6 +491,7 @@ export function ConsultationReadout({
         flowHint={flowHint}
         inFlow={locked}
         flowKeyHints={flowKeyHints}
+        doneKeyHints={doneKeyHints}
       />
     </Box>
   )

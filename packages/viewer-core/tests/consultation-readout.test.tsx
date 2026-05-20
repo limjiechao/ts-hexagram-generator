@@ -191,31 +191,58 @@ describe('ConsultationReadout — locked (in-flow) state', () => {
 })
 
 describe('ConsultationReadout — numbered tab labels', () => {
-  it('prefixes each tab label with its 1-based number in normal form', () => {
+  it('prefixes each tab label with its bracketed 1-based key hint in normal form', () => {
     const { lastFrame, unmount } = renderReadout({})
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('1 Casting')
-    expect(frame).toContain('2 Transformation')
-    expect(frame).toContain('3 Standing Hexagram')
-    expect(frame).toContain('4 Emerging Hexagram')
+    expect(frame).toContain('<1> Casting')
+    expect(frame).toContain('<2> Transformation')
+    expect(frame).toContain('<3> Standing Hexagram')
+    expect(frame).toContain('<4> Emerging Hexagram')
     unmount()
   })
 
-  it('prefixes the active tab label with its number in locked form', () => {
+  it('prefixes the active tab label with its bracketed key hint in locked form', () => {
     const { lastFrame, unmount } = renderReadout({ locked: true })
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('1 Casting')
+    expect(frame).toContain('<1> Casting')
     unmount()
   })
 
-  it('prefixes the active tab label with its number in collapsed (overflow) form', () => {
+  it('prefixes the active tab label with its bracketed key hint in collapsed (overflow) form', () => {
     // Force collapsed mode by using a terminal too narrow for the full tab bar.
     windowSize.current = { columns: 30, rows: 24 }
     const { lastFrame, unmount } = renderReadout({})
     const frame = lastFrame() ?? ''
-    // Collapsed form shows ` N label  (N/total)`.
-    expect(frame).toContain('1 Casting')
+    // Collapsed form shows ` <N> label  (N/total)`.
+    expect(frame).toContain('<1> Casting')
     expect(frame).toContain('(1/4)')
+    unmount()
+  })
+})
+
+describe('ConsultationReadout — footer key hints + query spacing', () => {
+  it('uses doneKeyHints for the footer key-hint line in done mode', () => {
+    const { lastFrame, unmount } = renderReadout({
+      doneKeyHints: 'Esc back to history',
+    })
+    expect(lastFrame() ?? '').toContain('Esc back to history')
+    unmount()
+  })
+
+  it('falls back to the default key hints when doneKeyHints is omitted', () => {
+    const { lastFrame, unmount } = renderReadout({})
+    expect(lastFrame() ?? '').toContain('Esc quit')
+    unmount()
+  })
+
+  it('renders a blank line between the QUERY: header and the accent-bar query line', () => {
+    const { lastFrame, unmount } = renderReadout({})
+    const lines = (lastFrame() ?? '').split('\n')
+    const headerIndex = lines.findIndex((l) => l.includes('QUERY:'))
+    expect(headerIndex).toBeGreaterThanOrEqual(0)
+    // One blank line separates the QUERY: label from the ▌ accent-bar line.
+    expect((lines[headerIndex + 1] ?? 'x').trim()).toBe('')
+    expect(lines[headerIndex + 2] ?? '').toContain('▌')
     unmount()
   })
 })

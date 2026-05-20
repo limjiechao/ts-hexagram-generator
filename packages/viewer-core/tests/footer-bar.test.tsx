@@ -176,4 +176,19 @@ describe('FooterBar — status row hint ordering', () => {
     expect(frame).toContain('SPACE: part')
     unmount()
   })
+
+  it('renders the doneKeyHints override in done mode', () => {
+    const { lastFrame, unmount } = render(
+      <FooterBar
+        {...baseProps}
+        cols={80}
+        doneKeyHints="Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc back to history"
+        verticalStatus={null}
+        horizontalStatus={null}
+        wrapChip={null}
+      />,
+    )
+    expect(lastFrame() ?? '').toContain('Esc back to history')
+    unmount()
+  })
 })

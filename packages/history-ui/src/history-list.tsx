@@ -1,3 +1,6 @@
+import path from 'node:path'
+import process from 'node:process'
+
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/types'
 import {
@@ -8,14 +11,13 @@ import {
   FOOTER_HEIGHT,
   NORMAL,
   NORMAL_GREY,
+  padEndToWidth,
   ScreenShell,
   ScrollbarTrack,
   truncateEnd,
   truncateStart,
 } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
-import path from 'node:path'
-import process from 'node:process'
 import { useMemo, useReducer, useState, type ReactElement } from 'react'
 
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
@@ -35,6 +37,13 @@ interface HistoryListProps {
    */
   statusLine?: { text: string; tone: 'dim' | 'error' } | null
   onPick: (entry: HistoryEntry) => void
+  /**
+   * Called when the user presses Escape outside the filter row (or Ctrl+C is
+   * handled upstream). The list owns Escape so that — while the filter row is
+   * open — Escape clears/closes the filter instead of leaking through to an
+   * app-level exit handler. Defaults to a no-op.
+   */
+  onExit?: () => void
 }
 
 /**
@@ -84,6 +93,7 @@ type Action =
   | ({ type: 'last' } & NavGeometry)
   | { type: 'filterEnter' }
   | { type: 'filterExit' }
+  | { type: 'filterClear' }
   | { type: 'filterChange'; value: string }
 
 /** Re-clamp focus and re-derive the sticky window in one step. */
@@ -119,6 +129,9 @@ function reducer(state: State, action: Action): State {
       return { ...state, filterMode: true }
     case 'filterExit':
       return { ...state, filterMode: false, filter: '' }
+    case 'filterClear':
+      // Clear the typed text but keep the filter row open.
+      return { ...state, filter: '' }
     case 'filterChange':
       return { ...state, filter: action.value }
   }
@@ -126,12 +139,6 @@ function reducer(state: State, action: Action): State {
 
 function shortenTimestamp(iso: string): string {
   return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`
-}
-
-function truncate(text: string, max: number): string {
-  if (max <= 0) return ''
-  if (text.length <= max) return text
-  return `${text.slice(0, Math.max(0, max - 1))}…`
 }
 
 /**
@@ -171,17 +178,8 @@ function entryHeadLineParts(
   const prefix = `[${shortenTimestamp(entry.envelope.timestamp)}] `
   return {
     prefix,
-    query: truncate(query, innerWidth - TIMESTAMP_PREFIX_WIDTH),
+    query: truncateEnd(query, innerWidth - TIMESTAMP_PREFIX_WIDTH),
   }
-}
-
-/**
- * Pad a plain text string to `width` with trailing spaces, so that an inverse
- * highlight spans edge to edge on the focused row.
- */
-function padToWidth(text: string, width: number): string {
-  if (text.length >= width) return text
-  return text + ' '.repeat(width - text.length)
 }
 
 /**
@@ -195,9 +193,7 @@ function buildTitle(
 ): string {
   const countClause = `${consultationCount} ${consultationCount === 1 ? 'consultation' : 'consultations'}`
   const unreadableClause =
-    unreadableCount > 0
-      ? ` · ${unreadableCount} unreadable`
-      : ''
+    unreadableCount > 0 ? ` · ${unreadableCount} unreadable` : ''
   return `Past Consultations · consultations/ · ${countClause}${unreadableClause}`
 }
 
@@ -208,6 +204,7 @@ export function HistoryList({
   rows,
   statusLine = null,
   onPick,
+  onExit = () => {},
 }: HistoryListProps): ReactElement {
   const [state, dispatch] = useReducer(reducer, {
     focus: 0,
@@ -254,10 +251,14 @@ export function HistoryList({
   // innerCols = cols - 2 - 1 (same as computeInnerCols).
   const innerCols = computeInnerCols(cols)
 
-  // Content height = rows minus title (1) minus filter row (1 when visible)
-  // minus footer (2). FOOTER_HEIGHT = 2, title = 1.
-  const FILTER_ROW_HEIGHT = state.filterMode ? 1 : 0
-  const contentHeight = Math.max(2, rows - TITLE_HEIGHT - FILTER_ROW_HEIGHT - FOOTER_HEIGHT)
+  // Content height = rows minus title (1) minus filter block minus footer (2).
+  // The filter block, when open, is the labeled row plus one blank line above
+  // and below it (3 rows total). FOOTER_HEIGHT = 2, title = 1.
+  const FILTER_ROW_HEIGHT = state.filterMode ? 3 : 0
+  const contentHeight = Math.max(
+    2,
+    rows - TITLE_HEIGHT - FILTER_ROW_HEIGHT - FOOTER_HEIGHT,
+  )
 
   // Each entry is two display lines. Window capacity in rows (consultation count).
   const windowHeight = Math.max(1, Math.floor(contentHeight / 2))
@@ -272,12 +273,36 @@ export function HistoryList({
   useInput((input, key) => {
     if (state.filterMode) {
       if (key.escape) {
-        dispatch({ type: 'filterExit' })
+        // Escape with typed text clears it but keeps the filter row open;
+        // Escape on an empty filter row closes the row. Either way the
+        // keypress is consumed here so it never reaches an app-level exit.
+        dispatch({
+          type: state.filter.length > 0 ? 'filterClear' : 'filterExit',
+        })
         return
       }
       if (key.return) {
         const row = listRows[focus]
         if (row?.kind === 'entry') onPick(row.entry)
+        return
+      }
+      // Arrow / page keys still navigate the focused row while filtering —
+      // they carry no character input, so they never collide with typing.
+      const filterGeom = { size: listRows.length, windowHeight }
+      if (key.upArrow) {
+        dispatch({ type: 'up', ...filterGeom })
+        return
+      }
+      if (key.downArrow) {
+        dispatch({ type: 'down', ...filterGeom })
+        return
+      }
+      if (key.pageUp) {
+        dispatch({ type: 'pageUp', ...filterGeom })
+        return
+      }
+      if (key.pageDown) {
+        dispatch({ type: 'pageDown', ...filterGeom })
         return
       }
       if (key.backspace || key.delete) {
@@ -288,6 +313,10 @@ export function HistoryList({
         dispatch({ type: 'filterChange', value: state.filter + input })
         return
       }
+      return
+    }
+    if (key.escape) {
+      onExit()
       return
     }
     if (input === '/') {
@@ -360,17 +389,22 @@ export function HistoryList({
     )
   }
 
-  const title = buildTitle(
-    entries.length,
-    unreadable.length,
-  )
+  const title = buildTitle(entries.length, unreadable.length)
 
   const visibleRows = listRows.slice(win.start, win.end)
 
-  // Key hint line (top line of footer).
-  const hintLine = state.filterMode
-    ? ' ESC clear · Enter load'
-    : ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ESC exit'
+  // Key hint line (top line of footer). While the filter row is open, Escape
+  // clears typed text (when present) or closes the row (when empty) — the hint
+  // names whichever action the next Escape press will take.
+  let hintLine: string
+  if (!state.filterMode) {
+    hintLine =
+      ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ESC exit'
+  } else if (state.filter.length > 0) {
+    hintLine = ' Esc clear filter · Enter load'
+  } else {
+    hintLine = ' Esc close filter · Enter load'
+  }
 
   // Scroll position status — counted in consultations, not display lines.
   const totalConsultations = listRows.length
@@ -420,6 +454,13 @@ export function HistoryList({
     </Box>
   )
 
+  // Every row is exactly two display lines. Truncation and padding are done
+  // by *display width* (wide CJK glyphs count as two columns) so a line never
+  // overshoots `innerCols` and wraps a stray third line into the content box.
+  // `flexShrink={0}` keeps each row at its natural two-line height — if the
+  // window maths ever overcount, the shell's `overflow: hidden` clips the
+  // excess cleanly instead of flexbox squashing rows into each other.
+  const indent = ' '.repeat(TIMESTAMP_PREFIX_WIDTH)
   const contentNode = (
     <Box flexDirection="column">
       {visibleRows.map((row, index) => {
@@ -427,13 +468,13 @@ export function HistoryList({
         const isFocused = absoluteIndex === focus
         if (row.kind === 'unreadable') {
           return (
-            <Box key={row.item.path} flexDirection="column">
+            <Box key={row.item.path} flexDirection="column" flexShrink={0}>
               <Text inverse={isFocused}>
-                {`${BOLD_RED}${truncate(`[unreadable — ${row.item.reason}]`, innerCols)}${NORMAL}`}
+                {`${BOLD_RED}${truncateEnd(`[unreadable — ${row.item.reason}]`, innerCols)}${NORMAL}`}
               </Text>
               <Text inverse={isFocused} dimColor>
-                {' '.repeat(TIMESTAMP_PREFIX_WIDTH) +
-                  truncate(
+                {indent +
+                  truncateEnd(
                     row.item.path,
                     innerCols - TIMESTAMP_PREFIX_WIDTH,
                   )}
@@ -446,31 +487,23 @@ export function HistoryList({
         const headParts = entryHeadLineParts(row.entry, innerCols)
         const hexParts = summarizeHexParts(row.entry.envelope.hexagram)
 
-        // Summary line: indent + standing text (+ optional moving segment).
-        const indent = ' '.repeat(TIMESTAMP_PREFIX_WIDTH)
-        const summaryAvailable = innerCols - TIMESTAMP_PREFIX_WIDTH
-        // Measure standing text; if moving segment exists, allocate remaining.
-        const standingTruncated = truncate(hexParts.standingText, summaryAvailable)
-        const movingTruncated =
-          hexParts.movingSegment === null
-            ? null
-            : truncate(
-                hexParts.movingSegment,
-                summaryAvailable - standingTruncated.length,
-              )
-
         if (isFocused) {
-          // Focused row: full-width plain bold inverse bar — no per-segment color.
-          const headLine = padToWidth(
-            headParts.prefix + headParts.query,
+          // Focused row: full-width plain bold inverse bar — no per-segment
+          // color. Both lines are truncated then padded to the inner width so
+          // the inverse highlight spans edge to edge without wrapping.
+          const headLine = padEndToWidth(
+            truncateEnd(headParts.prefix + headParts.query, innerCols),
             innerCols,
           )
-          const summaryLine = padToWidth(
-            indent + standingTruncated + (movingTruncated ?? ''),
+          const summaryLine = padEndToWidth(
+            truncateEnd(
+              `${indent}${hexParts.standingText}${hexParts.movingSegment ?? ''}`,
+              innerCols,
+            ),
             innerCols,
           )
           return (
-            <Box key={row.entry.path} flexDirection="column">
+            <Box key={row.entry.path} flexDirection="column" flexShrink={0}>
               <Text bold inverse>
                 {headLine}
               </Text>
@@ -481,19 +514,24 @@ export function HistoryList({
           )
         }
 
-        // Unfocused row: palette-colored segments.
+        // Unfocused row: palette-colored segments. The moving segment rides in
+        // BOLD_RED; truncateEnd is ANSI-aware so embedded SGR codes survive a
+        // (rare) truncation.
+        const summaryLine =
+          hexParts.movingSegment === null
+            ? truncateEnd(`${indent}${hexParts.standingText}`, innerCols)
+            : truncateEnd(
+                `${indent}${hexParts.standingText}${BOLD_RED}${hexParts.movingSegment}${NORMAL}`,
+                innerCols,
+              )
         return (
-          <Box key={row.entry.path} flexDirection="column">
+          <Box key={row.entry.path} flexDirection="column" flexShrink={0}>
             {/* Line 1: dim timestamp prefix + bold-white query */}
             <Text>
               {`${NORMAL_GREY}${headParts.prefix}${NORMAL}${BOLD_WHITE}${headParts.query}${NORMAL}`}
             </Text>
             {/* Line 2: default-weight standing name + BOLD_RED moving segment */}
-            <Text>
-              {movingTruncated === null
-                ? `${indent}${standingTruncated}`
-                : `${indent}${standingTruncated}${BOLD_RED}${movingTruncated}${NORMAL}`}
-            </Text>
+            <Text>{summaryLine}</Text>
           </Box>
         )
       })}
@@ -520,8 +558,9 @@ export function HistoryList({
   const filterMatchCount = useMemo(() => {
     if (state.filter.length === 0) return entries.length
     const needle = state.filter.toLowerCase()
-    return entries.filter((e) => e.envelope.query.toLowerCase().includes(needle))
-      .length
+    return entries.filter((e) =>
+      e.envelope.query.toLowerCase().includes(needle),
+    ).length
   }, [entries, state.filter])
 
   const filterRowNode = state.filterMode
@@ -542,11 +581,16 @@ export function HistoryList({
         const gap = ' '.repeat(
           Math.max(
             0,
-            filterInnerCols - FILTER_LABEL.length - displayText.length - matchLabelWidth,
+            filterInnerCols -
+              FILTER_LABEL.length -
+              displayText.length -
+              matchLabelWidth,
           ),
         )
+        // `marginY={1}` sets the filter row off from the title above and the
+        // list below with one blank line on each side.
         return (
-          <Box flexDirection="row" flexShrink={0}>
+          <Box flexDirection="row" flexShrink={0} marginY={1}>
             <Text dimColor>{FILTER_LABEL}</Text>
             <Text bold>{displayText}</Text>
             <Text>{gap}</Text>

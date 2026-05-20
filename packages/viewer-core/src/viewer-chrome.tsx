@@ -94,9 +94,10 @@ export function TabBar({
   // undefined`. `tabs[0]` is provably defined (NonEmpty), so it's the safe
   // fallback when the clamp races with a tab-list shrink.
   const activeTab = tabs[activeIndex] ?? tabs[0]
-  // Number prefix for the active tab — 1-based, matches the keyboard shortcut.
+  // Bracketed number prefix for the active tab — `<N>` reads as a key hint
+  // (press N to jump to that tab), 1-based to match the keyboard shortcut.
   const activeNumber = activeIndex + 1
-  const activeLabel = `${activeNumber} ${activeTab.label}`
+  const activeLabel = `<${activeNumber}> ${activeTab.label}`
 
   // Flow in progress: only the active tab shows, rendered with the same
   // bold+inverse styling as done-mode — there's no agency to switch tabs.
@@ -109,10 +110,10 @@ export function TabBar({
   }
 
   // Done mode: all tabs visible, dim ` · ` separator between them.
-  // Each cell renders as ` N label ` (N + space + label.length + 2);
-  // separators add 3 cols. `N ` is 2 chars (digit + space).
+  // Each cell renders as ` <N> label ` (`<N> ` is 4 chars + label + 2 pad
+  // spaces); separators add 3 cols.
   const renderedWidth = tabs.reduce(
-    (sum, t, i) => sum + 2 + t.label.length + 2 + (i > 0 ? 3 : 0),
+    (sum, t, i) => sum + 4 + t.label.length + 2 + (i > 0 ? 3 : 0),
     0,
   )
   if (renderedWidth > cols) {
@@ -128,7 +129,7 @@ export function TabBar({
     <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
       {tabs.flatMap((tab, index) => {
         const active = index === activeIndex
-        const numberedLabel = `${index + 1} ${tab.label}`
+        const numberedLabel = `<${index + 1}> ${tab.label}`
         const cells: ReactElement[] = [
           <Text key={tab.id} bold={active} inverse={active} dimColor={!active}>
             {` ${numberedLabel} `}
@@ -208,6 +209,7 @@ export function FooterBar({
   flowHint,
   inFlow,
   flowKeyHints,
+  doneKeyHints,
 }: {
   savedPath: string
   cols: number
@@ -217,11 +219,17 @@ export function FooterBar({
   flowHint: string | null
   inFlow: boolean
   flowKeyHints: string
+  /**
+   * Key-hint line shown in done (unlocked) mode. Defaults to
+   * `KEY_HINTS_TEMPLATE()`; the loaded-history readout overrides it so the
+   * footer reads "Esc back to history" instead of "Esc quit".
+   */
+  doneKeyHints?: string
 }): ReactElement {
   // Hints are rendered first (left) so they are never the thing that
   // truncates. Scroll/pan/wrap status is pushed to the right — that is what
   // degrades gracefully on overflow (it is regenerable glance-info).
-  const hints = inFlow ? flowKeyHints : KEY_HINTS_TEMPLATE()
+  const hints = inFlow ? flowKeyHints : (doneKeyHints ?? KEY_HINTS_TEMPLATE())
   const statusParts: string[] = []
   if (verticalStatus) statusParts.push(verticalStatus)
   if (horizontalStatus) statusParts.push(horizontalStatus)
