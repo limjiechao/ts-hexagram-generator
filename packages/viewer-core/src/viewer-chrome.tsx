@@ -94,28 +94,32 @@ export function TabBar({
   // undefined`. `tabs[0]` is provably defined (NonEmpty), so it's the safe
   // fallback when the clamp races with a tab-list shrink.
   const activeTab = tabs[activeIndex] ?? tabs[0]
+  // Number prefix for the active tab — 1-based, matches the keyboard shortcut.
+  const activeNumber = activeIndex + 1
+  const activeLabel = `${activeNumber} ${activeTab.label}`
 
   // Flow in progress: only the active tab shows, rendered with the same
   // bold+inverse styling as done-mode — there's no agency to switch tabs.
   if (locked) {
     return (
       <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${activeTab.label} `}</Text>
+        <Text bold inverse>{` ${activeLabel} `}</Text>
       </Box>
     )
   }
 
   // Done mode: all tabs visible, dim ` · ` separator between them.
-  // Each cell renders as ` label ` (label.length + 2); separators add 3 cols.
+  // Each cell renders as ` N label ` (N + space + label.length + 2);
+  // separators add 3 cols. `N ` is 2 chars (digit + space).
   const renderedWidth = tabs.reduce(
-    (sum, t, i) => sum + t.label.length + 2 + (i > 0 ? 3 : 0),
+    (sum, t, i) => sum + 2 + t.label.length + 2 + (i > 0 ? 3 : 0),
     0,
   )
   if (renderedWidth > cols) {
     return (
       <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
-        <Text bold inverse>{` ${activeTab.label} `}</Text>
-        <Text dimColor>{` (${activeIndex + 1}/${tabs.length})`}</Text>
+        <Text bold inverse>{` ${activeLabel} `}</Text>
+        <Text dimColor>{` (${activeNumber}/${tabs.length})`}</Text>
       </Box>
     )
   }
@@ -124,9 +128,10 @@ export function TabBar({
     <Box flexDirection="row" flexWrap="nowrap" flexShrink={0}>
       {tabs.flatMap((tab, index) => {
         const active = index === activeIndex
+        const numberedLabel = `${index + 1} ${tab.label}`
         const cells: ReactElement[] = [
           <Text key={tab.id} bold={active} inverse={active} dimColor={!active}>
-            {` ${tab.label} `}
+            {` ${numberedLabel} `}
           </Text>,
         ]
         if (index < tabs.length - 1) {

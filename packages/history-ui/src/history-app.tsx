@@ -160,7 +160,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
       maxWrapWidth={DEFAULT_MAX_WRAP_WIDTH}
       querySlot={querySlot}
       queryText={envelope.query}
-      title={`Past Consultation · loaded ${formatLoadedTimestamp(
+      title={`Consultation · loaded ${formatLoadedTimestamp(
         envelope.timestamp,
       )}`}
       notice={

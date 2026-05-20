@@ -190,6 +190,36 @@ describe('ConsultationReadout — locked (in-flow) state', () => {
   })
 })
 
+describe('ConsultationReadout — numbered tab labels', () => {
+  it('prefixes each tab label with its 1-based number in normal form', () => {
+    const { lastFrame, unmount } = renderReadout({})
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('1 Casting')
+    expect(frame).toContain('2 Transformation')
+    expect(frame).toContain('3 Standing Hexagram')
+    expect(frame).toContain('4 Emerging Hexagram')
+    unmount()
+  })
+
+  it('prefixes the active tab label with its number in locked form', () => {
+    const { lastFrame, unmount } = renderReadout({ locked: true })
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('1 Casting')
+    unmount()
+  })
+
+  it('prefixes the active tab label with its number in collapsed (overflow) form', () => {
+    // Force collapsed mode by using a terminal too narrow for the full tab bar.
+    windowSize.current = { columns: 30, rows: 24 }
+    const { lastFrame, unmount } = renderReadout({})
+    const frame = lastFrame() ?? ''
+    // Collapsed form shows ` N label  (N/total)`.
+    expect(frame).toContain('1 Casting')
+    expect(frame).toContain('(1/4)')
+    unmount()
+  })
+})
+
 describe('ConsultationReadout — optional title / notice / onExit', () => {
   it('renders an optional title line above the query', () => {
     const { lastFrame, unmount } = renderReadout({ title: 'PAST READING' })

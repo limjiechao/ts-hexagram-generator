@@ -92,6 +92,43 @@ afterEach(async () => {
   await fs.rm(tmpDir, { recursive: true, force: true })
 })
 
+describe('<HistoryApp> — loaded readout title', () => {
+  it('shows "Consultation · loaded <timestamp>" as the readout title (no Past adjective)', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
+    // "Past Consultation" must NOT appear as a readout title adjective.
+    // The list heading "Past Consultations" is still correct; it is only
+    // present on the list screen, not on the readout screen.
+    expect(frame).not.toContain('Past Consultation')
+  })
+
+  it('history list heading remains "Past Consultations" (not affected)', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('Past Consultations')
+  })
+
+  it('tab labels are numbered in the readout', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('1 Casting')
+    expect(frame).toContain('2 Transformation')
+    expect(frame).toContain('3 Standing Hexagram')
+    expect(frame).toContain('4 Emerging Hexagram')
+  })
+})
+
 describe('<HistoryApp> — loaded readout', () => {
   it('opens the four-tab readout with the loaded-timestamp title on Enter', async () => {
     await writeFresh(MOVING_ENVELOPE)
@@ -100,7 +137,7 @@ describe('<HistoryApp> — loaded readout', () => {
     stdin.write(ENTER)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('Past Consultation · loaded 2025-08-13 09:02')
+    expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
     // All four tabs available in the unlocked `done` state.
     expect(frame).toContain('Casting')
     expect(frame).toContain('Transformation')
@@ -115,7 +152,7 @@ describe('<HistoryApp> — loaded readout', () => {
     stdin.write(ENTER)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('Past Consultation · loaded 2024-02-01 11:30')
+    expect(frame).toContain('Consultation · loaded 2024-02-01 11:30')
     expect(frame).toContain('Casting not recorded')
   })
 
@@ -153,12 +190,12 @@ describe('<HistoryApp> — loaded readout', () => {
     await tick()
     stdin.write(ENTER)
     await tick()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultation')
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
     stdin.write(ESC)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
     // Back on the list — the bordered container is shown again.
     expect(frame).toContain('Past Consultations')
-    expect(frame).not.toContain('Past Consultation · loaded')
+    expect(frame).not.toContain('Consultation · loaded')
   })
 })

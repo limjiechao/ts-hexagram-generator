@@ -263,6 +263,8 @@ export function ConsultationViewer({
     return null
   })()
 
+  const readoutTitle = `Consultation · ${state.flowKind}`
+
   return (
     <ConsultationReadout
       sections={effectiveSections}
@@ -282,6 +284,7 @@ export function ConsultationViewer({
           : KEY_HINTS_FLOW_DEFAULT
       }
       inputMode={inputMode}
+      title={readoutTitle}
     />
   )
 }

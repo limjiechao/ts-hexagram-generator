@@ -711,6 +711,38 @@ describe('ConsultationViewer (T3 refinements)', () => {
   })
 })
 
+describe('ConsultationViewer — numbered tab labels + provenance titles', () => {
+  it('prefixes tab labels with 1-based numbers in normal form', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('1 Casting')
+    expect(frame).toContain('2 Transformation')
+    expect(frame).toContain('3 Standing Hexagram')
+    expect(frame).toContain('4 Emerging Hexagram')
+    unmount()
+  })
+
+  it('shows the provenance title "Consultation · interactive" for interactive flow', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Consultation · interactive')
+    unmount()
+  })
+
+  it('shows the provenance title "Consultation · random" for random flow', () => {
+    const { lastFrame, unmount } = render(
+      <ConsultationViewer flowKind="random" />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Consultation · random')
+    unmount()
+  })
+})
+
 describe('ConsultationViewer (Pass #2)', () => {
   beforeEach(() => {
     consultationFileOutputMock.mockClear()
@@ -723,11 +755,15 @@ describe('ConsultationViewer (Pass #2)', () => {
     )
     const frame = lastFrame() ?? ''
     const lines = frame.split('\n')
-    const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0)
-    expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
-    expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
+    // The title line is now the first non-empty row; QUERY: appears immediately
+    // after it on its own dedicated row. Find the QUERY: row and verify the
+    // next line contains the accent bar.
+    const queryHeaderIndex = lines.findIndex((line) => line.includes('QUERY:'))
+    expect(queryHeaderIndex).toBeGreaterThanOrEqual(0)
+    // The line must be solely the QUERY: label (no box content on the same row).
+    expect(lines[queryHeaderIndex]).toContain('QUERY:')
     // The next line should contain the accent bar.
-    const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
+    const nextLine = lines[queryHeaderIndex + 1] ?? ''
     expect(nextLine.includes('▌')).toBe(true)
     unmount()
   })
@@ -743,18 +779,13 @@ describe('ConsultationViewer (Pass #2)', () => {
     )
     const frame = lastFrame() ?? ''
     const lines = frame.split('\n')
-    const firstNonEmptyIndex = lines.findIndex((line) => line.trim().length > 0)
-    expect(firstNonEmptyIndex).toBeGreaterThanOrEqual(0)
-    expect(lines[firstNonEmptyIndex]).toContain('QUERY:')
-    const nextLine = lines[firstNonEmptyIndex + 1] ?? ''
+    // The title line is now the first non-empty row; QUERY: appears after it.
+    const queryHeaderIndex = lines.findIndex((line) => line.includes('QUERY:'))
+    expect(queryHeaderIndex).toBeGreaterThanOrEqual(0)
+    const nextLine = lines[queryHeaderIndex + 1] ?? ''
     expect(nextLine.includes('▌')).toBe(true)
     // The query text appears on the accent-bar line itself.
     const queryLine = lines.find((line) => line.includes('what say you'))
-
-
-
-
-
     expect(queryLine).toBeDefined()
     unmount()
   })
