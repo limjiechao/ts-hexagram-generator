@@ -31,12 +31,9 @@ type Action =
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'up':
-      return {
-        ...state,
-        focus: state.focus < 0 ? 0 : Math.max(0, state.focus - 1),
-      }
+      return { ...state, focus: Math.max(0, state.focus - 1) }
     case 'down':
-      return { ...state, focus: state.focus < 0 ? 0 : state.focus + 1 }
+      return { ...state, focus: state.focus + 1 }
     case 'pageUp':
       return { ...state, focus: Math.max(0, state.focus - action.size) }
     case 'pageDown':
@@ -80,7 +77,7 @@ export function HistoryList({
   onPick,
 }: HistoryListProps): ReactElement {
   const [state, dispatch] = useReducer(reducer, {
-    focus: -1,
+    focus: 0,
     filterMode: false,
     filter: '',
   })
@@ -100,10 +97,10 @@ export function HistoryList({
         return
       }
       if (key.return) {
-        const resolvedFocus =
-          state.focus < 0
-            ? 0
-            : Math.min(state.focus, Math.max(0, filtered.length - 1))
+        const resolvedFocus = Math.min(
+          state.focus,
+          Math.max(0, filtered.length - 1),
+        )
         const entry = filtered[resolvedFocus]
         if (entry !== undefined) onPick(entry)
         return
@@ -132,10 +129,10 @@ export function HistoryList({
     else if (input === 'g') dispatch({ type: 'first' })
     else if (input === 'G') dispatch({ type: 'last', size: filtered.length })
     else if (key.return) {
-      const resolvedFocus =
-        state.focus < 0
-          ? 0
-          : Math.min(state.focus, Math.max(0, filtered.length - 1))
+      const resolvedFocus = Math.min(
+        state.focus,
+        Math.max(0, filtered.length - 1),
+      )
       const entry = filtered[resolvedFocus]
       if (entry !== undefined) onPick(entry)
     }
@@ -152,10 +149,7 @@ export function HistoryList({
     )
   }
 
-  const focus =
-    state.focus < 0
-      ? -1
-      : Math.min(state.focus, Math.max(0, filtered.length - 1))
+  const focus = Math.min(state.focus, Math.max(0, filtered.length - 1))
 
   const rows = filtered.map((entry, index) => {
     const isFocused = index === focus

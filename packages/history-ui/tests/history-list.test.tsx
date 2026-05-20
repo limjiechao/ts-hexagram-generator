@@ -4,6 +4,18 @@ import { describe, expect, it } from 'vitest'
 
 import { HistoryList } from '../src/history-list'
 
+// Matches ANSI SGR escape sequences (ESC[...m) — e.g. the inverse-video codes
+// Ink emits for the focused row. Built from char code 0x1b so the literal
+// control character never appears in source. Stripped before measuring width.
+const ANSI_PATTERN = new RegExp(
+  String.raw`${String.fromCodePoint(0x1b)}\[[0-9;]*m`,
+  'g',
+)
+
+function stripAnsi(text: string): string {
+  return text.replace(ANSI_PATTERN, '')
+}
+
 const fakeEntries = [
   {
     path: '/x/a.md',
@@ -68,6 +80,8 @@ describe('<HistoryList>', () => {
         onPick={() => {}}
       />,
     )
-    expect((lastFrame() ?? '').split('\n')[0]!.length).toBeLessThanOrEqual(50)
+    expect(
+      stripAnsi((lastFrame() ?? '').split('\n')[0]!).length,
+    ).toBeLessThanOrEqual(50)
   })
 })

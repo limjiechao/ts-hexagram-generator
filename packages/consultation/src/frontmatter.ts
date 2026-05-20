@@ -6,6 +6,21 @@ import {
   type LineCasting,
 } from '@hexagram/types'
 import matter from 'gray-matter'
+import jsYaml from 'js-yaml'
+
+/**
+ * Explicit YAML engine for gray-matter. `stringify` pins `sortKeys: false` so
+ * frontmatter key order stays insertion order (`schemaVersion` → `casting`)
+ * instead of relying on js-yaml's implicit default. `parse` mirrors
+ * gray-matter's built-in YAML engine (`yaml.safeLoad`) so reading is unchanged.
+ */
+const yamlEngine = {
+  // gray-matter's `Engine` type requires `parse` to return `object`; js-yaml's
+  // `safeLoad` is typed looser. The cast mirrors gray-matter's own built-in
+  // YAML engine, which performs the equivalent unchecked widening.
+  parse: (str: string): object => jsYaml.safeLoad(str) as object,
+  stringify: (obj: object): string => jsYaml.safeDump(obj, { sortKeys: false }),
+}
 
 export const CURRENT_SCHEMA_VERSION = 1
 
@@ -68,6 +83,7 @@ export function serializeFrontmatter(
   // oxfmt enforces for YAML-frontmatter documents.
   return matter.stringify(`\n${body}`, data, {
     language: 'yaml',
+    engines: { yaml: yamlEngine },
   })
 }
 
