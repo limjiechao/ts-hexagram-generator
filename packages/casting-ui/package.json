@@ -25,7 +25,7 @@
     "generate-fixtures": "tsx scripts/generate-fixtures.ts"
   },
   "dependencies": {
-    "@hexagram/consultation": "workspace:*",
+    "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",

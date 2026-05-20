@@ -1,4 +1,4 @@
-import { saveConsultationFile } from '@hexagram/consultation/file'
+import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 

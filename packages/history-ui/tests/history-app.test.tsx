@@ -6,7 +6,7 @@ import {
   markdownConsultationBody,
   serializeFrontmatter,
   type ConsultationEnvelope,
-} from '@hexagram/consultation'
+} from '@hexagram/consultation-file'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'

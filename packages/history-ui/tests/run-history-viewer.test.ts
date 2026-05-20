@@ -5,7 +5,7 @@ import path from 'node:path'
 import {
   markdownConsultationBody,
   serializeFrontmatter,
-} from '@hexagram/consultation'
+} from '@hexagram/consultation-file'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { rerenderOnDisk } from '../src/history-app'

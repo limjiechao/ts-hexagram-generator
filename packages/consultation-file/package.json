@@ -1,5 +1,5 @@
 {
-  "name": "@hexagram/consultation",
+  "name": "@hexagram/consultation-file",
   "type": "module",
   "version": "0.0.0",
   "description": "Yijing hexagram oracle: consultation file format (Markdown + YAML frontmatter), renderers, and legacy converter",

@@ -6,7 +6,7 @@ import {
   markdownConsultationBody,
   serializeFrontmatter,
   type ConsultationEnvelope,
-} from '@hexagram/consultation'
+} from '@hexagram/consultation-file'
 import {
   buildConsultationSections,
   ConsultationReadout,

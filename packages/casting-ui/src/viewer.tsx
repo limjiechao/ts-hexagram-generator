@@ -1,4 +1,4 @@
-import { saveConsultationFile } from '@hexagram/consultation/file'
+import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import { generateRandomConsultation } from '@hexagram/core/random'
 import {
   assertIsCastingRecord,

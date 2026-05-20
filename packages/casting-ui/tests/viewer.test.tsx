@@ -23,16 +23,16 @@ import {
   STUB_STATIC_HEXAGRAM,
 } from './helpers/stubs'
 
-// Stub the filesystem-touching `@hexagram/consultation/file` module so the
+// Stub the filesystem-touching `@hexagram/consultation-file/file` module so the
 // interactive-mode tests can drive the viewer to completion without writing
 // real files to `consultations/`. `buildConsultationSections` (in
 // `output-composers`) stays live — it's pure.
 const consultationFileOutputMock = vi.hoisted(() =>
   vi.fn(() => Promise.resolve('/tmp/consultation-mocked.txt')),
 )
-vi.mock('@hexagram/consultation/file', async (importOriginal) => {
+vi.mock('@hexagram/consultation-file/file', async (importOriginal) => {
   const actual =
-    await importOriginal<typeof import('@hexagram/consultation/file')>()
+    await importOriginal<typeof import('@hexagram/consultation-file/file')>()
   return { ...actual, saveConsultationFile: consultationFileOutputMock }
 })
 

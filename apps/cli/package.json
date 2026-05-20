@@ -19,7 +19,7 @@
   },
   "dependencies": {
     "@hexagram/casting-ui": "workspace:*",
-    "@hexagram/consultation": "workspace:*",
+    "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/history-ui": "workspace:*",
     "@hexagram/types": "workspace:*"

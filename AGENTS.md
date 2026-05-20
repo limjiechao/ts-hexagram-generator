@@ -11,7 +11,7 @@ ts-hexagram-generator/         # workspace root (private)
 ├── packages/
 │   ├── types/                 # @hexagram/types — public type defs + assertions
 │   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
-│   ├── consultation/          # @hexagram/consultation — file format (Markdown + YAML frontmatter), renderers, legacy converter
+│   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), renderers, legacy converter
 │   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer, Inquirer flow, ANSI section renderers
 │   └── history-ui/            # @hexagram/history-ui — Ink history browser
 └── apps/
@@ -114,9 +114,9 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 
-Either way the reading is saved as a timestamped `.md` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/casting-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/casting-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` stdout output is locked byte-for-byte by fixtures in `packages/casting-ui/tests/fixtures/`. The `.md` save output (frontmatter + body) is locked separately by fixtures in `packages/consultation/tests/fixtures/`. Regenerate both sets together with `pnpm generate-fixtures` after intentionally changing a section builder (driven by the shared cases in `packages/casting-ui/tests/fixtures/cases.ts`).
+Either way the reading is saved as a timestamped `.md` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `packages/casting-ui/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `packages/casting-ui/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` composes the plain output from the same section builders. The `--plain` stdout output is locked byte-for-byte by fixtures in `packages/casting-ui/tests/fixtures/`. The `.md` save output (frontmatter + body) is locked separately by fixtures in `packages/consultation-file/tests/fixtures/`. Regenerate both sets together with `pnpm generate-fixtures` after intentionally changing a section builder (driven by the shared cases in `packages/casting-ui/tests/fixtures/cases.ts`).
 
-### Consultation file format — `@hexagram/consultation`
+### Consultation file format — `@hexagram/consultation-file`
 
 Every saved consultation is a Markdown file with a YAML frontmatter envelope. The frontmatter is the canonical model — five fields:
 
@@ -128,7 +128,7 @@ Every saved consultation is a Markdown file with a YAML frontmatter envelope. Th
 
 The Markdown body below the frontmatter is **decorative**: re-rendered from the envelope by `markdownConsultationBody` on every load. On open, the history flow byte-compares the freshly-rendered body against disk and rewrites if they differ (so renderer upgrades self-heal old files). Derived data — hex name, emerging hex, scripture/exegesis text, translations — is never persisted; it's recomputed via `@hexagram/core/getters` every render.
 
-Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation/file`.
+Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation-file/file`.
 
 Legacy `.txt` files (pre-Markdown era) are migrated by `pnpm hexagram-history --convert-legacy`, which parses each `.txt` via `convertLegacyTxt`, writes the corresponding `.md`, and moves the original into `consultations/legacy/`. The migration handles both **Shape A** (recent format with CASTING table — full casting recovered) and **Shape B** (older format without CASTING — synthesizes sentinel casting, marks `castingRecovered: false`). `consultations/legacy/` is never scanned by `hexagram-history`.
 
@@ -166,11 +166,11 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
 - `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
-- `packages/consultation/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
+- `packages/consultation-file/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
 - `packages/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
 - `packages/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `apps/cli/tsdown.config.ts` — three entries (`interactive`, `random`, `history`) matching the three `bin` map entries.

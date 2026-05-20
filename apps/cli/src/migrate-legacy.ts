@@ -6,7 +6,7 @@ import {
   convertLegacyTxt,
   markdownConsultationBody,
   serializeFrontmatter,
-} from '@hexagram/consultation'
+} from '@hexagram/consultation-file'
 
 export async function migrateLegacy(dir: string): Promise<void> {
   const entries = await fs.readdir(dir).catch(() => [])

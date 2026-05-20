@@ -5,7 +5,7 @@ import {
   loadConsultationFile,
   type ConsultationEnvelope,
   type ParseFailureReason,
-} from '@hexagram/consultation'
+} from '@hexagram/consultation-file'
 
 export interface HistoryEntry {
   path: string

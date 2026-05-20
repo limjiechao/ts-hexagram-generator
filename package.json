@@ -36,7 +36,7 @@
     "hexagram-random": "tsx apps/cli/src/random.ts",
     "hexagram-interactive": "tsx apps/cli/src/interactive.ts",
     "generate-json-files": "turbo run generate-json-files --filter=@hexagram/core",
-    "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/casting-ui --filter=@hexagram/consultation"
+    "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/casting-ui --filter=@hexagram/consultation-file"
   },
   "devDependencies": {
     "@sxzz/eslint-config": "^8.1.0",
