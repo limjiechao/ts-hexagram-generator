@@ -1,0 +1,104 @@
+
+
+QUERY:
+
+  Is the Greyfen Primer truly beneficial for young Wren's lessons?
+
+CASTING:
+
+┌────────┬────────────────┬────────────────┬────────────────┐
+│        │ First Cast     │ Second Cast    │ Third Cast     │
+│        ├────────┬───────┼────────┬───────┼────────┬───────┤
+│  Line  │ Stalks │ Split │ Stalks │ Split │ Stalks │ Split │
+├────────┼────────┼───────┼────────┼───────┼────────┼───────┤
+│ Line 6 │   48   │  37   │   43   │   3   │   35   │  17   │
+│ Line 5 │   48   │  38   │   43   │   4   │   35   │  34   │
+│ Line 4 │   48   │  17   │   43   │  20   │   35   │  20   │
+│ Line 3 │   48   │  45   │   43   │  42   │   39   │  27   │
+│ Line 2 │   48   │  40   │   39   │  30   │   35   │   9   │
+│ Line 1 │   48   │   5   │   43   │  35   │   35   │   4   │
+└────────┴────────┴───────┴────────┴───────┴────────┴───────┘
+
+TRANSFORMATION:
+(No transformation)
+
+
+ORIGINATING HEXAGRAM 51:
+
+(Line at bottom is first)
+
+  8  ━━━   ━━━  （六, 6th）──┐
+  8  ━━━   ━━━  （五, 5th）──┼── 雷（上卦）
+  7  ━━━━━━━━━  （四, 4th）──┘   thunder (upper trigram)
+  8  ━━━   ━━━  （三, 3rd）──┐
+  8  ━━━   ━━━  （二, 2nd）──┼── 雷（下卦）
+  7  ━━━━━━━━━  （初, 1st）──┘   thunder (lower trigram)
+
+(First is line at bottom)
+
+  7, 8, 8, 7, 8, 8
+
+ORIGINATING HEXAGRAM NAME AND PRONUNCIATION:
+
+[Traditional Chinese]
+
+  震（ㄓㄣˋ）
+
+[Simplified Chinese]
+
+  震（zhèn）
+
+[English, Wilhelm-Baynes]
+
+  Chên / The Arousing (Shock, Thunder)
+
+[English, James Legge]
+
+  LI. The Kăn Hexagram
+
+
+LINES:
+(No moving lines)
+
+[Traditional Chinese]
+
+  (Scripture)
+  震：亨。震來虩虩，笑言啞啞。震驚百里，不喪匕鬯。
+
+  (Exegesis)
+  洊雷，震；君子以恐懼脩省。
+
+[Simplified Chinese]
+
+  (Scripture)
+  震：亨。震来虩虩，笑言哑哑。震惊百里，不丧匕鬯。
+
+  (Exegesis)
+  洊雷，震；君子以恐惧修省。
+
+[English, Wilhelm-Baynes]
+
+  (Scripture)
+  SHOCK brings success.
+  Shock comes—oh, oh!
+  Laughing words—ha, ha!
+  The shock terrifies for a hundred miles,
+  And he does not let fall the sacrificial spoon and chalice.
+
+  (Exegesis)
+  Thunder repeated: the image of SHOCK.
+  Thus in fear and trembling
+  The superior man sets his life in order
+  And examines himself.
+
+[English, James Legge]
+
+  (Scripture)
+  Kăn gives the intimation of ease and development. When (the time of) movement (which it indicates) comes, (the subject of the hexagram) will be found looking out with apprehension, and yet smiling and talking cheerfully. When the movement (like a crash of thunder) terrifies all within a hundred lî, he will be (like the sincere worshipper) who is not (startled into) letting go his ladle and (cup of) sacrificial spirits.
+
+  (Exegesis)
+  LI. (The trigram representing) thunder, being repeated, forms Kăn. The superior man, in accordance with this, is fearful and apprehensive, cultivates (his virtue), and examines (his faults).
+
+
+
+

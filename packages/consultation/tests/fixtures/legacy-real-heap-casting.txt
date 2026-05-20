@@ -1,0 +1,185 @@
+
+
+QUERY:
+
+  Will I find a worthy post once my studies at Greyfen Hold are complete?
+
+CASTING:
+
+┌──────┬─────────────────────────────────┬─────────────────────────────────┬─────────────────────────────────┐
+│      │            1st Cast             │            2nd Cast             │            3rd Cast             │
+│      ├────────┬───────────┬────────────┼────────┬───────────┬────────────┼────────┬───────────┬────────────┤
+│ Line │ Stalks │ Left Heap │ Right Heap │ Stalks │ Left Heap │ Right Heap │ Stalks │ Left Heap │ Right Heap │
+├──────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┼────────┼───────────┼────────────┤
+│    6 │     48 │        22 │         26 │     43 │        24 │         19 │     35 │        19 │         16 │
+│    5 │     48 │        16 │         32 │     39 │        19 │         20 │     31 │        19 │         12 │
+│    4 │     48 │        23 │         25 │     43 │        19 │         24 │     35 │        17 │         18 │
+│    3 │     48 │        20 │         28 │     39 │        20 │         19 │     31 │        17 │         14 │
+│    2 │     48 │        25 │         23 │     43 │        16 │         27 │     35 │        14 │         21 │
+│    1 │     48 │        25 │         23 │     43 │        20 │         23 │     35 │         9 │         26 │
+└──────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┴────────┴───────────┴────────────┘
+
+TRANSFORMATION:
+
+  Standing                                    Emerging
+
+  7  ━━━━━━━━━  （六, 6th）                   7  ━━━━━━━━━  （六, 6th）
+  6  ━━━ × ━━━  （五, 5th）─────────────────▶ 7  ━━━━━━━━━  （五, 5th）
+  8  ━━━   ━━━  （四, 4th）                   8  ━━━   ━━━  （四, 4th）
+  7  ━━━━━━━━━  （三, 3rd）                   7  ━━━━━━━━━  （三, 3rd）
+  8  ━━━   ━━━  （二, 2nd）                   8  ━━━   ━━━  （二, 2nd）
+  8  ━━━   ━━━  （初, 1st）                   8  ━━━   ━━━  （初, 1st）
+
+  #52 艮（gèn）                               #53 漸（jiàn）
+  Kên / Keeping Still, Mountain               Chien / Development (Gradual Progress)
+
+
+STANDING HEXAGRAM 52:
+
+(Line at bottom is first)
+
+  7  ━━━━━━━━━  （六, 6th）──┐
+  6  ━━━ × ━━━  （五, 5th）──┼── 山（上卦）
+  8  ━━━   ━━━  （四, 4th）──┘   mountain (upper trigram)
+  7  ━━━━━━━━━  （三, 3rd）──┐
+  8  ━━━   ━━━  （二, 2nd）──┼── 山（下卦）
+  8  ━━━   ━━━  （初, 1st）──┘   mountain (lower trigram)
+
+(First is line at bottom)
+
+  8, 8, 7, 8, 6, 7
+
+STANDING HEXAGRAM NAME AND PRONUNCIATION:
+
+[Traditional Chinese]
+
+  艮（ㄍㄣˋ）
+
+[Simplified Chinese]
+
+  艮（gèn）
+
+[English, Wilhelm-Baynes]
+
+  Kên / Keeping Still, Mountain
+
+[English, James Legge]
+
+  LII. The Kăn Hexagram
+
+
+LINES:
+(One moving line)
+
+[Traditional Chinese]
+
+  (Scripture)
+  六五：艮其輔，言有序，悔亡。
+
+  (Exegesis)
+  艮其輔，以中正也。
+
+[Simplified Chinese]
+
+  (Scripture)
+  六五：艮其辅，言有序，悔亡。
+
+  (Exegesis)
+  艮其辅，以中正也。
+
+[English, Wilhelm-Baynes]
+
+  (Scripture)
+  Six in the fifth place means:
+  Keeping his jaws still.
+  The words have order.
+  Remorse disappears.
+
+  (Exegesis)
+  Six in the fifth place:
+  a) Keeping his jaws still.
+  The words have order.
+  Remorse disappears.
+  b) “Keeping his jaws still,” as a result of central and correct behavior.
+
+[English, James Legge]
+
+  (Scripture)
+  5. The fifth SIX, divided, shows its subject keeping his jawbones at rest, so that his words are (all) orderly. Occasion for repentance will disappear.
+
+  (Exegesis)
+  5. 'He keeps his cheek bones at rest:'--in harmony with his central position he acts correctly.
+
+
+EMERGING HEXAGRAM 53:
+
+(Line at bottom is first)
+
+  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （五, 5th）──┼── 風（上卦）
+  8  ━━━   ━━━  （四, 4th）──┘   wind, wood (upper trigram)
+  7  ━━━━━━━━━  （三, 3rd）──┐
+  8  ━━━   ━━━  （二, 2nd）──┼── 山（下卦）
+  8  ━━━   ━━━  （初, 1st）──┘   mountain (lower trigram)
+
+(First is line at bottom)
+
+  8, 8, 7, 8, 7, 7
+
+EMERGING HEXAGRAM NAME AND PRONUNCIATION:
+
+[Traditional Chinese]
+
+  漸（ㄐㄧㄢˋ）
+
+[Simplified Chinese]
+
+  渐（jiàn）
+
+[English, Wilhelm-Baynes]
+
+  Chien / Development (Gradual Progress)
+
+[English, James Legge]
+
+  LIII. The Kien Hexagram
+
+
+LINES:
+[Traditional Chinese]
+
+  (Scripture)
+  漸：女歸吉，利貞。
+
+  (Exegesis)
+  山上有木，漸；君子以居賢德，善俗。
+
+[Simplified Chinese]
+
+  (Scripture)
+  渐：女归吉，利贞。
+
+  (Exegesis)
+  山上有木，渐；君子以居贤德，善俗。
+
+[English, Wilhelm-Baynes]
+
+  (Scripture)
+  DEVELOPMENT. The maiden
+  Is given in marriage.
+  Good fortune.
+  Perseverance furthers.
+
+  (Exegesis)
+  On the mountain, a tree:
+  The image of DEVELOPMENT.
+  Thus the superior man abides in dignity and virtue,
+  In order to improve the mores.
+
+[English, James Legge]
+
+  (Scripture)
+  Kien suggests to us the marriage of a young lady, and the good fortune (attending it). There will be advantage in being firm and correct.
+
+  (Exegesis)
+  LIII. (The trigram representing) a mountain and above it that for a tree form Kien. The superior man, in accordance with this, attains to and maintains his extraordinary virtue, and makes the manners of the people good.

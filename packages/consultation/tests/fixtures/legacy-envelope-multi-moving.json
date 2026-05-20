@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "timestamp": "2026-02-20T09:30:00+0800",
+  "query": "How should I navigate the year of many changes ahead?",
+  "hexagram": [6, 9, 9, 9, 9, 8],
+  "casting": [
+    [
+      {
+        "pick": 20,
+        "max": 48
+      },
+      {
+        "pick": 27,
+        "max": 39
+      },
+      {
+        "pick": 8,
+        "max": 31
+      }
+    ],
+    [
+      {
+        "pick": 48,
+        "max": 48
+      },
+      {
+        "pick": 1,
+        "max": 43
+      },
+      {
+        "pick": 30,
+        "max": 39
+      }
+    ],
+    [
+      {
+        "pick": 35,
+        "max": 48
+      },
+      {
+        "pick": 43,
+        "max": 43
+      },
+      {
+        "pick": 18,
+        "max": 39
+      }
+    ],
+    [
+      {
+        "pick": 31,
+        "max": 48
+      },
+      {
+        "pick": 14,
+        "max": 43
+      },
+      {
+        "pick": 38,
+        "max": 39
+      }
+    ],
+    [
+      {
+        "pick": 31,
+        "max": 48
+      },
+      {
+        "pick": 1,
+        "max": 43
+      },
+      {
+        "pick": 37,
+        "max": 39
+      }
+    ],
+    [
+      {
+        "pick": 2,
+        "max": 48
+      },
+      {
+        "pick": 18,
+        "max": 43
+      },
+      {
+        "pick": 36,
+        "max": 39
+      }
+    ]
+  ]
+}
