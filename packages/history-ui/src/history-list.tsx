@@ -385,21 +385,14 @@ export function HistoryList({
   )
 
   useInput((input, key) => {
-    // ── Modal-open branch: all other keys are frozen. ──────────────────────
-    if (state.confirmingDelete !== null) {
-      if ((input === 'y' || input === 'Y') && !key.ctrl && !key.meta) {
-        const targetPath = state.confirmingDelete.path
-        dispatch({ type: 'deleteCancel' })
-        onDelete(targetPath)
-        return
-      }
-      if (input === 'n' || input === 'N' || key.escape) {
-        dispatch({ type: 'deleteCancel' })
-        return
-      }
-      // Everything else (including Enter) is a no-op while the modal is open.
-      return
-    }
+    // ── Modal-open branch: this handler is fully frozen. ───────────────────
+    // While the confirm modal is open, `<DeleteConfirmModal>` (built on
+    // viewer-core's `<ConfirmModal>`) owns a `useInput` of its own and
+    // resolves Y/N/Esc. Ink dispatches every keypress to ALL mounted
+    // `useInput` hooks, so this one must early-return to a pure no-op — that
+    // freezes list nav/filter exactly as before and leaves the modal's
+    // handler the sole actor on the keypress.
+    if (state.confirmingDelete !== null) return
 
     // ── Ctrl+D: open the delete confirm modal for the focused row. ─────────
     // Placed before the filterMode branch so it fires in both modes; the
@@ -772,7 +765,10 @@ export function HistoryList({
 
   // Delete confirm modal — rendered in the `belowContent` slot (between the
   // list and the footer) while `confirmingDelete` is active. `HistoryList`
-  // stays mounted so its reducer state is preserved behind the modal.
+  // stays mounted so its reducer state is preserved behind the modal; its
+  // `useInput` is frozen (see the modal-open branch above) so only the modal's
+  // own `useInput` acts on Y/N/Esc. `onConfirm` closes the modal and fires the
+  // host `onDelete` (→ `fs.unlink`); `onCancel` just closes the modal.
   const confirmingDelete = state.confirmingDelete
   const belowContentNode =
     confirmingDelete === null
@@ -786,6 +782,13 @@ export function HistoryList({
             )}
             relativePath={path.relative(process.cwd(), confirmingDelete.path)}
             innerCols={modalInnerCols}
+            onConfirm={() => {
+              dispatch({ type: 'deleteCancel' })
+              onDelete(confirmingDelete.path)
+            }}
+            onCancel={() => {
+              dispatch({ type: 'deleteCancel' })
+            }}
           />
         )
 

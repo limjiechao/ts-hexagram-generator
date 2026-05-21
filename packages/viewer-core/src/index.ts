@@ -19,6 +19,14 @@ export {
   type ConsultationSections,
 } from './output-composers.js'
 
+// Generic confirmation modal — title + context + Y/N keypress affordances,
+// framed in the viewer-core chrome. Owns its own input handling.
+export {
+  ConfirmModal,
+  type ConfirmModalBodyLine,
+  type ConfirmModalProps,
+} from './confirm-modal.js'
+
 // ANSI palette constants used by the formatted output.
 export {
   BOLD_GREY,

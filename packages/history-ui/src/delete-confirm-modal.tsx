@@ -1,5 +1,4 @@
-import { BOLD_RED, NORMAL } from '@hexagram/viewer-core'
-import { Box, Text } from 'ink'
+import { ConfirmModal } from '@hexagram/viewer-core'
 import type { ReactElement } from 'react'
 
 interface DeleteConfirmModalProps {
@@ -13,39 +12,44 @@ interface DeleteConfirmModalProps {
   relativePath: string
   /** Inner content width in columns (from the `ScreenShell` slot). */
   innerCols: number
+  /** Fired when the user presses Y — the host runs `fs.unlink`. */
+  onConfirm: () => void
+  /** Fired when the user presses N or Esc — the host closes the modal. */
+  onCancel: () => void
 }
 
 /**
- * The destructive-delete confirm modal — a `borderStyle="round"`,
- * `borderColor="red"` box rendered in the `ScreenShell` `belowContent`
- * slot (between the list and the footer) while `HistoryList`'s
- * `confirmingDelete` reducer mode is active.
+ * The destructive-delete confirm modal — a thin history-specific wrapper over
+ * the generic `<ConfirmModal>`. It supplies the delete-flavoured copy (heading,
+ * permanence warning, Y/N prompt) and the per-row context lines (the row
+ * identity and the relative file path that `fs.unlink` receives); the modal
+ * box chrome and the Y/N/Esc key handling come from `<ConfirmModal>`.
  *
- * Identifying-only: it shows the row identity, the relative file path that
- * `fs.unlink` receives, a permanence warning, and the Y/N key prompt. It owns
- * no `useInput` — all key handling stays in `HistoryList`'s single `useInput`
- * so the modal can freeze list nav/filter without a competing handler.
+ * Observable behaviour is unchanged from the previous bespoke modal: Y deletes,
+ * N or Esc cancels, and the same identity / path / warning lines render.
  */
 export function DeleteConfirmModal({
   displayIdentity,
   relativePath,
   innerCols,
+  onConfirm,
+  onCancel,
 }: DeleteConfirmModalProps): ReactElement {
   return (
-    <Box
-      borderStyle="round"
-      borderColor="red"
-      width={innerCols}
-      flexShrink={0}
-      flexDirection="column"
-    >
-      <Text>{`${BOLD_RED}Delete consultation${NORMAL}`}</Text>
-      <Text>{displayIdentity}</Text>
-      <Text dimColor>{relativePath}</Text>
-      <Text>
-        {`${BOLD_RED}This permanently deletes the file — it cannot be undone.${NORMAL}`}
-      </Text>
-      <Text dimColor>Press Y to delete · N to cancel</Text>
-    </Box>
+    <ConfirmModal
+      title="Delete consultation"
+      bodyLines={[
+        displayIdentity,
+        { text: relativePath, tone: 'dim' },
+        {
+          text: 'This permanently deletes the file — it cannot be undone.',
+          tone: 'alert',
+        },
+      ]}
+      prompt="Press Y to delete · N to cancel"
+      innerCols={innerCols}
+      onConfirm={onConfirm}
+      onCancel={onCancel}
+    />
   )
 }
