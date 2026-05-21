@@ -59,9 +59,6 @@ importers:
 
   apps/cli:
     dependencies:
-      '@hexagram/app':
-        specifier: workspace:*
-        version: link:../../packages/app
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../../packages/casting-ui
@@ -74,34 +71,12 @@ importers:
       '@hexagram/history-ui':
         specifier: workspace:*
         version: link:../../packages/history-ui
+      '@hexagram/shell':
+        specifier: workspace:*
+        version: link:../../packages/shell
       '@hexagram/types':
         specifier: workspace:*
         version: link:../../packages/types
-
-  packages/app:
-    dependencies:
-      '@hexagram/casting-ui':
-        specifier: workspace:*
-        version: link:../casting-ui
-      '@hexagram/history-ui':
-        specifier: workspace:*
-        version: link:../history-ui
-      '@hexagram/viewer-core':
-        specifier: workspace:*
-        version: link:../viewer-core
-      ink:
-        specifier: ^7.0.3
-        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
-      react:
-        specifier: ^19.2.6
-        version: 19.2.6
-    devDependencies:
-      '@types/react':
-        specifier: ^19.2.14
-        version: 19.2.14
-      ink-testing-library:
-        specifier: ^4.0.0
-        version: 4.0.0(@types/react@19.2.14)
 
   packages/casting-ui:
     dependencies:
@@ -182,6 +157,31 @@ importers:
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+    devDependencies:
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      ink-testing-library:
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.2.14)
+
+  packages/shell:
+    dependencies:
+      '@hexagram/casting-ui':
+        specifier: workspace:*
+        version: link:../casting-ui
+      '@hexagram/history-ui':
+        specifier: workspace:*
+        version: link:../history-ui
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core

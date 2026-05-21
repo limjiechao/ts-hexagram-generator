@@ -2,7 +2,7 @@
 
 import process from 'node:process'
 
-import { runHexagram } from '@hexagram/app'
+import { runHexagram } from '@hexagram/shell'
 
 async function main(): Promise<void> {
   try {

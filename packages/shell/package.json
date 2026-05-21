@@ -1,5 +1,5 @@
 {
-  "name": "@hexagram/app",
+  "name": "@hexagram/shell",
   "type": "module",
   "version": "0.0.0",
   "description": "Composed terminal app for the Yijing hexagram oracle: a Home hub that navigates between the casting and history flows",

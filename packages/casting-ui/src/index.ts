@@ -31,7 +31,7 @@ export {
 
 // Ink viewer — the casting-flow component (`<ConsultationViewer>`) and the
 // standalone full-screen entry (`runConsultationViewer`). The composed CLI
-// (`@hexagram/app`) mounts the COMPONENT inside its own `render()`; the
+// (`@hexagram/shell`) mounts the COMPONENT inside its own `render()`; the
 // standalone casting bins call the entry, which owns its own `render()`.
 export {
   ConsultationViewer,

@@ -1,4 +1,4 @@
-// @hexagram/app — the composed `hexagram` CLI: a Home hub that mounts one of
+// @hexagram/shell — the composed `hexagram` CLI: a Home hub that mounts one of
 // three screens (Home menu, history browser, casting flow). This file is the
 // package's explicit public API entry.
 

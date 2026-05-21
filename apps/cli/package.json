@@ -19,11 +19,11 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/app": "workspace:*",
     "@hexagram/casting-ui": "workspace:*",
     "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/history-ui": "workspace:*",
+    "@hexagram/shell": "workspace:*",
     "@hexagram/types": "workspace:*"
   }
 }

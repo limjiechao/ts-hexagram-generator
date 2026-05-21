@@ -168,7 +168,7 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/app` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/shell` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
 - `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
