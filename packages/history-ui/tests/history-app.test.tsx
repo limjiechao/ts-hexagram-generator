@@ -9,7 +9,7 @@ import {
 } from '@hexagram/consultation-file'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HistoryApp } from '../src/history-app'
 
@@ -348,5 +348,76 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('No consultations yet.')
+  })
+})
+
+describe('<HistoryApp> — injectable top-level exit', () => {
+  it('default footer hint reads "ESC quit" with no onExit/exitLabel', async () => {
+    // Empty dir → the empty-state footer, which renders the `ESC <label>`
+    // hint untruncated (the populated hint line is width-truncated and the
+    // test terminal is too narrow to keep the trailing label visible).
+    const { lastFrame } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('No consultations yet.')
+    expect(frame).toContain('ESC quit')
+  })
+
+  it('ESC in the list invokes the injected onExit instead of quitting', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const onExit = vi.fn()
+    const { lastFrame, stdin } = render(
+      <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
+    )
+    await tick()
+    stdin.write(ESC)
+    await tick()
+    expect(onExit).toHaveBeenCalledOnce()
+    // The list is still mounted — the soft exit did not unmount the app.
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+  })
+
+  it('the injected exitLabel shows verbatim in the list footer hint', async () => {
+    // Empty dir → the empty-state footer renders `ESC <label>` untruncated.
+    const { lastFrame } = render(
+      <HistoryApp dir={tmpDir} onExit={vi.fn()} exitLabel="Home" />,
+    )
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('No consultations yet.')
+    expect(frame).toContain('ESC Home')
+    expect(frame).not.toContain('ESC quit')
+  })
+
+  it('ESC from the loaded readout still returns to the list — not onExit', async () => {
+    // The readout's internal Esc is unaffected by the injected top-level exit.
+    await writeFresh(MOVING_ENVELOPE)
+    const onExit = vi.fn()
+    const { lastFrame, stdin } = render(
+      <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
+    )
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    stdin.write(ESC)
+    await tick()
+    // Back on the list — the readout's Esc did not fire the host onExit.
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    expect(onExit).not.toHaveBeenCalled()
+  })
+
+  it('ESC while the filter row is open does not invoke onExit', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const onExit = vi.fn()
+    const { stdin } = render(
+      <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
+    )
+    await tick()
+    stdin.write('/')
+    await tick()
+    stdin.write(ESC) // empty filter — closes the row, must not exit
+    await tick()
+    expect(onExit).not.toHaveBeenCalled()
   })
 })

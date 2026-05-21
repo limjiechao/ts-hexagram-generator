@@ -80,8 +80,37 @@ type AppState =
       rewroteOnLoad: boolean
     }
 
-export function HistoryApp({ dir }: { dir: string }): ReactElement {
+interface HistoryAppProps {
+  /** Directory scanned for consultation `.md` files. */
+  dir: string
+  /**
+   * Invoked when the user presses Escape at the top level of the history list
+   * (the soft "back" key — not while the filter row is open, and not Ctrl+C).
+   * Lets a host shell (`HexagramApp`) reclaim Escape to navigate back to its
+   * Home menu instead of quitting. Defaults to `useApp().exit` so the
+   * standalone `hexagram-history` binary keeps quitting on Escape.
+   */
+  onExit?: () => void
+  /**
+   * Verb shown after `ESC` in the history-list footer key hints — names the
+   * real destination of the top-level Escape exit. Threaded straight down to
+   * `<HistoryList>`. Defaults to `"quit"` (standalone behaviour); a host that
+   * supplies `onExit` should also pass a matching label (e.g. `"Home"`).
+   */
+  exitLabel?: string
+}
+
+export function HistoryApp({
+  dir,
+  onExit,
+  exitLabel = 'quit',
+}: HistoryAppProps): ReactElement {
   const { exit } = useApp()
+  // Top-level Escape in the list routes through `onExit` when a host injects
+  // one; otherwise it falls back to `exit` so standalone Escape still quits.
+  // Ctrl+C is deliberately NOT routed through `onExit` — it is the hard quit
+  // from every screen and always calls `exit` directly (see `useInput` below).
+  const handleExit = onExit ?? exit
   const { columns, rows } = useWindowSize()
   const cols = columns || 80
   const termRows = rows || 24
@@ -107,10 +136,11 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
       })
   }, [dir])
 
-  // Ctrl+C always exits. Escape is owned entirely by the child views — the
-  // list (`onExit` below) so that, while its filter row is open, Escape
-  // clears/closes the filter instead of leaking through to an app-level
-  // exit; the readout (its own `onExit`) so Escape returns to the list.
+  // Ctrl+C always hard-quits the program — never routed through the injected
+  // `onExit`. Escape is owned entirely by the child views — the list
+  // (`handleExit` below) so that, while its filter row is open, Escape
+  // clears/closes the filter instead of leaking through to a top-level exit;
+  // the readout (its own `onExit`) so Escape returns to the list.
   useInput((input, key) => {
     if (key.ctrl && input === 'c') {
       exit()
@@ -141,7 +171,8 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         statusLine={statusLine}
         deleteStatusLine={state.deleteStatus}
         initialFocusPath={state.restoreFocusPath}
-        onExit={exit}
+        onExit={handleExit}
+        exitLabel={exitLabel}
         onPick={(entry) => {
           // Debounce: ignore further Enter presses while a load is in flight.
           if (state.loading) return

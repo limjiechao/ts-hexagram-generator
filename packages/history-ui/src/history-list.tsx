@@ -47,6 +47,15 @@ interface HistoryListProps {
    */
   onExit?: () => void
   /**
+   * Verb shown after `ESC` in the footer key hints — names the real
+   * destination of the top-level Escape exit. `HistoryApp` forwards its own
+   * `exitLabel` here; standalone (`hexagram-history`) Escape quits the
+   * program, so the default is `"quit"`. Used verbatim in both the populated
+   * `hintLine` and the empty-state footer. Does NOT affect the filter-mode
+   * hints (`Esc clear/close filter`) — those are a different Escape action.
+   */
+  exitLabel?: string
+  /**
    * Called with the focused row's path when the user confirms a Ctrl+D
    * delete (presses `Y` in the confirm modal). `HistoryApp` wires this to
    * `fs.unlink` + a rescan. Defaults to a no-op.
@@ -285,6 +294,7 @@ export function HistoryList({
   statusLine = null,
   onPick,
   onExit = () => {},
+  exitLabel = 'quit',
   onDelete = () => {},
   deleteStatusLine = null,
   initialFocusPath = null,
@@ -523,12 +533,12 @@ export function HistoryList({
 
   // Empty state — no consultations and no unreadable files.
   // Renders inside ScreenShell so the chrome is consistent with the populated
-  // list. Title shows "0 consultations"; footer is just "ESC exit".
+  // list. Title shows "0 consultations"; footer is just "ESC <exitLabel>".
   if (isEmpty) {
     const emptyTitle = 'Past Consultations · consultations/ · 0 consultations'
     const emptyFooter = (
       <Box flexDirection="column" flexShrink={0}>
-        <Text dimColor> ESC exit</Text>
+        <Text dimColor>{` ESC ${exitLabel}`}</Text>
         <Text>{` `}</Text>
       </Box>
     )
@@ -566,8 +576,9 @@ export function HistoryList({
   // names whichever action the next Escape press will take.
   let hintLine: string
   if (!state.filterMode) {
-    hintLine =
-      ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ^D delete · ESC exit'
+    // The trailing `ESC <exitLabel>` names the top-level Escape destination —
+    // "quit" standalone, or whatever the host (`HistoryApp`) injected.
+    hintLine = ` ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ^D delete · ESC ${exitLabel}`
   } else if (state.filter.length > 0) {
     hintLine = ' Esc clear filter · Enter load · ^D delete'
   } else {

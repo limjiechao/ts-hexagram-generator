@@ -70,8 +70,8 @@ describe('<HistoryList>', () => {
     const frame = lastFrame() ?? ''
     expect(frame).toContain('No consultations yet.')
     expect(frame).toContain('Run hexagram-random or hexagram-interactive')
-    // Empty state suppresses nav/filter hints — footer is just ESC exit.
-    expect(frame).toContain('ESC exit')
+    // Empty state suppresses nav/filter hints — footer is just ESC quit.
+    expect(frame).toContain('ESC quit')
     expect(frame).not.toContain('PgUp/PgDn')
   })
 
@@ -816,7 +816,7 @@ describe('<HistoryList>', () => {
     expect(frame).not.toContain('╭')
   })
 
-  it('empty state footer shows only "ESC exit" — no nav hints', () => {
+  it('empty state footer shows only "ESC quit" — no nav hints', () => {
     const { lastFrame } = render(
       <HistoryList
         entries={[]}
@@ -827,7 +827,7 @@ describe('<HistoryList>', () => {
       />,
     )
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('ESC exit')
+    expect(frame).toContain('ESC quit')
     // Nav / filter hints must be absent in the empty state.
     expect(frame).not.toContain('PgUp/PgDn')
     expect(frame).not.toContain('/ filter')
@@ -1170,6 +1170,51 @@ describe('<HistoryList>', () => {
     stdin.write(ESC)
     await tick()
     expect(onExit).toHaveBeenCalledOnce()
+  })
+
+  it('default footer hint reads "ESC quit" when no exitLabel is given', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={120}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    expect(stripAnsi(lastFrame() ?? '')).toContain('ESC quit')
+  })
+
+  it('exitLabel is rendered verbatim in the populated-list footer hint', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={120}
+        rows={24}
+        onPick={() => {}}
+        exitLabel="Home"
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('ESC Home')
+    expect(frame).not.toContain('ESC quit')
+  })
+
+  it('exitLabel is rendered verbatim in the empty-state footer', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={[]}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        exitLabel="Home"
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('ESC Home')
+    expect(frame).not.toContain('ESC quit')
   })
 
   it('ESC does not call onExit while the filter row is open', async () => {
@@ -1734,8 +1779,8 @@ describe('<HistoryList>', () => {
       )
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame).toContain('^D delete')
-      // `^D delete` is inserted right before `ESC exit`.
-      expect(frame.indexOf('^D delete')).toBeLessThan(frame.indexOf('ESC exit'))
+      // `^D delete` is inserted right before `ESC quit`.
+      expect(frame.indexOf('^D delete')).toBeLessThan(frame.indexOf('ESC quit'))
     })
 
     it('filter mode (empty) footer includes "^D delete"', async () => {
