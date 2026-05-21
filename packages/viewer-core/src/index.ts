@@ -3,6 +3,14 @@
 // scrolling), layout maths, the data-driven keymap, the ANSI palette, and the
 // section/composer renderers that turn a consultation into per-tab strings.
 
+// Generic confirmation modal — title + context + Y/N keypress affordances,
+// framed in the viewer-core chrome. Owns its own input handling.
+export {
+  ConfirmModal,
+  type ConfirmModalBodyLine,
+  type ConfirmModalProps,
+} from './confirm-modal.js'
+
 // Tabbed scrollable consultation readout shell — generic chrome engine that
 // serves both the casting-flow view and standalone readouts via slots.
 export {
@@ -18,14 +26,6 @@ export {
   buildPartialCastingSections,
   type ConsultationSections,
 } from './output-composers.js'
-
-// Generic confirmation modal — title + context + Y/N keypress affordances,
-// framed in the viewer-core chrome. Owns its own input handling.
-export {
-  ConfirmModal,
-  type ConfirmModalBodyLine,
-  type ConfirmModalProps,
-} from './confirm-modal.js'
 
 // ANSI palette constants used by the formatted output.
 export {
