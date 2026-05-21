@@ -80,7 +80,7 @@ import {
 
 The CLI bins are exposed by the `@hexagram/bin` workspace package. Until publishing lands you can install them globally from your local clone.
 
-Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
+`hexagram` opens on a Home menu from which you can cast a new consultation or browse past ones. The `hexagram-random` and `hexagram-interactive` CLIs present the reading directly in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 
@@ -95,6 +95,7 @@ pnpm install
 pnpm build                            # turbo builds all packages in topological order
 pnpm --filter @hexagram/bin link --global
 
+hexagram
 hexagram-random
 hexagram-interactive
 
