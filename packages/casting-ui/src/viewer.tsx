@@ -293,10 +293,14 @@ export function ConsultationViewer({
       bodyLines={[
         'The cast in progress has not been saved.',
         {
+          // Ctrl+C always hard-quits. Esc routes to the host's exit — the
+          // standalone bins quit, so both keys read "quit"; the composed
+          // app's Esc returns to its Home menu (`exitLabel` is the
+          // destination noun, e.g. "Home").
           text:
-            confirmingDiscard === 'quit'
-              ? 'Confirming will discard it and quit.'
-              : `Confirming will discard it and ${exitLabel}.`,
+            confirmingDiscard === 'back' && exitLabel !== 'quit'
+              ? `Confirming will discard it and return to ${exitLabel}.`
+              : 'Confirming will discard it and quit.',
           tone: 'alert',
         },
       ]}
