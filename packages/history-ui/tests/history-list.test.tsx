@@ -492,6 +492,40 @@ describe('<HistoryList>', () => {
     expect(frame).toContain('a.md')
   })
 
+  it('initialFocusPath seeds focus on the matching row, not the first', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        initialFocusPath={fakeEntries[1]!.path}
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // The footer bottom line shows the focused row's path — the second entry.
+    expect(frame).toContain('b.md')
+    expect(frame).not.toContain('a.md')
+  })
+
+  it('initialFocusPath that matches no row falls back to the first row', () => {
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        initialFocusPath="/x/does-not-exist.md"
+        onPick={() => {}}
+      />,
+    )
+    const frame = stripAnsi(lastFrame() ?? '')
+    // Stale path → focusIndexOf fallback → first row focused.
+    expect(frame).toContain('a.md')
+    expect(frame).not.toContain('b.md')
+  })
+
   it('statusLine overrides the footer bottom row with Loading…', () => {
     const { lastFrame } = render(
       <HistoryList

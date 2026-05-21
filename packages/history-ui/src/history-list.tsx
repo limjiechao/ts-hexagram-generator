@@ -58,6 +58,13 @@ interface HistoryListProps {
    * the unreadable-row "Cannot open" status. Defaults to `null`.
    */
   deleteStatusLine?: { text: string; tone: 'dim' | 'error' } | null
+  /**
+   * Seeds the initially-focused row by `path` on mount — used by `HistoryApp`
+   * to restore focus when the user returns from a loaded consultation. Read
+   * only by the `useReducer` initializer; a stale/unknown path falls back to
+   * the first row via `focusIndexOf`. Defaults to `null` (first row).
+   */
+  initialFocusPath?: string | null
 }
 
 /**
@@ -279,9 +286,11 @@ export function HistoryList({
   onExit = () => {},
   onDelete = () => {},
   deleteStatusLine = null,
+  initialFocusPath = null,
 }: HistoryListProps): ReactElement {
   const [state, dispatch] = useReducer(reducer, {
-    focusPath: entries[0]?.path ?? unreadable[0]?.path ?? null,
+    focusPath:
+      initialFocusPath ?? entries[0]?.path ?? unreadable[0]?.path ?? null,
     windowStart: 0,
     filterMode: false,
     filter: '',

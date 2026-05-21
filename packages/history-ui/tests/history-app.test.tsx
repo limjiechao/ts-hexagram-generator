@@ -224,6 +224,30 @@ describe('<HistoryApp> — loaded readout', () => {
     expect(frame).toContain('Past Consultations')
     expect(frame).not.toContain('Consultation · loaded')
   })
+
+  it('returning from the readout restores focus to the loaded row', async () => {
+    // Two consultations: MOVING (2025) is newest → row 0; SECOND (2024) → row 1.
+    await writeFresh(MOVING_ENVELOPE)
+    await writeFresh(SECOND_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    // Move focus down to the second row, then load it.
+    stdin.write(`${ESC}[B`)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    // Return to the list.
+    stdin.write(ESC)
+    await tick()
+    // The second row (SECOND_ENVELOPE) is focused again — its query rides the
+    // inverse-video bar; the first row's query (MOVING) does not.
+    const inverseLines = (lastFrame() ?? '')
+      .split('\n')
+      .filter((l) => l.includes(`${ESC}[7m`))
+    expect(inverseLines.some((l) => l.includes('Berlin'))).toBe(true)
+    expect(inverseLines.some((l) => l.includes('happen'))).toBe(false)
+  })
 })
 
 describe('<HistoryApp> — Ctrl+D delete', () => {

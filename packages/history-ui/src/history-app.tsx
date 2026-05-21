@@ -67,6 +67,12 @@ type AppState =
        * other list transition (it is a fresh-after-delete-only value).
        */
       deleteStatus: { text: string; tone: 'dim' | 'error' } | null
+      /**
+       * Path of the consultation to re-focus on the next list mount — set
+       * only on the readout → list (`onExit`) transition so the user returns
+       * to the row they loaded. `null` on every other list transition.
+       */
+      restoreFocusPath: string | null
     }
   | {
       mode: 'view'
@@ -88,6 +94,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
     loading: false,
     error: null,
     deleteStatus: null,
+    restoreFocusPath: null,
   })
 
   useEffect(() => {
@@ -133,6 +140,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         rows={termRows}
         statusLine={statusLine}
         deleteStatusLine={state.deleteStatus}
+        initialFocusPath={state.restoreFocusPath}
         onExit={exit}
         onPick={(entry) => {
           // Debounce: ignore further Enter presses while a load is in flight.
@@ -142,6 +150,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
             loading: true,
             error: null,
             deleteStatus: null,
+            restoreFocusPath: null,
           })
           rerenderOnDisk(entry.path, entry.envelope)
             .then((r) => {
@@ -159,6 +168,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
                   error instanceof Error ? error.message : String(error)
                 }`,
                 deleteStatus: null,
+                restoreFocusPath: null,
               })
             })
         }}
@@ -193,6 +203,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
                   text: `✓ Deleted ${path.relative(process.cwd(), targetPath)}`,
                   tone: 'dim',
                 },
+                restoreFocusPath: null,
               })
             })
             .catch((error: unknown) => {
@@ -207,6 +218,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
                   )}: ${error instanceof Error ? error.message : String(error)}`,
                   tone: 'error',
                 },
+                restoreFocusPath: null,
               })
             })
         }}
@@ -246,6 +258,8 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
           loading: false,
           error: null,
           deleteStatus: null,
+          // Restore focus to the consultation just viewed.
+          restoreFocusPath: state.entry.path,
         })
       }}
     />
