@@ -10,7 +10,7 @@ import { BOLD_RED, NORMAL } from './output-palette.js'
  */
 export type ConfirmModalBodyLine =
   | string
-  | { text: string; tone: 'plain' | 'dim' | 'alert' }
+  | { text: string; tone: 'dim' | 'alert' }
 
 export interface ConfirmModalProps {
   /**
@@ -97,19 +97,18 @@ export function ConfirmModal({
     >
       <Text>{`${BOLD_RED}${title}${NORMAL}`}</Text>
       {bodyLines.map((line, index) => {
-        const { text, tone } =
-          typeof line === 'string' ? { text: line, tone: 'plain' } : line
-        if (tone === 'dim') {
+        // A bare string is the sole spelling of a plain/default line.
+        if (typeof line === 'string') {
+          return <Text key={index}>{line}</Text>
+        }
+        if (line.tone === 'dim') {
           return (
             <Text key={index} dimColor>
-              {text}
+              {line.text}
             </Text>
           )
         }
-        if (tone === 'alert') {
-          return <Text key={index}>{`${BOLD_RED}${text}${NORMAL}`}</Text>
-        }
-        return <Text key={index}>{text}</Text>
+        return <Text key={index}>{`${BOLD_RED}${line.text}${NORMAL}`}</Text>
       })}
       <Text dimColor>{prompt}</Text>
     </Box>

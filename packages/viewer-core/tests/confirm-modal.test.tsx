@@ -2,11 +2,7 @@ import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
 import { ConfirmModal } from '../src/confirm-modal.js'
-
-// ANSI strip helper — removes SGR sequences so assertions match visible text
-// without worrying about colour codes.
-// oxlint-disable-next-line no-control-regex
-const stripAnsi = (s: string): string => s.replaceAll(/\[[\d;]*m/g, '')
+import { stripAnsi } from '../src/viewer-layout.js'
 
 const ESC = String.fromCodePoint(0x1b)
 
