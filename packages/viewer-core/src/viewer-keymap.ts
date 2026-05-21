@@ -7,12 +7,14 @@ import type { Key } from 'ink'
 // and `match` predicate both hold; first match wins.
 //
 // The 16 bindings here replace the previous 81-line `if/else` chain inside
-// `viewer.tsx`'s `useInput` callback. Behaviour is preserved bit-for-bit:
-// global Escape / Ctrl+C exits; ←/→ during a slider-mode cast pan the
-// casting prompt; once `done`, the full Tab / digit / arrow / page / Home /
-// End binding set applies. Shift-modified arrows pan by `innerCols - 1`
-// (a "page" pan) — that math lives in the closures passed in via
-// `KeyContext`, so the bindings here just toggle on `key.shift`.
+// `viewer.tsx`'s `useInput` callback. Global Escape calls `ctx.exit` (the
+// soft back key) and Ctrl+C calls `ctx.hardQuit` (the hard quit) — kept
+// separate so the casting viewer can route the two keys to different
+// destinations. ←/→ during a slider-mode cast pan the casting prompt; once
+// `done`, the full Tab / digit / arrow / page / Home / End binding set
+// applies. Shift-modified arrows pan by `innerCols - 1` (a "page" pan) — that
+// math lives in the closures passed in via `KeyContext`, so the bindings here
+// just toggle on `key.shift`.
 
 export type InputMode = 'slider' | 'number'
 
@@ -32,7 +34,13 @@ export interface KeyContext {
   readonly state: FlowStateSlice
   readonly inputMode: InputMode
   readonly viewportHeight: number
+  // Soft back / exit — bound to Escape. The casting viewer routes this to its
+  // injected `onExit` (Home in the composed CLI, quit standalone).
   readonly exit: () => void
+  // Hard quit — bound to Ctrl+C. Distinct from `exit` so the casting viewer
+  // can route the two keys differently after a discard confirmation: Escape
+  // returns to the host, Ctrl+C quits the program outright.
+  readonly hardQuit: () => void
   // `delta` is signed cells (1 = one column). The closure passed in by the
   // viewer is responsible for clamping against the prompt's pan ceiling.
   readonly panCastingPromptBy: (delta: number) => void
@@ -76,7 +84,7 @@ export const BINDINGS: readonly KeyBinding[] = [
     when: ALWAYS,
     match: (input, key) => key.ctrl === true && input === 'c',
     run: (ctx) => {
-      ctx.exit()
+      ctx.hardQuit()
     },
   },
   // ── Casting (slider mode only) ───────────────────────────────────────────

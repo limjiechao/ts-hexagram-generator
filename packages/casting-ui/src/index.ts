@@ -1,3 +1,7 @@
+// Pure predicate over the casting flow state — true while there is unsaved
+// cast progress. Used by `<ConsultationViewer>` to gate the discard confirm.
+export { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
+
 // Inquirer-driven interactive flow (plain mode and library use).
 export { getHexagramViaInteraction } from './interactive-flow.js'
 
@@ -9,6 +13,7 @@ export { logAndSaveConsultationOutput } from './log-and-save.js'
 // in `@hexagram/viewer-core`; `consultationConsoleOutput` is the plain-mode
 // save composer kept local to this package.
 export { consultationConsoleOutput } from './output-composers.js'
+
 // Inquirer prompt for the user's consultation query.
 export { getUserQuery } from './prompts.js'
 

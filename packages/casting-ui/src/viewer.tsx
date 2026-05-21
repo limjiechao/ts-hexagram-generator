@@ -9,16 +9,17 @@ import {
 import {
   buildConsultationSections,
   buildPartialCastingSections,
+  ConfirmModal,
   ConsultationReadout,
-  KEY_HINTS_FLOW_DEFAULT,
+  keyHintsFlowDefault,
   keyHintsForCasting,
   QueryBox,
   renderProgressBar,
   type CastingPromptPan,
   type ConsultationSections,
 } from '@hexagram/viewer-core'
-import { render, type Instance } from 'ink'
-import { useEffect, useReducer, type ReactElement } from 'react'
+import { render, useApp, type Instance } from 'ink'
+import { useEffect, useReducer, useState, type ReactElement } from 'react'
 import stringWidth from 'string-width'
 
 import {
@@ -26,6 +27,7 @@ import {
   getCastingPromptHeight,
   SLIDER_COMMIT_REVEAL_MS,
 } from './casting-prompt-box.js'
+import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
@@ -61,7 +63,21 @@ interface ConsultationViewerProps {
   // commits upstream. Forwarded to `<CastingPromptBox commitRevealMs>`;
   // tests pass `0` to bypass the dwell.
   sliderCommitRevealMs?: number
+  // Soft back / exit callback — fired when Escape is pressed (after a discard
+  // confirmation, when there is unsaved cast progress). Defaults to Ink's
+  // `useApp().exit`, so the standalone casting bins quit on Escape as before;
+  // the composed CLI injects a handler that routes back to its Home menu.
+  onExit?: () => void
+  // Verb shown after `Esc` in the footer key hints — names the real
+  // destination of the soft-back Escape. Defaults to `"quit"` (the standalone
+  // bins); the composed CLI passes e.g. `"home"`.
+  exitLabel?: string
 }
+
+// Which exit path a pending discard confirmation belongs to. `back` is the
+// Escape (soft-back) path → routes to the injected `onExit`; `quit` is the
+// Ctrl+C path → routes to a hard quit. `null` means no confirmation is open.
+type DiscardPath = 'back' | 'quit' | null
 
 /**
  * `<ConsultationViewer>` — the casting-flow wrapper. It owns the flow state
@@ -78,7 +94,14 @@ export function ConsultationViewer({
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
   sliderSweepMs = DEFAULT_SLIDER_SWEEP_MS,
   sliderCommitRevealMs = SLIDER_COMMIT_REVEAL_MS,
+  onExit,
+  exitLabel = 'quit',
 }: ConsultationViewerProps): ReactElement {
+  const { exit } = useApp()
+  // The soft-back destination — the injected `onExit`, or Ink's program exit
+  // for the standalone casting bins (which pass no `onExit`).
+  const exitViewer = onExit ?? exit
+
   const [state, dispatch] = useReducer(flowReducer, undefined, () =>
     initialFlowState(
       flowKind,
@@ -87,7 +110,34 @@ export function ConsultationViewer({
     ),
   )
 
+  // Mid-cast discard confirmation. When an exit is attempted with unsaved
+  // progress, the viewer interposes a `<ConfirmModal>` instead of exiting
+  // immediately; `confirmingDiscard` records which key path (`back` = Escape,
+  // `quit` = Ctrl+C) is waiting on the confirmation. The confirmation lives
+  // here, inside the viewer — only the viewer knows its own flow progress.
+  const [confirmingDiscard, setConfirmingDiscard] = useState<DiscardPath>(null)
+
   const { submitSplit, currentMax } = useLineGenerator(state, dispatch)
+
+  // ── Exit handlers — gated by `hasUnsavedCastProgress` ───────────────────
+  // Escape (soft back): with unsaved progress, open the discard confirm on
+  // the `back` path; otherwise route straight to the injected `onExit`.
+  const handleExitAttempt = (): void => {
+    if (hasUnsavedCastProgress(state)) {
+      setConfirmingDiscard('back')
+    } else {
+      exitViewer()
+    }
+  }
+  // Ctrl+C (hard quit): with unsaved progress, open the discard confirm on
+  // the `quit` path; otherwise quit the program outright.
+  const handleHardQuitAttempt = (): void => {
+    if (hasUnsavedCastProgress(state)) {
+      setConfirmingDiscard('quit')
+    } else {
+      exit()
+    }
+  }
 
   // The compute effect derives the hexagram + casting (for random) and
   // persists the consultation to disk. Fires exactly once per
@@ -195,6 +245,10 @@ export function ConsultationViewer({
       ? getCastingPromptHeight(inputMode, state.error !== null)
       : 0
 
+  // The discard-confirm modal occupies the above-footer slot while open. Its
+  // height is fixed: 2 border rows + 1 title + 2 body lines + 1 prompt = 6.
+  const DISCARD_MODAL_HEIGHT = 6
+
   // Intrinsic content width of the casting prompt box (inside its border) —
   // drives the ←/→ pan during the slider-mode casting flow.
   const castingPromptContentWidth =
@@ -214,8 +268,10 @@ export function ConsultationViewer({
         )
       : 0
 
+  // The casting-prompt pan is suspended while the discard modal is open — the
+  // slot then hosts the modal, not the pannable prompt box.
   const castingPromptPan: CastingPromptPan | undefined =
-    state.mode === 'casting'
+    state.mode === 'casting' && confirmingDiscard === null
       ? {
           contentWidth: castingPromptContentWidth,
           // Reset the pan whenever a new cast begins so the next cast's bar
@@ -224,30 +280,73 @@ export function ConsultationViewer({
         }
       : undefined
 
+  // ── Discard-confirm modal slot ──────────────────────────────────────────
+  // When `confirmingDiscard` is set, the above-footer slot renders the
+  // `<ConfirmModal>` (it is visible across `awaitingQuery` / `casting` /
+  // `computing`). On confirm the slot routes per path — `back` → the injected
+  // `onExit`, `quit` → a hard program quit; on cancel it just clears the
+  // confirmation. `<ConfirmModal>` owns its own `useInput`, so the readout's
+  // keymap is frozen via `inputSuppressed` while the modal is open.
+  const discardModalSlot = (innerCols: number): ReactElement => (
+    <ConfirmModal
+      title="Discard this consultation?"
+      bodyLines={[
+        'The cast in progress has not been saved.',
+        {
+          text:
+            confirmingDiscard === 'quit'
+              ? 'Confirming will discard it and quit.'
+              : `Confirming will discard it and ${exitLabel}.`,
+          tone: 'alert',
+        },
+      ]}
+      prompt="Press Y to discard · N to keep casting"
+      innerCols={innerCols}
+      onConfirm={() => {
+        const path = confirmingDiscard
+        setConfirmingDiscard(null)
+        if (path === 'quit') exit()
+        else exitViewer()
+      }}
+      onCancel={() => {
+        setConfirmingDiscard(null)
+      }}
+    />
+  )
+
+  const castingPromptSlot = (
+    innerCols: number,
+    horizontalOffset: number,
+  ): ReactElement => (
+    <CastingPromptBox
+      key={`${lineNumber}-${state.castIndex}`}
+      lineNumber={lineNumber}
+      castIndex={state.castIndex}
+      min={1}
+      max={currentMax}
+      buffer={state.castingBuffer}
+      error={state.error}
+      width={innerCols}
+      inputMode={inputMode}
+      tickMs={deriveTickMs(sliderSweepMs, currentMax)}
+      commitRevealMs={sliderCommitRevealMs}
+      horizontalOffset={horizontalOffset}
+      onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
+      onSubmit={(parsed) => submitSplit(parsed)}
+      onError={(message) => dispatch({ type: 'castingError', message })}
+    />
+  )
+
+  // The above-footer slot hosts the discard modal when one is open, otherwise
+  // the casting prompt box during `casting`, otherwise nothing.
+  const castingSlotOrNothing =
+    state.mode === 'casting' ? castingPromptSlot : undefined
   const aboveFooterSlot =
-    state.mode === 'casting'
-      ? (innerCols: number, horizontalOffset: number): ReactElement => (
-          <CastingPromptBox
-            key={`${lineNumber}-${state.castIndex}`}
-            lineNumber={lineNumber}
-            castIndex={state.castIndex}
-            min={1}
-            max={currentMax}
-            buffer={state.castingBuffer}
-            error={state.error}
-            width={innerCols}
-            inputMode={inputMode}
-            tickMs={deriveTickMs(sliderSweepMs, currentMax)}
-            commitRevealMs={sliderCommitRevealMs}
-            horizontalOffset={horizontalOffset}
-            onChange={(value) =>
-              dispatch({ type: 'castingBufferChange', value })
-            }
-            onSubmit={(parsed) => submitSplit(parsed)}
-            onError={(message) => dispatch({ type: 'castingError', message })}
-          />
-        )
-      : undefined
+    confirmingDiscard === null ? castingSlotOrNothing : discardModalSlot
+
+  // Slot height tracks whichever content the slot is showing.
+  const aboveFooterHeight =
+    confirmingDiscard === null ? castingPromptHeight : DISCARD_MODAL_HEIGHT
 
   // ── Footer-bottom flow hint ─────────────────────────────────────────────
 
@@ -275,16 +374,19 @@ export function ConsultationViewer({
       queryText={queryContent}
       dimContent={state.mode === 'awaitingQuery'}
       aboveFooterSlot={aboveFooterSlot}
-      aboveFooterHeight={castingPromptHeight}
+      aboveFooterHeight={aboveFooterHeight}
       castingPromptPan={castingPromptPan}
       flowHint={flowHint}
       flowKeyHints={
         state.mode === 'casting'
-          ? keyHintsForCasting(inputMode)
-          : KEY_HINTS_FLOW_DEFAULT
+          ? keyHintsForCasting(inputMode, exitLabel)
+          : keyHintsFlowDefault(exitLabel)
       }
       inputMode={inputMode}
       title={readoutTitle}
+      onExit={handleExitAttempt}
+      onHardQuit={handleHardQuitAttempt}
+      inputSuppressed={confirmingDiscard !== null}
     />
   )
 }

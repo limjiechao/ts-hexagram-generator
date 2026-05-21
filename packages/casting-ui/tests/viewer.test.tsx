@@ -476,21 +476,25 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
-  it('exits cleanly when Escape is pressed mid-query', async () => {
-    const { stdin, unmount } = render(
+  it('exits cleanly when Escape is pressed on an empty query', async () => {
+    // Empty `awaitingQuery` is not unsaved progress — Escape exits straight
+    // away with no discard confirmation.
+    const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write(ESCAPE)).not.toThrow()
     await tick()
+    expect(lastFrame() ?? '').not.toContain('Discard this consultation?')
     unmount()
   })
 
-  it('exits cleanly when Ctrl+C is pressed mid-query', async () => {
-    const { stdin, unmount } = render(
+  it('exits cleanly when Ctrl+C is pressed on an empty query', async () => {
+    const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write(CTRL_C)).not.toThrow()
     await tick()
+    expect(lastFrame() ?? '').not.toContain('Discard this consultation?')
     unmount()
   })
 
@@ -501,6 +505,131 @@ describe('ConsultationViewer (interactive flow)', () => {
     stdin.write('quit?')
     await tick()
     expect(lastFrame() ?? '').toContain('quit?')
+    unmount()
+  })
+})
+
+describe('ConsultationViewer — mid-cast discard confirmation', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('Escape mid-cast shows the discard confirm instead of exiting', async () => {
+    const onExit = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="number"
+        onExit={onExit}
+      />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ENTER) // → casting
+    await tick()
+    stdin.write(ESCAPE)
+    await tick()
+    expect(lastFrame() ?? '').toContain('Discard this consultation?')
+    // The exit was interposed — `onExit` has NOT fired yet.
+    expect(onExit).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('Ctrl+C mid-cast shows the discard confirm', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    stdin.write(CTRL_C)
+    await tick()
+    expect(lastFrame() ?? '').toContain('Discard this consultation?')
+    unmount()
+  })
+
+  it('cancelling the confirm (N) keeps the cast going', async () => {
+    const onExit = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="number"
+        onExit={onExit}
+      />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    stdin.write(ESCAPE)
+    await tick()
+    stdin.write('n') // cancel
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).not.toContain('Discard this consultation?')
+    // Back in the casting flow — the casting prompt is shown again.
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
+    expect(onExit).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('confirming the Escape path (Y) routes to the injected onExit', async () => {
+    const onExit = vi.fn()
+    const { stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="number"
+        onExit={onExit}
+      />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    stdin.write(ESCAPE)
+    await tick()
+    stdin.write('y') // confirm discard
+    await tick()
+    expect(onExit).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('a typed query (still awaitingQuery) Escape prompts the confirm', async () => {
+    const onExit = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="number"
+        onExit={onExit}
+      />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ESCAPE) // still in awaitingQuery, but the query buffer is dirty
+    await tick()
+    expect(lastFrame() ?? '').toContain('Discard this consultation?')
+    expect(onExit).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('the footer key hints name the injected exit destination', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="interactive"
+        inputMode="number"
+        onExit={() => {}}
+        exitLabel="home"
+      />,
+    )
+    stdin.write('Should I go?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Esc: home')
+    expect(frame).toContain('Ctrl+C: quit')
     unmount()
   })
 })

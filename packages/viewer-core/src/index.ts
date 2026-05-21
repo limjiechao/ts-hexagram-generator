@@ -72,6 +72,7 @@ export {
   FooterBar,
   KEY_HINTS_FLOW_DEFAULT,
   KEY_HINTS_TEMPLATE,
+  keyHintsFlowDefault,
   keyHintsForCasting,
   QUERY_ACCENT_BAR_PREFIX,
   QUERY_ACCENT_PREFIX_WIDTH,

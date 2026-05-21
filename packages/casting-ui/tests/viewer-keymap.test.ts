@@ -48,6 +48,7 @@ function makeContext(
 ): KeyContext & {
   spies: {
     exit: ReturnType<typeof vi.fn>
+    hardQuit: ReturnType<typeof vi.fn>
     panCastingPromptBy: ReturnType<typeof vi.fn>
     panCastingPromptByPage: ReturnType<typeof vi.fn>
     stepToTab: ReturnType<typeof vi.fn>
@@ -60,6 +61,7 @@ function makeContext(
 } {
   const spies = {
     exit: vi.fn(),
+    hardQuit: vi.fn(),
     panCastingPromptBy: vi.fn(),
     panCastingPromptByPage: vi.fn(),
     stepToTab: vi.fn(),
@@ -74,6 +76,7 @@ function makeContext(
     inputMode,
     viewportHeight,
     exit: spies.exit,
+    hardQuit: spies.hardQuit,
     panCastingPromptBy: spies.panCastingPromptBy,
     panCastingPromptByPage: spies.panCastingPromptByPage,
     stepToTab: spies.stepToTab,
@@ -189,17 +192,21 @@ describe('global bindings', () => {
     expect(calledNames(ctx.spies)).toEqual(['exit'])
   })
 
-  it('exit/ctrl-c — Ctrl+C exits regardless of mode', () => {
+  it('exit/ctrl-c — Ctrl+C hard-quits regardless of mode', () => {
+    // Ctrl+C routes to `hardQuit`, distinct from Escape's `exit` — the casting
+    // viewer relies on the split to send the two keys to different targets.
     const ctx = makeContext(makeState({ mode: 'casting' }))
     expect(dispatchKey('c', makeKey({ ctrl: true }), ctx)).toBe(true)
-    expect(ctx.spies.exit).toHaveBeenCalledTimes(1)
-    expect(calledNames(ctx.spies)).toEqual(['exit'])
+    expect(ctx.spies.hardQuit).toHaveBeenCalledTimes(1)
+    expect(ctx.spies.exit).not.toHaveBeenCalled()
+    expect(calledNames(ctx.spies)).toEqual(['hardQuit'])
   })
 
-  it('Ctrl+x (not c) does NOT trigger exit', () => {
+  it('Ctrl+x (not c) does NOT trigger exit or hard-quit', () => {
     const ctx = makeContext(makeState({ mode: 'done' }))
     expect(dispatchKey('x', makeKey({ ctrl: true }), ctx)).toBe(false)
     expect(ctx.spies.exit).not.toHaveBeenCalled()
+    expect(ctx.spies.hardQuit).not.toHaveBeenCalled()
   })
 })
 

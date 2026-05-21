@@ -136,8 +136,26 @@ export interface ConsultationReadoutProps {
   readonly title?: string
   /** Optional notice line shown above the footer. */
   readonly notice?: string
-  /** Optional exit callback; defaults to Ink's `useApp().exit`. */
+  /**
+   * Soft back / exit callback — bound to Escape. Defaults to Ink's
+   * `useApp().exit`. The casting viewer injects a handler that may interpose
+   * a discard confirmation before routing to its own `onExit`.
+   */
   readonly onExit?: () => void
+  /**
+   * Hard quit callback — bound to Ctrl+C. Defaults to Ink's `useApp().exit`
+   * so standalone readouts treat Ctrl+C exactly as before. The casting viewer
+   * injects a handler that may interpose a discard confirmation; on confirm
+   * it quits the program outright.
+   */
+  readonly onHardQuit?: () => void
+  /**
+   * When true, the readout's `useInput` becomes a no-op — every keypress is
+   * ignored without dispatching. The casting viewer raises this while its
+   * discard-confirm modal is open so the modal's own `useInput` is the sole
+   * actor on Y/N/Esc (Ink fans every keypress out to all mounted hooks).
+   */
+  readonly inputSuppressed?: boolean
 }
 
 // The four tabs the readout can show, derived from the sections. The Casting
@@ -190,9 +208,12 @@ export function ConsultationReadout({
   title,
   notice,
   onExit,
+  onHardQuit,
+  inputSuppressed = false,
 }: ConsultationReadoutProps): ReactElement {
   const { exit } = useApp()
   const exitReadout = onExit ?? exit
+  const hardQuitReadout = onHardQuit ?? exit
   const { columns, rows: windowRows } = useWindowSize()
   const cols = columns || 80
   const termRows = windowRows || 24
@@ -390,13 +411,17 @@ export function ConsultationReadout({
   const keymapMode: KeyContext['state']['mode'] = locked ? lockedMode : 'done'
 
   // Global input handler. The dispatch table lives in `viewer-keymap.ts`;
-  // here we just assemble the per-frame `KeyContext` and delegate.
+  // here we just assemble the per-frame `KeyContext` and delegate. While
+  // `inputSuppressed` is set (a host modal is open) the callback short-
+  // circuits so the modal's own `useInput` is the sole actor on the keypress.
   useInput((input, key) => {
+    if (inputSuppressed) return
     const ctx: KeyContext = {
       state: { mode: keymapMode },
       inputMode,
       viewportHeight,
       exit: exitReadout,
+      hardQuit: hardQuitReadout,
       panCastingPromptBy: (delta) =>
         panCastingPromptBy(delta, maxCastingHorizontalOffset),
       panCastingPromptByPage: (delta) =>

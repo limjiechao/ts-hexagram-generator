@@ -37,14 +37,32 @@ export const KEY_HINTS_TEMPLATE = (): string =>
  * Number mode advertises Enter for parity with the in-tab prompt label.
  * ←/→ is the horizontal-pan binding the viewer registers when slider
  * content overflows.
+ *
+ * Escape and Ctrl+C are separate keys: Escape is the soft back / exit (its
+ * destination named by `exitLabel` — "quit" standalone, or the host's
+ * destination in the composed CLI), Ctrl+C always hard-quits. `exitLabel`
+ * defaults to `"quit"` so a standalone casting bin reads the same as before.
  */
-export function keyHintsForCasting(inputMode: InputMode): string {
+export function keyHintsForCasting(
+  inputMode: InputMode,
+  exitLabel = 'quit',
+): string {
+  const exitHints = `Esc: ${exitLabel}   Ctrl+C: quit`
   return inputMode === 'slider'
-    ? 'SPACE: part   ←→: pan   Esc/Ctrl+C: quit'
-    : 'Enter: commit   Esc/Ctrl+C: quit'
+    ? `SPACE: part   ←→: pan   ${exitHints}`
+    : `Enter: commit   ${exitHints}`
 }
 
-export const KEY_HINTS_FLOW_DEFAULT = 'Esc/Ctrl+C: quit'
+/**
+ * Footer key hints for the non-casting flow phases (`awaitingQuery` /
+ * `computing`). `exitLabel` names where Escape goes; Ctrl+C always quits.
+ */
+export function keyHintsFlowDefault(exitLabel = 'quit'): string {
+  return `Esc: ${exitLabel}   Ctrl+C: quit`
+}
+
+/** Default flow key hints — Escape exits ("quit"), Ctrl+C hard-quits. */
+export const KEY_HINTS_FLOW_DEFAULT: string = keyHintsFlowDefault()
 
 // ── Components ───────────────────────────────────────────────────────────────
 
