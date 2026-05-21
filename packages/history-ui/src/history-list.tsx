@@ -339,7 +339,10 @@ export function HistoryList({
 
   // The focused index is DERIVED — never stored. `lastKnownFocusRef` carries
   // the previous render's resolved index so a post-delete `focusIndexOf`
-  // fallback knows which numeric slot the deleted row occupied.
+  // fallback knows which numeric slot the deleted row occupied. The fallback
+  // is only meaningful on the render where `focusPath` first disappears from
+  // `listRows` (the optimistic splice); on the next navigation the reducer
+  // rewrites `focusPath` to a concrete row and the fallback stops mattering.
   const lastKnownFocusRef = useRef<number>(0)
   const focusIndex = focusIndexOf(
     listRows,

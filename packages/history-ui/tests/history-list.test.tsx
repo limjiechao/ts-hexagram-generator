@@ -1487,6 +1487,35 @@ describe('<HistoryList>', () => {
       expect(pathLine).toBeDefined()
     })
 
+    it('restores focus by identity when the filter excludes the focused row then clears', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      // Focus the second row (b.md / "Should I study…").
+      stdin.write(`${ESC}[B`)
+      await tick()
+      // Filter to a needle that matches only a.md — b.md drops out of the list.
+      stdin.write('/')
+      await tick()
+      stdin.write('raven')
+      await tick()
+      // Clear and close the filter WITHOUT navigating — `focusPath` was never
+      // rewritten, so identity-follow re-points to b.md once it reappears.
+      stdin.write(ESC) // clears text
+      await tick()
+      stdin.write(ESC) // closes the empty filter row
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      const pathLine = frame.split('\n').find((l) => /\bb\.md/.test(l))
+      expect(pathLine).toBeDefined()
+    })
+
     it('after a delete, focus lands on the next row at the same clamped index', async () => {
       const threeEntries = [
         fakeEntries[0]!,
