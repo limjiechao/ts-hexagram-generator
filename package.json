@@ -32,6 +32,7 @@
     "build": "turbo run build",
     "test": "turbo run test",
     "type:check": "turbo run type:check",
+    "hexagram": "tsx apps/cli/src/hexagram.ts",
     "hexagram-history": "tsx apps/cli/src/history.ts",
     "hexagram-random": "tsx apps/cli/src/random.ts",
     "hexagram-interactive": "tsx apps/cli/src/interactive.ts",

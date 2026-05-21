@@ -59,6 +59,9 @@ importers:
 
   apps/cli:
     dependencies:
+      '@hexagram/app':
+        specifier: workspace:*
+        version: link:../../packages/app
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../../packages/casting-ui

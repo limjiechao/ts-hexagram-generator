@@ -23,7 +23,7 @@ The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private; pub
 | `@hexagram/types`           | Public type definitions for the hexagram + casting domain (`Line`, `Hexagram`, `CastingRecord`, `LineGeneratorResult`, plus runtime assertions). |
 | `@hexagram/core`            | Yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records.                      |
 | `@hexagram/viewer-ui`       | Terminal UI: Ink-based tabbed viewer, Inquirer fallback flow, formatted output sections.                                                         |
-| `@hexagram/cli` _(private)_ | The two CLI bins (`hexagram-random`, `hexagram-interactive`) — dogfoods every published package.                                                 |
+| `@hexagram/bin` _(private)_ | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-history`) — dogfoods every published package.                     |
 
 Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions.
 
@@ -78,7 +78,7 @@ import {
 
 ## Install globally from local source
 
-The CLI bins are exposed by the `@hexagram/cli` workspace package. Until publishing lands you can install them globally from your local clone.
+The CLI bins are exposed by the `@hexagram/bin` workspace package. Until publishing lands you can install them globally from your local clone.
 
 Both CLIs present the reading in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
 
@@ -93,18 +93,18 @@ Creates a symlink from the global pnpm bin directory to `apps/cli/dist/`. Edits 
 ```bash
 pnpm install
 pnpm build                            # turbo builds all packages in topological order
-pnpm --filter @hexagram/cli link --global
+pnpm --filter @hexagram/bin link --global
 
 hexagram-random
 hexagram-interactive
 
 # When you're done:
-pnpm --filter @hexagram/cli uninstall --global
+pnpm --filter @hexagram/bin uninstall --global
 ```
 
 ### Option 2 — `pnpm add -g` against the workspace path
 
-Copies the built `@hexagram/cli` package (plus its workspace dependencies) into the global pnpm store. Re-run after every change.
+Copies the built `@hexagram/bin` package (plus its workspace dependencies) into the global pnpm store. Re-run after every change.
 
 ```bash
 pnpm install
@@ -126,7 +126,7 @@ pnpm build
 pnpm --filter @hexagram/types     pack
 pnpm --filter @hexagram/core      pack
 pnpm --filter @hexagram/viewer-ui pack
-pnpm --filter @hexagram/cli       pack
+pnpm --filter @hexagram/bin       pack
 
 # Install the CLI tarball globally; pnpm resolves the workspace deps from
 # the same store (or use --offline against the just-packed tarballs).
