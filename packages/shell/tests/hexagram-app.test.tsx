@@ -116,10 +116,11 @@ async function castRandomConsultation(
 }
 
 describe('<HexagramApp> — Home screen', () => {
-  it('opens on Home with the three menu items and the app banner', () => {
+  it('opens on Home with the three menu items and the app banner', async () => {
     const { lastFrame, unmount } = render(
       <HexagramApp castingFlags={CASTING_FLAGS} />,
     )
+    await tick()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('hexagram — the Yijing oracle')
     expect(frame).toContain('New interactive consultation')
@@ -130,10 +131,11 @@ describe('<HexagramApp> — Home screen', () => {
     unmount()
   })
 
-  it('focuses "New interactive consultation" by default', () => {
+  it('focuses "New interactive consultation" by default', async () => {
     const { lastFrame, unmount } = render(
       <HexagramApp castingFlags={CASTING_FLAGS} />,
     )
+    await tick()
     // The focused row rides a bold inverse bar — the `[7m` SGR code.
     const inverseLine = (lastFrame() ?? '')
       .split('\n')
