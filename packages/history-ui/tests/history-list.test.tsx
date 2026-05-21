@@ -1133,4 +1133,504 @@ describe('<HistoryList>', () => {
     expect((lines[filterIndex - 1] ?? 'x').trim()).toBe('')
     expect((lines[filterIndex + 1] ?? 'x').trim()).toBe('')
   })
+
+  // ── Issue #23: Ctrl+D delete-a-row confirm modal ────────────────────────────
+
+  // Ink decodes the control char U+0004 (EOT) to input='d', key.ctrl=true.
+  const CTRL_D = String.fromCodePoint(0x04)
+
+  describe('Ctrl+D delete confirm modal', () => {
+    it('Ctrl+D in normal mode opens the red modal with heading, identity, path and prompt', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      // Heading + permanence warning + key prompt.
+      expect(frame).toContain('Delete consultation')
+      expect(frame).toContain(
+        'This permanently deletes the file — it cannot be undone.',
+      )
+      expect(frame).toContain('Press Y to delete · N to cancel')
+      // Row identity — the focused (first) entry's timestamp + query.
+      expect(frame).toContain('[2026-03-16 13:28]')
+      expect(frame).toContain('What will working with Raven be like?')
+      // The modal box has a red round border.
+      expect(lastFrame() ?? '').toContain(`${ESC}[91m`)
+      expect(frame).toContain('╭')
+    })
+
+    it('Ctrl+D on an unreadable row opens the modal with an [unreadable — reason] identity', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={[]}
+          unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('Delete consultation')
+      expect(frame).toContain('[unreadable — invalid-yaml]')
+    })
+
+    it('Ctrl+D is a no-op on an empty list', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={[]}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).not.toContain('Delete consultation')
+      expect(frame).toContain('No consultations yet.')
+    })
+
+    it('Ctrl+D clears an active Cannot open status', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={[]}
+          unreadable={[{ path: '/x/broken.md', reason: 'invalid-yaml' }]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write('\r')
+      await tick()
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'Cannot open — invalid-yaml',
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
+    })
+
+    it('Y confirms the delete → onDelete called once with the focused path; modal closes', async () => {
+      const onDelete = vi.fn()
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('Y')
+      await tick()
+      expect(onDelete).toHaveBeenCalledOnce()
+      expect(onDelete).toHaveBeenCalledWith('/x/a.md')
+      // Modal closed.
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
+    })
+
+    it('lowercase y also confirms the delete', async () => {
+      const onDelete = vi.fn()
+      const { stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('y')
+      await tick()
+      expect(onDelete).toHaveBeenCalledOnce()
+      expect(onDelete).toHaveBeenCalledWith('/x/a.md')
+    })
+
+    it('N cancels → modal closes, onDelete not called', async () => {
+      const onDelete = vi.fn()
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('N')
+      await tick()
+      expect(onDelete).not.toHaveBeenCalled()
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
+    })
+
+    it('lowercase n cancels', async () => {
+      const onDelete = vi.fn()
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('n')
+      await tick()
+      expect(onDelete).not.toHaveBeenCalled()
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
+    })
+
+    it('Esc cancels the modal → modal closes, onDelete not called', async () => {
+      const onDelete = vi.fn()
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write(ESC)
+      await tick()
+      expect(onDelete).not.toHaveBeenCalled()
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
+    })
+
+    it('Enter is ignored while the modal is open — modal stays, onDelete not called', async () => {
+      const onDelete = vi.fn()
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          onDelete={onDelete}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('\r')
+      await tick()
+      expect(onDelete).not.toHaveBeenCalled()
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Delete consultation')
+    })
+
+    it('arrow keys are frozen while the modal is open — focus unchanged', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      // The modal identifies the first entry.
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'What will working with Raven be like?',
+      )
+      stdin.write(`${ESC}[B`) // down arrow — frozen
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      // Modal still open and still identifying the same (first) row.
+      expect(frame).toContain('Delete consultation')
+      expect(frame).toContain('What will working with Raven be like?')
+      // Focus did not move — the footer bottom line still shows a.md, not b.md.
+      const footerPath = frame.split('\n').find((l) => l.trim().endsWith('.md'))
+      expect(footerPath?.trim().endsWith('a.md')).toBe(true)
+    })
+
+    it('/ is frozen while the modal is open', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write(CTRL_D)
+      await tick()
+      stdin.write('/')
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      // No filter row opened.
+      expect(frame).not.toContain('Filter ')
+      // Modal still open.
+      expect(frame).toContain('Delete consultation')
+    })
+
+    it('Ctrl+D works while the filter row is open — the d is not typed into the filter', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write('/')
+      await tick()
+      stdin.write(CTRL_D)
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      // The modal opened.
+      expect(frame).toContain('Delete consultation')
+      // The filter row is still shown (HistoryList stays mounted) with an
+      // empty filter — the `d` was not typed in.
+      expect(frame).toContain('Filter _')
+    })
+  })
+
+  describe('identity-follow focus', () => {
+    it('keeps the same row focused (by identity) across a filter toggle', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      // Focus the second row (b.md / "Should I study…").
+      stdin.write(`${ESC}[B`)
+      await tick()
+      // Open the filter and narrow to only the second row.
+      stdin.write('/')
+      await tick()
+      stdin.write('study')
+      await tick()
+      // Close the filter — list grows back to both rows.
+      stdin.write(ESC) // clears text, keeps row open
+      await tick()
+      stdin.write(ESC) // closes the (now empty) filter row
+      await tick()
+      // The SAME row by identity must still be focused — its path in the
+      // footer bottom line is b.md, not a.md.
+      const frame = stripAnsi(lastFrame() ?? '')
+      const pathLine = frame.split('\n').find((l) => /\bb\.md/.test(l))
+      expect(pathLine).toBeDefined()
+    })
+
+    it('after a delete, focus lands on the next row at the same clamped index', async () => {
+      const threeEntries = [
+        fakeEntries[0]!,
+        fakeEntries[1]!,
+        {
+          path: '/x/c.md',
+          envelope: {
+            schemaVersion: 1,
+            timestamp: '2025-12-01T09:00:00+0800',
+            query: 'Third question',
+            hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+            casting: [] as never,
+          },
+          body: '',
+        },
+      ]
+      const { lastFrame, rerender, stdin } = render(
+        <HistoryList
+          entries={threeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      // Focus the middle row (index 1, b.md).
+      stdin.write(`${ESC}[B`)
+      await tick()
+      expect(
+        stripAnsi(lastFrame() ?? '')
+          .split('\n')
+          .some((l) => /\bb\.md/.test(l)),
+      ).toBe(true)
+      // Simulate the delete: re-render with b.md spliced out.
+      rerender(
+        <HistoryList
+          entries={[threeEntries[0]!, threeEntries[2]!]}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      await tick()
+      // The row below the deletion (c.md) slides into index 1 and is focused.
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame.split('\n').some((l) => /\bc\.md/.test(l))).toBe(true)
+      expect(frame).toContain('Third question')
+    })
+
+    it('deleting the last focused row moves focus to the new last row', async () => {
+      const { lastFrame, rerender, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      // Focus the last row (index 1, b.md).
+      stdin.write('G')
+      await tick()
+      // Simulate deleting it — re-render with only the first entry.
+      rerender(
+        <HistoryList
+          entries={[fakeEntries[0]!]}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      await tick()
+      // Focus falls back to the clamped index — the new last (only) row.
+      const frame = stripAnsi(lastFrame() ?? '')
+      const pathLine = frame.split('\n').find((l) => /\ba\.md/.test(l))
+      expect(pathLine).toBeDefined()
+    })
+  })
+
+  describe('deleteStatusLine prop', () => {
+    it('renders the delete status in the footer bottom line', () => {
+      const { lastFrame } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          deleteStatusLine={{ text: 'Deleted a.md', tone: 'dim' }}
+        />,
+      )
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Deleted a.md')
+    })
+
+    it('clears the delete status on the next navigation keypress', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          deleteStatusLine={{ text: 'Deleted a.md', tone: 'dim' }}
+        />,
+      )
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Deleted a.md')
+      stdin.write(`${ESC}[B`) // down arrow
+      await tick()
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Deleted a.md')
+    })
+
+    it('renders an error-tone delete status with a bright-red ANSI code', () => {
+      const { lastFrame } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          deleteStatusLine={{ text: 'Delete failed', tone: 'error' }}
+        />,
+      )
+      const frame = lastFrame() ?? ''
+      expect(stripAnsi(frame)).toContain('Delete failed')
+      const errorLine = frame
+        .split('\n')
+        .find((l) => stripAnsi(l).includes('Delete failed'))
+      expect(errorLine).toBeDefined()
+      expect(errorLine).toContain('[91m')
+    })
+  })
+
+  describe('footer shows ^D delete hint', () => {
+    it('normal mode footer includes "^D delete" before "ESC exit"', () => {
+      // A wide terminal so the full hint line is visible without truncation.
+      const { lastFrame } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={120}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('^D delete')
+      // `^D delete` is inserted right before `ESC exit`.
+      expect(frame.indexOf('^D delete')).toBeLessThan(frame.indexOf('ESC exit'))
+    })
+
+    it('filter mode (empty) footer includes "^D delete"', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write('/')
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('Esc close filter')
+      expect(frame).toContain('^D delete')
+    })
+
+    it('filter mode (non-empty) footer includes "^D delete"', async () => {
+      const { lastFrame, stdin } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+        />,
+      )
+      stdin.write('/')
+      await tick()
+      stdin.write('study')
+      await tick()
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('Esc clear filter')
+      expect(frame).toContain('^D delete')
+    })
+  })
 })

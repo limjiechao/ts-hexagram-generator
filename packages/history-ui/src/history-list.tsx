@@ -18,8 +18,9 @@ import {
   truncateStart,
 } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
-import { useMemo, useReducer, useState, type ReactElement } from 'react'
+import { useMemo, useReducer, useRef, useState, type ReactElement } from 'react'
 
+import { DeleteConfirmModal } from './delete-confirm-modal.js'
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
 import { computeWindowStart, resolveRowWindow } from './row-window.js'
 
@@ -44,6 +45,19 @@ interface HistoryListProps {
    * app-level exit handler. Defaults to a no-op.
    */
   onExit?: () => void
+  /**
+   * Called with the focused row's path when the user confirms a Ctrl+D
+   * delete (presses `Y` in the confirm modal). `HistoryApp` wires this to
+   * `fs.unlink` + a rescan. Defaults to a no-op.
+   */
+  onDelete?: (path: string) => void
+  /**
+   * Transient status line set by `HistoryApp` after a delete resolves or
+   * rejects — `dim` tone for success, `error` for failure. Mirrored into
+   * internal state and cleared on the next navigation keypress, exactly like
+   * the unreadable-row "Cannot open" status. Defaults to `null`.
+   */
+  deleteStatusLine?: { text: string; tone: 'dim' | 'error' } | null
 }
 
 /**
@@ -70,20 +84,52 @@ type ListRow =
   | { kind: 'entry'; entry: HistoryEntry }
   | { kind: 'unreadable'; item: UnreadableEntry }
 
+/** The on-disk path uniquely identifying a row regardless of its kind. */
+function rowPath(row: ListRow): string {
+  return row.kind === 'entry' ? row.entry.path : row.item.path
+}
+
+/**
+ * Resolve the focused row's index from its identity `path`. When the path is
+ * still present, returns its index. When it is gone (the row was deleted),
+ * falls back to `fallbackIndex` — the numeric slot the deleted row occupied —
+ * clamped to the new list size, so the row below the deletion slides into
+ * focus (or the previous row when the last row was deleted).
+ */
+function focusIndexOf(
+  listRows: ListRow[],
+  focusPath: string | null,
+  fallbackIndex = 0,
+): number {
+  if (focusPath === null || listRows.length === 0) return 0
+  const idx = listRows.findIndex((r) => rowPath(r) === focusPath)
+  if (idx !== -1) return idx
+  return Math.min(fallbackIndex, Math.max(0, listRows.length - 1))
+}
+
 interface State {
-  focus: number
+  /** Identity anchor for the focused row; `null` only when the list is empty. */
+  focusPath: string | null
   /** Index of the first windowed row — kept sticky across navigation. */
   windowStart: number
   filterMode: boolean
   filter: string
+  /** Holds the target row's path while the delete confirm modal is open. */
+  confirmingDelete: { path: string } | null
 }
 
 /**
- * Navigation actions carry the current `size` (row count) and `windowHeight`
- * so the reducer can re-clamp focus and re-derive a sticky `windowStart` in
- * one pure step — no render-phase effects needed.
+ * Navigation actions carry the resolved `listRows`, `windowHeight`, and the
+ * render-time `currentIndex` (fallback already applied) so the reducer can
+ * re-derive `focusPath` + a sticky `windowStart` in one pure step — and
+ * crucially never re-resolves `focusIndexOf` itself, which would lose the
+ * post-delete fallback that only the component knows.
  */
-type NavGeometry = { size: number; windowHeight: number }
+type NavGeometry = {
+  listRows: ListRow[]
+  windowHeight: number
+  currentIndex: number
+}
 type Action =
   | ({ type: 'up' } & NavGeometry)
   | ({ type: 'down' } & NavGeometry)
@@ -95,17 +141,21 @@ type Action =
   | { type: 'filterExit' }
   | { type: 'filterClear' }
   | { type: 'filterChange'; value: string }
+  | { type: 'deleteRequest'; path: string }
+  | { type: 'deleteCancel' }
 
-/** Re-clamp focus and re-derive the sticky window in one step. */
-function navigate(state: State, rawFocus: number, geom: NavGeometry): State {
-  const focus = Math.min(Math.max(rawFocus, 0), Math.max(0, geom.size - 1))
+/** Re-derive the focused path and the sticky window from a raw index. */
+function navigate(state: State, rawIndex: number, geom: NavGeometry): State {
+  const size = geom.listRows.length
+  const idx = Math.min(Math.max(rawIndex, 0), Math.max(0, size - 1))
+  const row = geom.listRows[idx]
   return {
     ...state,
-    focus,
+    focusPath: row == null ? null : rowPath(row),
     windowStart: computeWindowStart(
-      geom.size,
+      size,
       geom.windowHeight,
-      focus,
+      idx,
       state.windowStart,
     ),
   }
@@ -114,17 +164,17 @@ function navigate(state: State, rawFocus: number, geom: NavGeometry): State {
 function reducer(state: State, action: Action): State {
   switch (action.type) {
     case 'up':
-      return navigate(state, state.focus - 1, action)
+      return navigate(state, action.currentIndex - 1, action)
     case 'down':
-      return navigate(state, state.focus + 1, action)
+      return navigate(state, action.currentIndex + 1, action)
     case 'pageUp':
-      return navigate(state, state.focus - PAGE_SIZE, action)
+      return navigate(state, action.currentIndex - PAGE_SIZE, action)
     case 'pageDown':
-      return navigate(state, state.focus + PAGE_SIZE, action)
+      return navigate(state, action.currentIndex + PAGE_SIZE, action)
     case 'first':
       return navigate(state, 0, action)
     case 'last':
-      return navigate(state, action.size - 1, action)
+      return navigate(state, action.listRows.length - 1, action)
     case 'filterEnter':
       return { ...state, filterMode: true }
     case 'filterExit':
@@ -134,6 +184,10 @@ function reducer(state: State, action: Action): State {
       return { ...state, filter: '' }
     case 'filterChange':
       return { ...state, filter: action.value }
+    case 'deleteRequest':
+      return { ...state, confirmingDelete: { path: action.path } }
+    case 'deleteCancel':
+      return { ...state, confirmingDelete: null }
   }
 }
 
@@ -183,6 +237,24 @@ function entryHeadLineParts(
 }
 
 /**
+ * Build the human-readable identity line shown in the delete confirm modal —
+ * `[YYYY-MM-DD HH:mm] <query>` (truncated) for a readable entry, or
+ * `[unreadable — <reason>]` for an unreadable row. Falls back to the path
+ * when the row can no longer be found in the list.
+ */
+function deleteIdentity(
+  listRows: ListRow[],
+  targetPath: string,
+  innerCols: number,
+): string {
+  const row = listRows.find((r) => rowPath(r) === targetPath)
+  if (row == null) return targetPath
+  if (row.kind === 'unreadable') return `[unreadable — ${row.item.reason}]`
+  const head = entryHeadLineParts(row.entry, innerCols)
+  return `${head.prefix}${head.query}`
+}
+
+/**
  * Build the shell title string.
  * `Past Consultations · consultations/ · N consultations [· M unreadable]`
  * The `· M unreadable` clause appears only when M > 0.
@@ -205,12 +277,15 @@ export function HistoryList({
   statusLine = null,
   onPick,
   onExit = () => {},
+  onDelete = () => {},
+  deleteStatusLine = null,
 }: HistoryListProps): ReactElement {
   const [state, dispatch] = useReducer(reducer, {
-    focus: 0,
+    focusPath: entries[0]?.path ?? unreadable[0]?.path ?? null,
     windowStart: 0,
     filterMode: false,
     filter: '',
+    confirmingDelete: null,
   })
 
   /**
@@ -219,6 +294,23 @@ export function HistoryList({
    * `Cannot open — <reason>`.
    */
   const [cannotOpenStatus, setCannotOpenStatus] = useState<string | null>(null)
+
+  /**
+   * Internal mirror of the `deleteStatusLine` prop. Displayed in the footer
+   * bottom line and cleared on the next navigation keypress (like
+   * `cannotOpenStatus`). The prop is synced in render-phase via a
+   * previous-value ref compare — an effect would trip
+   * `react-hooks/set-state-in-effect`.
+   */
+  const [internalDeleteStatus, setInternalDeleteStatus] = useState<{
+    text: string
+    tone: 'dim' | 'error'
+  } | null>(deleteStatusLine)
+  const prevDeleteStatusRef = useRef(deleteStatusLine)
+  if (prevDeleteStatusRef.current !== deleteStatusLine) {
+    prevDeleteStatusRef.current = deleteStatusLine
+    setInternalDeleteStatus(deleteStatusLine)
+  }
 
   const isEmpty = entries.length === 0 && unreadable.length === 0
 
@@ -245,7 +337,16 @@ export function HistoryList({
     return [...entryRows, ...unreadableRows]
   }, [entries, unreadable, state.filter])
 
-  const focus = Math.min(state.focus, Math.max(0, listRows.length - 1))
+  // The focused index is DERIVED — never stored. `lastKnownFocusRef` carries
+  // the previous render's resolved index so a post-delete `focusIndexOf`
+  // fallback knows which numeric slot the deleted row occupied.
+  const lastKnownFocusRef = useRef<number>(0)
+  const focusIndex = focusIndexOf(
+    listRows,
+    state.focusPath,
+    lastKnownFocusRef.current,
+  )
+  lastKnownFocusRef.current = focusIndex
 
   // ScreenShell owns paddingX (1 each side) + 1-column scrollbar gutter.
   // innerCols = cols - 2 - 1 (same as computeInnerCols).
@@ -266,11 +367,38 @@ export function HistoryList({
   const win = resolveRowWindow(
     listRows.length,
     windowHeight,
-    focus,
+    focusIndex,
     state.windowStart,
   )
 
   useInput((input, key) => {
+    // ── Modal-open branch: all other keys are frozen. ──────────────────────
+    if (state.confirmingDelete !== null) {
+      if ((input === 'y' || input === 'Y') && !key.ctrl && !key.meta) {
+        const targetPath = state.confirmingDelete.path
+        dispatch({ type: 'deleteCancel' })
+        onDelete(targetPath)
+        return
+      }
+      if (input === 'n' || input === 'N' || key.escape) {
+        dispatch({ type: 'deleteCancel' })
+        return
+      }
+      // Everything else (including Enter) is a no-op while the modal is open.
+      return
+    }
+
+    // ── Ctrl+D: open the delete confirm modal for the focused row. ─────────
+    // Placed before the filterMode branch so it fires in both modes; the
+    // filter input guards typing with `!key.ctrl`, so there is no collision.
+    if (key.ctrl && input === 'd') {
+      setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
+      const row = listRows[focusIndex]
+      if (row != null) dispatch({ type: 'deleteRequest', path: rowPath(row) })
+      return
+    }
+
     if (state.filterMode) {
       if (key.escape) {
         // Escape with typed text clears it but keeps the filter row open;
@@ -282,13 +410,17 @@ export function HistoryList({
         return
       }
       if (key.return) {
-        const row = listRows[focus]
+        const row = listRows[focusIndex]
         if (row?.kind === 'entry') onPick(row.entry)
         return
       }
       // Arrow / page keys still navigate the focused row while filtering —
       // they carry no character input, so they never collide with typing.
-      const filterGeom = { size: listRows.length, windowHeight }
+      const filterGeom: NavGeometry = {
+        listRows,
+        windowHeight,
+        currentIndex: focusIndex,
+      }
       if (key.upArrow) {
         dispatch({ type: 'up', ...filterGeom })
         return
@@ -321,30 +453,41 @@ export function HistoryList({
     }
     if (input === '/') {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'filterEnter' })
       return
     }
-    const geom = { size: listRows.length, windowHeight }
+    const geom: NavGeometry = {
+      listRows,
+      windowHeight,
+      currentIndex: focusIndex,
+    }
     if (key.upArrow) {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'up', ...geom })
     } else if (key.downArrow) {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'down', ...geom })
     } else if (key.pageUp) {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'pageUp', ...geom })
     } else if (key.pageDown) {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'pageDown', ...geom })
     } else if (input === 'g') {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'first', ...geom })
     } else if (input === 'G') {
       setCannotOpenStatus(null)
+      setInternalDeleteStatus(null)
       dispatch({ type: 'last', ...geom })
     } else if (key.return) {
-      const row = listRows[focus]
+      const row = listRows[focusIndex]
       if (row?.kind === 'entry') {
         onPick(row.entry)
       } else if (row?.kind === 'unreadable') {
@@ -399,11 +542,11 @@ export function HistoryList({
   let hintLine: string
   if (!state.filterMode) {
     hintLine =
-      ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ESC exit'
+      ' ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ^D delete · ESC exit'
   } else if (state.filter.length > 0) {
-    hintLine = ' Esc clear filter · Enter load'
+    hintLine = ' Esc clear filter · Enter load · ^D delete'
   } else {
-    hintLine = ' Esc close filter · Enter load'
+    hintLine = ' Esc close filter · Enter load · ^D delete'
   }
 
   // Scroll position status — counted in consultations, not display lines.
@@ -418,23 +561,23 @@ export function HistoryList({
     innerCols,
   )
 
-  // Bottom line: focused file path (relative to cwd), or statusLine override,
-  // or cannotOpenStatus override (when Enter is pressed on an unreadable row).
-  const focusedRow = listRows[focus]
+  // Bottom line: focused file path (relative to cwd), or a status override.
+  const focusedRow = listRows[focusIndex]
   let focusedPath = ''
   if (focusedRow != null) {
-    focusedPath =
-      focusedRow.kind === 'entry'
-        ? path.relative(process.cwd(), focusedRow.entry.path)
-        : path.relative(process.cwd(), focusedRow.item.path)
+    focusedPath = path.relative(process.cwd(), rowPath(focusedRow))
   }
 
-  // cannotOpenStatus takes the highest priority; statusLine overrides the
-  // normal focused-path line; otherwise show the focused path.
-  const effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null =
-    cannotOpenStatus === null
-      ? statusLine
-      : { text: cannotOpenStatus, tone: 'error' }
+  // Footer bottom-line priority: cannotOpenStatus (highest) → internal delete
+  // status → statusLine prop → focused path.
+  let effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null
+  if (cannotOpenStatus !== null) {
+    effectiveStatusLine = { text: cannotOpenStatus, tone: 'error' }
+  } else if (internalDeleteStatus === null) {
+    effectiveStatusLine = statusLine
+  } else {
+    effectiveStatusLine = internalDeleteStatus
+  }
 
   const bottomLineRaw =
     effectiveStatusLine === null ? focusedPath : effectiveStatusLine.text
@@ -465,7 +608,7 @@ export function HistoryList({
     <Box flexDirection="column">
       {visibleRows.map((row, index) => {
         const absoluteIndex = win.start + index
-        const isFocused = absoluteIndex === focus
+        const isFocused = absoluteIndex === focusIndex
         if (row.kind === 'unreadable') {
           return (
             <Box key={row.item.path} flexDirection="column" flexShrink={0}>
@@ -600,6 +743,25 @@ export function HistoryList({
       }
     : null
 
+  // Delete confirm modal — rendered in the `belowContent` slot (between the
+  // list and the footer) while `confirmingDelete` is active. `HistoryList`
+  // stays mounted so its reducer state is preserved behind the modal.
+  const confirmingDelete = state.confirmingDelete
+  const belowContentNode =
+    confirmingDelete === null
+      ? null
+      : (modalInnerCols: number) => (
+          <DeleteConfirmModal
+            displayIdentity={deleteIdentity(
+              listRows,
+              confirmingDelete.path,
+              modalInnerCols,
+            )}
+            relativePath={path.relative(process.cwd(), confirmingDelete.path)}
+            innerCols={modalInnerCols}
+          />
+        )
+
   return (
     <ScreenShell
       cols={cols}
@@ -608,7 +770,7 @@ export function HistoryList({
       aboveContent={filterRowNode}
       contentSlot={contentNode}
       scrollbarSlot={scrollbarNode}
-      belowContent={null}
+      belowContent={belowContentNode}
       footerSlot={footerNode}
     />
   )
