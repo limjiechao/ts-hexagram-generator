@@ -45,6 +45,10 @@ import {
 
 export { type FlowKind } from './viewer-flow.js'
 
+// The discard-confirm modal occupies the above-footer slot while open. Its
+// height is fixed: 2 border rows + 1 title + 2 body lines + 1 prompt = 6.
+const DISCARD_MODAL_HEIGHT = 6
+
 interface ConsultationViewerProps {
   // Production callers pass a flowKind; the viewer then owns the entire flow.
   flowKind?: FlowKind
@@ -244,10 +248,6 @@ export function ConsultationViewer({
     state.mode === 'casting'
       ? getCastingPromptHeight(inputMode, state.error !== null)
       : 0
-
-  // The discard-confirm modal occupies the above-footer slot while open. Its
-  // height is fixed: 2 border rows + 1 title + 2 body lines + 1 prompt = 6.
-  const DISCARD_MODAL_HEIGHT = 6
 
   // Intrinsic content width of the casting prompt box (inside its border) —
   // drives the ←/→ pan during the slider-mode casting flow.
