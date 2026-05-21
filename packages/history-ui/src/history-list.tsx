@@ -8,6 +8,7 @@ import {
   BOLD_RED,
   BOLD_WHITE,
   computeInnerCols,
+  DEFAULT_FG,
   FOOTER_HEIGHT,
   NORMAL,
   NORMAL_GREY,
@@ -581,11 +582,17 @@ export function HistoryList({
   }
 
   // Scroll position status — counted in consultations, not display lines.
+  // The count is always shown so a filtered result set still reveals its size.
+  // When the list overflows, the ▲/▼ arrows render at the footer's normal dim;
+  // when everything fits (nothing to scroll) they are greyed so the absence of
+  // scrolling reads at a glance. DEFAULT_FG (not NORMAL) ends the grey run so
+  // the surrounding `dimColor` wrapper stays intact.
   const totalConsultations = listRows.length
+  const scrollRange = `${win.start + 1}–${win.end} of ${totalConsultations}`
   const scrollStatus =
     totalConsultations > windowHeight
-      ? `▲ ${win.start + 1}–${win.end} of ${totalConsultations} ▼   `
-      : ''
+      ? `▲ ${scrollRange} ▼   `
+      : `${NORMAL_GREY}▲${DEFAULT_FG} ${scrollRange} ${NORMAL_GREY}▼${DEFAULT_FG}   `
 
   const statusLine1 = truncateEnd(
     `${scrollStatus}${hintLine.trimStart()}`,

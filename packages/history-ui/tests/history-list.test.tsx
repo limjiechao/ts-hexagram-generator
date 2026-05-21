@@ -477,6 +477,25 @@ describe('<HistoryList>', () => {
     expect(frame).toMatch(/▲ \d+–\d+ of 20 ▼/)
   })
 
+  it('keeps the count visible with greyed arrows when the list does not overflow', () => {
+    // Two entries in a tall terminal — the whole list fits, nothing to scroll.
+    const { lastFrame } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    // The count stays visible even though there is nothing to scroll.
+    expect(stripAnsi(frame)).toMatch(/▲ 1–2 of 2 ▼/)
+    // Each arrow is greyed: NORMAL_GREY (\x1b[90m) immediately precedes it.
+    expect(frame).toContain(`${ESC}[90m▲`)
+    expect(frame).toContain(`${ESC}[90m▼`)
+  })
+
   it('footer bottom row shows the focused file path', () => {
     const { lastFrame } = render(
       <HistoryList
