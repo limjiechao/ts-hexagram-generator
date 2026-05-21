@@ -248,7 +248,7 @@ function deleteIdentity(
   innerCols: number,
 ): string {
   const row = listRows.find((r) => rowPath(r) === targetPath)
-  if (row == null) return targetPath
+  if (row == null) return path.relative(process.cwd(), targetPath)
   if (row.kind === 'unreadable') return `[unreadable — ${row.item.reason}]`
   const head = entryHeadLineParts(row.entry, innerCols)
   return `${head.prefix}${head.query}`
@@ -591,14 +591,16 @@ export function HistoryList({
   }
 
   // Footer bottom-line priority: cannotOpenStatus (highest) → internal delete
-  // status → statusLine prop → focused path.
-  let effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null
+  // status → statusLine prop → focused path. Start from the lowest tier and
+  // let each higher tier override; `statusLine` may itself be null, in which
+  // case `bottomLineRaw` falls through to the focused path.
+  let effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null =
+    statusLine
+  if (internalDeleteStatus !== null) {
+    effectiveStatusLine = internalDeleteStatus
+  }
   if (cannotOpenStatus !== null) {
     effectiveStatusLine = { text: cannotOpenStatus, tone: 'error' }
-  } else if (internalDeleteStatus === null) {
-    effectiveStatusLine = statusLine
-  } else {
-    effectiveStatusLine = internalDeleteStatus
   }
 
   const bottomLineRaw =

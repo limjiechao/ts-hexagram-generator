@@ -1648,6 +1648,23 @@ describe('<HistoryList>', () => {
       expect(errorLine).toBeDefined()
       expect(errorLine).toContain('[91m')
     })
+
+    it('takes priority over the statusLine prop when both are set', () => {
+      const { lastFrame } = render(
+        <HistoryList
+          entries={fakeEntries}
+          unreadable={[]}
+          cols={80}
+          rows={24}
+          onPick={() => {}}
+          statusLine={{ text: 'Loading…', tone: 'dim' }}
+          deleteStatusLine={{ text: 'Deleted a.md', tone: 'dim' }}
+        />,
+      )
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('Deleted a.md')
+      expect(frame).not.toContain('Loading…')
+    })
   })
 
   describe('footer shows ^D delete hint', () => {
