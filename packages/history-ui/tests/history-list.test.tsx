@@ -16,6 +16,15 @@ function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, '')
 }
 
+/**
+ * Rendered scrollbar-track height: the count of frame lines bearing a
+ * scrollbar glyph. Title, footer and content rows never contain ░/█, so the
+ * count equals the track's row span.
+ */
+function trackHeight(frame: string): number {
+  return frame.split('\n').filter((line) => /[░█]/.test(line)).length
+}
+
 const ESC = String.fromCodePoint(0x1b)
 
 /** Yield to the event loop so Ink can process queued stdin + re-render. */
@@ -407,6 +416,39 @@ describe('<HistoryList>', () => {
     expect(frame).toMatch(/[░█]/)
     // Scroll position in footer: ▲ start–end of total ▼.
     expect(stripAnsi(frame)).toMatch(/▲ \d+–\d+ of 40 ▼/)
+  })
+
+  it('renders the scrollbar track at the full content height', async () => {
+    const many = Array.from({ length: 40 }, (_, i) => ({
+      path: `/x/${i}.md`,
+      envelope: {
+        schemaVersion: 1,
+        timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
+        query: `Question number ${i}`,
+        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+        casting: [] as never,
+      },
+      body: '',
+    }))
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={many}
+        unreadable={[]}
+        cols={80}
+        rows={16}
+        onPick={() => {}}
+      />,
+    )
+    // The track must span the whole content area, not half it (regression: it
+    // was sized in consultation units — 1 row per 2 display lines).
+    // contentHeight = rows(16) − title(1) − filter(0) − footer(2) = 13.
+    expect(trackHeight(lastFrame() ?? '')).toBe(13)
+
+    // Opening the filter row consumes 3 rows; the track shrinks to match.
+    stdin.write('/')
+    await tick()
+    // contentHeight = rows(16) − title(1) − filter(3) − footer(2) = 10.
+    expect(trackHeight(lastFrame() ?? '')).toBe(10)
   })
 
   it('footer status row shows the scroll position counted in consultations', () => {

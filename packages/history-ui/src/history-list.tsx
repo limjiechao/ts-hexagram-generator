@@ -681,13 +681,15 @@ export function HistoryList({
     </Box>
   )
 
-  // Scrollbar: treat consultations as the unit — totalRows and offset are in
-  // consultation-row space, not display-line space.
+  // Scrollbar geometry is in display-line units (1 consultation = 2 lines), so
+  // the track spans the full content height. `windowHeight` is consultations,
+  // hence the ×2 — passing it directly would render a half-height track.
+  // Footer counters and windowing stay in consultation units.
   const scrollbarNode = (
     <ScrollbarTrack
-      offset={win.start}
-      totalRows={totalConsultations}
-      viewportHeight={windowHeight}
+      offset={win.start * 2}
+      totalRows={totalConsultations * 2}
+      viewportHeight={contentHeight}
     />
   )
 
