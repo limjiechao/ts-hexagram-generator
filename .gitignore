@@ -9,3 +9,6 @@ dist
 .claude/worktrees
 
 consultations
+
+# vitest temp dirs (history-ui app tests mkdtemp under cwd for short paths)
+history-app-*/

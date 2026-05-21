@@ -165,7 +165,9 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         onDelete={(targetPath) => {
           // Permanent fs.unlink — no trash. Mirrors the onPick ownership
           // split: the list stays side-effect-free, the app owns the
-          // filesystem mutation.
+          // filesystem mutation. No re-entry guard is needed (unlike onPick's
+          // `loading` debounce): the confirm modal is single-shot — it closes
+          // before onDelete fires and the row is spliced out on success.
           fs.unlink(targetPath)
             .then(() => {
               // Optimistic local removal — the app scans once on mount, so
