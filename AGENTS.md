@@ -140,7 +140,7 @@ Two-line rows: `[YYYY-MM-DD HH:mm] <truncated query>` + indented `#<wenwang> <ch
 
 A long list windows in place against a full-height 1-column `<ScrollbarTrack>` gutter (no "… N more" text indicator). Because each consultation is two display lines, the scrollbar geometry is passed in display-line units (`offset`/`totalRows` ×2, `viewportHeight` = `contentHeight`) so the track spans the entire list area; windowing and the footer position counter stay in consultation units.
 
-Controls: `↑/↓` row nav, `PgUp/PgDn` page nav, `g/G` first/last, Enter to load, `/` to live-filter on case-insensitive query substring, ESC to clear filter or exit.
+Controls: `↑/↓` row nav, `PgUp/PgDn` page nav, `g/G` first/last, Enter to load, `/` to live-filter on case-insensitive query substring, `Ctrl+D` to delete the focused row (gated by a Y/N confirmation modal — confirming runs a permanent `fs.unlink`), ESC to clear filter or exit.
 
 Pressing Enter loads the file, re-renders the body, byte-compares with disk, and rewrites if drifted (with a `_Body refreshed; data unchanged._` notice). Ink-only: in non-TTY contexts (`NO_COLOR=1`, `CI=true`, or piped stdout), the bin exits with `"hexagram-history requires an interactive terminal"` and code 1.
 

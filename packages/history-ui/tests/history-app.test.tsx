@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
-import os from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 
 import {
   markdownConsultationBody,
@@ -29,6 +29,7 @@ const tick = (ms = 60): Promise<void> =>
 
 const ESC = String.fromCodePoint(0x1b)
 const ENTER = '\r'
+const CTRL_D = String.fromCodePoint(0x04)
 
 const CASTING: CastingRecord = Array.from({ length: 6 }, () => [
   { pick: 1, max: 48 },
@@ -52,6 +53,15 @@ const NULL_CASTING_ENVELOPE: ConsultationEnvelope = {
   query: 'A consultation with no recorded casting.',
   hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
   casting: null,
+}
+
+/** A second, older consultation — used for multi-row delete tests. */
+const SECOND_ENVELOPE: ConsultationEnvelope = {
+  schemaVersion: 1,
+  timestamp: '2024-06-09T18:45:00+0800',
+  query: 'Should I take the contract in Berlin?',
+  hexagram: [7, 8, 7, 8, 7, 8] as Hexagram,
+  casting: CASTING,
 }
 
 let tmpDir: string
@@ -86,7 +96,12 @@ async function writeStale(envelope: ConsultationEnvelope): Promise<string> {
 }
 
 beforeEach(async () => {
-  tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'history-app-'))
+  // Created *under* `process.cwd()` (not `os.tmpdir()`) so that the
+  // `path.relative(process.cwd(), …)` shown in the `✓ Deleted …` /
+  // `Failed to delete …` status line stays short — the status line is
+  // rendered with `truncateStart` (tail-keeping), so a deep `/var/folders/…`
+  // tmp path would truncate the human-readable prefix off the visible width.
+  tmpDir = await fs.mkdtemp(path.join(process.cwd(), 'history-app-'))
 })
 afterEach(async () => {
   await fs.rm(tmpDir, { recursive: true, force: true })
@@ -208,5 +223,106 @@ describe('<HistoryApp> — loaded readout', () => {
     // Back on the list — the shell-hosted list is shown again.
     expect(frame).toContain('Past Consultations')
     expect(frame).not.toContain('Consultation · loaded')
+  })
+})
+
+describe('<HistoryApp> — Ctrl+D delete', () => {
+  it('Ctrl+D then y unlinks the focused file and drops the row from the list', async () => {
+    const movingPath = await writeFresh(MOVING_ENVELOPE)
+    await writeFresh(SECOND_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    // Newest-first → MOVING_ENVELOPE (2025) is focused at the top.
+    expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write('y')
+    await tick()
+    // The file is permanently gone from disk.
+    await expect(fs.access(movingPath)).rejects.toThrow()
+    const frame = stripAnsi(lastFrame() ?? '')
+    // The deleted row disappears; the surviving row stays.
+    expect(frame).not.toContain('happen')
+    expect(frame).toContain('Berlin')
+  })
+
+  it('shows a "✓ Deleted …" status line in the footer after a successful delete', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    await writeFresh(SECOND_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write('y')
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('✓ Deleted')
+  })
+
+  it('Ctrl+D then n cancels — the file is left on disk and the row stays', async () => {
+    const movingPath = await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write('n')
+    await tick()
+    // The file is still on disk.
+    await expect(fs.access(movingPath)).resolves.toBeUndefined()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+  })
+
+  it('Ctrl+D then Esc cancels — the file is left on disk', async () => {
+    const movingPath = await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write(ESC)
+    await tick()
+    await expect(fs.access(movingPath)).resolves.toBeUndefined()
+    expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+  })
+
+  it('surfaces a "Failed to delete …" error status when fs.unlink rejects', async () => {
+    const movingPath = await writeFresh(MOVING_ENVELOPE)
+    await writeFresh(SECOND_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    // Delete the focused file out-of-band so the in-app fs.unlink rejects.
+    await fs.rm(movingPath)
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write('y')
+    await tick()
+    await tick()
+    const rawFrame = lastFrame() ?? ''
+    // The failure surfaces as a bright-red (error-tone) status line in the
+    // footer. The full `Failed to delete <path>: <ENOENT message>` text is
+    // long and the footer renders it with `truncateStart` (tail-keeping),
+    // so assert on the error-tone ANSI code plus the deleted file's name,
+    // both of which survive truncation.
+    const statusLine = rawFrame
+      .split('\n')
+      .find((l) => stripAnsi(l).includes(path.basename(movingPath)))
+    expect(statusLine).toBeDefined()
+    expect(statusLine).toContain('[91m') // bright-red → tone: 'error'
+    // The list is unchanged — both rows still rendered.
+    const frame = stripAnsi(rawFrame)
+    expect(frame).toContain('happen')
+    expect(frame).toContain('Berlin')
+  })
+
+  it('deleting the only consultation renders the empty state', async () => {
+    await writeFresh(MOVING_ENVELOPE)
+    const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
+    await tick()
+    stdin.write(CTRL_D)
+    await tick()
+    stdin.write('y')
+    await tick()
+    await tick()
+    const frame = stripAnsi(lastFrame() ?? '')
+    expect(frame).toContain('No consultations yet.')
   })
 })

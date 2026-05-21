@@ -499,6 +499,25 @@ export function HistoryList({
     }
   })
 
+  // Dedicated filter row — plain labeled form field: dim "Filter" label, bold
+  // typed text, right-aligned dim match count. No border, no accent bar, no
+  // inverse. Only shown while filterMode is active.
+  //
+  // Match count is always derived from readable `entries` only — unreadable
+  // files have no query field and must never appear in the count, even when
+  // the filter text is empty (spec: "unreadable files are excluded from matches").
+  //
+  // Declared before the `isEmpty` early return so the hook is called
+  // unconditionally — a populated→empty transition (e.g. deleting the last
+  // row) must not change the hook count between renders.
+  const filterMatchCount = useMemo(() => {
+    if (state.filter.length === 0) return entries.length
+    const needle = state.filter.toLowerCase()
+    return entries.filter((e) =>
+      e.envelope.query.toLowerCase().includes(needle),
+    ).length
+  }, [entries, state.filter])
+
   // Empty state — no consultations and no unreadable files.
   // Renders inside ScreenShell so the chrome is consistent with the populated
   // list. Title shows "0 consultations"; footer is just "ESC exit".
@@ -695,21 +714,6 @@ export function HistoryList({
       viewportHeight={contentHeight}
     />
   )
-
-  // Dedicated filter row — plain labeled form field: dim "Filter" label, bold
-  // typed text, right-aligned dim match count. No border, no accent bar, no
-  // inverse. Only shown while filterMode is active.
-  //
-  // Match count is always derived from readable `entries` only — unreadable
-  // files have no query field and must never appear in the count, even when
-  // the filter text is empty (spec: "unreadable files are excluded from matches").
-  const filterMatchCount = useMemo(() => {
-    if (state.filter.length === 0) return entries.length
-    const needle = state.filter.toLowerCase()
-    return entries.filter((e) =>
-      e.envelope.query.toLowerCase().includes(needle),
-    ).length
-  }, [entries, state.filter])
 
   const filterRowNode = state.filterMode
     ? (filterInnerCols: number) => {

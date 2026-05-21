@@ -57,7 +57,17 @@ const LOADED_READOUT_KEY_HINTS =
   'Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc back to history'
 
 type AppState =
-  | { mode: 'list'; loading: boolean; error: string | null }
+  | {
+      mode: 'list'
+      loading: boolean
+      error: string | null
+      /**
+       * Transient status set after a Ctrl+D delete resolves/rejects — passed
+       * straight through to `<HistoryList deleteStatusLine>`. `null` on every
+       * other list transition (it is a fresh-after-delete-only value).
+       */
+      deleteStatus: { text: string; tone: 'dim' | 'error' } | null
+    }
   | {
       mode: 'view'
       entry: HistoryEntry
@@ -77,6 +87,7 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
     mode: 'list',
     loading: false,
     error: null,
+    deleteStatus: null,
   })
 
   useEffect(() => {
@@ -121,11 +132,17 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         cols={cols}
         rows={termRows}
         statusLine={statusLine}
+        deleteStatusLine={state.deleteStatus}
         onExit={exit}
         onPick={(entry) => {
           // Debounce: ignore further Enter presses while a load is in flight.
           if (state.loading) return
-          setState({ mode: 'list', loading: true, error: null })
+          setState({
+            mode: 'list',
+            loading: true,
+            error: null,
+            deleteStatus: null,
+          })
           rerenderOnDisk(entry.path, entry.envelope)
             .then((r) => {
               setState({
@@ -141,6 +158,53 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
                 error: `Failed to load ${entry.path}: ${
                   error instanceof Error ? error.message : String(error)
                 }`,
+                deleteStatus: null,
+              })
+            })
+        }}
+        onDelete={(targetPath) => {
+          // Permanent fs.unlink — no trash. Mirrors the onPick ownership
+          // split: the list stays side-effect-free, the app owns the
+          // filesystem mutation.
+          fs.unlink(targetPath)
+            .then(() => {
+              // Optimistic local removal — the app scans once on mount, so
+              // splice the deleted path out of `scan` in place rather than
+              // re-scanning disk.
+              setScan((prev) =>
+                prev === null
+                  ? prev
+                  : {
+                      entries: prev.entries.filter(
+                        (e) => e.path !== targetPath,
+                      ),
+                      unreadable: prev.unreadable.filter(
+                        (u) => u.path !== targetPath,
+                      ),
+                    },
+              )
+              setState({
+                mode: 'list',
+                loading: false,
+                error: null,
+                deleteStatus: {
+                  text: `✓ Deleted ${path.relative(process.cwd(), targetPath)}`,
+                  tone: 'dim',
+                },
+              })
+            })
+            .catch((error: unknown) => {
+              setState({
+                mode: 'list',
+                loading: false,
+                error: null,
+                deleteStatus: {
+                  text: `Failed to delete ${path.relative(
+                    process.cwd(),
+                    targetPath,
+                  )}: ${error instanceof Error ? error.message : String(error)}`,
+                  tone: 'error',
+                },
               })
             })
         }}
@@ -175,7 +239,12 @@ export function HistoryApp({ dir }: { dir: string }): ReactElement {
         state.rewroteOnLoad ? '✓ Body refreshed; data unchanged.' : undefined
       }
       onExit={() => {
-        setState({ mode: 'list', loading: false, error: null })
+        setState({
+          mode: 'list',
+          loading: false,
+          error: null,
+          deleteStatus: null,
+        })
       }}
     />
   )
