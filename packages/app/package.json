@@ -1,0 +1,31 @@
+{
+  "name": "@hexagram/app",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Composed terminal app for the Yijing hexagram oracle: a Home hub that navigates between the casting and history flows",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/casting-ui": "workspace:*",
+    "@hexagram/history-ui": "workspace:*",
+    "@hexagram/viewer-core": "workspace:*"
+  }
+}

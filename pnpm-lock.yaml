@@ -75,6 +75,18 @@ importers:
         specifier: workspace:*
         version: link:../../packages/types
 
+  packages/app:
+    dependencies:
+      '@hexagram/casting-ui':
+        specifier: workspace:*
+        version: link:../casting-ui
+      '@hexagram/history-ui':
+        specifier: workspace:*
+        version: link:../history-ui
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
+
   packages/casting-ui:
     dependencies:
       '@hexagram/consultation-file':
