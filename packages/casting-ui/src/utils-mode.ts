@@ -256,3 +256,51 @@ export function resolveCastBounceMs(): number {
 export function resolveCastRevealMs(): number {
   return resolveCliFlags().castRevealMs
 }
+
+/**
+ * The `runConsultationViewer` object-args shape for the random flow. Built by
+ * `buildRandomViewerArgs` so the flag→viewer wiring is a pure, unit-testable
+ * value rather than an inline object literal in the `hexagram-random` bin —
+ * an inline literal is exactly how `inputMode` came to be dropped (the bin
+ * forwarded every other flag but silently omitted `inputMode`, so
+ * `--numeric-input` never reached the viewer).
+ */
+export interface RandomViewerArgs {
+  flowKind: 'random'
+  inputMode: InputMode
+  maxWrapWidth: number
+  sliderSweepMs: number
+  castBounceMs: number
+  castRevealMs: number
+}
+
+/**
+ * Build the `runConsultationViewer` args for the standalone `hexagram-random`
+ * bin's Ink branch from an explicit CLI environment. Pure — every knob the bin
+ * forwards (including `inputMode`, so `--numeric-input` / the NO_COLOR-CI
+ * accessibility heuristic genuinely reach the viewer's number-mode reveal) is
+ * derived here and asserted by `utils-mode` tests.
+ */
+export function buildRandomViewerArgs(env: CliEnv): RandomViewerArgs {
+  const flags = parseCliFlags(env)
+  return {
+    flowKind: 'random',
+    inputMode: flags.inputMode,
+    maxWrapWidth: flags.wrapWidth,
+    sliderSweepMs: flags.sliderSweepMs,
+    castBounceMs: flags.castBounceMs,
+    castRevealMs: flags.castRevealMs,
+  }
+}
+
+/**
+ * Resolve the random-flow viewer args from the live process environment. Thin
+ * wrapper around `buildRandomViewerArgs` — mirrors the `resolve*()` helpers.
+ */
+export function resolveRandomViewerArgs(): RandomViewerArgs {
+  return buildRandomViewerArgs({
+    argv: process.argv.slice(2),
+    isTTY: Boolean(process.stdout.isTTY),
+    envVars: { NO_COLOR: process.env.NO_COLOR, CI: process.env.CI },
+  })
+}

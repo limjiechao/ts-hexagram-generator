@@ -1,6 +1,7 @@
 import { expect, test } from 'vitest'
 
 import {
+  buildRandomViewerArgs,
   DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_CAST_REVEAL_MS,
   DEFAULT_SLIDER_SWEEP_MS,
@@ -317,4 +318,79 @@ test('parseCliFlags() picks up --cast-reveal-ms', () => {
     envVars: { NO_COLOR: undefined, CI: undefined },
   })
   expect(flags.castRevealMs).toBe(900)
+})
+
+// `buildRandomViewerArgs` is the exact object the `hexagram-random` bin's Ink
+// branch hands to `runConsultationViewer`. These tests pin the flag→viewer
+// wiring: the bin previously omitted `inputMode` from its inline args literal,
+// so `--numeric-input` could never reach the number-mode reveal. Routing the
+// bin through this pure builder means the omission is now a unit-test failure.
+
+test('buildRandomViewerArgs() always sets flowKind to random', () => {
+  const args = buildRandomViewerArgs({
+    argv: [],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(args.flowKind).toBe('random')
+})
+
+test('buildRandomViewerArgs() defaults inputMode to slider', () => {
+  const args = buildRandomViewerArgs({
+    argv: [],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(args.inputMode).toBe('slider')
+})
+
+test('buildRandomViewerArgs() forwards --numeric-input as inputMode: number', () => {
+  // The bug this guards: hexagram-random --numeric-input must reach the
+  // number-mode reveal, not silently fall through to the slider flow.
+  const args = buildRandomViewerArgs({
+    argv: ['--numeric-input'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(args.inputMode).toBe('number')
+})
+
+test('buildRandomViewerArgs() forwards the NO_COLOR/CI accessibility heuristic to inputMode', () => {
+  // `hexagram-random` on a TTY under NO_COLOR/CI must also reach number mode.
+  expect(
+    buildRandomViewerArgs({
+      argv: [],
+      isTTY: true,
+      envVars: { NO_COLOR: '1', CI: undefined },
+    }).inputMode,
+  ).toBe('number')
+  expect(
+    buildRandomViewerArgs({
+      argv: [],
+      isTTY: true,
+      envVars: { NO_COLOR: undefined, CI: 'true' },
+    }).inputMode,
+  ).toBe('number')
+})
+
+test('buildRandomViewerArgs() forwards the tuning-knob flags', () => {
+  const args = buildRandomViewerArgs({
+    argv: [
+      '--numeric-input',
+      '--wrap-width=64',
+      '--slider-sweep-ms=5000',
+      '--cast-bounce-ms=1200',
+      '--cast-reveal-ms=900',
+    ],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(args).toEqual({
+    flowKind: 'random',
+    inputMode: 'number',
+    maxWrapWidth: 64,
+    sliderSweepMs: 5000,
+    castBounceMs: 1200,
+    castRevealMs: 900,
+  })
 })

@@ -5,11 +5,8 @@ import process from 'node:process'
 import {
   getUserQuery,
   logAndSaveConsultationOutput,
-  resolveCastBounceMs,
-  resolveCastRevealMs,
   resolveOutputMode,
-  resolveSliderSweepMs,
-  resolveWrapWidth,
+  resolveRandomViewerArgs,
   runConsultationViewer,
 } from '@hexagram/casting-ui'
 import { generateRandomConsultation } from '@hexagram/core/random'
@@ -27,13 +24,9 @@ async function main(): Promise<void> {
       // Ink mode opens straight into the viewer with an editable query box;
       // the casting is generated in the viewer's Query-submit handler when
       // the query is submitted (the compute effect only saves the file).
-      await runConsultationViewer({
-        flowKind: 'random',
-        maxWrapWidth: resolveWrapWidth(),
-        sliderSweepMs: resolveSliderSweepMs(),
-        castBounceMs: resolveCastBounceMs(),
-        castRevealMs: resolveCastRevealMs(),
-      })
+      // `resolveRandomViewerArgs()` derives every flag — including
+      // `inputMode`, so `--numeric-input` reaches the number-mode reveal.
+      await runConsultationViewer(resolveRandomViewerArgs())
     }
 
     process.exit(0)

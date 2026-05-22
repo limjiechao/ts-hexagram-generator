@@ -28,10 +28,12 @@ export {
   resolveCastRevealMs,
   resolveInputMode,
   resolveOutputMode,
+  resolveRandomViewerArgs,
   resolveSliderSweepMs,
   resolveWrapWidth,
   type InputMode,
   type OutputMode,
+  type RandomViewerArgs,
 } from './utils-mode.js'
 
 // Ink viewer — the casting-flow component (`<ConsultationViewer>`) and the
