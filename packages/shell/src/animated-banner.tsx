@@ -34,6 +34,8 @@ export function AnimatedBanner(): ReactElement {
         // Slice 1 renders only the `static` role: bold-grey bar, normal-grey
         // value. Slice 2 generalises this to the pulsing-red moving roles.
         return (
+          // `index` is a stable key here: six fixed positional rows, never
+          // reordered or filtered — the row position IS its identity.
           <Text key={index}>
             {`${NORMAL_GREY}${cells.value}${NORMAL}  ${BOLD_GREY}${cells.bar}${NORMAL}`}
           </Text>
