@@ -32,6 +32,7 @@ import {
   CastingPromptBox,
   getCastingPromptHeight,
   SLIDER_COMMIT_REVEAL_MS,
+  sliderPromptTitle,
   type SliderAutoLand,
 } from './casting-prompt-box.js'
 import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
@@ -338,11 +339,15 @@ export function ConsultationViewer({
           // Match the title `<SliderCastingPrompt>` actually renders for the
           // active flow — the random flow (`castingPlan !== null`) uses the
           // shorter "parting the stalks" title, so sizing the pan with the
-          // interactive SPACE title would over-reserve ~13 columns.
+          // interactive SPACE title would over-reserve ~13 columns. Built via
+          // the shared `sliderPromptTitle` helper so this measurement can
+          // never drift from the string the component renders.
           stringWidth(
-            state.castingPlan === null
-              ? `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — Press SPACE to part the stalks`
-              : `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — parting the stalks`,
+            sliderPromptTitle(
+              lineNumber,
+              state.castIndex,
+              state.castingPlan !== null,
+            ),
           ),
           currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
           // Readout below the bar is

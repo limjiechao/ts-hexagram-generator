@@ -36,6 +36,22 @@ export interface SliderAutoLand {
 // single cast.
 export const SLIDER_COMMIT_REVEAL_MS = 500
 
+// Slider-mode prompt title. The interactive flow instructs the user to press
+// SPACE; the random flow auto-drives the slider, so its title just narrates.
+// Shared between `<SliderCastingPrompt>` (which renders it) and `viewer.tsx`'s
+// `castingPromptContentWidth` (which measures it to size the ←/→ pan) so the
+// two can never drift — a wider title would silently under-reserve pan space.
+export function sliderPromptTitle(
+  lineNumber: number,
+  castIndex: number,
+  isRandomFlow: boolean,
+): string {
+  const prefix = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: —`
+  return isRandomFlow
+    ? `${prefix} parting the stalks`
+    : `${prefix} Press SPACE to part the stalks`
+}
+
 // ── Slider primitives ───────────────────────────────────────────────────────
 
 // Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`.
@@ -344,6 +360,14 @@ function useSliderBounce({
       // the animation — route it to the skip callback. This fires whether the
       // slider is still ticking or already in its post-land reveal dwell, as
       // this handler stays mounted for the whole cast.
+      //
+      // `autoLand` is read straight from the closure here — no `onSkipRef`-style
+      // latest-value ref — because, unlike `onSkip`, it cannot change within a
+      // cast: `viewer.tsx` memoizes the auto-land config, and the prompt is
+      // keyed per cast (`<CastingPromptBox key=…>`) so it remounts rather than
+      // re-renders across casts. The closure therefore always holds the value
+      // for the current cast's lifetime. `onSkip` still needs the ref because
+      // the parent hands it a fresh inline closure on every pan re-render.
       if (autoLand !== null) {
         onSkipRef.current?.()
         return
@@ -704,10 +728,7 @@ function SliderCastingPrompt({
 
   // The random flow auto-drives the slider, so its title describes the
   // stalks being parted rather than instructing the user to press SPACE.
-  const title =
-    autoLand === null
-      ? `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
-      : `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — parting the stalks`
+  const title = sliderPromptTitle(lineNumber, castIndex, autoLand !== null)
   const bar = buildSliderBar(position, min, max)
   // Both cells render at a stable 2-column width — leading-space + glyph
   // during ticking, and padStart(2) on the numeric pick after commit — so the
