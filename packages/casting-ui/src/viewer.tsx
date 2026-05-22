@@ -26,11 +26,13 @@ import {
   CastingPromptBox,
   getCastingPromptHeight,
   SLIDER_COMMIT_REVEAL_MS,
+  type SliderAutoLand,
 } from './casting-prompt-box.js'
 import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
+  DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_MAX_WRAP_WIDTH,
   DEFAULT_SLIDER_SWEEP_MS,
   deriveTickMs,
@@ -63,6 +65,10 @@ interface ConsultationViewerProps {
   // End-to-end slider sweep duration in ms; each cast derives its own
   // `tickMs` from this so wider ranges move faster cell-by-cell.
   sliderSweepMs?: number
+  // Random-flow only: the ceremonial bounce arm delay in ms. The slider
+  // bounces freely for this long before it is allowed to auto-land on the
+  // RNG-predetermined pick. Ignored by the interactive flow.
+  castBounceMs?: number
   // How long the slider's post-SPACE numeric reveal holds before the cast
   // commits upstream. Forwarded to `<CastingPromptBox commitRevealMs>`;
   // tests pass `0` to bypass the dwell.
@@ -97,6 +103,7 @@ export function ConsultationViewer({
   savedPath: prebuiltSavedPath,
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
   sliderSweepMs = DEFAULT_SLIDER_SWEEP_MS,
+  castBounceMs = DEFAULT_CAST_BOUNCE_MS,
   sliderCommitRevealMs = SLIDER_COMMIT_REVEAL_MS,
   onExit,
   exitLabel = 'quit',
@@ -121,7 +128,52 @@ export function ConsultationViewer({
   // here, inside the viewer — only the viewer knows its own flow progress.
   const [confirmingDiscard, setConfirmingDiscard] = useState<DiscardPath>(null)
 
-  const { submitSplit, currentMax } = useLineGenerator(state, dispatch)
+  // The interactive line generator — drives the interactive casting flow.
+  // The random flow never consults `submitSplit`/`interactiveMax`; it reads
+  // its picks and selectable ranges straight from `state.castingPlan`. The
+  // hook is still called unconditionally (Rules of Hooks); for a random flow
+  // its `submitSplit` is simply never invoked.
+  const { submitSplit, currentMax: interactiveMax } = useLineGenerator(
+    state,
+    dispatch,
+  )
+
+  // The current cast's selectable range. For the interactive flow it comes
+  // from the line generator; for the random flow it is read straight from the
+  // predetermined plan (`SplitRecord.max`).
+  const currentMax =
+    state.castingPlan === null
+      ? interactiveMax
+      : state.castingPlan.casting[state.lineIndex][state.castIndex].max
+
+  // The random flow's per-cast slider auto-land config — the RNG-chosen pick
+  // as the target plus the ceremonial bounce arm delay. `null` for the
+  // interactive flow, which commits on SPACE.
+  const castingAutoLand: SliderAutoLand | null =
+    state.castingPlan === null
+      ? null
+      : {
+          target:
+            state.castingPlan.casting[state.lineIndex][state.castIndex].pick,
+          armDelayMs: castBounceMs,
+        }
+
+  // The casting prompt's `onSubmit`. For the interactive flow it threads
+  // through the line generator (`submitSplit`); for the random flow the pick
+  // is already known from the plan, so it dispatches `splitCommitted`
+  // directly — with the plan's resolved hexagram line on the third cast.
+  const handleCastSubmit = (pick: number): void => {
+    if (state.castingPlan === null) {
+      submitSplit(pick)
+      return
+    }
+    const { max } = state.castingPlan.casting[state.lineIndex][state.castIndex]
+    const line =
+      state.castIndex === 2
+        ? state.castingPlan.hexagram[state.lineIndex]
+        : undefined
+    dispatch({ type: 'splitCommitted', pick, max, line })
+  }
 
   // ── Exit handlers — gated by `hasUnsavedCastProgress` ───────────────────
   // Escape (soft back): with unsaved progress, open the discard confirm on
@@ -143,26 +195,21 @@ export function ConsultationViewer({
     }
   }
 
-  // The compute effect derives the hexagram + casting (for random) and
-  // persists the consultation to disk. Fires exactly once per
-  // `mode === 'computing'` transition.
+  // The compute effect builds the consultation sections and persists the
+  // reading to disk. Fires exactly once per `mode === 'computing'`
+  // transition. Both flows reach `computing` with `completedLines` /
+  // `partialCasting` fully populated — the interactive flow fills them via
+  // the line generator, the random flow by playing its plan back cast-by-cast
+  // — so `computing` is identical for both.
   useEffect(() => {
     if (state.mode !== 'computing') return
     let cancelled = false
     const runCompute = async (): Promise<void> => {
       try {
-        let hexagram: Hexagram
-        let casting: CastingRecord
-        if (state.flowKind === 'random') {
-          const result = generateRandomConsultation()
-          hexagram = result.hexagram
-          casting = result.casting
-        } else {
-          assertIsHexagram(state.completedLines)
-          assertIsCastingRecord(state.partialCasting)
-          hexagram = state.completedLines
-          casting = state.partialCasting
-        }
+        assertIsHexagram(state.completedLines)
+        assertIsCastingRecord(state.partialCasting)
+        const hexagram: Hexagram = state.completedLines
+        const casting: CastingRecord = state.partialCasting
         const sections = buildConsultationSections(
           state.query,
           hexagram,
@@ -187,13 +234,7 @@ export function ConsultationViewer({
     return () => {
       cancelled = true
     }
-  }, [
-    state.mode,
-    state.flowKind,
-    state.query,
-    state.completedLines,
-    state.partialCasting,
-  ])
+  }, [state.mode, state.query, state.completedLines, state.partialCasting])
 
   // ── Section selection ───────────────────────────────────────────────────
 
@@ -224,6 +265,20 @@ export function ConsultationViewer({
 
   // ── Query slot — editable while awaiting, frozen once submitted ──────────
 
+  // Query-submit handler. The random flow generates its casting plan HERE, in
+  // the imperative shell — `generateRandomConsultation()`'s `crypto.randomInt`
+  // is the only randomness source and must stay out of the pure reducer. The
+  // plan rides along as the `querySubmit` action payload; the reducer just
+  // stores it. The interactive flow carries no plan.
+  const handleQuerySubmit = (): void => {
+    if (state.flowKind === 'random') {
+      const plan = generateRandomConsultation()
+      dispatch({ type: 'querySubmit', plan })
+    } else {
+      dispatch({ type: 'querySubmit' })
+    }
+  }
+
   const querySlot = (innerCols: number): ReactElement =>
     state.mode === 'awaitingQuery' ? (
       <QueryEditor
@@ -232,7 +287,7 @@ export function ConsultationViewer({
         placeholder="Enter your query for the oracle."
         width={innerCols}
         onChange={(next) => dispatch({ type: 'queryChange', value: next })}
-        onSubmit={() => dispatch({ type: 'querySubmit' })}
+        onSubmit={handleQuerySubmit}
       />
     ) : (
       <QueryBox query={state.query} width={innerCols} />
@@ -335,8 +390,9 @@ export function ConsultationViewer({
       tickMs={deriveTickMs(sliderSweepMs, currentMax)}
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}
+      autoLand={castingAutoLand}
       onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
-      onSubmit={(parsed) => submitSplit(parsed)}
+      onSubmit={handleCastSubmit}
       onError={(message) => dispatch({ type: 'castingError', message })}
     />
   )
@@ -401,7 +457,7 @@ export function ConsultationViewer({
  * prior contents are restored on exit.
  *
  * Two call shapes:
- *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` —
+ *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, castBounceMs, sliderCommitRevealMs })` —
  *     production: the viewer owns the flow (collects the query and 18 picks
  *     in-tab).
  *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` —
@@ -415,6 +471,7 @@ export async function runConsultationViewer(
         inputMode?: InputMode
         maxWrapWidth?: number
         sliderSweepMs?: number
+        castBounceMs?: number
         sliderCommitRevealMs?: number
       }
     | ConsultationSections,
@@ -429,6 +486,7 @@ export async function runConsultationViewer(
             inputMode={argsOrSections.inputMode}
             maxWrapWidth={argsOrSections.maxWrapWidth}
             sliderSweepMs={argsOrSections.sliderSweepMs}
+            castBounceMs={argsOrSections.castBounceMs}
             sliderCommitRevealMs={argsOrSections.sliderCommitRevealMs}
           />,
           { alternateScreen: true },

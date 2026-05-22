@@ -37,13 +37,16 @@ vi.mock('@hexagram/consultation-file/file', async (importOriginal) => {
 })
 
 // `generateRandomConsultation` is deterministic for the random-flow tests so
-// the viewer arrives at `done` with predictable casting data.
+// the viewer arrives at `done` with predictable casting data. Every pick is 1
+// (the min) so the bouncing slider auto-lands on tick 0 — the random-flow
+// integration tests then exercise the full eighteen-cast playback without a
+// multi-second wall-clock wait.
 const randomConsultationMock = vi.hoisted(() => {
   const stubHexagram: Hexagram = [7, 8, 7, 8, 7, 8]
   const stubCasting = Array.from({ length: 6 }, () => [
-    { pick: 24, max: 48 },
-    { pick: 20, max: 43 },
-    { pick: 16, max: 35 },
+    { pick: 3, max: 48 },
+    { pick: 3, max: 43 },
+    { pick: 3, max: 35 },
   ]) as CastingRecord
   return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
 })
@@ -439,22 +442,88 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
-  it('drives a random flow to done after the query is submitted', async () => {
+  it('plays the random flow through casting mode and reaches done', async () => {
+    // The random flow no longer short-cuts to computing — it plays its
+    // predetermined plan back cast-by-cast through `casting` mode. With every
+    // stub pick (3) sits a couple of cells from the slider's min, so each cast
+    // bounces briefly then auto-lands; `castBounceMs={0}` and
+    // `sliderCommitRevealMs={0}` strip the ceremonial dwells so the eighteen
+    // casts replay fast enough for the test's polling window.
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="random" />,
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={0}
+        sliderCommitRevealMs={0}
+      />,
     )
     stdin.write('Will the harvest be plentiful?')
     await tick()
     stdin.write(ENTER)
-    // Give the compute effect (microtask + mocked file write) time to settle.
-    await tick(150)
+    // The casting prompt appears — the random flow enters `casting` mode.
+    await tick()
+    expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
+    // Poll until the eighteen-cast playback + compute effect settle.
+    for (let beat = 0; beat < 80; beat += 1) {
+      if ((lastFrame() ?? '').includes('saved to')) break
+      await tick(60)
+    }
     const frame = lastFrame() ?? ''
     expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
     expect(randomConsultationMock).toHaveBeenCalledTimes(1)
     expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
-    // No casting prompt box was ever rendered — the random flow skips that
-    // phase entirely.
-    expect(frame).not.toContain('Divide the stalks. Pick a number')
+    unmount()
+  })
+
+  it('generates the casting plan once in the shell, not the reducer', async () => {
+    // `generateRandomConsultation()` is called exactly once — by the Viewer's
+    // imperative Query-submit handler — and never again as the flow plays out.
+    const { stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={0}
+        sliderCommitRevealMs={0}
+      />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write(ENTER)
+    await tick(150)
+    expect(randomConsultationMock).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('fills the casting table progressively, one stalk-split per cast', async () => {
+    // The random flow shows the slider casting prompt and advances the
+    // progress bar split-by-split, exactly like the interactive flow.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={0}
+        sliderCommitRevealMs={0}
+      />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    // The slider casting prompt is shown — the random flow plays back through
+    // `casting`, it does not fill the table all at once.
+    expect(lastFrame() ?? '').toContain('parting the stalks')
+    // The progress bar advances split-by-split as the casts play out.
+    const seen = new Set<string>()
+    for (let beat = 0; beat < 80; beat += 1) {
+      const frame = lastFrame() ?? ''
+      const match = /(\d{1,2})\/18/.exec(frame)
+      if (match) seen.add(match[1]!)
+      if (frame.includes('saved to')) break
+      await tick(60)
+    }
+    // At least a few distinct progress counts were observed — the table is
+    // filling one cast at a time, not in a single jump from 0 to 18.
+    expect(seen.size).toBeGreaterThanOrEqual(3)
     unmount()
   })
 
@@ -463,12 +532,20 @@ describe('ConsultationViewer (interactive flow)', () => {
     // only Casting + Standing Hexagram tabs exist in done mode. One Tab advance
     // lands on Standing Hexagram — proves the lock is released.
     const { lastFrame, stdin, unmount } = render(
-      <ConsultationViewer flowKind="random" />,
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={0}
+        sliderCommitRevealMs={0}
+      />,
     )
     stdin.write('Query')
     await tick()
     stdin.write(ENTER)
-    await tick(150)
+    for (let beat = 0; beat < 80; beat += 1) {
+      if ((lastFrame() ?? '').includes('saved to')) break
+      await tick(60)
+    }
     stdin.write(TAB)
     await tick()
     const frame = lastFrame() ?? ''
