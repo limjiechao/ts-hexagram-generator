@@ -45,3 +45,31 @@ describe('deriveBannerLine — static lines', () => {
     )
   })
 })
+
+describe('deriveBannerLine — moving lines', () => {
+  it('renders a moving yang line: ○ marker, value 9, pulsing role', () => {
+    expect(deriveBannerLine('yang', true, true)).toEqual({
+      bar: '━━━━○━━━━',
+      value: 9,
+      role: 'moving-bright',
+    })
+    expect(deriveBannerLine('yang', true, false)).toEqual({
+      bar: '━━━━○━━━━',
+      value: 9,
+      role: 'moving-dim',
+    })
+  })
+
+  it('renders a moving yin line: ✕ marker, value 6, pulsing role', () => {
+    expect(deriveBannerLine('yin', true, true)).toEqual({
+      bar: '━━━ ✕ ━━━',
+      value: 6,
+      role: 'moving-bright',
+    })
+    expect(deriveBannerLine('yin', true, false)).toEqual({
+      bar: '━━━ ✕ ━━━',
+      value: 6,
+      role: 'moving-dim',
+    })
+  })
+})
