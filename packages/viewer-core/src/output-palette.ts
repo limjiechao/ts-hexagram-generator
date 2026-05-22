@@ -10,6 +10,9 @@
 export const BOLD_GREY = '[1;90m'
 export const BOLD_WHITE = '[1;97m'
 export const BOLD_RED = '[1;91m'
+// Dimmed red (SGR 2;91) — the home banner's moving lines on their dim pulse
+// beat. Pairs with BOLD_RED for the bright beat.
+export const DIM_RED = '[2;91m'
 export const NORMAL = '[0m'
 export const NORMAL_GREY = '[90m'
 
