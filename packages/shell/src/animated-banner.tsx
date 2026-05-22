@@ -25,7 +25,7 @@ const SETTLED_HEXAGRAM: Hexagram = [7, 8, 7, 8, 7, 8]
 export function AnimatedBanner(): ReactElement {
   const record = getHexagramRecord(SETTLED_HEXAGRAM)
   // The tuple is bottom-first; the banner draws the top line first.
-  const topDownLines = [...SETTLED_HEXAGRAM].reverse()
+  const topDownLines = SETTLED_HEXAGRAM.toReversed()
 
   return (
     <Box flexDirection="column" alignItems="center" flexShrink={0}>
