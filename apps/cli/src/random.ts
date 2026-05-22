@@ -24,8 +24,8 @@ async function main(): Promise<void> {
       await logAndSaveConsultationOutput(query, hexagram, casting)
     } else {
       // Ink mode opens straight into the viewer with an editable query box;
-      // the casting is generated inside the viewer's compute effect once
-      // the query is submitted.
+      // the casting is generated in the viewer's Query-submit handler when
+      // the query is submitted (the compute effect only saves the file).
       await runConsultationViewer({
         flowKind: 'random',
         maxWrapWidth: resolveWrapWidth(),

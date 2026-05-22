@@ -168,6 +168,10 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
           completedLines,
           castingBuffer: '',
           error: null,
+          // The plan has served its purpose by `computing` — every cast has
+          // been played back into `partialCasting`. Clear it so the lifetime
+          // is explicit and `computing`/`done` never see a stale plan.
+          castingPlan: null,
         }
       }
       const nextLineIndex = (

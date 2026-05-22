@@ -124,7 +124,8 @@ describe('flowReducer — splitCommitted advance path', () => {
     }
     expect(state.mode).toBe('computing')
     expect(state.completedLines).toHaveLength(6)
-    // The casting plan is carried through to `computing` untouched.
-    expect(state.castingPlan).toBe(STUB_PLAN)
+    // The casting plan is cleared on the `computing` transition — it has
+    // served its purpose (all 18 casts played back into `partialCasting`).
+    expect(state.castingPlan).toBeNull()
   })
 })

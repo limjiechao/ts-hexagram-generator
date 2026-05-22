@@ -19,7 +19,13 @@ import {
   type ConsultationSections,
 } from '@hexagram/viewer-core'
 import { render, useApp, type Instance } from 'ink'
-import { useEffect, useReducer, useState, type ReactElement } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useState,
+  type ReactElement,
+} from 'react'
 import stringWidth from 'string-width'
 
 import {
@@ -149,14 +155,24 @@ export function ConsultationViewer({
   // The random flow's per-cast slider auto-land config — the RNG-chosen pick
   // as the target plus the ceremonial bounce arm delay. `null` for the
   // interactive flow, which commits on SPACE.
-  const castingAutoLand: SliderAutoLand | null =
-    state.castingPlan === null
-      ? null
-      : {
-          target:
-            state.castingPlan.casting[state.lineIndex][state.castIndex].pick,
-          armDelayMs: castBounceMs,
-        }
+  //
+  // Memoized so its object identity is stable across the slider's ticks. Each
+  // tick triggers a viewer re-render; without this memo a fresh object literal
+  // would be created every render, defeating `BouncingSliderStore.setRange`'s
+  // reference-equality guard and restarting the `setInterval` once per tick
+  // (effective tick rate → `tickMs + renderTime`). Keyed on the plan plus the
+  // current slot so the identity only changes when the auto-land target does.
+  const castingAutoLand: SliderAutoLand | null = useMemo(
+    () =>
+      state.castingPlan === null
+        ? null
+        : {
+            target:
+              state.castingPlan.casting[state.lineIndex][state.castIndex].pick,
+            armDelayMs: castBounceMs,
+          },
+    [state.castingPlan, state.lineIndex, state.castIndex, castBounceMs],
+  )
 
   // The casting prompt's `onSubmit`. For the interactive flow it threads
   // through the line generator (`submitSplit`); for the random flow the pick
@@ -309,8 +325,14 @@ export function ConsultationViewer({
   const castingPromptContentWidth =
     state.mode === 'casting' && inputMode === 'slider'
       ? Math.max(
+          // Match the title `<SliderCastingPrompt>` actually renders for the
+          // active flow — the random flow (`castingPlan !== null`) uses the
+          // shorter "parting the stalks" title, so sizing the pan with the
+          // interactive SPACE title would over-reserve ~13 columns.
           stringWidth(
-            `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — Press SPACE to part the stalks`,
+            state.castingPlan === null
+              ? `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — Press SPACE to part the stalks`
+              : `Line ${lineNumber}/6 · Cast ${state.castIndex + 1}/3: — parting the stalks`,
           ),
           currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
           // Readout below the bar is
