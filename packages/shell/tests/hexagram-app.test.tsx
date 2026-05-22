@@ -10,12 +10,15 @@
 //
 // The casting flow is the REAL `<ConsultationViewer>` (mounted as the
 // component, not via `runConsultationViewer`) and the REAL
-// `saveConsultationFile`. The random flow is used because it skips the 18
-// splits — submitting a query takes it straight computing → done. To keep the
-// on-disk write isolated, the test `process.chdir()`s into a fresh `mkdtemp`
-// directory: both `<ConsultationViewer>`'s save and `<HexagramApp>`'s history
-// scan resolve `consultations/` relative to `process.cwd()`. `useWindowSize`
-// is mocked because ink-testing-library's fake stdout reports no rows.
+// `saveConsultationFile`. The random flow plays its predetermined plan back
+// cast-by-cast through `casting` mode; `generateRandomConsultation` is stubbed
+// with a deterministic min-pick plan so the eighteen casts auto-land fast
+// enough for the test (the real RNG would land at unpredictable, sometimes
+// slow, ticks). To keep the on-disk write isolated, the test
+// `process.chdir()`s into a fresh `mkdtemp` directory: both
+// `<ConsultationViewer>`'s save and `<HexagramApp>`'s history scan resolve
+// `consultations/` relative to `process.cwd()`. `useWindowSize` is mocked
+// because ink-testing-library's fake stdout reports no rows.
 //
 // The `done`-state signal asserted on is the UNLOCKED multi-tab bar: while the
 // casting flow runs, only the active tab renders; once `done`, the full tab
@@ -32,10 +35,29 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
+import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
+
+// Deterministic stub for the random casting plan. Every pick is 3 — a couple
+// of cells from the slider's min — so each cast bounces briefly then
+// auto-lands; the eighteen-cast playback then completes within the test's
+// polling window. A static hexagram keeps the done-state tab bar predictable.
+const randomConsultationMock = vi.hoisted(() => {
+  const stubHexagram: Hexagram = [7, 8, 7, 8, 7, 8]
+  const stubCasting = Array.from({ length: 6 }, () => [
+    { pick: 3, max: 48 },
+    { pick: 3, max: 43 },
+    { pick: 3, max: 35 },
+  ]) as CastingRecord
+  return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
+})
+vi.mock('@hexagram/core/random', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('@hexagram/core/random')>()
+  return { ...actual, generateRandomConsultation: randomConsultationMock }
+})
 
 // ANSI SGR matcher — stripped before text assertions so matching is robust to
 // Ink's colour codes.
@@ -66,11 +88,14 @@ vi.mock('ink', async (importOriginal) => {
   return { ...actual, useWindowSize: () => windowSize.current }
 })
 
-// The flags `<HexagramApp>` would receive from `runHexagram()`.
+// The flags `<HexagramApp>` would receive from `runHexagram()`. `sliderSweepMs`
+// is small and `castBounceMs` is 0 so the stubbed random playback's eighteen
+// casts auto-land fast in the test; production resolves real ceremonial values.
 const CASTING_FLAGS: CastingFlags = {
   inputMode: 'slider',
   maxWrapWidth: 120,
-  sliderSweepMs: 1800,
+  sliderSweepMs: 120,
+  castBounceMs: 0,
 }
 
 let tmpDir: string
@@ -99,7 +124,9 @@ afterEach(async () => {
 async function castRandomConsultation(
   query: string,
 ): Promise<ReturnType<typeof render>> {
-  const handle = render(<HexagramApp castingFlags={CASTING_FLAGS} />)
+  const handle = render(
+    <HexagramApp castingFlags={CASTING_FLAGS} sliderCommitRevealMs={0} />,
+  )
   await tick()
   // Home: focus is on "New interactive" (row 1) — move down to "New random"
   // (row 2) and select it.
@@ -107,11 +134,16 @@ async function castRandomConsultation(
   await tick()
   handle.stdin.write(ENTER)
   await tick()
-  // Submit the query → computing → done. The random flow skips the 18 splits.
+  // Submit the query → the random flow plays its plan back cast-by-cast
+  // through `casting`, then computing → done. Poll until the eighteen casts
+  // and the real file write settle.
   handle.stdin.write(query)
   await tick()
   handle.stdin.write(ENTER)
-  await tick(220) // compute effect + real file write
+  for (let beat = 0; beat < 100; beat += 1) {
+    if (stripAnsi(handle.lastFrame() ?? '').includes('Standing Hexagram')) break
+    await tick(50)
+  }
   return handle
 }
 

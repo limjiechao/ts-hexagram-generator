@@ -41,6 +41,12 @@ export interface CastingFlags {
   maxWrapWidth: number
   /** Slider sweep duration in ms — from `--slider-sweep-ms`. */
   sliderSweepMs: number
+  /**
+   * Random-flow bounce arm delay in ms — from `--cast-bounce-ms`. The slider
+   * bounces freely for this long before auto-landing on the RNG pick. Only
+   * the random casting flow consults it.
+   */
+  castBounceMs: number
 }
 
 /** The label shown after `Esc` in every child screen's footer. */
@@ -133,6 +139,7 @@ export function HexagramApp({
       inputMode={castingFlags.inputMode}
       maxWrapWidth={castingFlags.maxWrapWidth}
       sliderSweepMs={castingFlags.sliderSweepMs}
+      castBounceMs={castingFlags.castBounceMs}
       sliderCommitRevealMs={sliderCommitRevealMs}
       onExit={backToHome}
       exitLabel={EXIT_LABEL}

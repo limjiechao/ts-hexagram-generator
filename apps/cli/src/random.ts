@@ -5,6 +5,7 @@ import process from 'node:process'
 import {
   getUserQuery,
   logAndSaveConsultationOutput,
+  resolveCastBounceMs,
   resolveOutputMode,
   resolveSliderSweepMs,
   resolveWrapWidth,
@@ -29,6 +30,7 @@ async function main(): Promise<void> {
         flowKind: 'random',
         maxWrapWidth: resolveWrapWidth(),
         sliderSweepMs: resolveSliderSweepMs(),
+        castBounceMs: resolveCastBounceMs(),
       })
     }
 
