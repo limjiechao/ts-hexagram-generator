@@ -14,6 +14,7 @@ import { Box, Text, useInput, useWindowSize } from 'ink'
 import { useState, type ReactElement } from 'react'
 
 import { AnimatedBanner } from './animated-banner.js'
+import type { BannerTestOverride } from './banner-state.js'
 import { IdentityBlock } from './identity-block.js'
 
 /**
@@ -56,9 +57,14 @@ interface HomeMenuProps {
    * separate hard quit and is handled by `<HexagramApp>`, not here.
    */
   onQuit: () => void
+  /**
+   * Test-only banner override, forwarded verbatim to `<AnimatedBanner>`.
+   * Production never sets it — the live animation is the default.
+   */
+  bannerTestOverride?: BannerTestOverride
 }
 
-export function HomeMenu({ onSelect, onQuit }: HomeMenuProps): ReactElement {
+export function HomeMenu({ onSelect, onQuit, bannerTestOverride }: HomeMenuProps): ReactElement {
   const { columns, rows } = useWindowSize()
   const cols = columns || 80
   const termRows = rows || 24
@@ -124,7 +130,7 @@ export function HomeMenu({ onSelect, onQuit }: HomeMenuProps): ReactElement {
       justifyContent="center"
       flexGrow={1}
     >
-      <AnimatedBanner />
+      <AnimatedBanner testOverride={bannerTestOverride} />
       <Box marginTop={1} flexShrink={0}>
         <IdentityBlock />
       </Box>

@@ -40,6 +40,7 @@ import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
+import type { BannerTestOverride } from '../src/banner-state'
 
 // Deterministic stub for the random casting plan. Every pick is 3 — a couple
 // of cells from the slider's min — so each cast bounces briefly then
@@ -100,6 +101,20 @@ const CASTING_FLAGS: CastingFlags = {
   castRevealMs: 0,
 }
 
+// A deterministic, interval-disabled banner override. With the interval off
+// the banner freezes on its initial settled frame; the scripted RNG pins that
+// frame to the fixed hexagram [7,8,7,8,7,8] (six values feed randomHex:
+// 0→yang(7), 0.9→yin(8)). A fresh factory call per render gives each render
+// its own RNG cursor.
+function frozenBannerOverride(): BannerTestOverride {
+  const sequence = [0, 0.9, 0, 0.9, 0, 0.9]
+  let cursor = 0
+  return {
+    rng: () => sequence[cursor++ % sequence.length] ?? 0,
+    disableInterval: true,
+  }
+}
+
 let tmpDir: string
 let originalCwd: string
 
@@ -127,7 +142,11 @@ async function castRandomConsultation(
   query: string,
 ): Promise<ReturnType<typeof render>> {
   const handle = render(
-    <HexagramApp castingFlags={CASTING_FLAGS} sliderCommitRevealMs={0} />,
+    <HexagramApp
+      castingFlags={CASTING_FLAGS}
+      sliderCommitRevealMs={0}
+      bannerTestOverride={frozenBannerOverride()}
+    />,
   )
   await tick()
   // Home: focus is on "New interactive" (row 1) — move down to "New random"
@@ -152,7 +171,7 @@ async function castRandomConsultation(
 describe('<HexagramApp> — Home screen', () => {
   it('opens on Home with the new banner layout and the three menu items', async () => {
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
@@ -175,7 +194,7 @@ describe('<HexagramApp> — Home screen', () => {
 
   it('focuses "New interactive consultation" by default', async () => {
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
     // The focused row rides a bold inverse bar — the `[7m` SGR code.
@@ -193,7 +212,7 @@ describe('<HexagramApp> — Home screen', () => {
 describe('<HexagramApp> — Home → casting → done → Home', () => {
   it('selecting "New random consultation" enters the casting screen', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
     stdin.write(ARROW_DOWN)
@@ -316,7 +335,7 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
 describe('<HexagramApp> — mid-cast discard confirm', () => {
   it('Esc mid-cast with a typed query shows the discard confirm', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
 
@@ -341,7 +360,7 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
 
   it('cancelling the discard confirm (N) keeps the cast on screen', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
     stdin.write(ENTER) // → interactive casting
@@ -365,7 +384,7 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
 
   it('confirming the discard (Y) returns to Home', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} />,
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
     )
     await tick()
     stdin.write(ENTER) // → interactive casting
@@ -382,6 +401,59 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
     expect(frame).toContain('New interactive consultation')
     expect(frame).not.toContain('Discard this consultation?')
 
+    unmount()
+  })
+})
+
+describe('<HexagramApp> — animated home banner', () => {
+  it('forwards the test override so the frozen banner is deterministic', async () => {
+    // rng `() => 0` ⇒ randomHex is all-yang ⇒ hexagram 乾 (H111111). If the
+    // override did not thread HexagramApp → HomeMenu → AnimatedBanner, the
+    // banner would mount with Math.random and show a random hexagram.
+    const override: BannerTestOverride = {
+      rng: () => 0,
+      disableInterval: true,
+    }
+    const { lastFrame, unmount } = render(
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={override} />,
+    )
+    await tick()
+    const first = stripAnsi(lastFrame() ?? '')
+    // The RNG threaded through: the all-yang figure is 乾.
+    expect(first).toContain('乾')
+
+    // The interval-disable flag threaded through: after ~3 banner ticks'
+    // worth of real time the frame is byte-identical — the banner is frozen.
+    await tick(350)
+    expect(stripAnsi(lastFrame() ?? '')).toBe(first)
+    unmount()
+  })
+
+  it('continuously animates the banner when the interval is enabled', async () => {
+    // Interval enabled; rng `() => 0.5` ⇒ all-yin figure, plan forces one
+    // moving line. Within a few 108 ms ticks the banner enters its pulse
+    // frames and a moving ✕ marker appears — proof the animation loop runs.
+    const override: BannerTestOverride = {
+      rng: () => 0.5,
+      disableInterval: false,
+    }
+    const { lastFrame, unmount } = render(
+      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={override} />,
+    )
+    await tick()
+    const settled = stripAnsi(lastFrame() ?? '')
+    expect(settled).not.toContain('✕')
+
+    // Poll across several cycles' worth of ticks for a moving marker.
+    let animated = false
+    for (let beat = 0; beat < 40; beat += 1) {
+      await tick(50)
+      if (stripAnsi(lastFrame() ?? '').includes('✕')) {
+        animated = true
+        break
+      }
+    }
+    expect(animated).toBe(true)
     unmount()
   })
 })

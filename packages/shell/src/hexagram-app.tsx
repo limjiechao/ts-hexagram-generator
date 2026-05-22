@@ -25,6 +25,7 @@ import { HistoryApp } from '@hexagram/history-ui'
 import { useApp } from 'ink'
 import { useReducer, type ReactElement } from 'react'
 
+import type { BannerTestOverride } from './banner-state.js'
 import { HomeMenu, type HomeMenuSelection } from './home-menu.js'
 import { initialNavState, navReducer } from './nav-machine.js'
 
@@ -71,6 +72,12 @@ interface HexagramAppProps {
    * Production never sets this — the viewer's own default applies.
    */
   sliderCommitRevealMs?: number
+  /**
+   * Test-only override for the home banner animation — an injected RNG and an
+   * interval-disable flag. Forwarded verbatim to `<HomeMenu>` →
+   * `<AnimatedBanner>`. Production never sets it.
+   */
+  bannerTestOverride?: BannerTestOverride
 }
 
 /**
@@ -94,6 +101,7 @@ function eventForSelection(
 export function HexagramApp({
   castingFlags,
   sliderCommitRevealMs,
+  bannerTestOverride,
 }: HexagramAppProps): ReactElement {
   const { exit } = useApp()
   const [nav, dispatch] = useReducer(navReducer, initialNavState)
@@ -116,6 +124,7 @@ export function HexagramApp({
           dispatch(eventForSelection(selection))
         }}
         onQuit={exit}
+        bannerTestOverride={bannerTestOverride}
       />
     )
   }

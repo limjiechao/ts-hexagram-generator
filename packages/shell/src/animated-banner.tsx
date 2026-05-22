@@ -1,43 +1,88 @@
-// `<AnimatedBanner>` — the home banner's animated region: a six-line hexagram
-// and its two-line name. This slice (#36) renders a single static *settled*
-// frame from a fixed hexagram; Slice 2 (#37) makes it the imperative shell of
-// the animation state machine. It is scoped narrowly to just these eight rows
-// so that, once animated, only this subtree re-renders per tick.
+// `<AnimatedBanner>` — the imperative shell of the home banner animation: a
+// `useReducer` over the pure `banner-state` core, ticked by a 108 ms
+// `setInterval`. It renders the six animated hexagram rows and the two-line
+// name, scoped narrowly so only this subtree re-renders per tick — the static
+// identity block and the menu are untouched. The interval is cleared on
+// unmount, so leaving Home leaks no timer and every return is a fresh cycle.
 
 import { getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/types'
-import { BOLD_GREY, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
+import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
-import type { ReactElement } from 'react'
+import { useEffect, useReducer, type ReactElement } from 'react'
 
-import { deriveBannerLine, polarityOf } from './banner-lines.js'
+import type { BannerLineRole } from './banner-lines.js'
+import {
+  advanceBannerState,
+  BANNER_TICK_MS,
+  type BannerState,
+  type BannerTestOverride,
+  createBannerState,
+  deriveBannerFrame,
+} from './banner-state.js'
 
-// A fixed settled hexagram for the static slice — an alternating yang/yin
-// figure so the frame shows both bar styles. Bottom line first, matching the
-// `Hexagram` tuple. Slice 2 replaces this with the RNG-driven state machine.
-const SETTLED_HEXAGRAM: Hexagram = [7, 8, 7, 8, 7, 8]
+interface AnimatedBannerProps {
+  /**
+   * Test-only override — an injected RNG and an interval-disable flag.
+   * Production never sets it: the live Math.random-driven animation is the
+   * default. Forwarded from `<HexagramApp>` via `<HomeMenu>`.
+   */
+  readonly testOverride?: BannerTestOverride
+}
+
+/** The two SGR runs for a line, by colour role: `[value colour, bar colour]`. */
+function lineColors(role: BannerLineRole): readonly [string, string] {
+  switch (role) {
+    case 'static':
+      return [NORMAL_GREY, BOLD_GREY]
+    case 'moving-bright':
+      return [BOLD_RED, BOLD_RED]
+    case 'moving-dim':
+      return [DIM_RED, DIM_RED]
+  }
+}
 
 /**
- * The static banner: six hexagram rows (top line first) above the two-line
- * hexagram name. Centred via Ink's `alignItems="center"`; `flexShrink={0}` so
- * rows clip rather than reflow on short terminals.
+ * The animated banner: six hexagram rows (top line first) above the two-line
+ * hexagram name, both re-derived from the pure core every 108 ms tick.
  */
-export function AnimatedBanner(): ReactElement {
-  const record = getHexagramRecord(SETTLED_HEXAGRAM)
-  // The tuple is bottom-first; the banner draws the top line first.
-  const topDownLines = SETTLED_HEXAGRAM.toReversed()
+export function AnimatedBanner({
+  testOverride,
+}: AnimatedBannerProps): ReactElement {
+  const rng = testOverride?.rng ?? Math.random
+
+  // `useReducer` over the pure core; the action is unused (every tick simply
+  // advances). The reducer closes over `rng`; React always uses the latest.
+  const [state, tick] = useReducer(
+    (current: BannerState, _action: void): BannerState =>
+      advanceBannerState(current, rng),
+    rng,
+    createBannerState,
+  )
+
+  useEffect(() => {
+    if (testOverride?.disableInterval === true) return
+    const id = setInterval(() => {
+      tick()
+    }, BANNER_TICK_MS)
+    return () => {
+      clearInterval(id)
+    }
+  }, [testOverride?.disableInterval])
+
+  const frame = deriveBannerFrame(state)
+  const record = getHexagramRecord(frame.nameHex)
+  // `lines` is bottom-first; the banner draws the top line first.
+  const topDownLines = frame.lines.toReversed()
 
   return (
     <Box flexDirection="column" alignItems="center" flexShrink={0}>
-      {topDownLines.map((line, index) => {
-        const cells = deriveBannerLine(polarityOf(line), false, false)
-        // Slice 1 renders only the `static` role: bold-grey bar, normal-grey
-        // value. Slice 2 generalises this to the pulsing-red moving roles.
+      {topDownLines.map((cells, index) => {
+        const [valueColor, barColor] = lineColors(cells.role)
         return (
-          // `index` is a stable key here: six fixed positional rows, never
+          // `index` is a stable key: six fixed positional rows, never
           // reordered or filtered — the row position IS its identity.
           <Text key={index}>
-            {`${NORMAL_GREY}${cells.value}${NORMAL}  ${BOLD_GREY}${cells.bar}${NORMAL}`}
+            {`${valueColor}${cells.value}${NORMAL}  ${barColor}${cells.bar}${NORMAL}`}
           </Text>
         )
       })}
