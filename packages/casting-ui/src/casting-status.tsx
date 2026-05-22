@@ -9,7 +9,7 @@ import { isGlobalExitKey } from './editor-primitives.js'
  * slot before mounting it — keeping the contract here means the status widget
  * can't drift the reserved space out of sync with what it actually renders.
  *
- *   2 border rows + title row + progress row + skip-hint row = 5.
+ *   2 border rows + header row + progress row + skip-hint row = 5.
  */
 export function getCastingStatusHeight(): number {
   return 5
@@ -41,9 +41,9 @@ interface CastingStatusProps {
  * timer in the viewer drives the eighteen `splitCommitted`s, and this widget
  * only narrates progress.
  *
- * It renders three rows inside a bordered box — a verbatim title, the
- * line/cast progress, and the SPACE-to-skip hint — and owns its own
- * `useInput` so SPACE can skip the reveal (the slider mode catches SPACE
+ * It renders three rows inside a bordered box — a dim "Casting in progress"
+ * header, the line/cast progress, and the SPACE-to-skip hint — and owns its
+ * own `useInput` so SPACE can skip the reveal (the slider mode catches SPACE
  * inside `useSliderBounce`; the number widget has no such hook). Global exit
  * keys (Esc / Ctrl+C) are left for the viewer's keymap. The interactive
  * number flow keeps its typed `<NumberInput>` prompt and never mounts this.
@@ -80,7 +80,7 @@ export function CastingStatus({
       flexShrink={0}
       flexDirection="column"
     >
-      <Text dimColor>{`Line ${lineNumber}/6 · Cast ${castIndex + 1}/3`}</Text>
+      <Text dimColor>Casting in progress</Text>
       <Text>{`Casting · Line ${lineNumber}/6 · Cast ${castIndex + 1}/3 — parting the stalks`}</Text>
       <Text dimColor>Press SPACE to skip the reveal.</Text>
     </Box>

@@ -311,11 +311,15 @@ export function ConsultationViewer({
     return () => {
       clearTimeout(timer)
     }
-    // `randomSplitAction` is a fresh closure each render but closes only over
-    // `state.lineIndex`/`state.castIndex`, which are already in the deps — so
-    // re-running on its identity would be redundant; the listed deps capture
-    // every input that changes the scheduled action. The cleanup clears any
-    // pending timeout before the next slot's timeout is armed.
+    // The effect captures a `plan` snapshot at the top of its run, so the
+    // scheduled callback always reads the plan that was current when the timer
+    // was armed — never a stale or later closure. `randomSplitAction` is a
+    // fresh closure each render, but it closes only over `state.lineIndex`,
+    // `state.castIndex`, and `state.castingPlan` (via `plan.casting[...]` /
+    // `plan.hexagram[...]`) — all three are already in the deps below, so the
+    // listed deps capture every input that changes the scheduled action.
+    // Re-adding `randomSplitAction` itself would be redundant churn. The
+    // cleanup clears any pending timeout before the next slot's is armed.
     // oxlint-disable-next-line exhaustive-deps
   }, [
     isNumberRandomPlayback,

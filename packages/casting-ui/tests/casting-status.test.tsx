@@ -22,6 +22,26 @@ describe('CastingStatus', () => {
     unmount()
   })
 
+  it('renders a distinct header above the progress row', () => {
+    const { lastFrame, unmount } = render(
+      <CastingStatus
+        lineNumber={2}
+        castIndex={1}
+        width={60}
+        active
+        onSkip={vi.fn()}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Casting in progress')
+    // The header is a distinct label, not a second copy of the fraction.
+    const fractionRows = frame
+      .split('\n')
+      .filter((row) => row.includes('Line 2/6'))
+    expect(fractionRows).toHaveLength(1)
+    unmount()
+  })
+
   it('shows the press-SPACE-to-skip hint', () => {
     const { lastFrame, unmount } = render(
       <CastingStatus
@@ -89,7 +109,26 @@ describe('CastingStatus', () => {
     unmount()
   })
 
-  it('getCastingStatusHeight() reports a stable border-inclusive height', () => {
-    expect(getCastingStatusHeight()).toBeGreaterThan(0)
+  it('getCastingStatusHeight() reports the exact reserved height (5)', () => {
+    // 2 border rows + header + progress + skip-hint = 5. The viewer reserves
+    // this for the above-footer slot before mounting `<CastingStatus>`.
+    expect(getCastingStatusHeight()).toBe(5)
+  })
+
+  it('getCastingStatusHeight() matches the real rendered row count', () => {
+    // Pin the constant to what `<CastingStatus>` actually renders — a drift
+    // between the two would silently break the viewer's `aboveFooterHeight`.
+    const { lastFrame, unmount } = render(
+      <CastingStatus
+        lineNumber={1}
+        castIndex={0}
+        width={60}
+        active
+        onSkip={vi.fn()}
+      />,
+    )
+    const renderedRows = (lastFrame() ?? '').split('\n').length
+    expect(renderedRows).toBe(getCastingStatusHeight())
+    unmount()
   })
 })
