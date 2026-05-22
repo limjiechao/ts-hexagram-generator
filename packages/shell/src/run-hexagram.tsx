@@ -13,6 +13,7 @@ import process from 'node:process'
 
 import {
   resolveCastBounceMs,
+  resolveCastRevealMs,
   resolveInputMode,
   resolveSliderSweepMs,
   resolveWrapWidth,
@@ -48,8 +49,8 @@ function isInteractiveEnv(): boolean {
  *
  * On a clean run it:
  *   - snapshots the casting flags (`--numeric-input`, `--wrap-width`,
- *     `--slider-sweep-ms`, `--cast-bounce-ms`) from `process.argv` via the
- *     shared resolvers,
+ *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`) from
+ *     `process.argv` via the shared resolvers,
  *   - renders `<HexagramApp>` ONCE on the alternate screen with
  *     `exitOnCtrlC: false` — the screens own Ctrl+C (the casting viewer's
  *     discard-confirm depends on Ctrl+C reaching its keymap, not Ink's
@@ -70,6 +71,7 @@ export async function runHexagram(): Promise<boolean> {
     maxWrapWidth: resolveWrapWidth(),
     sliderSweepMs: resolveSliderSweepMs(),
     castBounceMs: resolveCastBounceMs(),
+    castRevealMs: resolveCastRevealMs(),
   }
 
   const instance = render(<HexagramApp castingFlags={castingFlags} />, {

@@ -6,6 +6,7 @@ import {
   getUserQuery,
   logAndSaveConsultationOutput,
   resolveCastBounceMs,
+  resolveCastRevealMs,
   resolveOutputMode,
   resolveSliderSweepMs,
   resolveWrapWidth,
@@ -31,6 +32,7 @@ async function main(): Promise<void> {
         maxWrapWidth: resolveWrapWidth(),
         sliderSweepMs: resolveSliderSweepMs(),
         castBounceMs: resolveCastBounceMs(),
+        castRevealMs: resolveCastRevealMs(),
       })
     }
 

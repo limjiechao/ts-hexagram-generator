@@ -47,6 +47,13 @@ export interface CastingFlags {
    * the random casting flow consults it.
    */
   castBounceMs: number
+  /**
+   * Random-flow per-cast text-reveal dwell in ms — from `--cast-reveal-ms`.
+   * Drives the number-input mode's progressive casting reveal. Only the
+   * random casting flow in number-input mode consults it. `hexagram` is
+   * TTY-only but still reaches number-input mode via `--numeric-input`.
+   */
+  castRevealMs: number
 }
 
 /** The label shown after `Esc` in every child screen's footer. */
@@ -140,6 +147,7 @@ export function HexagramApp({
       maxWrapWidth={castingFlags.maxWrapWidth}
       sliderSweepMs={castingFlags.sliderSweepMs}
       castBounceMs={castingFlags.castBounceMs}
+      castRevealMs={castingFlags.castRevealMs}
       sliderCommitRevealMs={sliderCommitRevealMs}
       onExit={backToHome}
       exitLabel={EXIT_LABEL}

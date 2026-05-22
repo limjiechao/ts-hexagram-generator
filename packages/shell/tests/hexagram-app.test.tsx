@@ -89,13 +89,15 @@ vi.mock('ink', async (importOriginal) => {
 })
 
 // The flags `<HexagramApp>` would receive from `runHexagram()`. `sliderSweepMs`
-// is small and `castBounceMs` is 0 so the stubbed random playback's eighteen
-// casts auto-land fast in the test; production resolves real ceremonial values.
+// is small and `castBounceMs` / `castRevealMs` are 0 so the stubbed random
+// playback's eighteen casts auto-land / reveal fast in the test; production
+// resolves real ceremonial values.
 const CASTING_FLAGS: CastingFlags = {
   inputMode: 'slider',
   maxWrapWidth: 120,
   sliderSweepMs: 120,
   castBounceMs: 0,
+  castRevealMs: 0,
 }
 
 let tmpDir: string
@@ -223,6 +225,36 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     expect(homeFrame).toContain('New interactive consultation')
     expect(homeFrame).not.toContain('Consultation · random')
 
+    unmount()
+  })
+
+  it('drives a number-input random consultation to done', async () => {
+    // The composed `hexagram` CLI reaches number-input mode via
+    // `--numeric-input`; the `--cast-reveal-ms` flag (0 here) drives the
+    // text-based progressive reveal. This proves the flag threads through
+    // `CastingFlags` → `<ConsultationViewer>` for the number-mode random flow.
+    const numericFlags: CastingFlags = {
+      ...CASTING_FLAGS,
+      inputMode: 'number',
+    }
+    const { lastFrame, stdin, unmount } = render(
+      <HexagramApp castingFlags={numericFlags} sliderCommitRevealMs={0} />,
+    )
+    await tick()
+    stdin.write(ARROW_DOWN)
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    stdin.write('Will the harvest be plentiful?')
+    await tick()
+    stdin.write(ENTER)
+    for (let beat = 0; beat < 120; beat += 1) {
+      if (stripAnsi(lastFrame() ?? '').includes('Standing Hexagram')) break
+      await tick(50)
+    }
+    const doneFrame = stripAnsi(lastFrame() ?? '')
+    expect(doneFrame).toContain('Consultation · random')
+    expect(doneFrame).toContain('Standing Hexagram')
     unmount()
   })
 
