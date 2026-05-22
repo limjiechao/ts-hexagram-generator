@@ -14,10 +14,10 @@ import type { BannerLineRole } from './banner-lines.js'
 import {
   advanceBannerState,
   BANNER_TICK_MS,
-  type BannerState,
-  type BannerTestOverride,
   createBannerState,
   deriveBannerFrame,
+  type BannerState,
+  type BannerTestOverride,
 } from './banner-state.js'
 
 interface AnimatedBannerProps {
@@ -53,7 +53,8 @@ export function AnimatedBanner({
   // `useReducer` over the pure core; the action is unused (every tick simply
   // advances). The reducer closes over `rng`; React always uses the latest.
   const [state, tick] = useReducer(
-    (current: BannerState, _action: void): BannerState =>
+    // eslint-disable-next-line unused-imports/no-unused-vars
+    (current: BannerState, _: void): BannerState =>
       advanceBannerState(current, rng),
     rng,
     createBannerState,

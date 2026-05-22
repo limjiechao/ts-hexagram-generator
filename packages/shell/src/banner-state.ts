@@ -9,9 +9,9 @@
 import type { Hexagram, Line } from '@hexagram/types'
 
 import {
-  type BannerLineCells,
   deriveBannerLine,
   polarityOf,
+  type BannerLineCells,
 } from './banner-lines.js'
 
 /** An injected random source — returns a float in `[0, 1)`, like Math.random. */
