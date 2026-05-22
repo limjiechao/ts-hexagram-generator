@@ -105,7 +105,6 @@ export function AnimatedBanner({
           </Text>
         )
       })}
-      <Text> </Text>
       <Text>{`${NORMAL_GREY}${record.Name.Chinese.Traditional}${NORMAL}`}</Text>
       <Text>{`${NORMAL_GREY}${record.Name.English.WilhelmBaynes}${NORMAL}`}</Text>
     </Box>

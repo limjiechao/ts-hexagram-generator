@@ -134,10 +134,10 @@ export function HomeMenu({
       justifyContent="center"
       flexGrow={1}
     >
-      <AnimatedBanner testOverride={bannerTestOverride} />
-      <Box marginTop={2} flexShrink={0}>
+      <Box marginBottom={2} flexShrink={0}>
         <IdentityBlock />
       </Box>
+      <AnimatedBanner testOverride={bannerTestOverride} />
       {menu}
     </Box>
   )
