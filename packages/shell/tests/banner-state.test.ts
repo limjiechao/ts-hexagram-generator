@@ -38,9 +38,7 @@ describe('createBannerState', () => {
   it('selects each line independently at rng() < 0.4 (boundary exclusive)', () => {
     // First 6 values feed randomHex; next 6 feed the moving-line plan.
     // 0.4 is NOT < 0.4, so index 3 must be excluded.
-    const rng = scriptedRng([
-      0, 0, 0, 0, 0, 0, 0.1, 0.5, 0.39, 0.4, 0, 0.99,
-    ])
+    const rng = scriptedRng([0, 0, 0, 0, 0, 0, 0.1, 0.5, 0.39, 0.4, 0, 0.99])
     expect(createBannerState(rng).movingLines).toEqual([0, 2, 4])
   })
 

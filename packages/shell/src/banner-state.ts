@@ -77,7 +77,9 @@ function planMovingLines(rng: Rng): readonly number[] {
     if (rng() < MOVE_PROBABILITY) moving.push(index)
   }
   if (moving.length === 0) {
-    return [Math.floor(rng() * 6)]
+    // `rng` is contracted to [0, 1), so floor(rng() * 6) ∈ 0..5; clamp anyway
+    // to stay in range against a misbehaving injected RNG.
+    return [Math.min(5, Math.floor(rng() * 6))]
   }
   return moving
 }
@@ -142,7 +144,9 @@ export function deriveBannerFrame(state: BannerState): BannerFrame {
 
   if (phaseIndex < SETTLED_FRAMES) {
     return {
-      lines: hex.map((line) => deriveBannerLine(polarityOf(line), false, false)),
+      lines: hex.map((line) =>
+        deriveBannerLine(polarityOf(line), false, false),
+      ),
       nameHex: hex,
     }
   }

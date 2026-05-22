@@ -64,7 +64,11 @@ interface HomeMenuProps {
   bannerTestOverride?: BannerTestOverride
 }
 
-export function HomeMenu({ onSelect, onQuit, bannerTestOverride }: HomeMenuProps): ReactElement {
+export function HomeMenu({
+  onSelect,
+  onQuit,
+  bannerTestOverride,
+}: HomeMenuProps): ReactElement {
   const { columns, rows } = useWindowSize()
   const cols = columns || 80
   const termRows = rows || 24

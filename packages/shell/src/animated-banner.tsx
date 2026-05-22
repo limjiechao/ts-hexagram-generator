@@ -6,7 +6,13 @@
 // unmount, so leaving Home leaks no timer and every return is a fresh cycle.
 
 import { getHexagramRecord } from '@hexagram/core/getters'
-import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  DIM_RED,
+  NORMAL,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import { useEffect, useReducer, type ReactElement } from 'react'
 

@@ -39,8 +39,8 @@ import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
 import type { BannerTestOverride } from '../src/banner-state'
+import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
 
 // Deterministic stub for the random casting plan. Every pick is 3 — a couple
 // of cells from the slider's min — so each cast bounces briefly then
@@ -171,7 +171,10 @@ async function castRandomConsultation(
 describe('<HexagramApp> — Home screen', () => {
   it('opens on Home with the new banner layout and the three menu items', async () => {
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
@@ -194,7 +197,10 @@ describe('<HexagramApp> — Home screen', () => {
 
   it('focuses "New interactive consultation" by default', async () => {
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
     // The focused row rides a bold inverse bar — the `[7m` SGR code.
@@ -212,7 +218,10 @@ describe('<HexagramApp> — Home screen', () => {
 describe('<HexagramApp> — Home → casting → done → Home', () => {
   it('selecting "New random consultation" enters the casting screen', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
     stdin.write(ARROW_DOWN)
@@ -335,7 +344,10 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
 describe('<HexagramApp> — mid-cast discard confirm', () => {
   it('Esc mid-cast with a typed query shows the discard confirm', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
 
@@ -360,7 +372,10 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
 
   it('cancelling the discard confirm (N) keeps the cast on screen', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
     stdin.write(ENTER) // → interactive casting
@@ -384,7 +399,10 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
 
   it('confirming the discard (Y) returns to Home', async () => {
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={frozenBannerOverride()} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
     )
     await tick()
     stdin.write(ENTER) // → interactive casting
@@ -415,7 +433,10 @@ describe('<HexagramApp> — animated home banner', () => {
       disableInterval: true,
     }
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={override} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={override}
+      />,
     )
     await tick()
     const first = stripAnsi(lastFrame() ?? '')
@@ -438,7 +459,10 @@ describe('<HexagramApp> — animated home banner', () => {
       disableInterval: false,
     }
     const { lastFrame, unmount } = render(
-      <HexagramApp castingFlags={CASTING_FLAGS} bannerTestOverride={override} />,
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        bannerTestOverride={override}
+      />,
     )
     await tick()
     const settled = stripAnsi(lastFrame() ?? '')

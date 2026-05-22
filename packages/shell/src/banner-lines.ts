@@ -46,6 +46,12 @@ export function polarityOf(line: Line): LinePolarity {
   return line === 7 || line === 9 ? 'yang' : 'yin'
 }
 
+/** The colour role for a line, by its moving + pulse state. */
+function roleOf(moving: boolean, pulse: boolean): BannerLineRole {
+  if (!moving) return 'static'
+  return pulse ? 'moving-bright' : 'moving-dim'
+}
+
 /**
  * Derive the render-ready cells for one banner line. A moving line takes the
  * marked bar (`○` / `✕`), the moving casting value (9 / 6), and a pulsing red
@@ -57,8 +63,7 @@ export function deriveBannerLine(
   moving: boolean,
   pulse: boolean,
 ): BannerLineCells {
-  const movingRole: BannerLineRole = pulse ? 'moving-bright' : 'moving-dim'
-  const role: BannerLineRole = moving ? movingRole : 'static'
+  const role = roleOf(moving, pulse)
 
   if (polarity === 'yang') {
     return {
