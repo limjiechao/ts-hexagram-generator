@@ -191,6 +191,16 @@ export function ConsultationViewer({
     dispatch({ type: 'splitCommitted', pick, max, line })
   }
 
+  // SPACE-to-skip during random playback. The slider routes SPACE here (via
+  // `<CastingPromptBox onSkip>`) instead of advancing one cast; the reducer's
+  // pure `playbackSkipped` action fills the partial casting record and
+  // completed lines from the already-generated plan and jumps to `computing`.
+  // Wired only for the random flow — the `onSkip` prop is `undefined` for the
+  // interactive flow (no auto-land), so its SPACE keeps committing the pick.
+  const handleSkipPlayback = (): void => {
+    dispatch({ type: 'playbackSkipped' })
+  }
+
   // ── Exit handlers — gated by `hasUnsavedCastProgress` ───────────────────
   // Escape (soft back): with unsaved progress, open the discard confirm on
   // the `back` path; otherwise route straight to the injected `onExit`.
@@ -413,6 +423,7 @@ export function ConsultationViewer({
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}
       autoLand={castingAutoLand}
+      onSkip={castingAutoLand === null ? undefined : handleSkipPlayback}
       onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
       onSubmit={handleCastSubmit}
       onError={(message) => dispatch({ type: 'castingError', message })}
@@ -461,7 +472,10 @@ export function ConsultationViewer({
       flowHint={flowHint}
       flowKeyHints={
         state.mode === 'casting'
-          ? keyHintsForCasting(inputMode, exitLabel)
+          ? // The random flow auto-drives the slider — its footer SPACE hint
+            // reads "skip" (abandon the rest of the animation); the
+            // interactive flow's reads "part".
+            keyHintsForCasting(inputMode, exitLabel, state.flowKind)
           : keyHintsFlowDefault(exitLabel)
       }
       inputMode={inputMode}

@@ -129,3 +129,81 @@ describe('flowReducer — splitCommitted advance path', () => {
     expect(state.castingPlan).toBeNull()
   })
 })
+
+describe('flowReducer — playbackSkipped', () => {
+  it('fills the partial casting record and lines from the plan, enters computing', () => {
+    const state: FlowState = {
+      ...initialFlowState('random', null, null),
+      mode: 'casting',
+      castingPlan: STUB_PLAN,
+    }
+    const next = flowReducer(state, { type: 'playbackSkipped' })
+    expect(next.mode).toBe('computing')
+    // The partial casting record is filled wholesale from the plan's casting.
+    expect(next.partialCasting).toEqual(STUB_CASTING)
+    // The completed lines are filled from the plan's hexagram.
+    expect(next.completedLines).toEqual([...STUB_HEXAGRAM])
+    // The plan is cleared, consistent with the last-cast splitCommitted.
+    expect(next.castingPlan).toBeNull()
+  })
+
+  it('produces a state byte-identical to eighteen splitCommitteds', () => {
+    const base: FlowState = {
+      ...initialFlowState('random', null, null),
+      mode: 'casting',
+      castingPlan: STUB_PLAN,
+    }
+    // Play the plan through cast-by-cast, exactly as the full animation would.
+    let played: FlowState = base
+    for (let lineIndex = 0; lineIndex < 6; lineIndex += 1) {
+      for (let castIndex = 0; castIndex < 3; castIndex += 1) {
+        const split = STUB_CASTING[lineIndex]![castIndex]!
+        played = flowReducer(played, {
+          type: 'splitCommitted',
+          pick: split.pick,
+          max: split.max,
+          ...(castIndex === 2 ? { line: STUB_HEXAGRAM[lineIndex]! } : {}),
+        })
+      }
+    }
+    const skipped = flowReducer(base, { type: 'playbackSkipped' })
+    // The saved Consultation is built from partialCasting + completedLines —
+    // those must match what the full eighteen-cast playback produced.
+    expect(skipped.mode).toBe(played.mode)
+    expect(skipped.partialCasting).toEqual(played.partialCasting)
+    expect(skipped.completedLines).toEqual(played.completedLines)
+    expect(skipped.castingPlan).toBe(played.castingPlan)
+  })
+
+  it('is a no-op when castingPlan is null', () => {
+    const state: FlowState = {
+      ...initialFlowState('interactive', null, null),
+      mode: 'casting',
+    }
+    const next = flowReducer(state, { type: 'playbackSkipped' })
+    expect(next).toBe(state)
+  })
+
+  it('is a no-op when mode is not casting', () => {
+    const state: FlowState = {
+      ...initialFlowState('random', null, null),
+      mode: 'awaitingQuery',
+      castingPlan: STUB_PLAN,
+    }
+    const next = flowReducer(state, { type: 'playbackSkipped' })
+    expect(next).toBe(state)
+  })
+
+  it('keeps the reducer pure — the input state is not mutated', () => {
+    const state: FlowState = {
+      ...initialFlowState('random', null, null),
+      mode: 'casting',
+      castingPlan: STUB_PLAN,
+    }
+    const snapshot = structuredClone(state)
+    flowReducer(state, { type: 'playbackSkipped' })
+    expect(state).toEqual(snapshot)
+    expect(state.mode).toBe('casting')
+    expect(state.castingPlan).toBe(STUB_PLAN)
+  })
+})

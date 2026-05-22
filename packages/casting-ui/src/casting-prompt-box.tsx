@@ -83,6 +83,11 @@ interface UseSliderBounceArgs {
   // landing tick instead of waiting for SPACE; `null` for the interactive
   // flow, which keeps the SPACE-to-commit behaviour.
   autoLand?: SliderAutoLand | null
+  // Random-playback skip. While auto-land is active, SPACE routes here
+  // instead of committing the pick — it abandons the rest of the animation.
+  // Ignored (and never invoked) when `autoLand` is `null`: the interactive
+  // flow keeps SPACE-commits-the-pick. `undefined` is a safe no-op.
+  onSkip?: (() => void) | undefined
 }
 
 interface SliderSnapshot {
@@ -306,6 +311,7 @@ function useSliderBounce({
   tickMs,
   onSubmit,
   autoLand = null,
+  onSkip,
 }: UseSliderBounceArgs): SliderSnapshot {
   const storeRef = useRef<BouncingSliderStore | null>(null)
   storeRef.current ??= new BouncingSliderStore(min, max, tickMs, autoLand)
@@ -320,14 +326,30 @@ function useSliderBounce({
     storeRef.current.getSnapshot,
   )
 
+  // Latest-`onSkip` ref so the `useInput` handler always calls the current
+  // callback without `useInput` re-subscribing when the parent hands a fresh
+  // closure — mirrors the `onSubmitRef` pattern in `<SliderCastingPrompt>`.
+  const onSkipRef = useRef(onSkip)
+  useEffect(() => {
+    onSkipRef.current = onSkip
+  })
+
   useInput(
     (input, key) => {
+      // Global exit keys (Ctrl+C / Esc) keep their existing behaviour — they
+      // are never a commit and never a skip.
       if (isGlobalExitKey(input, key)) return
-      // The interactive flow commits on SPACE. The auto-landing random flow
-      // never consults this — its commit comes from the store's tick loop.
-      if (input === ' ' && autoLand === null) {
-        onSubmit(storeRef.current!.commit())
+      if (input !== ' ') return
+      // During random playback (auto-land active) SPACE abandons the rest of
+      // the animation — route it to the skip callback. This fires whether the
+      // slider is still ticking or already in its post-land reveal dwell, as
+      // this handler stays mounted for the whole cast.
+      if (autoLand !== null) {
+        onSkipRef.current?.()
+        return
       }
+      // The interactive flow commits the current pick on SPACE.
+      onSubmit(storeRef.current!.commit())
     },
     { isActive: focused },
   )
@@ -484,6 +506,13 @@ interface CastingPromptBoxProps {
    */
   autoLand?: SliderAutoLand | null
   /**
+   * Slider-mode skip callback — supplied only by the random-casting playback
+   * (alongside `autoLand`). While auto-land is active, SPACE routes here to
+   * abandon the rest of the animation instead of committing a pick. Absent
+   * for the interactive flow, whose SPACE commits the cast as before.
+   */
+  onSkip?: () => void
+  /**
    * Slider-mode reveal duration in ms — how long the post-SPACE numeric
    * `Left Heap` / `Right Heap` readout holds before `onSubmit` fires upstream.
    * Defaults to `SLIDER_COMMIT_REVEAL_MS`. Tests opt out by passing `0` to
@@ -537,6 +566,7 @@ export function CastingPromptBox({
   horizontalOffset = 0,
   commitRevealMs = SLIDER_COMMIT_REVEAL_MS,
   autoLand = null,
+  onSkip,
 }: CastingPromptBoxProps): ReactElement {
   if (inputMode === 'slider') {
     return (
@@ -550,6 +580,7 @@ export function CastingPromptBox({
         horizontalOffset={horizontalOffset}
         commitRevealMs={commitRevealMs}
         autoLand={autoLand}
+        onSkip={onSkip}
         onSubmit={onSubmit}
       />
     )
@@ -591,6 +622,7 @@ interface SliderCastingPromptProps {
   horizontalOffset: number
   commitRevealMs: number
   autoLand: SliderAutoLand | null
+  onSkip: (() => void) | undefined
   onSubmit: (value: number) => void
 }
 
@@ -630,6 +662,7 @@ function SliderCastingPrompt({
   horizontalOffset,
   commitRevealMs,
   autoLand,
+  onSkip,
   onSubmit,
 }: SliderCastingPromptProps): ReactElement {
   const [committed, setCommitted] = useState<number | null>(null)
@@ -666,6 +699,7 @@ function SliderCastingPrompt({
     tickMs,
     onSubmit: handleStoreCommit,
     autoLand,
+    onSkip,
   })
 
   // The random flow auto-drives the slider, so its title describes the

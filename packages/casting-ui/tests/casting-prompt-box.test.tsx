@@ -672,6 +672,135 @@ describe('CastingPromptBox (slider mode)', () => {
     unmount()
   })
 
+  it('routes SPACE to onSkip during random playback while the slider is still ticking', async () => {
+    // During random playback (auto-land active) SPACE abandons the rest of
+    // the animation — it routes to `onSkip`, not the per-cast `onSubmit`.
+    const onSubmit = vi.fn()
+    const onSkip = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        lineNumber={1}
+        castIndex={0}
+        min={1}
+        max={48}
+        width={80}
+        inputMode="slider"
+        tickMs={50}
+        // Arm delay 1000 ms keeps the slider ticking — it has not landed yet.
+        autoLand={{ target: 24, armDelayMs: 1000 }}
+        commitRevealMs={0}
+        onSubmit={onSubmit}
+        onSkip={onSkip}
+      />,
+    )
+    await tick()
+    stdin.write(SPACE)
+    await tick()
+    expect(onSkip).toHaveBeenCalledTimes(1)
+    expect(onSubmit).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('routes SPACE to onSkip during the post-land reveal dwell', async () => {
+    // SPACE skips even after the cursor has auto-landed and the cast is in
+    // its reveal dwell — the user can cut the rest of the animation short.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const onSkip = vi.fn()
+      const { rerender, stdin, unmount } = render(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={10}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          // Long reveal so the cast sits in the dwell when SPACE arrives.
+          commitRevealMs={5000}
+          autoLand={{ target: 3, armDelayMs: 0 }}
+          onSubmit={onSubmit}
+          onSkip={onSkip}
+        />,
+      )
+      // Cross the landing tick (tick 2 = 100 ms) so the slider auto-lands.
+      vi.advanceTimersByTime(400)
+      rerender(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={10}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={5000}
+          autoLand={{ target: 3, armDelayMs: 0 }}
+          onSubmit={onSubmit}
+          onSkip={onSkip}
+        />,
+      )
+      await tick()
+      stdin.write(SPACE)
+      await tick()
+      expect(onSkip).toHaveBeenCalledTimes(1)
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not invoke onSkip for Ctrl+C / Escape during random playback', async () => {
+    // Global exit keys keep their existing behaviour — they are NOT skip.
+    const onSkip = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        lineNumber={1}
+        castIndex={0}
+        min={1}
+        max={48}
+        width={80}
+        inputMode="slider"
+        tickMs={50}
+        autoLand={{ target: 24, armDelayMs: 1000 }}
+        commitRevealMs={0}
+        onSubmit={() => {}}
+        onSkip={onSkip}
+      />,
+    )
+    await tick()
+    stdin.write(CTRL_C)
+    stdin.write(ESCAPE)
+    await tick()
+    expect(onSkip).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('keeps SPACE committing the pick for the interactive flow (no auto-land, no onSkip)', async () => {
+    // Interactive callers pass no auto-land — SPACE commits the cast exactly
+    // as before; the skip routing must not leak into that path.
+    const onSubmit = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        lineNumber={1}
+        castIndex={0}
+        min={1}
+        max={10}
+        width={80}
+        inputMode="slider"
+        tickMs={50}
+        commitRevealMs={0}
+        onSubmit={onSubmit}
+      />,
+    )
+    await tick()
+    stdin.write(SPACE)
+    await tick()
+    expect(onSubmit).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
   it('auto-lands on the target pick after the arm delay, then submits', async () => {
     // With auto-land the cursor bounces freely and commits the instant it
     // naturally passes through the RNG-chosen target — no SPACE, no teleport.

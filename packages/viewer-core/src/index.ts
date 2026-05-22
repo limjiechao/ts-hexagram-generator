@@ -80,6 +80,7 @@ export {
   ScrollableSection,
   ScrollbarTrack,
   TabBar,
+  type CastingFlowKind,
   type NonEmpty,
   type TabDescriptor,
   type TabId,

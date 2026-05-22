@@ -494,6 +494,62 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
+  it('SPACE during random playback skips straight to the finished Consultation', async () => {
+    // Pressing SPACE during the random casting animation abandons the rest of
+    // the playback: the pure `playbackSkipped` action fills the casting record
+    // + lines from the plan and jumps to `computing`, which saves the file.
+    // A long `castBounceMs` keeps the slider ticking so SPACE genuinely skips
+    // a still-running animation rather than racing the auto-land.
+    consultationFileOutputMock.mockClear()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={100000}
+        sliderCommitRevealMs={0}
+      />,
+    )
+    stdin.write('Will the harvest be plentiful?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    // The random flow is mid-`casting` — the slider is still parting stalks.
+    expect(lastFrame() ?? '').toContain('parting the stalks')
+    // SPACE skips the rest of the animation.
+    stdin.write(SPACE)
+    // Let the skip → computing → compute effect → save → done settle.
+    for (let beat = 0; beat < 40; beat += 1) {
+      if ((lastFrame() ?? '').includes('saved to')) break
+      await tick(50)
+    }
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
+    // The Consultation is saved exactly once — the skipped reading is
+    // persisted just like the fully-animated one.
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('shows a "SPACE: skip" footer hint during random playback', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        sliderSweepMs={120}
+        castBounceMs={100000}
+        sliderCommitRevealMs={0}
+      />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = lastFrame() ?? ''
+    // The random flow's footer advertises SPACE as the skip key.
+    expect(frame).toContain('SPACE: skip')
+    expect(frame).not.toContain('SPACE: part')
+    unmount()
+  })
+
   it('fills the casting table progressively, one stalk-split per cast', async () => {
     // The random flow shows the slider casting prompt and advances the
     // progress bar split-by-split, exactly like the interactive flow.

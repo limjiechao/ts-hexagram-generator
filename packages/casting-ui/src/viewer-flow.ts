@@ -58,6 +58,11 @@ export type FlowAction =
   | { type: 'castingBufferChange'; value: string }
   | { type: 'castingError'; message: string | null }
   | { type: 'splitCommitted'; pick: number; max: number; line?: Line }
+  // Random-playback skip — dispatched by the imperative shell when the user
+  // presses SPACE during the random casting animation. Pure: it fills the
+  // partial casting record and completed lines from the already-generated
+  // `castingPlan` (no RNG, no derivation) and transitions to `computing`.
+  | { type: 'playbackSkipped' }
   | {
       type: 'computeSucceeded'
       sections: ConsultationSections
@@ -188,6 +193,30 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         castIndex: nextCastIndex,
         castingBuffer: '',
         error: null,
+      }
+    }
+    case 'playbackSkipped': {
+      // Skip the rest of the random casting animation and jump straight to
+      // `computing`. Only meaningful while a random flow is mid-`casting`
+      // with a non-null plan — a no-op otherwise (interactive flow, or wrong
+      // mode), so an errant dispatch can never corrupt the flow.
+      if (state.mode !== 'casting' || state.castingPlan === null) return state
+      // Fill the partial casting record wholesale from the plan's casting
+      // (`CastingRecord` is a structural subtype of `PartialCastingRecord`)
+      // and the completed lines from the plan's hexagram. This is exactly the
+      // state eighteen `splitCommitted`s would have produced, so the saved
+      // Consultation is identical to the one the full animation yields.
+      return {
+        ...state,
+        mode: 'computing',
+        partialCasting: state.castingPlan.casting,
+        completedLines: [...state.castingPlan.hexagram],
+        castingBuffer: '',
+        error: null,
+        // Clear the plan on the `computing` transition, consistent with the
+        // last-cast `splitCommitted` — `computing`/`done` never see a stale
+        // plan.
+        castingPlan: null,
       }
     }
     case 'computeSucceeded':

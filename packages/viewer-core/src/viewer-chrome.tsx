@@ -32,25 +32,38 @@ export const KEY_HINTS_TEMPLATE = (): string =>
   `Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc quit`
 
 /**
+ * The casting flow whose footer hints are being formatted. The interactive
+ * flow's SPACE parts the stalks; the random flow auto-drives the slider, so
+ * its SPACE instead skips the rest of the casting animation. Mirrors
+ * `casting-ui`'s `FlowKind` without importing it (keeps `viewer-core` free of
+ * a `casting-ui` dependency — the chrome is shared infrastructure).
+ */
+export type CastingFlowKind = 'interactive' | 'random'
+
+/**
  * Footer key hints during the casting phase. The slider's load-bearing key
- * is SPACE — without surfacing it here the prompt is undiscoverable.
- * Number mode advertises Enter for parity with the in-tab prompt label.
- * ←/→ is the horizontal-pan binding the viewer registers when slider
- * content overflows.
+ * is SPACE — without surfacing it here the prompt is undiscoverable. Its verb
+ * depends on the flow: the interactive flow parts the stalks on SPACE, the
+ * random flow (`flowKind === 'random'`) auto-drives the slider and SPACE
+ * instead skips the rest of the animation. Number mode advertises Enter for
+ * parity with the in-tab prompt label. ←/→ is the horizontal-pan binding the
+ * viewer registers when slider content overflows.
  *
  * Escape and Ctrl+C are separate keys: Escape is the soft back / exit (its
  * destination named by `exitLabel` — "quit" standalone, or the host's
  * destination in the composed CLI), Ctrl+C always hard-quits. `exitLabel`
  * defaults to `"quit"` so a standalone casting bin reads the same as before.
+ * `flowKind` defaults to `"interactive"` so existing callers are unchanged.
  */
 export function keyHintsForCasting(
   inputMode: InputMode,
   exitLabel = 'quit',
+  flowKind: CastingFlowKind = 'interactive',
 ): string {
   const exitHints = `Esc: ${exitLabel}   Ctrl+C: quit`
-  return inputMode === 'slider'
-    ? `SPACE: part   ←→: pan   ${exitHints}`
-    : `Enter: commit   ${exitHints}`
+  if (inputMode !== 'slider') return `Enter: commit   ${exitHints}`
+  const spaceHint = flowKind === 'random' ? 'SPACE: skip' : 'SPACE: part'
+  return `${spaceHint}   ←→: pan   ${exitHints}`
 }
 
 /**
