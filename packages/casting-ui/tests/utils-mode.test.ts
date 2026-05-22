@@ -1,10 +1,12 @@
 import { expect, test } from 'vitest'
 
 import {
+  DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_SLIDER_SWEEP_MS,
   deriveTickMs,
   MAX_TICK_MS,
   MIN_TICK_MS,
+  parseCastBounceMs,
   parseCliFlags,
   parseSliderSweepMs,
   parseWrapWidth,
@@ -86,6 +88,39 @@ test('parseSliderSweepMs() returns the first occurrence when given multiple', ()
   expect(
     parseSliderSweepMs(['--slider-sweep-ms=2000', '--slider-sweep-ms=8000']),
   ).toBe(2000)
+})
+
+test('parseCastBounceMs() reads --cast-bounce-ms <n>', () => {
+  expect(parseCastBounceMs(['--cast-bounce-ms', '1200'])).toBe(1200)
+})
+
+test('parseCastBounceMs() reads --cast-bounce-ms=<n>', () => {
+  expect(parseCastBounceMs(['--cast-bounce-ms=900'])).toBe(900)
+})
+
+test('parseCastBounceMs() defaults to DEFAULT_CAST_BOUNCE_MS without the flag', () => {
+  expect(parseCastBounceMs([])).toBe(DEFAULT_CAST_BOUNCE_MS)
+  expect(parseCastBounceMs(['--plain'])).toBe(DEFAULT_CAST_BOUNCE_MS)
+})
+
+test('parseCastBounceMs() ignores non-positive-integer values', () => {
+  expect(parseCastBounceMs(['--cast-bounce-ms', 'abc'])).toBe(
+    DEFAULT_CAST_BOUNCE_MS,
+  )
+  expect(parseCastBounceMs(['--cast-bounce-ms=0'])).toBe(DEFAULT_CAST_BOUNCE_MS)
+  expect(parseCastBounceMs(['--cast-bounce-ms', '-5'])).toBe(
+    DEFAULT_CAST_BOUNCE_MS,
+  )
+  expect(parseCastBounceMs(['--cast-bounce-ms', '1.5'])).toBe(
+    DEFAULT_CAST_BOUNCE_MS,
+  )
+  expect(parseCastBounceMs(['--cast-bounce-ms'])).toBe(DEFAULT_CAST_BOUNCE_MS)
+})
+
+test('parseCastBounceMs() returns the first occurrence when given multiple', () => {
+  expect(
+    parseCastBounceMs(['--cast-bounce-ms=1000', '--cast-bounce-ms=4000']),
+  ).toBe(1000)
 })
 
 test('deriveTickMs() divides the sweep budget across (max - min) transitions', () => {
@@ -172,6 +207,7 @@ test('parseCliFlags() composes argv + TTY + env into a single config', () => {
     inputMode: 'slider',
     wrapWidth: 120,
     sliderSweepMs: DEFAULT_SLIDER_SWEEP_MS,
+    castBounceMs: DEFAULT_CAST_BOUNCE_MS,
   })
 })
 
@@ -227,4 +263,13 @@ test('parseCliFlags() picks up --slider-sweep-ms', () => {
     envVars: { NO_COLOR: undefined, CI: undefined },
   })
   expect(flags.sliderSweepMs).toBe(5000)
+})
+
+test('parseCliFlags() picks up --cast-bounce-ms', () => {
+  const flags = parseCliFlags({
+    argv: ['--cast-bounce-ms', '1200'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.castBounceMs).toBe(1200)
 })

@@ -17,10 +17,13 @@ export { consultationConsoleOutput } from './output-composers.js'
 // Inquirer prompt for the user's consultation query.
 export { getUserQuery } from './prompts.js'
 
-// CLI flag resolution (output mode, input mode, wrap width, slider sweep ms).
+// CLI flag resolution (output mode, input mode, wrap width, slider sweep ms,
+// cast bounce ms).
 export {
+  DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_MAX_WRAP_WIDTH,
   DEFAULT_SLIDER_SWEEP_MS,
+  resolveCastBounceMs,
   resolveInputMode,
   resolveOutputMode,
   resolveSliderSweepMs,

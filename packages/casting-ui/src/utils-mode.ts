@@ -14,6 +14,7 @@ export interface CliFlags {
   inputMode: InputMode
   wrapWidth: number
   sliderSweepMs: number
+  castBounceMs: number
 }
 
 const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
@@ -23,6 +24,15 @@ export const DEFAULT_MAX_WRAP_WIDTH = 120
 export const DEFAULT_SLIDER_SWEEP_MS = 1800
 export const MIN_TICK_MS = 30
 export const MAX_TICK_MS = 250
+
+/**
+ * Ceremonial default for `--cast-bounce-ms` — the arm-delay window during
+ * random-casting playback. The slider bounces freely for this long before it
+ * is allowed to land on the RNG-predetermined pick; combined with the ~0.5 s
+ * numeric reveal it gives roughly 2 s per cast, ~36 s for the eighteen casts.
+ * A designed pace, not a hard requirement — the flag is a tuning knob.
+ */
+export const DEFAULT_CAST_BOUNCE_MS = 1500
 
 /**
  * Per-cast tick interval that keeps the end-to-end slider sweep at roughly
@@ -102,6 +112,29 @@ export function parseSliderSweepMs(argv: readonly string[]): number {
 }
 
 /**
+ * Parse the `--cast-bounce-ms <n>` / `--cast-bounce-ms=<n>` flag. Pure —
+ * takes `argv` explicitly so it can be unit-tested without `process`. Falls
+ * back to `DEFAULT_CAST_BOUNCE_MS` when the flag is absent or the value is
+ * not a positive integer. Mirrors `parseSliderSweepMs` exactly.
+ */
+export function parseCastBounceMs(argv: readonly string[]): number {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === '--cast-bounce-ms') {
+      value = argv[index + 1]
+    } else if (argument?.startsWith('--cast-bounce-ms=') === true) {
+      value = argument.slice('--cast-bounce-ms='.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number.parseInt(value, 10)
+      if (parsed > 0) return parsed
+    }
+  }
+  return DEFAULT_CAST_BOUNCE_MS
+}
+
+/**
  * Accessibility-driven force-numeric heuristic. The Ink slider is purely
  * visual (a bouncing cursor with no semantic value at any frame), so any
  * environment that signals "no animation/colour" or "non-interactive
@@ -140,7 +173,8 @@ export function parseCliFlags(env: CliEnv): CliFlags {
       : 'slider'
   const wrapWidth = parseWrapWidth(env.argv)
   const sliderSweepMs = parseSliderSweepMs(env.argv)
-  return { outputMode, inputMode, wrapWidth, sliderSweepMs }
+  const castBounceMs = parseCastBounceMs(env.argv)
+  return { outputMode, inputMode, wrapWidth, sliderSweepMs, castBounceMs }
 }
 
 /**
@@ -172,4 +206,8 @@ export function resolveWrapWidth(): number {
 
 export function resolveSliderSweepMs(): number {
   return resolveCliFlags().sliderSweepMs
+}
+
+export function resolveCastBounceMs(): number {
+  return resolveCliFlags().castBounceMs
 }
