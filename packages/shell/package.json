@@ -25,13 +25,13 @@
   },
   "dependencies": {
     "@hexagram/casting-ui": "workspace:*",
+    "@hexagram/core": "workspace:*",
     "@hexagram/history-ui": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6"
   },
   "devDependencies": {
-    "@hexagram/core": "workspace:*",
     "@hexagram/types": "workspace:*",
     "@types/react": "^19.2.14",
     "ink-testing-library": "^4.0.0"

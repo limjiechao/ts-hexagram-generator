@@ -9,15 +9,12 @@
 // `<HexagramApp>` translates those into `nav-machine` events. Keeping the menu
 // navigation-agnostic means it can be unit-tested in isolation.
 
-import {
-  BOLD_GREY,
-  BOLD_WHITE,
-  NORMAL,
-  NORMAL_GREY,
-  ScreenShell,
-} from '@hexagram/viewer-core'
+import { BOLD_WHITE, NORMAL, ScreenShell } from '@hexagram/viewer-core'
 import { Box, Text, useInput, useWindowSize } from 'ink'
 import { useState, type ReactElement } from 'react'
+
+import { AnimatedBanner } from './animated-banner.js'
+import { IdentityBlock } from './identity-block.js'
 
 /**
  * The three Home-menu choices, in render order. The string union is the menu's
@@ -91,17 +88,6 @@ export function HomeMenu({ onSelect, onQuit }: HomeMenuProps): ReactElement {
     }
   })
 
-  // ── Banner — a new, app-level banner (NOT the casting welcome banner). ────
-  // Two centred lines: a bold-grey title and a normal-grey tagline. Plain
-  // `<Text>` with palette SGR runs, matching the house style used by the
-  // history list's empty state.
-  const banner = (
-    <Box flexDirection="column" alignItems="center" flexShrink={0}>
-      <Text>{`${BOLD_GREY}☰ hexagram — the Yijing oracle${NORMAL}`}</Text>
-      <Text>{`${NORMAL_GREY}Consult the Book of Changes from your terminal.${NORMAL}`}</Text>
-    </Box>
-  )
-
   // ── Menu — three flat selectable rows. The focused row rides a bold inverse
   // bar (same affordance as the history list's focused row); the rest render
   // as bold-white labels. A leading `›` marker on the focused row makes the
@@ -127,9 +113,10 @@ export function HomeMenu({ onSelect, onQuit }: HomeMenuProps): ReactElement {
     </Box>
   )
 
-  // The shell's content slot has no scroll content — the banner + menu are
-  // vertically centred in the available space (the same non-scrolling pattern
-  // the history list uses for its empty state).
+  // The shell's content slot has no scroll content — the banner, identity
+  // block, and menu are vertically centred in the available space. Each
+  // sub-block owns `flexShrink={0}`, so a terminal shorter than the layout
+  // clips whole rows from the bottom rather than reflowing.
   const content = (
     <Box
       flexDirection="column"
@@ -137,7 +124,10 @@ export function HomeMenu({ onSelect, onQuit }: HomeMenuProps): ReactElement {
       justifyContent="center"
       flexGrow={1}
     >
-      {banner}
+      <AnimatedBanner />
+      <Box marginTop={1} flexShrink={0}>
+        <IdentityBlock />
+      </Box>
       {menu}
     </Box>
   )

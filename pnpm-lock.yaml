@@ -179,6 +179,9 @@ importers:
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../casting-ui
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
       '@hexagram/history-ui':
         specifier: workspace:*
         version: link:../history-ui
@@ -192,9 +195,6 @@ importers:
         specifier: ^19.2.6
         version: 19.2.6
     devDependencies:
-      '@hexagram/core':
-        specifier: workspace:*
-        version: link:../core
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types

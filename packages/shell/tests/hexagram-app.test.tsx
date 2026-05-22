@@ -148,17 +148,25 @@ async function castRandomConsultation(
 }
 
 describe('<HexagramApp> — Home screen', () => {
-  it('opens on Home with the three menu items and the app banner', async () => {
+  it('opens on Home with the new banner layout and the three menu items', async () => {
     const { lastFrame, unmount } = render(
       <HexagramApp castingFlags={CASTING_FLAGS} />,
     )
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('hexagram — the Yijing oracle')
+    // The old two-line banner is gone, replaced by the hexagram banner +
+    // identity block.
+    expect(frame).not.toContain('hexagram — the Yijing oracle')
+    // The hexagram banner: a six-line figure with both bar styles.
+    expect(frame).toContain('━━━━━━━━━')
+    expect(frame).toContain('━━━   ━━━')
+    // The static identity block.
+    expect(frame).toContain('H · E · X · A · G · R · A · M')
+    expect(frame).toContain('the Yijing Yarrow Oracle — in your terminal')
+    // The three menu items + footer are unchanged.
     expect(frame).toContain('New interactive consultation')
     expect(frame).toContain('New random consultation')
     expect(frame).toContain('Browse history')
-    // Home footer names Esc as the quit key (not a back key).
     expect(frame).toContain('Esc quit')
     unmount()
   })
