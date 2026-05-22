@@ -24,13 +24,22 @@ describe('keyHintsForCasting', () => {
     expect(keyHintsForCasting('slider')).toContain('SPACE: part')
   })
 
-  it('number mode advertises Enter regardless of flow kind', () => {
-    expect(keyHintsForCasting('number', 'quit', 'random')).toContain(
-      'Enter: commit',
-    )
-    expect(keyHintsForCasting('number', 'quit', 'interactive')).toContain(
-      'Enter: commit',
-    )
+  it('number mode advertises Enter: commit for the interactive flow', () => {
+    const hint = keyHintsForCasting('number', 'quit', 'interactive')
+    expect(hint).toContain('Enter: commit')
+    expect(hint).not.toContain('skip')
+  })
+
+  it('number mode advertises SPACE: skip for the random flow', () => {
+    // The random number-mode reveal is timer-driven — there is nothing to
+    // commit, SPACE skips the rest of the reveal.
+    const hint = keyHintsForCasting('number', 'quit', 'random')
+    expect(hint).toContain('SPACE: skip')
+    expect(hint).not.toContain('Enter: commit')
+  })
+
+  it('number mode defaults to Enter: commit when no flowKind is given', () => {
+    expect(keyHintsForCasting('number')).toContain('Enter: commit')
   })
 
   it('keeps the exit hints (Esc + Ctrl+C) for every flow', () => {
