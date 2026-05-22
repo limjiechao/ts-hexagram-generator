@@ -123,7 +123,7 @@ describe('ConsultationReadout — locked (in-flow) state', () => {
   it('collapses the tab bar to the active tab only', () => {
     const { lastFrame, unmount } = renderReadout({ locked: true })
     const frame = lastFrame() ?? ''
-    expect(frame).toContain(' Casting ')
+    expect(frame).toContain('<1> Casting')
     expect(frame).not.toContain('Transformation')
     expect(frame).not.toContain('Standing Hexagram')
     expect(frame).not.toContain('Emerging Hexagram')
