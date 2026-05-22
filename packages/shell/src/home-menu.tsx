@@ -107,7 +107,7 @@ export function HomeMenu({
       flexDirection="column"
       alignItems="center"
       flexShrink={0}
-      marginTop={1}
+      marginTop={2}
     >
       {MENU_ITEMS.map((item, index) => {
         const isFocused = index === focusIndex
@@ -135,7 +135,7 @@ export function HomeMenu({
       flexGrow={1}
     >
       <AnimatedBanner testOverride={bannerTestOverride} />
-      <Box marginTop={1} flexShrink={0}>
+      <Box marginTop={2} flexShrink={0}>
         <IdentityBlock />
       </Box>
       {menu}

@@ -35,12 +35,14 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
+import { getHexagramRecord } from '@hexagram/core/getters'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type { BannerTestOverride } from '../src/banner-state'
 import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
+import { HomeMenu } from '../src/home-menu'
 
 // Deterministic stub for the random casting plan. Every pick is 3 — a couple
 // of cells from the slider's min — so each cast bounces briefly then
@@ -479,5 +481,91 @@ describe('<HexagramApp> — animated home banner', () => {
     }
     expect(animated).toBe(true)
     unmount()
+  })
+})
+
+// ── Banner layout regression tests. The home banner is centred independently
+// of the variable-width hexagram name; these guard the two layout fixes:
+// (1) two blank rows after the banner and after the identity block, and
+// (2) the six-line figure anchored at a constant column for every hexagram.
+
+/** All 64 settled hexagrams, bottom-first, as 7 (yang) / 8 (yin) tuples. */
+function allSettledHexagrams(): Hexagram[] {
+  return Array.from(
+    { length: 64 },
+    (_, mask) =>
+      Array.from({ length: 6 }, (_unused, line) =>
+        ((mask >> line) & 1) === 1 ? 8 : 7,
+      ) as Hexagram,
+  )
+}
+
+/**
+ * A frozen banner override pinned to a specific settled hexagram. `randomHex`
+ * consumes six rng values — `< 0.5 → 7` (yang), `≥ 0.5 → 8` (yin) — so the
+ * sequence reproduces `hex`; the interval is disabled so the banner holds it.
+ */
+function settledBannerOverride(hex: Hexagram): BannerTestOverride {
+  const sequence = hex.map((line) => (line === 7 ? 0 : 0.9))
+  let cursor = 0
+  return {
+    rng: () => sequence[cursor++ % sequence.length] ?? 0,
+    disableInterval: true,
+  }
+}
+
+/** Render `<HomeMenu>` for one frozen hexagram; return its stripped frame rows. */
+function homeRows(hex: Hexagram): string[] {
+  const { lastFrame, unmount } = render(
+    <HomeMenu
+      onSelect={() => {}}
+      onQuit={() => {}}
+      bannerTestOverride={settledBannerOverride(hex)}
+    />,
+  )
+  const rows = stripAnsi(lastFrame() ?? '').split('\n')
+  unmount()
+  return rows
+}
+
+describe('<HomeMenu> — banner layout', () => {
+  it('anchors the hexagram figure at the same column for every hexagram', () => {
+    // The pre-fix banner nested two centring passes — the figure within a
+    // name-width box, then that box within the screen — and the two integer
+    // roundings beat against the name width's parity, jittering the figure
+    // ±1 column. Every banner line begins `<value>  ━━━…`, so the first `━`
+    // column is the figure's left edge for both yang and yin lines.
+    const columns = allSettledHexagrams().map((hex) => {
+      const barRow = homeRows(hex).find((row) => row.includes('━'))
+      expect(barRow).toBeDefined()
+      return barRow?.indexOf('━')
+    })
+    expect(new Set(columns).size).toBe(1)
+  })
+
+  it('separates the banner from the identity block by two blank rows', () => {
+    const frozenHex: Hexagram = [7, 8, 7, 8, 7, 8]
+    const rows = homeRows(frozenHex)
+    const name = getHexagramRecord(frozenHex).Name.English.WilhelmBaynes
+    const nameRow = rows.findIndex((row) => row.includes(name))
+    const sealRow = rows.findIndex((row) => row.includes('易　筮　占'))
+    expect(nameRow).toBeGreaterThanOrEqual(0)
+    expect(sealRow).toBeGreaterThan(nameRow)
+    // English name, blank, blank, seal → the identity block is three rows down.
+    expect(sealRow - nameRow).toBe(3)
+  })
+
+  it('separates the identity block from the menu by two blank rows', () => {
+    const rows = homeRows([7, 8, 7, 8, 7, 8])
+    const taglineRow = rows.findIndex((row) =>
+      row.includes('the Yijing Yarrow Oracle'),
+    )
+    const menuRow = rows.findIndex((row) =>
+      row.includes('New interactive consultation'),
+    )
+    expect(taglineRow).toBeGreaterThanOrEqual(0)
+    expect(menuRow).toBeGreaterThan(taglineRow)
+    // Tagline, blank, blank, menu → the menu is three rows down.
+    expect(menuRow - taglineRow).toBe(3)
   })
 })

@@ -82,7 +82,19 @@ export function AnimatedBanner({
   const topDownLines = frame.lines.toReversed()
 
   return (
-    <Box flexDirection="column" alignItems="center" flexShrink={0}>
+    // `alignSelf="stretch"` spans this box across the full content width so
+    // the six fixed-width hexagram rows are centred by a single rounding pass
+    // against a constant width. Without it the box shrink-wraps to its widest
+    // child — the variable-length English name — and the rows are centred
+    // twice (within the box, then the box within the screen); the two integer
+    // roundings beat against the name's parity, so the figure jitters ±1
+    // column from frame to frame as the name length changes.
+    <Box
+      flexDirection="column"
+      alignItems="center"
+      alignSelf="stretch"
+      flexShrink={0}
+    >
       {topDownLines.map((cells, index) => {
         const [valueColor, barColor] = lineColors(cells.role)
         return (
