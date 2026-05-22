@@ -58,7 +58,9 @@ export function deriveBannerLine(
   pulse: boolean,
 ): BannerLineCells {
   const role: BannerLineRole = moving
-    ? (pulse ? 'moving-bright' : 'moving-dim')
+    ? pulse
+      ? 'moving-bright'
+      : 'moving-dim'
     : 'static'
 
   if (polarity === 'yang') {
