@@ -141,8 +141,14 @@ describe('flowReducer — playbackSkipped', () => {
     expect(next.mode).toBe('computing')
     // The partial casting record is filled wholesale from the plan's casting.
     expect(next.partialCasting).toEqual(STUB_CASTING)
+    // ...but as a fresh array, not an alias of the plan's `casting`. Every
+    // other transition in the reducer builds new arrays; sharing the plan's
+    // reference would break that convention and risk latent corruption.
+    expect(next.partialCasting).not.toBe(state.castingPlan!.casting)
     // The completed lines are filled from the plan's hexagram.
     expect(next.completedLines).toEqual([...STUB_HEXAGRAM])
+    // ...likewise a fresh array, not an alias of the plan's `hexagram`.
+    expect(next.completedLines).not.toBe(state.castingPlan!.hexagram)
     // The plan is cleared, consistent with the last-cast splitCommitted.
     expect(next.castingPlan).toBeNull()
   })

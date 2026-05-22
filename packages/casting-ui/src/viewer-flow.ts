@@ -206,10 +206,17 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
       // and the completed lines from the plan's hexagram. This is exactly the
       // state eighteen `splitCommitted`s would have produced, so the saved
       // Consultation is identical to the one the full animation yields.
+      //
+      // Shallow-copy the outer tuple so `partialCasting` is its own array
+      // rather than an alias of `castingPlan.casting` — every other transition
+      // in this reducer builds a fresh array (`splitCommitted` uses `.map`),
+      // so sharing the plan's reference would break that convention and risk
+      // latent corruption. The inner `SplitRecord`s are never mutated, so a
+      // shallow outer copy suffices.
       return {
         ...state,
         mode: 'computing',
-        partialCasting: state.castingPlan.casting,
+        partialCasting: [...state.castingPlan.casting] as PartialCastingRecord,
         completedLines: [...state.castingPlan.hexagram],
         castingBuffer: '',
         error: null,
