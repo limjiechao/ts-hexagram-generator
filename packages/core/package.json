@@ -40,7 +40,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "test": "vitest run --passWithNoTests",
+    "test": "FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit",
     "generate-json-files": "tsx scripts/generate-json-files.ts && oxfmt --write src/models/*.json"
   },

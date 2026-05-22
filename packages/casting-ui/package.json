@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "test": "vitest run --passWithNoTests",
+    "test": "FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit",
     "generate-fixtures": "tsx scripts/generate-fixtures.ts"
   },

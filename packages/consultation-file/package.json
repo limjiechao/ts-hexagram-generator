@@ -41,7 +41,7 @@
   "scripts": {
     "build": "tsdown",
     "generate-fixtures": "tsx scripts/generate-fixtures.ts",
-    "test": "vitest run --passWithNoTests",
+    "test": "FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
