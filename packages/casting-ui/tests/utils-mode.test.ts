@@ -2,11 +2,13 @@ import { expect, test } from 'vitest'
 
 import {
   DEFAULT_CAST_BOUNCE_MS,
+  DEFAULT_CAST_REVEAL_MS,
   DEFAULT_SLIDER_SWEEP_MS,
   deriveTickMs,
   MAX_TICK_MS,
   MIN_TICK_MS,
   parseCastBounceMs,
+  parseCastRevealMs,
   parseCliFlags,
   parseSliderSweepMs,
   parseWrapWidth,
@@ -123,6 +125,39 @@ test('parseCastBounceMs() returns the first occurrence when given multiple', () 
   ).toBe(1000)
 })
 
+test('parseCastRevealMs() reads --cast-reveal-ms <n>', () => {
+  expect(parseCastRevealMs(['--cast-reveal-ms', '900'])).toBe(900)
+})
+
+test('parseCastRevealMs() reads --cast-reveal-ms=<n>', () => {
+  expect(parseCastRevealMs(['--cast-reveal-ms=500'])).toBe(500)
+})
+
+test('parseCastRevealMs() defaults to DEFAULT_CAST_REVEAL_MS without the flag', () => {
+  expect(parseCastRevealMs([])).toBe(DEFAULT_CAST_REVEAL_MS)
+  expect(parseCastRevealMs(['--plain'])).toBe(DEFAULT_CAST_REVEAL_MS)
+})
+
+test('parseCastRevealMs() ignores non-positive-integer values', () => {
+  expect(parseCastRevealMs(['--cast-reveal-ms', 'abc'])).toBe(
+    DEFAULT_CAST_REVEAL_MS,
+  )
+  expect(parseCastRevealMs(['--cast-reveal-ms=0'])).toBe(DEFAULT_CAST_REVEAL_MS)
+  expect(parseCastRevealMs(['--cast-reveal-ms', '-5'])).toBe(
+    DEFAULT_CAST_REVEAL_MS,
+  )
+  expect(parseCastRevealMs(['--cast-reveal-ms', '1.5'])).toBe(
+    DEFAULT_CAST_REVEAL_MS,
+  )
+  expect(parseCastRevealMs(['--cast-reveal-ms'])).toBe(DEFAULT_CAST_REVEAL_MS)
+})
+
+test('parseCastRevealMs() returns the first occurrence when given multiple', () => {
+  expect(
+    parseCastRevealMs(['--cast-reveal-ms=600', '--cast-reveal-ms=2000']),
+  ).toBe(600)
+})
+
 test('deriveTickMs() divides the sweep budget across (max - min) transitions', () => {
   // Cast 1 of every line: max=48 stalks, 48-1 = 47 transitions. 3000ms / 47 ≈ 63.83 → 64ms.
   expect(deriveTickMs(3000, 48)).toBe(64)
@@ -208,6 +243,7 @@ test('parseCliFlags() composes argv + TTY + env into a single config', () => {
     wrapWidth: 120,
     sliderSweepMs: DEFAULT_SLIDER_SWEEP_MS,
     castBounceMs: DEFAULT_CAST_BOUNCE_MS,
+    castRevealMs: DEFAULT_CAST_REVEAL_MS,
   })
 })
 
@@ -272,4 +308,13 @@ test('parseCliFlags() picks up --cast-bounce-ms', () => {
     envVars: { NO_COLOR: undefined, CI: undefined },
   })
   expect(flags.castBounceMs).toBe(1200)
+})
+
+test('parseCliFlags() picks up --cast-reveal-ms', () => {
+  const flags = parseCliFlags({
+    argv: ['--cast-reveal-ms', '900'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.castRevealMs).toBe(900)
 })

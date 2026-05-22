@@ -15,6 +15,7 @@ export interface CliFlags {
   wrapWidth: number
   sliderSweepMs: number
   castBounceMs: number
+  castRevealMs: number
 }
 
 const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
@@ -33,6 +34,15 @@ export const MAX_TICK_MS = 250
  * A designed pace, not a hard requirement — the flag is a tuning knob.
  */
 export const DEFAULT_CAST_BOUNCE_MS = 1500
+
+/**
+ * Brisk default for `--cast-reveal-ms` — the per-cast dwell of the number-input
+ * mode's text-based progressive reveal. The number flow has no bouncing-slider
+ * animation to fill a longer dwell, so the eighteen casts advance at roughly
+ * 0.7 s each (~13 s total). A designed pace, not a hard requirement — the flag
+ * is a tuning knob.
+ */
+export const DEFAULT_CAST_REVEAL_MS = 700
 
 /**
  * Per-cast tick interval that keeps the end-to-end slider sweep at roughly
@@ -135,6 +145,29 @@ export function parseCastBounceMs(argv: readonly string[]): number {
 }
 
 /**
+ * Parse the `--cast-reveal-ms <n>` / `--cast-reveal-ms=<n>` flag. Pure — takes
+ * `argv` explicitly so it can be unit-tested without `process`. Falls back to
+ * `DEFAULT_CAST_REVEAL_MS` when the flag is absent or the value is not a
+ * positive integer. Mirrors `parseCastBounceMs` exactly.
+ */
+export function parseCastRevealMs(argv: readonly string[]): number {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === '--cast-reveal-ms') {
+      value = argv[index + 1]
+    } else if (argument?.startsWith('--cast-reveal-ms=') === true) {
+      value = argument.slice('--cast-reveal-ms='.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number.parseInt(value, 10)
+      if (parsed > 0) return parsed
+    }
+  }
+  return DEFAULT_CAST_REVEAL_MS
+}
+
+/**
  * Accessibility-driven force-numeric heuristic. The Ink slider is purely
  * visual (a bouncing cursor with no semantic value at any frame), so any
  * environment that signals "no animation/colour" or "non-interactive
@@ -174,7 +207,15 @@ export function parseCliFlags(env: CliEnv): CliFlags {
   const wrapWidth = parseWrapWidth(env.argv)
   const sliderSweepMs = parseSliderSweepMs(env.argv)
   const castBounceMs = parseCastBounceMs(env.argv)
-  return { outputMode, inputMode, wrapWidth, sliderSweepMs, castBounceMs }
+  const castRevealMs = parseCastRevealMs(env.argv)
+  return {
+    outputMode,
+    inputMode,
+    wrapWidth,
+    sliderSweepMs,
+    castBounceMs,
+    castRevealMs,
+  }
 }
 
 /**
@@ -210,4 +251,8 @@ export function resolveSliderSweepMs(): number {
 
 export function resolveCastBounceMs(): number {
   return resolveCliFlags().castBounceMs
+}
+
+export function resolveCastRevealMs(): number {
+  return resolveCliFlags().castRevealMs
 }
