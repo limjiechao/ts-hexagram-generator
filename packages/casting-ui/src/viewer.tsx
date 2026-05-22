@@ -35,11 +35,13 @@ import {
   sliderPromptTitle,
   type SliderAutoLand,
 } from './casting-prompt-box.js'
+import { CastingStatus, getCastingStatusHeight } from './casting-status.js'
 import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
 import { QueryEditor } from './query-editor.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
   DEFAULT_CAST_BOUNCE_MS,
+  DEFAULT_CAST_REVEAL_MS,
   DEFAULT_MAX_WRAP_WIDTH,
   DEFAULT_SLIDER_SWEEP_MS,
   deriveTickMs,
@@ -49,6 +51,8 @@ import {
   EMPTY_SECTIONS,
   flowReducer,
   initialFlowState,
+  type CastingPlan,
+  type FlowAction,
   type FlowKind,
 } from './viewer-flow.js'
 
@@ -76,6 +80,11 @@ interface ConsultationViewerProps {
   // bounces freely for this long before it is allowed to auto-land on the
   // RNG-predetermined pick. Ignored by the interactive flow.
   castBounceMs?: number
+  // Random-flow + number-input mode only: the per-cast dwell in ms for the
+  // text-based progressive reveal. A timer fires every `castRevealMs` and
+  // dispatches the next `splitCommitted`. Ignored by the slider mode (which
+  // is driven by the bounce animation) and by the interactive flow.
+  castRevealMs?: number
   // How long the slider's post-SPACE numeric reveal holds before the cast
   // commits upstream. Forwarded to `<CastingPromptBox commitRevealMs>`;
   // tests pass `0` to bypass the dwell.
@@ -111,6 +120,7 @@ export function ConsultationViewer({
   maxWrapWidth = DEFAULT_MAX_WRAP_WIDTH,
   sliderSweepMs = DEFAULT_SLIDER_SWEEP_MS,
   castBounceMs = DEFAULT_CAST_BOUNCE_MS,
+  castRevealMs = DEFAULT_CAST_REVEAL_MS,
   sliderCommitRevealMs = SLIDER_COMMIT_REVEAL_MS,
   onExit,
   exitLabel = 'quit',
@@ -175,21 +185,30 @@ export function ConsultationViewer({
     [state.castingPlan, state.lineIndex, state.castIndex, castBounceMs],
   )
 
+  // Build the `splitCommitted` action for the random flow's current slot from
+  // the predetermined plan — the pick/max read straight from `SplitRecord`,
+  // and the plan's resolved hexagram line on the third cast. Shared by the
+  // slider's `onSubmit` and the number mode's per-cast timer so the two can
+  // never build divergent payloads. Caller must guarantee a non-null plan.
+  const randomSplitAction = (plan: CastingPlan): FlowAction => {
+    const { pick, max } = plan.casting[state.lineIndex][state.castIndex]
+    const line =
+      state.castIndex === 2 ? plan.hexagram[state.lineIndex] : undefined
+    return { type: 'splitCommitted', pick, max, line }
+  }
+
   // The casting prompt's `onSubmit`. For the interactive flow it threads
   // through the line generator (`submitSplit`); for the random flow the pick
   // is already known from the plan, so it dispatches `splitCommitted`
-  // directly — with the plan's resolved hexagram line on the third cast.
+  // directly — with the plan's resolved hexagram line on the third cast. The
+  // slider auto-land hands back the plan's pick anyway, so `randomSplitAction`
+  // is the single source of the payload for both casting input modes.
   const handleCastSubmit = (pick: number): void => {
     if (state.castingPlan === null) {
       submitSplit(pick)
       return
     }
-    const { max } = state.castingPlan.casting[state.lineIndex][state.castIndex]
-    const line =
-      state.castIndex === 2
-        ? state.castingPlan.hexagram[state.lineIndex]
-        : undefined
-    dispatch({ type: 'splitCommitted', pick, max, line })
+    dispatch(randomSplitAction(state.castingPlan))
   }
 
   // SPACE-to-skip during random playback. The slider routes SPACE here (via
@@ -263,6 +282,51 @@ export function ConsultationViewer({
     }
   }, [state.mode, state.query, state.completedLines, state.partialCasting])
 
+  // Whether this render is the random flow playing back in number-input mode
+  // — the accessibility / non-colour fallback. In this mode the above-footer
+  // slot shows the plain-text `<CastingStatus>` widget instead of the typed
+  // `<NumberInput>` prompt, and a per-cast timer (below) drives the eighteen
+  // `splitCommitted`s. The slider mode and the interactive flow are unaffected.
+  const isNumberRandomPlayback =
+    state.flowKind === 'random' && inputMode === 'number'
+
+  // ── Number-mode random reveal timer ─────────────────────────────────────
+  // The text-reveal pacing timer. Side effect → it lives here in the
+  // imperative shell, not in the pure reducer. While the random flow is
+  // mid-`casting` in number mode, it schedules ONE `setTimeout` per cast slot
+  // (the effect's `lineIndex`/`castIndex` deps re-arm it for the next slot
+  // after each advance) that dispatches `splitCommitted` with the plan-derived
+  // payload. It is suspended while the discard-confirm modal is open — the
+  // reveal must not advance behind the modal — and cleared on unmount, so no
+  // timer leaks and no cast double-fires.
+  useEffect(() => {
+    if (!isNumberRandomPlayback) return
+    if (state.mode !== 'casting') return
+    if (confirmingDiscard !== null) return
+    if (state.castingPlan === null) return
+    const plan = state.castingPlan
+    const timer = setTimeout(() => {
+      dispatch(randomSplitAction(plan))
+    }, castRevealMs)
+    return () => {
+      clearTimeout(timer)
+    }
+    // `randomSplitAction` is a fresh closure each render but closes only over
+    // `state.lineIndex`/`state.castIndex`, which are already in the deps — so
+    // re-running on its identity would be redundant; the listed deps capture
+    // every input that changes the scheduled action. The cleanup clears any
+    // pending timeout before the next slot's timeout is armed.
+    // oxlint-disable-next-line exhaustive-deps
+  }, [
+    isNumberRandomPlayback,
+    state.mode,
+    state.lineIndex,
+    state.castIndex,
+    state.castingPlan,
+    confirmingDiscard,
+    castRevealMs,
+  ])
+
   // ── Section selection ───────────────────────────────────────────────────
 
   // Once `done`, the sections come from the completed flow; while the flow
@@ -325,11 +389,14 @@ export function ConsultationViewer({
   const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
   // Casting prompt box height — sourced from the component so a new input
   // mode can't drift the reserved vertical space out of sync with what the
-  // component actually renders.
-  const castingPromptHeight =
-    state.mode === 'casting'
-      ? getCastingPromptHeight(inputMode, state.error !== null)
-      : 0
+  // component actually renders. The number-mode random reveal shows the
+  // `<CastingStatus>` widget instead of a prompt, so it reserves that
+  // widget's own height.
+  const castingPromptHeight = ((): number => {
+    if (state.mode !== 'casting') return 0
+    if (isNumberRandomPlayback) return getCastingStatusHeight()
+    return getCastingPromptHeight(inputMode, state.error !== null)
+  })()
 
   // Intrinsic content width of the casting prompt box (inside its border) —
   // drives the ←/→ pan during the slider-mode casting flow.
@@ -435,10 +502,32 @@ export function ConsultationViewer({
     />
   )
 
+  // Number-mode random reveal slot — the plain-text `<CastingStatus>` widget.
+  // It replaces the typed `<NumberInput>` prompt: the random flow takes no
+  // casting input, the per-cast timer drives the advance, and SPACE (caught
+  // by the widget's own `useInput`) skips the reveal. Its `useInput` is gated
+  // off while the discard modal is open so the modal owns the keyboard.
+  const castingStatusSlot = (innerCols: number): ReactElement => (
+    <CastingStatus
+      key={`${lineNumber}-${state.castIndex}`}
+      lineNumber={lineNumber}
+      castIndex={state.castIndex}
+      width={innerCols}
+      active={confirmingDiscard === null}
+      onSkip={handleSkipPlayback}
+    />
+  )
+
+  // The casting widget shown during `casting` — the number-mode random reveal
+  // swaps the typed prompt for the text status widget; every other casting
+  // configuration keeps the `<CastingPromptBox>`.
+  const castingCastingSlot = isNumberRandomPlayback
+    ? castingStatusSlot
+    : castingPromptSlot
   // The above-footer slot hosts the discard modal when one is open, otherwise
-  // the casting prompt box during `casting`, otherwise nothing.
+  // the casting widget during `casting`, otherwise nothing.
   const castingSlotOrNothing =
-    state.mode === 'casting' ? castingPromptSlot : undefined
+    state.mode === 'casting' ? castingCastingSlot : undefined
   const aboveFooterSlot =
     confirmingDiscard === null ? castingSlotOrNothing : discardModalSlot
 
@@ -498,7 +587,7 @@ export function ConsultationViewer({
  * prior contents are restored on exit.
  *
  * Two call shapes:
- *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, castBounceMs, sliderCommitRevealMs })` —
+ *   - `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, castBounceMs, castRevealMs, sliderCommitRevealMs })` —
  *     production: the viewer owns the flow (collects the query and 18 picks
  *     in-tab).
  *   - `runConsultationViewer(sections, savedPath, maxWrapWidth)` —
@@ -513,6 +602,7 @@ export async function runConsultationViewer(
         maxWrapWidth?: number
         sliderSweepMs?: number
         castBounceMs?: number
+        castRevealMs?: number
         sliderCommitRevealMs?: number
       }
     | ConsultationSections,
@@ -528,6 +618,7 @@ export async function runConsultationViewer(
             maxWrapWidth={argsOrSections.maxWrapWidth}
             sliderSweepMs={argsOrSections.sliderSweepMs}
             castBounceMs={argsOrSections.castBounceMs}
+            castRevealMs={argsOrSections.castRevealMs}
             sliderCommitRevealMs={argsOrSections.sliderCommitRevealMs}
           />,
           { alternateScreen: true },

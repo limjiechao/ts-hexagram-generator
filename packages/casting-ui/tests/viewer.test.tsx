@@ -642,6 +642,116 @@ describe('ConsultationViewer (interactive flow)', () => {
   })
 })
 
+describe('ConsultationViewer (random flow, number-input mode)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+    randomConsultationMock.mockClear()
+  })
+
+  it('plays the random flow back as a cast-by-cast text reveal', async () => {
+    // In number-input mode the random flow has no bouncing slider — a plain
+    // text status widget shows progress and a per-cast timer (`castRevealMs`)
+    // drives the eighteen `splitCommitted`s. A short `castRevealMs` keeps the
+    // eighteen-cast playback inside the test's polling window.
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        inputMode="number"
+        castRevealMs={10}
+      />,
+    )
+    stdin.write('Will the harvest be plentiful?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    // The text status widget appears — not the typed-number prompt.
+    const castingFrame = lastFrame() ?? ''
+    expect(castingFrame).toContain('Line 1/6')
+    expect(castingFrame).not.toContain('Divide the stalks. Pick a number')
+    // Poll until the eighteen-cast playback + compute effect settle.
+    for (let beat = 0; beat < 80; beat += 1) {
+      if ((lastFrame() ?? '').includes('saved to')) break
+      await tick(60)
+    }
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
+    expect(randomConsultationMock).toHaveBeenCalledTimes(1)
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('fills the casting table one cast at a time as the reveal plays', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        inputMode="number"
+        castRevealMs={40}
+      />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const seen = new Set<string>()
+    for (let beat = 0; beat < 100; beat += 1) {
+      const frame = lastFrame() ?? ''
+      const match = /(\d{1,2})\/18/.exec(frame)
+      if (match) seen.add(match[1]!)
+      if (frame.includes('saved to')) break
+      await tick(40)
+    }
+    // The progress count was observed at several distinct values — the table
+    // fills cast-by-cast, not in a single jump from 0 to 18.
+    expect(seen.size).toBeGreaterThanOrEqual(3)
+    unmount()
+  })
+
+  it('SPACE skips the text reveal straight to the finished Consultation', async () => {
+    // A long `castRevealMs` keeps the reveal mid-flight so SPACE genuinely
+    // skips a still-running playback rather than racing the timer.
+    consultationFileOutputMock.mockClear()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        inputMode="number"
+        castRevealMs={100000}
+      />,
+    )
+    stdin.write('Will the harvest be plentiful?')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    // Mid-`casting` — the status widget is shown, the reveal is in progress.
+    expect(lastFrame() ?? '').toContain('Line 1/6')
+    stdin.write(SPACE)
+    for (let beat = 0; beat < 40; beat += 1) {
+      if ((lastFrame() ?? '').includes('saved to')) break
+      await tick(50)
+    }
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+    unmount()
+  })
+
+  it('shows a "SPACE: skip" footer hint during the number-mode reveal', async () => {
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        inputMode="number"
+        castRevealMs={100000}
+      />,
+    )
+    stdin.write('Query')
+    await tick()
+    stdin.write(ENTER)
+    await tick()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('skip')
+    unmount()
+  })
+})
+
 describe('ConsultationViewer — mid-cast discard confirmation', () => {
   beforeEach(() => {
     consultationFileOutputMock.mockClear()
