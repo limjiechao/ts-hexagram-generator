@@ -1,10 +1,26 @@
 import {
   emptyPartialCastingRecord,
+  type CastingRecord,
+  type Hexagram,
   type Line,
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/types'
 import type { ConsultationSections } from '@hexagram/viewer-core'
+
+/**
+ * The predetermined casting plan for a random flow — the hexagram and the
+ * eighteen RNG-chosen stalk divisions, produced by `generateRandomConsultation()`
+ * in the imperative shell (the Viewer's Query-submit handler). The reducer
+ * only stores and carries it; the impure `crypto.randomInt` call never enters
+ * this pure module. `casting[lineIndex][castIndex]` is a `SplitRecord`
+ * `{ pick, max }`; `hexagram[lineIndex]` is the resolved `Line`. `null` for
+ * an interactive flow, which generates its lines cast-by-cast instead.
+ */
+export interface CastingPlan {
+  hexagram: Hexagram
+  casting: CastingRecord
+}
 
 // Pure flow state machine for the Ink consultation viewer. Lives in its own
 // module (no React, no Ink imports) so transitions can be unit-tested with
@@ -25,6 +41,9 @@ export interface FlowState {
   castIndex: 0 | 1 | 2
   partialCasting: PartialCastingRecord
   completedLines: Line[]
+  // The predetermined plan for a random flow — stored on `querySubmit` and
+  // read cast-by-cast during `casting`. `null` for an interactive flow.
+  castingPlan: CastingPlan | null
   sections: ConsultationSections | null
   savedPath: string | null
   saveError: Error | null
@@ -32,7 +51,10 @@ export interface FlowState {
 
 export type FlowAction =
   | { type: 'queryChange'; value: string }
-  | { type: 'querySubmit' }
+  // `plan` is supplied only by the random flow — the imperative shell
+  // generates it via `generateRandomConsultation()` and hands it in here so
+  // the reducer can stay pure (no crypto/RNG inside it).
+  | { type: 'querySubmit'; plan?: CastingPlan }
   | { type: 'castingBufferChange'; value: string }
   | { type: 'castingError'; message: string | null }
   | { type: 'splitCommitted'; pick: number; max: number; line?: Line }
@@ -89,6 +111,7 @@ export function initialFlowState(
     castIndex: 0,
     partialCasting: emptyPartialCastingRecord(),
     completedLines: [],
+    castingPlan: null,
     sections: preBuiltSections,
     savedPath: preBuiltSavedPath,
     saveError: null,
@@ -102,11 +125,16 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
     case 'querySubmit': {
       if (state.queryBuffer.trim().length === 0) return state
       const query = state.queryBuffer
-      // Random skips the casting phase entirely — the picks are generated
-      // inside the compute effect.
-      return state.flowKind === 'random'
-        ? { ...state, query, mode: 'computing' }
-        : { ...state, query, mode: 'casting' }
+      // Both flows enter `casting`. The random flow plays its predetermined
+      // plan back cast-by-cast through the SAME casting mode the interactive
+      // flow uses; the imperative shell hands the plan in via `action.plan`.
+      // The interactive flow carries no plan and generates lines cast-by-cast.
+      return {
+        ...state,
+        query,
+        mode: 'casting',
+        castingPlan: action.plan ?? null,
+      }
     }
     case 'castingBufferChange':
       return { ...state, castingBuffer: action.value }

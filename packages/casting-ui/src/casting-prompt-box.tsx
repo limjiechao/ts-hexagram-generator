@@ -11,8 +11,22 @@ import {
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
+import { armDelayTicks, firstLandingTick } from './bounce-trajectory.js'
 import { isGlobalExitKey } from './editor-primitives.js'
 import { NumberInput } from './number-input.js'
+
+/**
+ * Auto-land configuration for the bouncing slider — supplied only by the
+ * random-casting playback. `target` is the RNG-predetermined pick; the slider
+ * bounces freely until `armDelayMs` has elapsed, then commits on the first
+ * tick its cursor naturally sits on `target` (a real pass-through, never a
+ * teleport — see `bounce-trajectory.ts`). Interactive callers pass no
+ * `autoLand` and the slider commits on SPACE as before.
+ */
+export interface SliderAutoLand {
+  target: number
+  armDelayMs: number
+}
 
 // How long `<SliderCastingPrompt>` holds the numeric Left/Right Heap readout
 // after the user presses SPACE before forwarding `onSubmit` to the parent
@@ -65,11 +79,20 @@ interface UseSliderBounceArgs {
   focused: boolean
   tickMs: number
   onSubmit: (value: number) => void
+  // Random-playback auto-land. When set the slider commits itself on the
+  // landing tick instead of waiting for SPACE; `null` for the interactive
+  // flow, which keeps the SPACE-to-commit behaviour.
+  autoLand?: SliderAutoLand | null
 }
 
 interface SliderSnapshot {
   position: number
   tickCount: number
+  // The position captured by an auto-land commit, or `null` while the slider
+  // is still bouncing (or was committed by SPACE — that path notifies the
+  // parent directly). `useSliderBounce` fires `onSubmit` once when this turns
+  // non-null so the parent flow advances exactly as a SPACE commit would.
+  autoLanded: number | null
 }
 
 /**
@@ -93,18 +116,60 @@ class BouncingSliderStore {
   private max: number
   private tickMs: number
   private tickCount = 0
+  // Random-playback auto-land. `landingTick` is the precomputed tick on which
+  // the cursor naturally passes through the RNG target at or after the arm
+  // delay (`bounce-trajectory.ts`); `null` disables auto-land (interactive
+  // flow). `autoLanded` records the position captured by the auto-land
+  // commit so `getSnapshot` can surface it to the hook.
+  private autoLand: SliderAutoLand | null
+  private landingTick: number | null = null
+  private autoLanded: number | null = null
   // Cached so `getSnapshot` returns a referentially-stable reference between
   // ticks — `useSyncExternalStore`'s `Object.is` check relies on this.
   private snapshot: SliderSnapshot
   private readonly listeners = new Set<() => void>()
   private intervalId: ReturnType<typeof setInterval> | null = null
 
-  constructor(min: number, max: number, tickMs: number) {
+  constructor(
+    min: number,
+    max: number,
+    tickMs: number,
+    autoLand: SliderAutoLand | null,
+  ) {
     this.min = min
     this.max = max
     this.tickMs = tickMs
     this.position = min
-    this.snapshot = { position: min, tickCount: 0 }
+    this.autoLand = autoLand
+    this.snapshot = { position: min, tickCount: 0, autoLanded: null }
+    this.recomputeLandingTick()
+  }
+
+  // Recompute the landing tick from the current range, tickMs and auto-land
+  // config. The slider commits itself on this tick — the visible bounce and
+  // the landing are the same triangle wave, so the cursor genuinely passes
+  // through the target (no teleport). A landing tick of 0 (degenerate
+  // single-cell range with no arm delay) is committed immediately, since the
+  // interval's first fire is tick 1 and would otherwise never match.
+  private recomputeLandingTick(): void {
+    this.landingTick =
+      this.autoLand === null
+        ? null
+        : firstLandingTick(
+            this.autoLand.target,
+            this.min,
+            this.max,
+            armDelayTicks(this.autoLand.armDelayMs, this.tickMs),
+          )
+    if (this.landingTick === 0 && !this.committed) {
+      this.committed = true
+      this.autoLanded = this.position
+      this.snapshot = {
+        position: this.position,
+        tickCount: this.tickCount,
+        autoLanded: this.autoLanded,
+      }
+    }
   }
 
   readonly subscribe = (listener: () => void): (() => void) => {
@@ -124,12 +189,25 @@ class BouncingSliderStore {
   // `useSyncExternalStore` subscriber mid-render and trigger React's
   // "setState while rendering" warning. The triggering render commits with
   // the updated state.
-  setRange(min: number, max: number, tickMs: number): void {
-    if (this.min === min && this.max === max && this.tickMs === tickMs) return
+  setRange(
+    min: number,
+    max: number,
+    tickMs: number,
+    autoLand: SliderAutoLand | null,
+  ): void {
+    if (
+      this.min === min &&
+      this.max === max &&
+      this.tickMs === tickMs &&
+      this.autoLand === autoLand
+    )
+      return
     const rangeChanged = this.min !== min || this.max !== max
     this.min = min
     this.max = max
     this.tickMs = tickMs
+    this.autoLand = autoLand
+    this.recomputeLandingTick()
     // Only rewind on a true range change — a bare tickMs change (per-cast
     // sweep duration recalc) re-arms the interval at the new rate but keeps
     // the cursor where it is so the user doesn't see a visual jump. The
@@ -140,7 +218,8 @@ class BouncingSliderStore {
       this.direction = 1
       this.committed = false
       this.tickCount = 0
-      this.snapshot = { position: min, tickCount: 0 }
+      this.autoLanded = null
+      this.snapshot = { position: min, tickCount: 0, autoLanded: null }
     }
     // Restart the tick timer so the next tick is a full `tickMs` away and
     // picks up the new interval — matches the pre-refactor
@@ -171,7 +250,20 @@ class BouncingSliderStore {
       }
       this.position = next
       this.tickCount += 1
-      this.snapshot = { position: next, tickCount: this.tickCount }
+      // Auto-land — the random flow commits itself on the precomputed landing
+      // tick. The cursor reached `next` by the same bounce maths the
+      // trajectory module models, so `next` IS the target here: a genuine
+      // pass-through, not a teleport. The interval keeps running but the
+      // `this.committed` guard above freezes the cursor.
+      if (this.landingTick !== null && this.tickCount === this.landingTick) {
+        this.committed = true
+        this.autoLanded = next
+      }
+      this.snapshot = {
+        position: next,
+        tickCount: this.tickCount,
+        autoLanded: this.autoLanded,
+      }
       this.notify()
     }, this.tickMs)
   }
@@ -213,13 +305,14 @@ function useSliderBounce({
   focused,
   tickMs,
   onSubmit,
+  autoLand = null,
 }: UseSliderBounceArgs): SliderSnapshot {
   const storeRef = useRef<BouncingSliderStore | null>(null)
-  storeRef.current ??= new BouncingSliderStore(min, max, tickMs)
+  storeRef.current ??= new BouncingSliderStore(min, max, tickMs, autoLand)
   // Render-phase sync — preserves zero-frame-lag rewind on cast-boundary
   // range changes (or tickMs changes), exactly like the previous
   // prevRangeRef branch.
-  storeRef.current.setRange(min, max, tickMs)
+  storeRef.current.setRange(min, max, tickMs, autoLand)
 
   const snapshot = useSyncExternalStore(
     focused ? storeRef.current.subscribe : noopSubscribe,
@@ -230,12 +323,26 @@ function useSliderBounce({
   useInput(
     (input, key) => {
       if (isGlobalExitKey(input, key)) return
-      if (input === ' ') {
+      // The interactive flow commits on SPACE. The auto-landing random flow
+      // never consults this — its commit comes from the store's tick loop.
+      if (input === ' ' && autoLand === null) {
         onSubmit(storeRef.current!.commit())
       }
     },
     { isActive: focused },
   )
+
+  // Auto-land bridge: when the store commits itself (`autoLanded` turns
+  // non-null) fire `onSubmit` exactly once so the parent flow advances just
+  // as a SPACE commit would. A ref guards against a double-fire if the
+  // component re-renders before the next cast remounts the slider.
+  const autoLandFiredRef = useRef(false)
+  useEffect(() => {
+    if (snapshot.autoLanded !== null && !autoLandFiredRef.current) {
+      autoLandFiredRef.current = true
+      onSubmit(snapshot.autoLanded)
+    }
+  }, [snapshot.autoLanded, onSubmit])
 
   return snapshot
 }
@@ -370,6 +477,13 @@ interface CastingPromptBoxProps {
    */
   horizontalOffset?: number
   /**
+   * Slider-mode auto-land config — supplied only by the random-casting
+   * playback. When set the bouncing cursor commits itself on the
+   * RNG-predetermined pick after the arm delay; the title also drops the
+   * SPACE instruction. Absent for the interactive flow (SPACE-to-commit).
+   */
+  autoLand?: SliderAutoLand | null
+  /**
    * Slider-mode reveal duration in ms — how long the post-SPACE numeric
    * `Left Heap` / `Right Heap` readout holds before `onSubmit` fires upstream.
    * Defaults to `SLIDER_COMMIT_REVEAL_MS`. Tests opt out by passing `0` to
@@ -422,6 +536,7 @@ export function CastingPromptBox({
   tickMs = 80,
   horizontalOffset = 0,
   commitRevealMs = SLIDER_COMMIT_REVEAL_MS,
+  autoLand = null,
 }: CastingPromptBoxProps): ReactElement {
   if (inputMode === 'slider') {
     return (
@@ -434,6 +549,7 @@ export function CastingPromptBox({
         tickMs={tickMs}
         horizontalOffset={horizontalOffset}
         commitRevealMs={commitRevealMs}
+        autoLand={autoLand}
         onSubmit={onSubmit}
       />
     )
@@ -474,6 +590,7 @@ interface SliderCastingPromptProps {
   tickMs: number
   horizontalOffset: number
   commitRevealMs: number
+  autoLand: SliderAutoLand | null
   onSubmit: (value: number) => void
 }
 
@@ -512,6 +629,7 @@ function SliderCastingPrompt({
   tickMs,
   horizontalOffset,
   commitRevealMs,
+  autoLand,
   onSubmit,
 }: SliderCastingPromptProps): ReactElement {
   const [committed, setCommitted] = useState<number | null>(null)
@@ -547,9 +665,15 @@ function SliderCastingPrompt({
     focused: true,
     tickMs,
     onSubmit: handleStoreCommit,
+    autoLand,
   })
 
-  const title = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
+  // The random flow auto-drives the slider, so its title describes the
+  // stalks being parted rather than instructing the user to press SPACE.
+  const title =
+    autoLand === null
+      ? `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — Press SPACE to part the stalks`
+      : `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: — parting the stalks`
   const bar = buildSliderBar(position, min, max)
   // Both cells render at a stable 2-column width — leading-space + glyph
   // during ticking, and padStart(2) on the numeric pick after commit — so the

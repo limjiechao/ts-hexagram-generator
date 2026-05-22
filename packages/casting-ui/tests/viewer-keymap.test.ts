@@ -34,6 +34,7 @@ function makeState(
     castIndex: 0,
     partialCasting: emptyPartialCastingRecord(),
     completedLines: [],
+    castingPlan: null,
     sections: null,
     savedPath: null,
     saveError: null,

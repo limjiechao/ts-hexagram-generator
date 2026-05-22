@@ -649,6 +649,109 @@ describe('CastingPromptBox (slider mode)', () => {
     unmount()
   })
 
+  it('describes the stalks being parted (not a SPACE instruction) during random playback', () => {
+    // During random-casting playback the slider is auto-driven — the user
+    // does not press SPACE — so the title describes the stalks being parted.
+    const { lastFrame, unmount } = render(
+      <CastingPromptBox
+        lineNumber={3}
+        castIndex={1}
+        min={1}
+        max={48}
+        width={80}
+        inputMode="slider"
+        tickMs={50}
+        autoLand={{ target: 24, armDelayMs: 0 }}
+        onSubmit={() => {}}
+      />,
+    )
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 3/6 · Cast 2/3')
+    expect(frame).not.toContain('Press SPACE')
+    expect(frame).toContain('parting the stalks')
+    unmount()
+  })
+
+  it('auto-lands on the target pick after the arm delay, then submits', async () => {
+    // With auto-land the cursor bounces freely and commits the instant it
+    // naturally passes through the RNG-chosen target — no SPACE, no teleport.
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, rerender, unmount } = render(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={10}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={0}
+          // Target 3 in 1..10: cursor sits on 3 at tick 2. Arm delay 0 → the
+          // first landing is tick 2.
+          autoLand={{ target: 3, armDelayMs: 0 }}
+          onSubmit={onSubmit}
+        />,
+      )
+      // Advance past the landing tick (tick 2 = 100 ms) plus a margin.
+      vi.advanceTimersByTime(400)
+      rerender(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={10}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={0}
+          autoLand={{ target: 3, armDelayMs: 0 }}
+          onSubmit={onSubmit}
+        />,
+      )
+      // The slider froze on the target.
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
+      // Cross the (zero-length) reveal window so the deferred onSubmit fires.
+      vi.advanceTimersByTime(50)
+      await tick()
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      expect(onSubmit).toHaveBeenCalledWith(3)
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('does not auto-land before the arm delay elapses', () => {
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { unmount } = render(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={10}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={0}
+          // Cursor passes 3 at tick 2, but the arm delay (1000 ms = 20 ticks)
+          // forbids landing until the next pass.
+          autoLand={{ target: 3, armDelayMs: 1000 }}
+          onSubmit={onSubmit}
+        />,
+      )
+      // 10 ticks elapsed (500 ms) — well past tick 2 but before the arm delay.
+      vi.advanceTimersByTime(500)
+      expect(onSubmit).not.toHaveBeenCalled()
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
   it('shifts the visible window when horizontalOffset is non-zero', () => {
     const titleStart = 'Line 1/6 · Cast 1/3'
     const { lastFrame, rerender, unmount } = render(
