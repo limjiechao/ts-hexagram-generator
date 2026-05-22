@@ -39,6 +39,7 @@ export {
   NORMAL_GREY,
   PLACEHOLDER_GREY,
   VALUE_WHITE,
+  WHITE,
 } from './output-palette.js'
 
 // Section builders — the per-section ANSI string renderers.

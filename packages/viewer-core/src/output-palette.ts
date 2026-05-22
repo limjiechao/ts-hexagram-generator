@@ -24,3 +24,8 @@ export const HEADING_GREY: typeof BOLD_GREY = BOLD_GREY // section titles, colum
 export const VALUE_WHITE: typeof BOLD_WHITE = BOLD_WHITE // populated numbers, user input
 export const MUTED_GREY: typeof NORMAL_GREY = NORMAL_GREY // labels, hints
 export const PLACEHOLDER_GREY = '[37m' // medium-dim for the `·` placeholder
+
+// White foreground (SGR 37) — the home banner's seal + wordmark. A
+// separately-named alias from PLACEHOLDER_GREY (same bytes, different intent)
+// so the banner is a first-class output surface, not a borrowed placeholder.
+export const WHITE = '[37m'
