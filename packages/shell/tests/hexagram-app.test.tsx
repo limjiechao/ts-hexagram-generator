@@ -543,29 +543,29 @@ describe('<HomeMenu> — banner layout', () => {
     expect(new Set(columns).size).toBe(1)
   })
 
-  it('separates the banner from the identity block by two blank rows', () => {
-    const frozenHex: Hexagram = [7, 8, 7, 8, 7, 8]
-    const rows = homeRows(frozenHex)
-    const name = getHexagramRecord(frozenHex).Name.English.WilhelmBaynes
-    const nameRow = rows.findIndex((row) => row.includes(name))
-    const sealRow = rows.findIndex((row) => row.includes('易　筮　占'))
-    expect(nameRow).toBeGreaterThanOrEqual(0)
-    expect(sealRow).toBeGreaterThan(nameRow)
-    // English name, blank, blank, seal → the identity block is three rows down.
-    expect(sealRow - nameRow).toBe(3)
-  })
-
-  it('separates the identity block from the menu by two blank rows', () => {
+  it('separates the identity block from the banner by two blank rows', () => {
     const rows = homeRows([7, 8, 7, 8, 7, 8])
     const taglineRow = rows.findIndex((row) =>
       row.includes('the Yijing Yarrow Oracle'),
     )
+    const firstBarRow = rows.findIndex((row) => row.includes('━'))
+    expect(taglineRow).toBeGreaterThanOrEqual(0)
+    expect(firstBarRow).toBeGreaterThan(taglineRow)
+    // Tagline, blank, blank, first banner row → the banner is three rows down.
+    expect(firstBarRow - taglineRow).toBe(3)
+  })
+
+  it('separates the banner from the menu by two blank rows', () => {
+    const frozenHex: Hexagram = [7, 8, 7, 8, 7, 8]
+    const rows = homeRows(frozenHex)
+    const name = getHexagramRecord(frozenHex).Name.English.WilhelmBaynes
+    const nameRow = rows.findIndex((row) => row.includes(name))
     const menuRow = rows.findIndex((row) =>
       row.includes('New interactive consultation'),
     )
-    expect(taglineRow).toBeGreaterThanOrEqual(0)
-    expect(menuRow).toBeGreaterThan(taglineRow)
-    // Tagline, blank, blank, menu → the menu is three rows down.
-    expect(menuRow - taglineRow).toBe(3)
+    expect(nameRow).toBeGreaterThanOrEqual(0)
+    expect(menuRow).toBeGreaterThan(nameRow)
+    // English name, blank, blank, menu → the menu is three rows down.
+    expect(menuRow - nameRow).toBe(3)
   })
 })
