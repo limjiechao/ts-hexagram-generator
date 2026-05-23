@@ -20,7 +20,7 @@
   },
   "scripts": {
     "build": "tsdown",
-    "test": "FORCE_COLOR=1 vitest run --passWithNoTests",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
