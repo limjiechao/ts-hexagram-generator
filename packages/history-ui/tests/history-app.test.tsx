@@ -28,31 +28,57 @@ const tick = (ms = 60): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
- * Poll `getFrame()` (typically `lastFrame`) until `predicate(stripped)` holds,
- * or fail with a clear timeout describing the last sampled frame. Use this in
- * place of a blind `await tick()` when the next frame is gated by an async
- * Promise chain (e.g. `rerenderOnDisk` reading + conditionally writing a file
- * before a `setState`) — a single 60 ms tick can race the chain on slower
- * Ubuntu CI runners under load.
+ * Poll `predicate()` until it returns truthy (or `undefined`, treated as
+ * truthy when the predicate is purely an assertion) or `timeoutMs` elapses.
+ * Catches and retries on thrown errors, so an `expect(...)` assertion can be
+ * dropped in directly — the assertion *is* the condition. On the final retry
+ * the cached error is re-thrown, giving a useful failure message instead of
+ * a bare timeout. See the `cross-platform-tests` skill for the canonical
+ * pattern.
  */
-const waitForFrame = async (
-  getFrame: () => string | undefined,
-  predicate: (stripped: string) => boolean,
+async function waitFor<T>(
+  predicate: () => T | Promise<T>,
   {
-    timeoutMs = 2000,
+    timeoutMs = 4000,
     intervalMs = 20,
   }: { timeoutMs?: number; intervalMs?: number } = {},
-): Promise<string> => {
+): Promise<T | undefined> {
   const deadline = Date.now() + timeoutMs
-  let last = ''
-  while (Date.now() < deadline) {
-    last = stripAnsi(getFrame() ?? '')
-    if (predicate(last)) return last
+  let lastError: unknown
+  for (;;) {
+    try {
+      const value = await predicate()
+      if (value !== false) return value
+    } catch (error) {
+      lastError = error
+    }
+    if (Date.now() >= deadline) {
+      throw lastError ?? new Error(`waitFor timed out after ${timeoutMs}ms`)
+    }
     await new Promise((resolve) => setTimeout(resolve, intervalMs))
   }
-  throw new Error(
-    `waitForFrame timed out after ${timeoutMs}ms.\nLast frame:\n${last}`,
-  )
+}
+
+/**
+ * Block until the `<HistoryApp>` has finished its initial `scanConsultations`
+ * pass — i.e. the post-scan list heading (`Past Consultations · …`) or the
+ * empty-state header (`No consultations yet.`) is rendered, *not* the
+ * transient `Loading consultations from …` placeholder. Use this in place of
+ * a blind `await tick()` right after `render(<HistoryApp …/>)` so subsequent
+ * `stdin.write(...)` calls land on a list whose `useInput` handler has a
+ * focused row to act on.
+ */
+async function awaitListReady(
+  lastFrame: () => string | undefined,
+): Promise<void> {
+  await waitFor(() => {
+    const frame = stripAnsi(lastFrame() ?? '')
+    if (frame.includes('Loading consultations')) return false
+    return (
+      frame.includes('Past Consultations') ||
+      frame.includes('No consultations yet.')
+    )
+  })
 }
 
 const ESC = String.fromCodePoint(0x1b)
@@ -139,12 +165,14 @@ describe('<HistoryApp> — loaded readout title', () => {
   it('shows "Consultation · loaded <timestamp>" as the readout title (no Past adjective)', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Consultation · loaded 2025-08-13 09:02'),
-    )
-    expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'Consultation · loaded 2025-08-13 09:02',
+      )
+    })
+    const frame = stripAnsi(lastFrame() ?? '')
     // "Past Consultation" must NOT appear as a readout title adjective.
     // The list heading "Past Consultations" is still correct; it is only
     // present on the list screen, not on the readout screen.
@@ -154,18 +182,19 @@ describe('<HistoryApp> — loaded readout title', () => {
   it('history list heading remains "Past Consultations" (not affected)', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('Past Consultations')
+    await awaitListReady(lastFrame)
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
   })
 
   it('tab labels are numbered in the readout', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) => f.includes('<1> Casting'))
-    expect(frame).toContain('<1> Casting')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('<1> Casting')
+    })
+    const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('<2> Transformation')
     expect(frame).toContain('<3> Standing Hexagram')
     expect(frame).toContain('<4> Emerging Hexagram')
@@ -174,13 +203,12 @@ describe('<HistoryApp> — loaded readout title', () => {
   it('loaded readout footer says "Esc back to history"', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Esc back to history'),
-    )
-    expect(frame).toContain('Esc back to history')
-    expect(frame).not.toContain('Esc quit')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Esc back to history')
+    })
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Esc quit')
   })
 })
 
@@ -188,12 +216,14 @@ describe('<HistoryApp> — loaded readout', () => {
   it('opens the four-tab readout with the loaded-timestamp title on Enter', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Consultation · loaded 2025-08-13 09:02'),
-    )
-    expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'Consultation · loaded 2025-08-13 09:02',
+      )
+    })
+    const frame = stripAnsi(lastFrame() ?? '')
     // All four tabs available in the unlocked `done` state.
     expect(frame).toContain('Casting')
     expect(frame).toContain('Transformation')
@@ -204,24 +234,26 @@ describe('<HistoryApp> — loaded readout', () => {
   it('shows "Casting not recorded" for a null-casting consultation', async () => {
     await writeFresh(NULL_CASTING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Consultation · loaded 2024-02-01 11:30'),
-    )
-    expect(frame).toContain('Consultation · loaded 2024-02-01 11:30')
-    expect(frame).toContain('Casting not recorded')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'Consultation · loaded 2024-02-01 11:30',
+      )
+    })
+    expect(stripAnsi(lastFrame() ?? '')).toContain('Casting not recorded')
   })
 
   it('shows the body-refreshed notice when the on-disk body had drifted', async () => {
     const filePath = await writeStale(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const frame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Body refreshed; data unchanged.'),
-    )
-    expect(frame).toContain('Body refreshed; data unchanged.')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'Body refreshed; data unchanged.',
+      )
+    })
     // The drifted file was rewritten in place.
     const after = await fs.readFile(filePath, 'utf8')
     expect(after).not.toContain('STALE BODY')
@@ -232,11 +264,15 @@ describe('<HistoryApp> — loaded readout', () => {
     const filePath = await writeFresh(MOVING_ENVELOPE)
     const before = await fs.stat(filePath)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).not.toContain('Body refreshed')
+    // Wait until the readout has loaded — only then can we assert that the
+    // body-refreshed notice is absent (rather than racing a still-loading
+    // list view that incidentally also lacks the notice).
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    })
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Body refreshed')
     // Byte-identical body → no write, no mtime bump.
     const after = await fs.stat(filePath)
     expect(after.mtimeMs).toBe(before.mtimeMs)
@@ -245,18 +281,17 @@ describe('<HistoryApp> — loaded readout', () => {
   it('ESC from the readout returns to the list (does not exit)', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    const loadedFrame = await waitForFrame(lastFrame, (f) =>
-      f.includes('Consultation · loaded'),
-    )
-    expect(loadedFrame).toContain('Consultation · loaded')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    })
     stdin.write(ESC)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    // Back on the list — the shell-hosted list is shown again.
-    expect(frame).toContain('Past Consultations')
-    expect(frame).not.toContain('Consultation · loaded')
+    await waitFor(() => {
+      const frame = stripAnsi(lastFrame() ?? '')
+      expect(frame).toContain('Past Consultations')
+      expect(frame).not.toContain('Consultation · loaded')
+    })
   })
 
   it('returning from the readout restores focus to the loaded row', async () => {
@@ -264,16 +299,19 @@ describe('<HistoryApp> — loaded readout', () => {
     await writeFresh(MOVING_ENVELOPE)
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     // Move focus down to the second row, then load it.
     stdin.write(`${ESC}[B`)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    })
     // Return to the list.
     stdin.write(ESC)
-    await tick()
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    })
     // The second row (SECOND_ENVELOPE) is focused again — its query rides the
     // inverse-video bar; the first row's query (MOVING) does not.
     const inverseLines = (lastFrame() ?? '')
@@ -289,15 +327,17 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     const movingPath = await writeFresh(MOVING_ENVELOPE)
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     // Newest-first → MOVING_ENVELOPE (2025) is focused at the top.
     expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
     stdin.write(CTRL_D)
     await tick()
     stdin.write('y')
-    await tick()
-    // The file is permanently gone from disk.
-    await expect(fs.access(movingPath)).rejects.toThrow()
+    // Wait until the in-app `fs.unlink` has resolved (file gone from disk)
+    // — on Windows GHA this can take multiple ticks.
+    await waitFor(async () => {
+      await expect(fs.access(movingPath)).rejects.toThrow()
+    })
     const frame = stripAnsi(lastFrame() ?? '')
     // The deleted row disappears; the surviving row stays.
     expect(frame).not.toContain('happen')
@@ -308,24 +348,24 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await writeFresh(MOVING_ENVELOPE)
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
     await tick()
     stdin.write('y')
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('✓ Deleted')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('✓ Deleted')
+    })
   })
 
   it('Ctrl+D then n cancels — the file is left on disk and the row stays', async () => {
     const movingPath = await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
     await tick()
     stdin.write('n')
     await tick()
-    // The file is still on disk.
+    // The file is still on disk (cancel is synchronous — no async wait needed).
     await expect(fs.access(movingPath)).resolves.toBeUndefined()
     expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
   })
@@ -333,40 +373,41 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
   it('Ctrl+D then Esc cancels — the file is left on disk', async () => {
     const movingPath = await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
     await tick()
     stdin.write(ESC)
-    await tick()
+    // After modal-cancel the list must re-render with the row content visible.
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+    })
     await expect(fs.access(movingPath)).resolves.toBeUndefined()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
   })
 
   it('surfaces a "Failed to delete …" error status when fs.unlink rejects', async () => {
     const movingPath = await writeFresh(MOVING_ENVELOPE)
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     // Delete the focused file out-of-band so the in-app fs.unlink rejects.
     await fs.rm(movingPath)
     stdin.write(CTRL_D)
     await tick()
     stdin.write('y')
-    await tick()
-    await tick()
-    const rawFrame = lastFrame() ?? ''
-    // The failure surfaces as a bright-red (error-tone) status line in the
-    // footer. The full `Failed to delete <path>: <ENOENT message>` text is
-    // long and the footer renders it with `truncateStart` (tail-keeping),
-    // so assert on the error-tone ANSI code plus the deleted file's name,
-    // both of which survive truncation.
-    const statusLine = rawFrame
-      .split('\n')
-      .find((l) => stripAnsi(l).includes(path.basename(movingPath)))
-    expect(statusLine).toBeDefined()
-    expect(statusLine).toContain('[91m') // bright-red → tone: 'error'
-    // The list is unchanged — both rows still rendered.
-    const frame = stripAnsi(rawFrame)
+    // Wait until the error-tone status line shows up in the footer.
+    await waitFor(() => {
+      const statusLine = (lastFrame() ?? '')
+        .split('\n')
+        .find((l) => stripAnsi(l).includes(path.basename(movingPath)))
+      expect(statusLine).toBeDefined()
+      expect(statusLine).toContain('[91m') // bright-red → tone: 'error'
+    })
+    // The full `Failed to delete <path>: <ENOENT message>` text is long and
+    // the footer renders it with `truncateStart` (tail-keeping), so we
+    // anchored the wait on the deleted file's basename + the error-tone
+    // ANSI code, both of which survive truncation. The list is unchanged —
+    // both rows still rendered.
+    const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('happen')
     expect(frame).toContain('Berlin')
   })
@@ -374,14 +415,13 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
   it('deleting the only consultation renders the empty state', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
     await tick()
     stdin.write('y')
-    await tick()
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('No consultations yet.')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('No consultations yet.')
+    })
   })
 })
 
@@ -391,7 +431,7 @@ describe('<HistoryApp> — injectable top-level exit', () => {
     // hint untruncated (the populated hint line is width-truncated and the
     // test terminal is too narrow to keep the trailing label visible).
     const { lastFrame } = render(<HistoryApp dir={tmpDir} />)
-    await tick()
+    await awaitListReady(lastFrame)
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('No consultations yet.')
     expect(frame).toContain('ESC quit')
@@ -403,10 +443,11 @@ describe('<HistoryApp> — injectable top-level exit', () => {
     const { lastFrame, stdin } = render(
       <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
     )
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ESC)
-    await tick()
-    expect(onExit).toHaveBeenCalledOnce()
+    await waitFor(() => {
+      expect(onExit).toHaveBeenCalledOnce()
+    })
     // The list is still mounted — the soft exit did not unmount the app.
     expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
   })
@@ -416,7 +457,7 @@ describe('<HistoryApp> — injectable top-level exit', () => {
     const { lastFrame } = render(
       <HistoryApp dir={tmpDir} onExit={vi.fn()} exitLabel="Home" />,
     )
-    await tick()
+    await awaitListReady(lastFrame)
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('No consultations yet.')
     expect(frame).toContain('ESC Home')
@@ -430,24 +471,26 @@ describe('<HistoryApp> — injectable top-level exit', () => {
     const { lastFrame, stdin } = render(
       <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
     )
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write(ENTER)
-    await tick()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    })
     stdin.write(ESC)
-    await tick()
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    })
     // Back on the list — the readout's Esc did not fire the host onExit.
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
     expect(onExit).not.toHaveBeenCalled()
   })
 
   it('ESC while the filter row is open does not invoke onExit', async () => {
     await writeFresh(MOVING_ENVELOPE)
     const onExit = vi.fn()
-    const { stdin } = render(
+    const { lastFrame, stdin } = render(
       <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
     )
-    await tick()
+    await awaitListReady(lastFrame)
     stdin.write('/')
     await tick()
     stdin.write(ESC) // empty filter — closes the row, must not exit
