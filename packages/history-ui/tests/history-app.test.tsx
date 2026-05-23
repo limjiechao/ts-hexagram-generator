@@ -27,6 +27,34 @@ function stripAnsi(text: string): string {
 const tick = (ms = 60): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
+/**
+ * Poll `getFrame()` (typically `lastFrame`) until `predicate(stripped)` holds,
+ * or fail with a clear timeout describing the last sampled frame. Use this in
+ * place of a blind `await tick()` when the next frame is gated by an async
+ * Promise chain (e.g. `rerenderOnDisk` reading + conditionally writing a file
+ * before a `setState`) — a single 60 ms tick can race the chain on slower
+ * Ubuntu CI runners under load.
+ */
+const waitForFrame = async (
+  getFrame: () => string | undefined,
+  predicate: (stripped: string) => boolean,
+  {
+    timeoutMs = 2000,
+    intervalMs = 20,
+  }: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<string> => {
+  const deadline = Date.now() + timeoutMs
+  let last = ''
+  while (Date.now() < deadline) {
+    last = stripAnsi(getFrame() ?? '')
+    if (predicate(last)) return last
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
+  throw new Error(
+    `waitForFrame timed out after ${timeoutMs}ms.\nLast frame:\n${last}`,
+  )
+}
+
 const ESC = String.fromCodePoint(0x1b)
 const ENTER = '\r'
 const CTRL_D = String.fromCodePoint(0x04)
@@ -113,8 +141,9 @@ describe('<HistoryApp> — loaded readout title', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Consultation · loaded 2025-08-13 09:02'),
+    )
     expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
     // "Past Consultation" must NOT appear as a readout title adjective.
     // The list heading "Past Consultations" is still correct; it is only
@@ -135,8 +164,7 @@ describe('<HistoryApp> — loaded readout title', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) => f.includes('<1> Casting'))
     expect(frame).toContain('<1> Casting')
     expect(frame).toContain('<2> Transformation')
     expect(frame).toContain('<3> Standing Hexagram')
@@ -148,8 +176,9 @@ describe('<HistoryApp> — loaded readout title', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Esc back to history'),
+    )
     expect(frame).toContain('Esc back to history')
     expect(frame).not.toContain('Esc quit')
   })
@@ -161,8 +190,9 @@ describe('<HistoryApp> — loaded readout', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Consultation · loaded 2025-08-13 09:02'),
+    )
     expect(frame).toContain('Consultation · loaded 2025-08-13 09:02')
     // All four tabs available in the unlocked `done` state.
     expect(frame).toContain('Casting')
@@ -176,8 +206,9 @@ describe('<HistoryApp> — loaded readout', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Consultation · loaded 2024-02-01 11:30'),
+    )
     expect(frame).toContain('Consultation · loaded 2024-02-01 11:30')
     expect(frame).toContain('Casting not recorded')
   })
@@ -187,8 +218,9 @@ describe('<HistoryApp> — loaded readout', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
+    const frame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Body refreshed; data unchanged.'),
+    )
     expect(frame).toContain('Body refreshed; data unchanged.')
     // The drifted file was rewritten in place.
     const after = await fs.readFile(filePath, 'utf8')
@@ -215,8 +247,10 @@ describe('<HistoryApp> — loaded readout', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await tick()
     stdin.write(ENTER)
-    await tick()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
+    const loadedFrame = await waitForFrame(lastFrame, (f) =>
+      f.includes('Consultation · loaded'),
+    )
+    expect(loadedFrame).toContain('Consultation · loaded')
     stdin.write(ESC)
     await tick()
     const frame = stripAnsi(lastFrame() ?? '')
