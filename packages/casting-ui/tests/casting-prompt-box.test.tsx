@@ -3,7 +3,7 @@ import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CastingPromptBox, SliderInput } from '../src/casting-prompt-box'
-import { tick } from './helpers/async'
+import { tick, waitFor } from './helpers/async'
 import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
@@ -796,8 +796,11 @@ describe('CastingPromptBox (slider mode)', () => {
     )
     await tick()
     stdin.write(SPACE)
-    await tick()
-    expect(onSubmit).toHaveBeenCalledTimes(1)
+    // Windows GHA's slider commit + onSubmit microtask outruns a single 50 ms
+    // tick — poll the assertion instead of racing it.
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+    })
     unmount()
   })
 

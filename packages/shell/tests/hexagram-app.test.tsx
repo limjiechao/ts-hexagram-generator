@@ -78,6 +78,41 @@ const tick = (ms = 60): Promise<void> =>
     setTimeout(resolve, ms)
   })
 
+/**
+ * Poll `predicate()` until it returns truthy (or `undefined`, treated as
+ * truthy when the predicate is purely an assertion) or `timeoutMs` elapses.
+ * Catches and retries on thrown errors, so an `expect(...)` assertion can be
+ * dropped in directly — the assertion *is* the condition. On the final retry
+ * the cached error is re-thrown, giving a useful failure message instead of
+ * a bare timeout. Default deadline is 8000 ms because the shell integration
+ * tests cascade multiple async stages per `it(...)` (cast playback → file
+ * write → render); the package's `vitest.config.ts` sets a 15000 ms
+ * `testTimeout` above that. See the `cross-platform-tests` skill for the
+ * canonical pattern.
+ */
+async function waitFor<T>(
+  predicate: () => T | Promise<T>,
+  {
+    timeoutMs = 8000,
+    intervalMs = 20,
+  }: { timeoutMs?: number; intervalMs?: number } = {},
+): Promise<T | undefined> {
+  const deadline = Date.now() + timeoutMs
+  let lastError: unknown
+  for (;;) {
+    try {
+      const value = await predicate()
+      if (value !== false) return value
+    } catch (error) {
+      lastError = error
+    }
+    if (Date.now() >= deadline) {
+      throw lastError ?? new Error(`waitFor timed out after ${timeoutMs}ms`)
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
+}
+
 const ESC = String.fromCodePoint(0x1b)
 const ENTER = '\r'
 const ARROW_DOWN = `${ESC}[B`
@@ -163,10 +198,9 @@ async function castRandomConsultation(
   handle.stdin.write(query)
   await tick()
   handle.stdin.write(ENTER)
-  for (let beat = 0; beat < 100; beat += 1) {
-    if (stripAnsi(handle.lastFrame() ?? '').includes('Standing Hexagram')) break
-    await tick(50)
-  }
+  await waitFor(() => {
+    expect(stripAnsi(handle.lastFrame() ?? '')).toContain('Standing Hexagram')
+  })
   return handle
 }
 
@@ -250,10 +284,12 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     // Esc from the finished Readout → Home (no unsaved progress at `done`, so
     // the discard-confirm is not interposed).
     stdin.write(ESC)
-    await tick()
-    const homeFrame = stripAnsi(lastFrame() ?? '')
-    expect(homeFrame).toContain('New interactive consultation')
-    expect(homeFrame).not.toContain('Consultation · random')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'New interactive consultation',
+      )
+    })
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Consultation · random')
 
     unmount()
   })
@@ -278,10 +314,9 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     stdin.write('Will the harvest be plentiful?')
     await tick()
     stdin.write(ENTER)
-    for (let beat = 0; beat < 120; beat += 1) {
-      if (stripAnsi(lastFrame() ?? '').includes('Standing Hexagram')) break
-      await tick(50)
-    }
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Standing Hexagram')
+    })
     const doneFrame = stripAnsi(lastFrame() ?? '')
     expect(doneFrame).toContain('Consultation · random')
     expect(doneFrame).toContain('Standing Hexagram')
@@ -295,8 +330,9 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
 
     // Esc → Home.
     stdin.write(ESC)
-    await tick()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Browse history')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Browse history')
+    })
 
     // Home → Browse history (row 3). The history screen mounts fresh and
     // re-scans `consultations/`, so the consultation just cast appears.
@@ -305,10 +341,12 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     stdin.write(ARROW_DOWN)
     await tick()
     stdin.write(ENTER)
-    await tick(150) // history scan is async
+    // History scan is async — wait until the scan resolves and the row renders.
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    })
 
     const historyFrame = stripAnsi(lastFrame() ?? '')
-    expect(historyFrame).toContain('Past Consultations')
     // The just-cast consultation appears — the fresh history mount re-scanned
     // `consultations/` and picked up the file the casting flow wrote.
     expect(historyFrame).toContain(query)
@@ -321,7 +359,9 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     const { lastFrame, stdin, unmount } =
       await castRandomConsultation('Seasonal query')
     stdin.write(ESC) // done Readout → Home
-    await tick()
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Browse history')
+    })
 
     // Home → Browse history.
     stdin.write(ARROW_DOWN)
@@ -329,15 +369,18 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     stdin.write(ARROW_DOWN)
     await tick()
     stdin.write(ENTER)
-    await tick(150)
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
+    })
 
     // Esc on the list → Home.
     stdin.write(ESC)
-    await tick()
-    const frame = stripAnsi(lastFrame() ?? '')
-    expect(frame).toContain('New interactive consultation')
-    expect(frame).not.toContain('Past Consultations')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain(
+        'New interactive consultation',
+      )
+    })
+    expect(stripAnsi(lastFrame() ?? '')).not.toContain('Past Consultations')
 
     unmount()
   })
