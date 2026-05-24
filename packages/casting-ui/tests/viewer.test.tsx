@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor, yieldMacrotask } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { buildConsultationSections } from '@hexagram/viewer-core'
 import { render } from 'ink-testing-library'
@@ -6,7 +6,7 @@ import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConsultationViewer } from '../src/viewer'
-import { tick, waitFor, waitForSliderReady } from './helpers/async'
+import { waitForSliderReady } from './helpers/async'
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -142,7 +142,7 @@ describe('ConsultationViewer', () => {
     const before = lastFrame() ?? ''
 
     stdin.write(TAB)
-    await tick()
+    await yieldMacrotask()
     const after = lastFrame() ?? ''
 
     // One Tab from the default Casting tab lands on Transformation.
@@ -163,7 +163,7 @@ describe('ConsultationViewer', () => {
     const beforeScroll = lastFrame() ?? ''
 
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     const afterScroll = lastFrame() ?? ''
 
     expect(afterScroll).not.toBe(beforeScroll)
@@ -182,7 +182,7 @@ describe('ConsultationViewer', () => {
     )
 
     stdin.write(ARROW_RIGHT)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
 
     // Still on the default Casting tab — the arrow did not advance the tab.
@@ -204,7 +204,7 @@ describe('ConsultationViewer', () => {
     expect(before).toContain(`saved to ${SAVED_PATH}`)
 
     stdin.write('q')
-    await tick(120)
+    await yieldMacrotask(120)
     const after = lastFrame() ?? ''
     expect(after).toContain(`saved to ${SAVED_PATH}`)
     // No `q` ever leaks into the rendered chrome.
@@ -240,7 +240,7 @@ describe('ConsultationViewer', () => {
       expect(lastFrame() ?? '').toContain('(1/4)')
 
       stdin.write(TAB)
-      await tick()
+      await yieldMacrotask()
       expect(lastFrame() ?? '').toContain('(2/4)')
 
       unmount()
@@ -254,12 +254,12 @@ describe('ConsultationViewer', () => {
       const before = lastFrame() ?? ''
 
       stdin.write(ARROW_RIGHT)
-      await tick()
+      await yieldMacrotask()
       const afterRight = lastFrame() ?? ''
       expect(afterRight).not.toBe(before)
 
       stdin.write(ARROW_LEFT)
-      await tick()
+      await yieldMacrotask()
       const afterLeft = lastFrame() ?? ''
       expect(afterLeft).toBe(before)
 
@@ -301,7 +301,7 @@ describe('ConsultationViewer', () => {
 
     // Switch to the prose-heavy Standing Hexagram tab.
     stdin.write(TAB)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
 
     expect(frame.length).toBeGreaterThan(0)
@@ -340,7 +340,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     )
     const before = lastFrame() ?? ''
     stdin.write(TAB)
-    await tick()
+    await yieldMacrotask()
     const after = lastFrame() ?? ''
     expect(after).toContain('your query for the oracle.')
     expect(after).not.toContain('TRANSFORMATION:')
@@ -354,9 +354,9 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Hi')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
@@ -370,15 +370,15 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // 99 is above the round-1 max of 48 — pressing Enter should surface the
     // canonical error line and stay on the same cast.
     stdin.write('99')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Pick a number from 1 to 48.')
     expect(frame).toContain('Line 1/6 · Cast 1/3')
@@ -395,24 +395,24 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // Picks (24, 20, 16) are within range for rounds 1/2/3 of an unmodified
     // 49-stalk casting and produce a valid Line (6) — concrete enough to
     // exercise the real generator end-to-end rather than mocking it.
     stdin.write('24')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('20')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('16')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 2/6 · Cast 1/3')
     expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
@@ -426,11 +426,11 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write(TAB)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     // Tab must not have advanced the active tab — Casting prompt still shown
     // and the locked tab bar renders ONLY the active tab.
@@ -459,15 +459,15 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Will the harvest be plentiful?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     // The casting prompt appears — the random flow enters `casting` mode.
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
     // Poll until the eighteen-cast playback + compute effect settle.
     for (let beat = 0; beat < 80; beat += 1) {
       if ((lastFrame() ?? '').includes('saved to')) break
-      await tick(60)
+      await yieldMacrotask(60)
     }
     const frame = lastFrame() ?? ''
     expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
@@ -488,9 +488,9 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick(150)
+    await yieldMacrotask(150)
     expect(randomConsultationMock).toHaveBeenCalledTimes(1)
     unmount()
   })
@@ -511,9 +511,9 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Will the harvest be plentiful?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // The random flow is mid-`casting` — the slider is still parting stalks.
     expect(lastFrame() ?? '').toContain('parting the stalks')
     // SPACE skips the rest of the animation.
@@ -521,7 +521,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     // Let the skip → computing → compute effect → save → done settle.
     for (let beat = 0; beat < 40; beat += 1) {
       if ((lastFrame() ?? '').includes('saved to')) break
-      await tick(50)
+      await yieldMacrotask(50)
     }
     const frame = lastFrame() ?? ''
     expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
@@ -541,9 +541,9 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     // The random flow's footer advertises SPACE as the skip key.
     expect(frame).toContain('SPACE: skip')
@@ -563,9 +563,9 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // The slider casting prompt is shown — the random flow plays back through
     // `casting`, it does not fill the table all at once.
     expect(lastFrame() ?? '').toContain('parting the stalks')
@@ -576,7 +576,7 @@ describe('ConsultationViewer (interactive flow)', () => {
       const match = /(\d{1,2})\/18/.exec(frame)
       if (match) seen.add(match[1]!)
       if (frame.includes('saved to')) break
-      await tick(60)
+      await yieldMacrotask(60)
     }
     // At least a few distinct progress counts were observed — the table is
     // filling one cast at a time, not in a single jump from 0 to 18.
@@ -597,14 +597,14 @@ describe('ConsultationViewer (interactive flow)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     for (let beat = 0; beat < 80; beat += 1) {
       if ((lastFrame() ?? '').includes('saved to')) break
-      await tick(60)
+      await yieldMacrotask(60)
     }
     stdin.write(TAB)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('STANDING HEXAGRAM')
     unmount()
@@ -617,7 +617,7 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write(ESCAPE)).not.toThrow()
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').not.toContain('Discard this consultation?')
     unmount()
   })
@@ -627,7 +627,7 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     expect(() => stdin.write(CTRL_C)).not.toThrow()
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').not.toContain('Discard this consultation?')
     unmount()
   })
@@ -637,7 +637,7 @@ describe('ConsultationViewer (interactive flow)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('quit?')
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toContain('quit?')
     unmount()
   })
@@ -662,9 +662,9 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
       />,
     )
     stdin.write('Will the harvest be plentiful?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // The text status widget appears — not the typed-number prompt.
     const castingFrame = lastFrame() ?? ''
     expect(castingFrame).toContain('Line 1/6')
@@ -672,7 +672,7 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
     // Poll until the eighteen-cast playback + compute effect settle.
     for (let beat = 0; beat < 80; beat += 1) {
       if ((lastFrame() ?? '').includes('saved to')) break
-      await tick(60)
+      await yieldMacrotask(60)
     }
     const frame = lastFrame() ?? ''
     expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
@@ -690,16 +690,16 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const seen = new Set<string>()
     for (let beat = 0; beat < 100; beat += 1) {
       const frame = lastFrame() ?? ''
       const match = /(\d{1,2})\/18/.exec(frame)
       if (match) seen.add(match[1]!)
       if (frame.includes('saved to')) break
-      await tick(40)
+      await yieldMacrotask(40)
     }
     // The progress count was observed at several distinct values — the table
     // fills cast-by-cast, not in a single jump from 0 to 18.
@@ -719,15 +719,15 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
       />,
     )
     stdin.write('Will the harvest be plentiful?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // Mid-`casting` — the status widget is shown, the reveal is in progress.
     expect(lastFrame() ?? '').toContain('Line 1/6')
     stdin.write(SPACE)
     for (let beat = 0; beat < 40; beat += 1) {
       if ((lastFrame() ?? '').includes('saved to')) break
-      await tick(50)
+      await yieldMacrotask(50)
     }
     const frame = lastFrame() ?? ''
     expect(frame).toContain(`saved to ${STUB_SAVED_PATH}`)
@@ -744,9 +744,9 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
       />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('skip')
     unmount()
@@ -769,11 +769,11 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER) // → casting
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESCAPE)
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toContain('Discard this consultation?')
     // The exit was interposed — `onExit` has NOT fired yet.
     expect(onExit).not.toHaveBeenCalled()
@@ -785,11 +785,11 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write(CTRL_C)
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toContain('Discard this consultation?')
     unmount()
   })
@@ -804,13 +804,13 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESCAPE)
-    await tick()
+    await yieldMacrotask()
     stdin.write('n') // cancel
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).not.toContain('Discard this consultation?')
     // Back in the casting flow — the casting prompt is shown again.
@@ -829,13 +829,13 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESCAPE)
-    await tick()
+    await yieldMacrotask()
     stdin.write('y') // confirm discard
-    await tick()
+    await yieldMacrotask()
     expect(onExit).toHaveBeenCalledTimes(1)
     unmount()
   })
@@ -850,9 +850,9 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESCAPE) // still in awaitingQuery, but the query buffer is dirty
-    await tick()
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toContain('Discard this consultation?')
     expect(onExit).not.toHaveBeenCalled()
     unmount()
@@ -868,9 +868,9 @@ describe('ConsultationViewer — mid-cast discard confirmation', () => {
       />,
     )
     stdin.write('Should I go?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Esc: home')
     expect(frame).toContain('Ctrl+C: quit')
@@ -923,7 +923,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     // Jump directly to Emerging Hexagram (tab #4).
     stdin.write('4')
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     // `wrap` chip is in the status row (e.g. `wrap 120`).
     expect(frame).toMatch(/wrap \d+/)
@@ -935,9 +935,9 @@ describe('ConsultationViewer (T3 refinements)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Query')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain(' Casting ')
     expect(frame).not.toContain('Transformation')
@@ -963,7 +963,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
     stdin.write('2')
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('TRANSFORMATION:')
     unmount()
@@ -977,7 +977,7 @@ describe('ConsultationViewer (T3 refinements)', () => {
     )
     const before = lastFrame() ?? ''
     stdin.write('5')
-    await tick()
+    await yieldMacrotask()
     const after = lastFrame() ?? ''
     expect(after).toBe(before)
     // Still on the default Casting tab.
@@ -990,9 +990,9 @@ describe('ConsultationViewer (T3 refinements)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('□□□□□□□□□□□□□□□□□□  0/18')
     unmount()
@@ -1003,22 +1003,22 @@ describe('ConsultationViewer (T3 refinements)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // Three valid picks that drive Line 1 to completion.
     stdin.write('24')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('20')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('16')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('■■■□□□□□□□□□□□□□□□  3/18')
     unmount()
@@ -1169,7 +1169,7 @@ describe('ConsultationViewer (Pass #2)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Hi')
-    await tick()
+    await yieldMacrotask()
     const beforeFrame = lastFrame() ?? ''
     const beforeLines = beforeFrame.split('\n')
     const beforeIndex = beforeLines.findIndex((line) =>
@@ -1177,7 +1177,7 @@ describe('ConsultationViewer (Pass #2)', () => {
     )
     expect(beforeIndex).toBeGreaterThanOrEqual(0)
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const afterFrame = lastFrame() ?? ''
     const afterLines = afterFrame.split('\n')
     const afterIndex = afterLines.findIndex((line) =>
@@ -1217,25 +1217,25 @@ describe('ConsultationViewer (Pass #2)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const initialFrame = lastFrame() ?? ''
     expect(initialFrame).toContain('□□□')
     expect(initialFrame).not.toContain('▱')
     // Drive Line 1 through 3 valid splits.
     stdin.write('24')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('20')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('16')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const afterFrame = lastFrame() ?? ''
     expect(afterFrame).toContain('■■■')
     expect(afterFrame).not.toContain('▰')
@@ -1254,9 +1254,9 @@ describe('ConsultationViewer (slider mode)', () => {
       <ConsultationViewer flowKind="interactive" />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain(
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
@@ -1271,9 +1271,9 @@ describe('ConsultationViewer (slider mode)', () => {
       <ConsultationViewer flowKind="interactive" inputMode="slider" />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Casting in progress ·  ')
     expect(frame).toContain('0/18')
@@ -1289,7 +1289,7 @@ describe('ConsultationViewer (slider mode)', () => {
       />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     // `waitForSliderReady` polls the rendered frame for a Braille spinner
     // glyph on the `Left Heap:` line — proof that the next cast's slider has
@@ -1330,7 +1330,7 @@ describe('ConsultationViewer (slider mode)', () => {
       />,
     )
     stdin.write('A question')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     // Each iteration: wait for the next cast's slider to be mounted +
     // input-bound (Braille spinner advanced past ⠋), press SPACE, then wait
@@ -1378,7 +1378,7 @@ describe('ConsultationViewer (slider mode)', () => {
       />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     // Wait for cast 1's slider to bind input before the first SPACE — bare
     // `tick()` races the mount on Windows GHA and the SPACE was dropped.
@@ -1409,9 +1409,9 @@ describe('ConsultationViewer (slider mode)', () => {
       <ConsultationViewer flowKind="interactive" sliderSweepMs={4800} />,
     )
     stdin.write('Q')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(pickFromFrame(frame)).toBe(1)
@@ -1428,16 +1428,16 @@ describe('ConsultationViewer (slider mode)', () => {
         <ConsultationViewer flowKind="interactive" inputMode="slider" />,
       )
       stdin.write('Q')
-      await tick()
+      await yieldMacrotask()
       stdin.write(ENTER)
-      await tick()
+      await yieldMacrotask()
       // Right-arrow several times — sliceAnsi shifts the visible window.
       const initialFrame = lastFrame() ?? ''
       expect(initialFrame).toContain('Line 1/6')
       // Pan right by a generous chunk so we see the right edge of the title.
       for (let index = 0; index < 20; index += 1) {
         stdin.write(ARROW_RIGHT)
-        await tick()
+        await yieldMacrotask()
       }
       const pannedFrame = lastFrame() ?? ''
       // After heavy right-panning, "Line 1/6" should be off-screen.
