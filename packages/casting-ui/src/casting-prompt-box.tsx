@@ -411,6 +411,17 @@ interface SliderInputProps {
   onSubmit: (value: number) => void
   /** Tick interval in ms — defaults to 80, which sweeps `max=48` in ~3.8 s. */
   tickMs?: number
+  /**
+   * Fired exactly once, after this component's mount effects have committed
+   * — by which point `useSliderBounce`'s `useInput` has registered with
+   * Ink's stdin dispatcher. Tests use this as a positive witness that SPACE
+   * presses will reach the slider's handler, closing the bind race where a
+   * keystroke written between render-commit and bind would be dispatched to
+   * ancestor handlers and silently swallowed (see the 9-round CI
+   * stabilisation post-mortem). Defensive: guarded by a `firedRef` so a
+   * StrictMode double-mount can't double-fire.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -438,6 +449,7 @@ export function SliderInput({
   focused,
   onSubmit,
   tickMs = 80,
+  onReady,
 }: SliderInputProps): ReactElement {
   const { position, tickCount } = useSliderBounce({
     min,
@@ -446,6 +458,17 @@ export function SliderInput({
     tickMs,
     onSubmit,
   })
+  // Mount-witness effect. Registered AFTER `useSliderBounce` (which calls
+  // `useInput` internally) so React's commit-phase effect-flush runs
+  // `useInput`'s bind effect first; by the time this fires, the stdin
+  // listener is live. Guarded by `onReadyFiredRef` so it only fires on the
+  // first commit per mount — defensive against a re-render before unmount.
+  const onReadyFiredRef = useRef(false)
+  useEffect(() => {
+    if (onReadyFiredRef.current) return
+    onReadyFiredRef.current = true
+    onReady?.()
+  }, [onReady])
   const bar = buildSliderBar(position, min, max)
   // Pad to a stable 2-column cell width so the readout never shifts laterally
   // when the glyph swaps to a 1- or 2-digit pick (see `<SliderCastingPrompt>`
@@ -543,6 +566,15 @@ interface CastingPromptBoxProps {
    * keep multi-cast flow assertions snappy.
    */
   commitRevealMs?: number
+  /**
+   * Slider-mode mount-witness callback. Forwarded to the underlying
+   * `<SliderCastingPrompt>` / `<SliderInput>` and fired exactly once per
+   * mount, after `useSliderBounce`'s `useInput` has registered with Ink's
+   * stdin dispatcher. Tests gate cross-cast SPACE presses on this signal
+   * instead of polling the Braille spinner glyph (the prior incidental
+   * proxy). Ignored in `'number'` mode.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -591,6 +623,7 @@ export function CastingPromptBox({
   commitRevealMs = SLIDER_COMMIT_REVEAL_MS,
   autoLand = null,
   onSkip,
+  onReady,
 }: CastingPromptBoxProps): ReactElement {
   if (inputMode === 'slider') {
     return (
@@ -606,6 +639,7 @@ export function CastingPromptBox({
         autoLand={autoLand}
         onSkip={onSkip}
         onSubmit={onSubmit}
+        onReady={onReady}
       />
     )
   }
@@ -648,6 +682,12 @@ interface SliderCastingPromptProps {
   autoLand: SliderAutoLand | null
   onSkip: (() => void) | undefined
   onSubmit: (value: number) => void
+  /**
+   * Mount-witness — see `CastingPromptBoxProps.onReady`. Fired exactly once
+   * per mount, after `useSliderBounce`'s `useInput` has registered with
+   * Ink's stdin dispatcher.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -688,6 +728,7 @@ function SliderCastingPrompt({
   autoLand,
   onSkip,
   onSubmit,
+  onReady,
 }: SliderCastingPromptProps): ReactElement {
   const [committed, setCommitted] = useState<number | null>(null)
 
@@ -725,6 +766,19 @@ function SliderCastingPrompt({
     autoLand,
     onSkip,
   })
+
+  // Mount-witness effect — see `SliderInput`'s sibling effect for the full
+  // rationale. Registered AFTER `useSliderBounce` (which calls `useInput`
+  // internally) so React's commit-phase effect-flush runs `useInput`'s bind
+  // effect first; by the time this fires, the stdin listener is live and
+  // tests can safely write the next keystroke. Guarded by `onReadyFiredRef`
+  // so it only fires on the first commit per mount.
+  const onReadyFiredRef = useRef(false)
+  useEffect(() => {
+    if (onReadyFiredRef.current) return
+    onReadyFiredRef.current = true
+    onReady?.()
+  }, [onReady])
 
   // The random flow auto-drives the slider, so its title describes the
   // stalks being parted rather than instructing the user to press SPACE.
