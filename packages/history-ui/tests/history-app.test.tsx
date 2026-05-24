@@ -81,6 +81,40 @@ async function awaitListReady(
   })
 }
 
+/**
+ * Press `key` and wait until `predicate(frame)` becomes truthy. On each retry
+ * tick the key is re-written — fixes the `useInput` listener-bind race on
+ * Windows GHA. Ink dispatches stdin to whatever `useInput` callbacks are
+ * currently registered; between `<HistoryApp>`'s first render (scan loading
+ * screen) and `<HistoryList>`'s `useEffect` firing to register its own
+ * `useInput`, the parent's Ctrl+C-only handler is the sole subscriber and
+ * silently swallows the bytes. Capped at 10 retries (~200 ms of writes) so a
+ * genuinely missing precondition still surfaces as a timeout, not a hang.
+ * Retries are safe because every state-transitioning keystroke this helper
+ * fires is idempotent past the transition: ENTER on a row is debounced by
+ * `onPick`'s `if (state.loading) return`; Ctrl+D is early-returned by the
+ * modal-open branch; 'y' / 'n' / '/' on the list are unbound keys in their
+ * post-transition view; the unmounted `<HistoryList>` simply receives no
+ * dispatches at all.
+ */
+async function pressUntil(
+  stdin: { write: (text: string) => void },
+  lastFrame: () => string | undefined,
+  key: string,
+  predicate: (frame: string) => boolean | Promise<boolean>,
+): Promise<void> {
+  const MAX_RETRIES = 10
+  let attempts = 0
+  await waitFor(async () => {
+    if (await predicate(stripAnsi(lastFrame() ?? ''))) return true
+    if (attempts < MAX_RETRIES) {
+      stdin.write(key)
+      attempts += 1
+    }
+    return false
+  })
+}
+
 const ESC = String.fromCodePoint(0x1b)
 const ENTER = '\r'
 const CTRL_D = String.fromCodePoint(0x04)
@@ -166,12 +200,9 @@ describe('<HistoryApp> — loaded readout title', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain(
-        'Consultation · loaded 2025-08-13 09:02',
-      )
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded 2025-08-13 09:02'),
+    )
     const frame = stripAnsi(lastFrame() ?? '')
     // "Past Consultation" must NOT appear as a readout title adjective.
     // The list heading "Past Consultations" is still correct; it is only
@@ -190,10 +221,9 @@ describe('<HistoryApp> — loaded readout title', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('<1> Casting')
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('<1> Casting'),
+    )
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('<2> Transformation')
     expect(frame).toContain('<3> Standing Hexagram')
@@ -204,10 +234,9 @@ describe('<HistoryApp> — loaded readout title', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('Esc back to history')
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Esc back to history'),
+    )
     expect(stripAnsi(lastFrame() ?? '')).not.toContain('Esc quit')
   })
 })
@@ -217,12 +246,9 @@ describe('<HistoryApp> — loaded readout', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain(
-        'Consultation · loaded 2025-08-13 09:02',
-      )
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded 2025-08-13 09:02'),
+    )
     const frame = stripAnsi(lastFrame() ?? '')
     // All four tabs available in the unlocked `done` state.
     expect(frame).toContain('Casting')
@@ -235,12 +261,9 @@ describe('<HistoryApp> — loaded readout', () => {
     await writeFresh(NULL_CASTING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain(
-        'Consultation · loaded 2024-02-01 11:30',
-      )
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded 2024-02-01 11:30'),
+    )
     expect(stripAnsi(lastFrame() ?? '')).toContain('Casting not recorded')
   })
 
@@ -248,12 +271,9 @@ describe('<HistoryApp> — loaded readout', () => {
     const filePath = await writeStale(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain(
-        'Body refreshed; data unchanged.',
-      )
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Body refreshed; data unchanged.'),
+    )
     // The drifted file was rewritten in place.
     const after = await fs.readFile(filePath, 'utf8')
     expect(after).not.toContain('STALE BODY')
@@ -265,13 +285,12 @@ describe('<HistoryApp> — loaded readout', () => {
     const before = await fs.stat(filePath)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
     // Wait until the readout has loaded — only then can we assert that the
     // body-refreshed notice is absent (rather than racing a still-loading
     // list view that incidentally also lacks the notice).
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded'),
+    )
     expect(stripAnsi(lastFrame() ?? '')).not.toContain('Body refreshed')
     // Byte-identical body → no write, no mtime bump.
     const after = await fs.stat(filePath)
@@ -282,10 +301,9 @@ describe('<HistoryApp> — loaded readout', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded'),
+    )
     stdin.write(ESC)
     await waitFor(() => {
       const frame = stripAnsi(lastFrame() ?? '')
@@ -300,9 +318,17 @@ describe('<HistoryApp> — loaded readout', () => {
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    // Move focus down to the second row, then load it.
-    stdin.write(`${ESC}[B`)
-    await tick()
+    // Move focus down to the second row (Berlin), then load it. The down
+    // arrow is the first cross-state keystroke and must beat the
+    // `<HistoryList>` `useInput` bind race — `pressUntil` retries (clamped
+    // by the reducer's `Math.min(..., size - 1)`) until the row 1 query is
+    // riding the inverse-video focus bar.
+    await pressUntil(stdin, lastFrame, `${ESC}[B`, () => {
+      const inverseLines = (lastFrame() ?? '')
+        .split('\n')
+        .filter((l) => l.includes(`${ESC}[7m`))
+      return inverseLines.some((l) => l.includes('Berlin'))
+    })
     stdin.write(ENTER)
     await waitFor(() => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
@@ -330,13 +356,21 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await awaitListReady(lastFrame)
     // Newest-first → MOVING_ENVELOPE (2025) is focused at the top.
     expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
-    stdin.write(CTRL_D)
-    await tick()
-    stdin.write('y')
-    // Wait until the in-app `fs.unlink` has resolved (file gone from disk)
-    // — on Windows GHA this can take multiple ticks.
-    await waitFor(async () => {
-      await expect(fs.access(movingPath)).rejects.toThrow()
+    // Ctrl+D opens the confirm modal — the first cross-state keystroke, so
+    // retry through `pressUntil` to beat the `<HistoryList>` useInput bind.
+    await pressUntil(stdin, lastFrame, CTRL_D, (frame) =>
+      frame.includes('Delete consultation'),
+    )
+    // 'y' confirms — the modal's own `useInput` may also race the bind on
+    // Windows GHA, so retry until the file is gone. Once unlinked, 'y' is
+    // an unbound key in the list and is silently consumed.
+    await pressUntil(stdin, lastFrame, 'y', async () => {
+      try {
+        await fs.access(movingPath)
+        return false
+      } catch {
+        return true
+      }
     })
     // On a slow runner the list re-render can lag the in-app `fs.unlink`
     // resolution by one or two paints — poll the frame as well.
@@ -353,12 +387,12 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await writeFresh(SECOND_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(CTRL_D)
-    await tick()
-    stdin.write('y')
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('✓ Deleted')
-    })
+    await pressUntil(stdin, lastFrame, CTRL_D, (frame) =>
+      frame.includes('Delete consultation'),
+    )
+    await pressUntil(stdin, lastFrame, 'y', (frame) =>
+      frame.includes('✓ Deleted'),
+    )
   })
 
   it('Ctrl+D then n cancels — the file is left on disk and the row stays', async () => {
@@ -420,12 +454,12 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await writeFresh(MOVING_ENVELOPE)
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
-    stdin.write(CTRL_D)
-    await tick()
-    stdin.write('y')
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('No consultations yet.')
-    })
+    await pressUntil(stdin, lastFrame, CTRL_D, (frame) =>
+      frame.includes('Delete consultation'),
+    )
+    await pressUntil(stdin, lastFrame, 'y', (frame) =>
+      frame.includes('No consultations yet.'),
+    )
   })
 })
 
@@ -476,10 +510,9 @@ describe('<HistoryApp> — injectable top-level exit', () => {
       <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
     )
     await awaitListReady(lastFrame)
-    stdin.write(ENTER)
-    await waitFor(() => {
-      expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · loaded')
-    })
+    await pressUntil(stdin, lastFrame, ENTER, (frame) =>
+      frame.includes('Consultation · loaded'),
+    )
     stdin.write(ESC)
     await waitFor(() => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
@@ -495,9 +528,16 @@ describe('<HistoryApp> — injectable top-level exit', () => {
       <HistoryApp dir={tmpDir} onExit={onExit} exitLabel="Home" />,
     )
     await awaitListReady(lastFrame)
-    stdin.write('/')
-    await tick()
-    stdin.write(ESC) // empty filter — closes the row, must not exit
+    // '/' opens the filter row — first cross-state keystroke. `pressUntil`
+    // retries through the `<HistoryList>` `useInput` bind race; if extra
+    // '/' presses land after the row opens, they get appended as filter
+    // text — harmless here because either an empty- or '/'-text filter,
+    // ESC is consumed by the filter-mode branch (filterClear/filterExit)
+    // and never reaches the top-level exit.
+    await pressUntil(stdin, lastFrame, '/', (frame) =>
+      frame.includes('Filter '),
+    )
+    stdin.write(ESC) // closes / clears the filter row, must not exit
     await tick()
     expect(onExit).not.toHaveBeenCalled()
   })
