@@ -547,13 +547,14 @@ export function HistoryList({
   // exactly once per mount even if `onReady` identity changes between
   // renders (a re-fire would defeat its meaning as a one-shot ready latch).
   const readyFiredRef = useRef(false)
+  // `onReady` is read once on mount; subsequent identity changes do not
+  // re-fire the latch. The empty dep array is intentional and is NOT a
+  // missing-dep mistake — see the JSDoc on `onReady` for the contract.
   useEffect(() => {
     if (readyFiredRef.current) return
     readyFiredRef.current = true
     onReady?.()
-    // `onReady` is read once on mount; subsequent identity changes do not
-    // re-fire the latch. Intentionally omit `onReady` from the dep array.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Dedicated filter row — plain labeled form field: dim "Filter" label, bold
