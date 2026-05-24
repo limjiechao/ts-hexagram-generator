@@ -5,7 +5,7 @@ import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConsultationViewer } from '../src/viewer'
-import { tick, waitFor } from './helpers/async'
+import { tick, waitFor, waitForSliderReady } from './helpers/async'
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -1290,22 +1290,26 @@ describe('ConsultationViewer (slider mode)', () => {
     stdin.write('Q')
     await tick()
     stdin.write(ENTER)
-    await tick()
+    // `waitForSliderReady` polls the rendered frame for a Braille spinner
+    // glyph on the `Left Heap:` line — proof that the next cast's slider has
+    // mounted and bound `useInput`. Gating every SPACE on this signal closes
+    // the listener-less window between cast remounts on Windows GHA, where a
+    // bare `tick()` is too short for the post-mount effect to fire.
+    await waitForSliderReady(lastFrame)
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('0/18')
     })
     stdin.write(SPACE)
-    await tick()
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('1/18')
     })
+    await waitForSliderReady(lastFrame)
     stdin.write(SPACE)
-    await tick()
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('2/18')
     })
+    await waitForSliderReady(lastFrame)
     stdin.write(SPACE)
-    await tick()
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('3/18')
     })
@@ -1327,14 +1331,27 @@ describe('ConsultationViewer (slider mode)', () => {
     stdin.write('A question')
     await tick()
     stdin.write(ENTER)
-    await tick()
+    // Each iteration: wait for the next cast's slider to be mounted +
+    // input-bound (Braille spinner advanced past ⠋), press SPACE, then wait
+    // for the progress bar to confirm the commit before continuing. This
+    // eliminates the dropped-SPACE race during the cross-cast unmount/remount
+    // window on Windows GHA — bare `tick()` between writes is too short on a
+    // saturated runner and a single dropped SPACE stalled the whole flow.
+    //
+    // The final iteration (index=17) commits cast 18 and transitions the
+    // viewer to `computing → done` in the same cycle — the progress bar is
+    // no longer rendered, so `18/18` never appears in the frame. The outer
+    // `waitFor(consultationFileOutputMock)` is the gate for that step.
     for (let index = 0; index < 18; index += 1) {
+      await waitForSliderReady(lastFrame)
       stdin.write(SPACE)
-      await tick()
+      if (index < 17) {
+        const expected = `${index + 1}/18`
+        await waitFor(() => {
+          expect(lastFrame() ?? '').toContain(expected)
+        })
+      }
     }
-    // Compute effect + mocked file write — poll instead of a fixed 150 ms
-    // tick; on Ubuntu CI under load the compute effect can need >150 ms
-    // to flush before the mock fires.
     await waitFor(() => {
       expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
       expect(lastFrame() ?? '').toContain(`saved to ${STUB_SAVED_PATH}`)
@@ -1362,11 +1379,17 @@ describe('ConsultationViewer (slider mode)', () => {
     stdin.write('Q')
     await tick()
     stdin.write(ENTER)
-    await tick()
+    // Wait for cast 1's slider to bind input before the first SPACE — bare
+    // `tick()` races the mount on Windows GHA and the SPACE was dropped.
+    await waitForSliderReady(lastFrame)
     stdin.write(SPACE)
-    await tick()
-    // After committing 1 for cast 1, the prompt should now show cast 2
-    // with the bar rewound to position 1 (cursor at the leftmost cell).
+    // Wait for cast 2 to be rendered. We deliberately do NOT call
+    // waitForSliderReady here — that would wait for cast 2's spinner to
+    // advance past ⠋, which (with sliderSweepMs=60_000 → tickMs ≈ 1.3 s)
+    // also ticks the cursor off position 1 and breaks `pickFromFrame`.
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Cast 2/3')
+    })
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Cast 2/3')
     expect(pickFromFrame(frame)).toBe(1)
