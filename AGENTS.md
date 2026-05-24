@@ -68,6 +68,18 @@ pnpm generate-fixtures      # turbo run generate-fixtures --filter=@hexagram/cas
 
 The statistical distribution test (`generateLines() should return valid report` in `packages/core/tests/random.test.ts`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random.test.ts` (or `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` to drop only the slow describe block).
 
+### CI simulation
+
+The May 2026 9-round stabilisation (`4eae942` → `800d3fc`) showed that the "load-induced" tier of flakes (rounds 4–6) is invisible on a quiet macOS dev box. Three scripts reproduce the 2-CPU contention an Ubuntu GHA runner sees:
+
+```bash
+pnpm test:flake          # turbo run test -- --repeat 5 (each test re-runs 5× in-process)
+pnpm test:stress         # 4× concurrent test:flake (saturates CPU; the strongest signal)
+pnpm test:stress:once    # 4× concurrent single-pass test (cheaper)
+```
+
+Reach for them before pushing a race-condition fix, before merging an Ink component change, or when triaging an intermittent CI failure. On a quiet box `test:stress` can take 5–10 minutes; `test:stress:once` is closer to 2–3 minutes. All three use the `concurrently` runner — pure JS, no Docker or platform-specific binaries.
+
 ## Architecture
 
 ### Core algorithm — `@hexagram/core`
