@@ -19,7 +19,14 @@ import {
   truncateStart,
 } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
-import { useMemo, useReducer, useRef, useState, type ReactElement } from 'react'
+import {
+  useEffect,
+  useMemo,
+  useReducer,
+  useRef,
+  useState,
+  type ReactElement,
+} from 'react'
 
 import { DeleteConfirmModal } from './delete-confirm-modal.js'
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
@@ -75,6 +82,24 @@ interface HistoryListProps {
    * the first row via `focusIndexOf`. Defaults to `null` (first row).
    */
   initialFocusPath?: string | null
+  /**
+   * Fired exactly once per mount, in a `useEffect` that runs after this
+   * component's `useInput` registration has been bound to Ink's stdin
+   * dispatcher. The contract is: by the time `onReady` is called, the next
+   * `stdin.write(...)` will be received by this list's `useInput` handler.
+   *
+   * Exists to defuse the `useInput` bind race that previously forced test
+   * helpers (`pressUntil`) to retry the first cross-state keystroke up to ten
+   * times: Ink registers a `useInput` handler inside its own `useEffect`,
+   * which runs *after* the render commit on the next macrotask. Bytes written
+   * between commit and bind get dispatched to ancestor handlers and silently
+   * dropped. Because effects fire in declaration order, the `useEffect`
+   * powering this callback is queued immediately after the `useInput` hook
+   * above and therefore runs only once Ink's listener is in place — see
+   * commit `800d3fc` (the `pressUntil` workaround it replaces) for context.
+   * Defaults to a no-op.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -298,6 +323,7 @@ export function HistoryList({
   onDelete = () => {},
   deleteStatusLine = null,
   initialFocusPath = null,
+  onReady,
 }: HistoryListProps): ReactElement {
   const [state, dispatch] = useReducer(reducer, {
     focusPath:
@@ -511,6 +537,24 @@ export function HistoryList({
       }
     }
   })
+
+  // ── onReady witness signal ────────────────────────────────────────────────
+  // Fires after this component's `useInput` registration above has bound to
+  // Ink's stdin dispatcher. Effects run in declaration order, so this
+  // `useEffect` is queued immediately after the one Ink uses internally for
+  // `useInput` — by the time `onReady` is invoked, the next `stdin.write` is
+  // guaranteed to land on the handler above. Guarded by a ref so it fires
+  // exactly once per mount even if `onReady` identity changes between
+  // renders (a re-fire would defeat its meaning as a one-shot ready latch).
+  const readyFiredRef = useRef(false)
+  useEffect(() => {
+    if (readyFiredRef.current) return
+    readyFiredRef.current = true
+    onReady?.()
+    // `onReady` is read once on mount; subsequent identity changes do not
+    // re-fire the latch. Intentionally omit `onReady` from the dep array.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // Dedicated filter row — plain labeled form field: dim "Filter" label, bold
   // typed text, right-aligned dim match count. No border, no accent bar, no
