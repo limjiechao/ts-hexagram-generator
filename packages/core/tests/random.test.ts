@@ -41,7 +41,11 @@ describe('generateRandomHexagrams', () => {
 describe('rng distribution (slow)', () => {
   test(
     'generateLines() should return valid report',
-    { timeout: 40_000 },
+    // Bounded by Node throughput on the slowest matrix runner. macOS / Linux
+    // GHA finish in ~28-30 s; Windows GHA has been observed at ~44 s
+    // (synchronous, no I/O — pure compute over 1M iterations). 90 s gives
+    // ~2× headroom for further runner variance.
+    { timeout: 90_000 },
     () => {
       /*
       Line | Fraction | Canonical | Band      | Observed (n=1M)

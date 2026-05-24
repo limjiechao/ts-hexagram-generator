@@ -5,7 +5,7 @@ import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConsultationViewer } from '../src/viewer'
-import { tick } from './helpers/async'
+import { tick, waitFor } from './helpers/async'
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -1322,10 +1322,13 @@ describe('ConsultationViewer (slider mode)', () => {
       stdin.write(SPACE)
       await tick()
     }
-    // Compute effect + mocked file write — give them a beat to settle.
-    await tick(150)
-    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
-    expect(lastFrame() ?? '').toContain(`saved to ${STUB_SAVED_PATH}`)
+    // Compute effect + mocked file write — poll instead of a fixed 150 ms
+    // tick; on Ubuntu CI under load the compute effect can need >150 ms
+    // to flush before the mock fires.
+    await waitFor(() => {
+      expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+      expect(lastFrame() ?? '').toContain(`saved to ${STUB_SAVED_PATH}`)
+    })
     unmount()
   })
 
