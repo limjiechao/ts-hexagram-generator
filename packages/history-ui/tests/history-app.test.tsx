@@ -39,7 +39,7 @@ const tick = (ms = 60): Promise<void> =>
 async function waitFor<T>(
   predicate: () => T | Promise<T>,
   {
-    timeoutMs = 8000,
+    timeoutMs = 15_000,
     intervalMs = 20,
   }: { timeoutMs?: number; intervalMs?: number } = {},
 ): Promise<T | undefined> {

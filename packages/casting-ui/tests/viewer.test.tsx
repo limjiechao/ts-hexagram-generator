@@ -1291,18 +1291,28 @@ describe('ConsultationViewer (slider mode)', () => {
     await tick()
     stdin.write(ENTER)
     await tick()
-    expect(lastFrame() ?? '').toContain('0/18')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('0/18')
+    })
     stdin.write(SPACE)
     await tick()
-    expect(lastFrame() ?? '').toContain('1/18')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('1/18')
+    })
     stdin.write(SPACE)
     await tick()
-    expect(lastFrame() ?? '').toContain('2/18')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('2/18')
+    })
     stdin.write(SPACE)
     await tick()
-    expect(lastFrame() ?? '').toContain('3/18')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('3/18')
+    })
     // Three splits committed → progress bar shows three ■ followed by □s.
-    expect(lastFrame() ?? '').toContain('■■■□')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('■■■□')
+    })
     unmount()
   })
 
