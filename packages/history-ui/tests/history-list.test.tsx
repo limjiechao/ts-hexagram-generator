@@ -1,4 +1,4 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor, yieldMacrotask } from '@hexagram/test-utils'
 import type { Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
@@ -27,34 +27,6 @@ function trackHeight(frame: string): number {
 }
 
 const ESC = String.fromCodePoint(0x1b)
-
-/** Yield to the event loop so Ink can process queued stdin + re-render. */
-const tick = (ms = 50): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms))
-
-/**
- * Poll until `predicate()` doesn't throw, retrying every 20 ms up to a 2 s
- * deadline. Replaces fixed-delay `tick()` waits for unbounded async work —
- * the assertion itself is the condition, no constant to tune.
- */
-async function waitFor<T>(
-  predicate: () => T,
-  { timeoutMs = 2000, intervalMs = 20 } = {},
-): Promise<T> {
-  const deadline = Date.now() + timeoutMs
-  let lastError: unknown
-  for (;;) {
-    try {
-      return predicate()
-    } catch (error) {
-      lastError = error
-    }
-    if (Date.now() >= deadline) {
-      throw lastError ?? new Error(`waitFor timed out after ${timeoutMs}ms`)
-    }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs))
-  }
-}
 
 const fakeEntries = [
   {
@@ -216,9 +188,9 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('study')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // Dedicated filter row must show "Filter" label and match count.
     expect(frame).toContain('Filter ')
@@ -240,7 +212,7 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     const titlePos = frame.indexOf('Past Consultations')
     const filterPos = frame.indexOf('Filter ')
@@ -261,9 +233,9 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('raven')
-    await tick()
+    await yieldMacrotask()
     const rawFrame = lastFrame() ?? ''
     // No round border corner.
     expect(rawFrame).not.toContain('╭')
@@ -292,7 +264,7 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('Esc close filter')
     expect(frame).toContain('Enter load')
@@ -311,10 +283,10 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     // Filter row is empty — a single ESC closes it.
     stdin.write(ESC)
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // Filter row must be gone.
     expect(frame).not.toContain('Filter ')
@@ -335,9 +307,9 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('zzznomatch')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('0 matches')
   })
@@ -353,10 +325,10 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     // "STUDY" should still match the entry with "study"
     stdin.write('STUDY')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('1 match')
     expect(frame).toContain('Should I study')
@@ -373,10 +345,10 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     // Type something that would match nothing readable.
     stdin.write('zzz')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // Unreadable file must not appear as a match.
     expect(frame).not.toContain('[unreadable')
@@ -396,7 +368,7 @@ describe('<HistoryList>', () => {
     )
     // Press `/` to open the filter row — filter text is empty at this point.
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // Filter row is open.
     expect(frame).toContain('Filter ')
@@ -420,12 +392,12 @@ describe('<HistoryList>', () => {
     )
     // Open filter mode, type a substring that matches only the second entry.
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('study')
-    await tick()
+    await yieldMacrotask()
     // Press Enter — should call onPick with the focused (only matching) entry.
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     expect(onPick).toHaveBeenCalledOnce()
     expect(onPick).toHaveBeenCalledWith(fakeEntries[1])
   })
@@ -489,7 +461,7 @@ describe('<HistoryList>', () => {
 
     // Opening the filter row consumes 3 rows; the track shrinks to match.
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     // contentHeight = rows(16) − title(1) − filter(3) − footer(2) = 10.
     expect(trackHeight(lastFrame() ?? '')).toBe(10)
   })
@@ -971,7 +943,7 @@ describe('<HistoryList>', () => {
     )
     // The unreadable row is focused by default (only row in the list).
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('Cannot open — invalid-yaml')
   })
@@ -987,7 +959,7 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).not.toContain('Cannot open')
   })
@@ -1004,14 +976,14 @@ describe('<HistoryList>', () => {
     )
     // Navigate to the unreadable row (second row, index 1) then press Enter.
     stdin.write('[B') // down arrow
-    await tick()
+    await yieldMacrotask()
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Cannot open — invalid-yaml')
 
     // Navigate away — status should clear.
     stdin.write('[A') // up arrow
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
   })
   // ── Finding #1: cannotOpenStatus cleared when entering filter mode ──────────
@@ -1028,12 +1000,12 @@ describe('<HistoryList>', () => {
     )
     // Press Enter on the unreadable row to set the "Cannot open" status.
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Cannot open — invalid-yaml')
 
     // Press / to enter filter mode — the stale "Cannot open" status must clear.
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
   })
 
@@ -1054,7 +1026,7 @@ describe('<HistoryList>', () => {
     )
     // Press Enter on the unreadable row to trigger the "Cannot open" error status.
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     // The raw (un-stripped) frame must include the bright-red SGR code on the
     // footer line containing "Cannot open".
     const frame = lastFrame() ?? ''
@@ -1163,14 +1135,14 @@ describe('<HistoryList>', () => {
     )
     // Open filter, type a substring matching BOTH entries (each query has 'i').
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('i')
-    await tick()
+    await yieldMacrotask()
     // Down then Enter must pick the second matching entry, not the first.
     stdin.write(`${ESC}[B`)
-    await tick()
+    await yieldMacrotask()
     stdin.write('\r')
-    await tick()
+    await yieldMacrotask()
     expect(onPick).toHaveBeenCalledWith(fakeEntries[1])
   })
 
@@ -1187,11 +1159,11 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('study')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC)
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // Filter row stays open; the cleared text shows all entries again.
     expect(frame).toContain('Filter ')
@@ -1211,7 +1183,7 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write(ESC)
-    await tick()
+    await yieldMacrotask()
     expect(onExit).toHaveBeenCalledOnce()
   })
 
@@ -1273,9 +1245,9 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC) // empty filter — closes the row, must not exit
-    await tick()
+    await yieldMacrotask()
     expect(onExit).not.toHaveBeenCalled()
   })
 
@@ -1290,9 +1262,9 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     stdin.write('study')
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Esc clear filter')
   })
 
@@ -1309,7 +1281,7 @@ describe('<HistoryList>', () => {
       />,
     )
     stdin.write('/')
-    await tick()
+    await yieldMacrotask()
     const lines = stripAnsi(lastFrame() ?? '').split('\n')
     const filterIndex = lines.findIndex((l) => l.includes('Filter '))
     expect(filterIndex).toBeGreaterThan(0)
@@ -1334,7 +1306,7 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       // Heading + permanence warning + key prompt.
       expect(frame).toContain('Delete consultation')
@@ -1361,7 +1333,7 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame).toContain('Delete consultation')
       expect(frame).toContain('[unreadable — invalid-yaml]')
@@ -1378,7 +1350,7 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame).not.toContain('Delete consultation')
       expect(frame).toContain('No consultations yet.')
@@ -1395,12 +1367,12 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write('\r')
-      await tick()
+      await yieldMacrotask()
       expect(stripAnsi(lastFrame() ?? '')).toContain(
         'Cannot open — invalid-yaml',
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       expect(stripAnsi(lastFrame() ?? '')).not.toContain('Cannot open')
     })
 
@@ -1417,9 +1389,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('Y')
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).toHaveBeenCalledOnce()
       expect(onDelete).toHaveBeenCalledWith('/x/a.md')
       // Modal closed.
@@ -1439,9 +1411,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('y')
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).toHaveBeenCalledOnce()
       expect(onDelete).toHaveBeenCalledWith('/x/a.md')
     })
@@ -1459,9 +1431,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('N')
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).not.toHaveBeenCalled()
       expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
     })
@@ -1479,9 +1451,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('n')
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).not.toHaveBeenCalled()
       expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
     })
@@ -1499,9 +1471,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write(ESC)
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).not.toHaveBeenCalled()
       expect(stripAnsi(lastFrame() ?? '')).not.toContain('Delete consultation')
     })
@@ -1519,9 +1491,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('\r')
-      await tick()
+      await yieldMacrotask()
       expect(onDelete).not.toHaveBeenCalled()
       expect(stripAnsi(lastFrame() ?? '')).toContain('Delete consultation')
     })
@@ -1537,13 +1509,13 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       // The modal identifies the first entry.
       expect(stripAnsi(lastFrame() ?? '')).toContain(
         'What will working with Raven be like?',
       )
       stdin.write(`${ESC}[B`) // down arrow — frozen
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       // Modal still open and still identifying the same (first) row.
       expect(frame).toContain('Delete consultation')
@@ -1564,9 +1536,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       // No filter row opened.
       expect(frame).not.toContain('Filter ')
@@ -1585,9 +1557,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       stdin.write(CTRL_D)
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       // The modal opened.
       expect(frame).toContain('Delete consultation')
@@ -1610,17 +1582,17 @@ describe('<HistoryList>', () => {
       )
       // Focus the second row (b.md / "Should I study…").
       stdin.write(`${ESC}[B`)
-      await tick()
+      await yieldMacrotask()
       // Open the filter and narrow to only the second row.
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       stdin.write('study')
-      await tick()
+      await yieldMacrotask()
       // Close the filter — list grows back to both rows.
       stdin.write(ESC) // clears text, keeps row open
-      await tick()
+      await yieldMacrotask()
       stdin.write(ESC) // closes the (now empty) filter row
-      await tick()
+      await yieldMacrotask()
       // The SAME row by identity must still be focused — its path in the
       // footer bottom line is b.md, not a.md.
       const frame = stripAnsi(lastFrame() ?? '')
@@ -1640,18 +1612,18 @@ describe('<HistoryList>', () => {
       )
       // Focus the second row (b.md / "Should I study…").
       stdin.write(`${ESC}[B`)
-      await tick()
+      await yieldMacrotask()
       // Filter to a needle that matches only a.md — b.md drops out of the list.
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       stdin.write('raven')
-      await tick()
+      await yieldMacrotask()
       // Clear and close the filter WITHOUT navigating — `focusPath` was never
       // rewritten, so identity-follow re-points to b.md once it reappears.
       stdin.write(ESC) // clears text
-      await tick()
+      await yieldMacrotask()
       stdin.write(ESC) // closes the empty filter row
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       const pathLine = frame.split('\n').find((l) => /\bb\.md/.test(l))
       expect(pathLine).toBeDefined()
@@ -1684,7 +1656,7 @@ describe('<HistoryList>', () => {
       )
       // Focus the middle row (index 1, b.md).
       stdin.write(`${ESC}[B`)
-      await tick()
+      await yieldMacrotask()
       expect(
         stripAnsi(lastFrame() ?? '')
           .split('\n')
@@ -1700,7 +1672,7 @@ describe('<HistoryList>', () => {
           onPick={() => {}}
         />,
       )
-      await tick()
+      await yieldMacrotask()
       // The row below the deletion (c.md) slides into index 1 and is focused.
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame.split('\n').some((l) => /\bc\.md/.test(l))).toBe(true)
@@ -1719,7 +1691,7 @@ describe('<HistoryList>', () => {
       )
       // Focus the last row (index 1, b.md).
       stdin.write('G')
-      await tick()
+      await yieldMacrotask()
       // Simulate deleting it — re-render with only the first entry.
       rerender(
         <HistoryList
@@ -1730,7 +1702,7 @@ describe('<HistoryList>', () => {
           onPick={() => {}}
         />,
       )
-      await tick()
+      await yieldMacrotask()
       // Focus falls back to the clamped index — the new last (only) row.
       const frame = stripAnsi(lastFrame() ?? '')
       const pathLine = frame.split('\n').find((l) => /\ba\.md/.test(l))
@@ -1766,7 +1738,7 @@ describe('<HistoryList>', () => {
       )
       expect(stripAnsi(lastFrame() ?? '')).toContain('Deleted a.md')
       stdin.write(`${ESC}[B`) // down arrow
-      await tick()
+      await yieldMacrotask()
       expect(stripAnsi(lastFrame() ?? '')).not.toContain('Deleted a.md')
     })
 
@@ -1837,7 +1809,7 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame).toContain('Esc close filter')
       expect(frame).toContain('^D delete')
@@ -1854,9 +1826,9 @@ describe('<HistoryList>', () => {
         />,
       )
       stdin.write('/')
-      await tick()
+      await yieldMacrotask()
       stdin.write('study')
-      await tick()
+      await yieldMacrotask()
       const frame = stripAnsi(lastFrame() ?? '')
       expect(frame).toContain('Esc clear filter')
       expect(frame).toContain('^D delete')

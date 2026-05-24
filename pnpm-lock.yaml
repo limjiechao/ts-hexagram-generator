@@ -173,6 +173,9 @@ importers:
         specifier: ^19.2.6
         version: 19.2.6
     devDependencies:
+      '@hexagram/test-utils':
+        specifier: workspace:*
+        version: link:../test-utils
       '@types/react':
         specifier: ^19.2.14
         version: 19.2.14
