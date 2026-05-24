@@ -2,7 +2,7 @@ import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CastingStatus, getCastingStatusHeight } from '../src/casting-status'
-import { tick } from './helpers/async'
+import { tick, waitFor } from './helpers/async'
 import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes'
 
 describe('CastingStatus', () => {
@@ -53,6 +53,28 @@ describe('CastingStatus', () => {
       />,
     )
     expect((lastFrame() ?? '').toLowerCase()).toContain('skip')
+    unmount()
+  })
+
+  it('fires onReady once per false→true active transition', async () => {
+    // Witness contract — see CastingStatusProps.onReady. The viewer (and
+    // tests) gate the next SPACE on this signal so a keystroke written
+    // between modal-close and useInput re-bind isn't silently dropped.
+    const onReady = vi.fn()
+    const props = {
+      lineNumber: 1 as const,
+      castIndex: 0 as const,
+      width: 60,
+      onSkip: () => {},
+      onReady,
+    }
+    const { rerender, unmount } = render(
+      <CastingStatus {...props} active={false} />,
+    )
+    // active=false on first render → onReady has not been called.
+    expect(onReady).not.toHaveBeenCalled()
+    rerender(<CastingStatus {...props} active />)
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     unmount()
   })
 
