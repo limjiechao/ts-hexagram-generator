@@ -17,5 +17,31 @@ export default sxzz().append(
       'baseline-js/use-baseline': 'off',
     },
   },
+  {
+    // Forbid `await tick(...)` in test files. The May 2026 9-round CI
+    // stabilisation (commits 4eae942 → 800d3fc) showed that the
+    // `stdin.write(...) → await tick() → expect(lastFrame())` pattern races
+    // unbounded async work on slow CI runners; the worst case landed at
+    // 4.5 s on Ubuntu under load. Use `waitFor(predicate)`,
+    // `waitForReady(spy)`, `pumpSliderTick(n)`, or `yieldMacrotask()` from
+    // `@hexagram/test-utils` instead — the assertion itself becomes the
+    // condition, no constant to tune. See the cross-platform-tests skill
+    // (signal #1) for the discriminating signal.
+    //
+    // Files that still call bare `await tick(...)` carry a top-of-file
+    // `/* eslint-disable no-restricted-syntax */` directive; Wave 3 lifts
+    // the disable as each file migrates.
+    files: ['**/*.test.ts', '**/*.test.tsx'],
+    rules: {
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "AwaitExpression > CallExpression[callee.name='tick']",
+          message:
+            'Use `waitFor(predicate)`, `waitForReady(spy)`, `pumpSliderTick(n)`, or `yieldMacrotask()` from `@hexagram/test-utils` instead of `await tick()`. See the cross-platform-tests skill, signal #1.',
+        },
+      ],
+    },
+  },
   ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
 )
