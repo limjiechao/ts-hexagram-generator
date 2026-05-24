@@ -31,6 +31,30 @@ const ESC = String.fromCodePoint(0x1b)
 const tick = (ms = 50): Promise<void> =>
   new Promise((resolve) => setTimeout(resolve, ms))
 
+/**
+ * Poll until `predicate()` doesn't throw, retrying every 20 ms up to a 2 s
+ * deadline. Replaces fixed-delay `tick()` waits for unbounded async work —
+ * the assertion itself is the condition, no constant to tune.
+ */
+async function waitFor<T>(
+  predicate: () => T,
+  { timeoutMs = 2000, intervalMs = 20 } = {},
+): Promise<T> {
+  const deadline = Date.now() + timeoutMs
+  let lastError: unknown
+  for (;;) {
+    try {
+      return predicate()
+    } catch (error) {
+      lastError = error
+    }
+    if (Date.now() >= deadline) {
+      throw lastError ?? new Error(`waitFor timed out after ${timeoutMs}ms`)
+    }
+    await new Promise((resolve) => setTimeout(resolve, intervalMs))
+  }
+}
+
 const fakeEntries = [
   {
     path: '/x/a.md',
@@ -73,6 +97,24 @@ describe('<HistoryList>', () => {
     // Empty state suppresses nav/filter hints — footer is just ESC quit.
     expect(frame).toContain('ESC quit')
     expect(frame).not.toContain('PgUp/PgDn')
+  })
+
+  it('fires onReady once after the mount binds useInput', async () => {
+    // Witness contract — see HistoryListProps.onReady. Tests gate the first
+    // cross-state keystroke on this signal instead of the `pressUntil` retry
+    // shim that round 8 (`800d3fc`) put in place.
+    const onReady = vi.fn()
+    render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
   })
 
   it('renders inside ScreenShell with the "Past Consultations" title (no round border)', () => {
