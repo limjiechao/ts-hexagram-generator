@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
 // Integration test for `<HexagramApp>` — the composition layer. It mounts the
 // real root component and drives the full PRD navigation model through
 // `ink-testing-library`, asserting the rendered screen at each step:
@@ -37,6 +36,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { getHexagramRecord } from '@hexagram/core/getters'
+import { waitFor as baseWaitFor, yieldMacrotask } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -73,47 +73,20 @@ function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, '')
 }
 
-/** Yield to the event loop so Ink can process queued stdin + re-render. */
-const tick = (ms = 60): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
-
 /**
- * Poll `predicate()` until it returns truthy (or `undefined`, treated as
- * truthy when the predicate is purely an assertion) or `timeoutMs` elapses.
- * Catches and retries on thrown errors, so an `expect(...)` assertion can be
- * dropped in directly — the assertion *is* the condition. On the final retry
- * the cached error is re-thrown, giving a useful failure message instead of
- * a bare timeout. Default deadline is 20000 ms because the shell integration
- * tests cascade multiple async stages per `it(...)` (cast playback → file
- * write → render), and the 18-cast slider auto-play takes ~12 s natural on
- * Windows GHA — ~670 ms per cast × 18 — bottlenecked by Ink's render cycle,
- * not by anything we can compress further. The package's `vitest.config.ts`
- * sets a 30000 ms `testTimeout` above that. See the `cross-platform-tests`
- * skill for the canonical pattern.
+ * Local `waitFor` wrapper around the workspace-shared helper, defaulted to
+ * 20 s instead of the helper's 4 s. The shell integration tests cascade
+ * multiple async stages per `it(...)` — cast playback → file write →
+ * render — and the 18-cast slider auto-play takes ~12 s natural on Windows
+ * GHA (~670 ms per cast × 18, bottlenecked by Ink's render cycle). The
+ * package's `vitest.config.ts` sets a 30 s `testTimeout` above the 20 s
+ * deadline. See the `cross-platform-tests` skill for the canonical pattern.
  */
-async function waitFor<T>(
+function waitFor<T>(
   predicate: () => T | Promise<T>,
-  {
-    timeoutMs = 20_000,
-    intervalMs = 20,
-  }: { timeoutMs?: number; intervalMs?: number } = {},
-): Promise<T | undefined> {
-  const deadline = Date.now() + timeoutMs
-  let lastError: unknown
-  for (;;) {
-    try {
-      const value = await predicate()
-      if (value !== false) return value
-    } catch (error) {
-      lastError = error
-    }
-    if (Date.now() >= deadline) {
-      throw lastError ?? new Error(`waitFor timed out after ${timeoutMs}ms`)
-    }
-    await new Promise((resolve) => setTimeout(resolve, intervalMs))
-  }
+  options?: { timeoutMs?: number; intervalMs?: number },
+): Promise<T> {
+  return baseWaitFor(predicate, { timeoutMs: 20_000, ...options })
 }
 
 const ESC = String.fromCodePoint(0x1b)
@@ -188,18 +161,18 @@ async function castRandomConsultation(
       bannerTestOverride={frozenBannerOverride()}
     />,
   )
-  await tick()
+  await yieldMacrotask()
   // Home: focus is on "New interactive" (row 1) — move down to "New random"
   // (row 2) and select it.
   handle.stdin.write(ARROW_DOWN)
-  await tick()
+  await yieldMacrotask()
   handle.stdin.write(ENTER)
-  await tick()
+  await yieldMacrotask()
   // Submit the query → the random flow plays its plan back cast-by-cast
   // through `casting`, then computing → done. Poll until the eighteen casts
   // and the real file write settle.
   handle.stdin.write(query)
-  await tick()
+  await yieldMacrotask()
   handle.stdin.write(ENTER)
   await waitFor(() => {
     expect(stripAnsi(handle.lastFrame() ?? '')).toContain('Standing Hexagram')
@@ -215,7 +188,7 @@ describe('<HexagramApp> — Home screen', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     // The old two-line banner is gone, replaced by the hexagram banner +
     // identity block.
@@ -241,7 +214,7 @@ describe('<HexagramApp> — Home screen', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     // The focused row rides a bold inverse bar — the `[7m` SGR code.
     const inverseLine = (lastFrame() ?? '')
       .split('\n')
@@ -262,11 +235,11 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     // The casting viewer mounted — its provenance title names the random flow.
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('Consultation · random')
@@ -309,13 +282,13 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     const { lastFrame, stdin, unmount } = render(
       <HexagramApp castingFlags={numericFlags} sliderCommitRevealMs={0} />,
     )
-    await tick()
+    await yieldMacrotask()
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     stdin.write('Will the harvest be plentiful?')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     await waitFor(() => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Standing Hexagram')
@@ -340,9 +313,9 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     // Home → Browse history (row 3). The history screen mounts fresh and
     // re-scans `consultations/`, so the consultation just cast appears.
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     // History scan is async — wait until the scan resolves and the row renders.
     await waitFor(() => {
@@ -368,9 +341,9 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
 
     // Home → Browse history.
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ARROW_DOWN)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
     await waitFor(() => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')
@@ -397,18 +370,18 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
 
     // Home → interactive casting (row 1, focused by default).
     stdin.write(ENTER)
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Consultation · interactive')
 
     // Type a query — this is unsaved cast progress — then press Esc.
     stdin.write('A half-typed question')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC)
-    await tick()
+    await yieldMacrotask()
 
     // The discard confirm is interposed; the app did NOT navigate to Home.
     const frame = stripAnsi(lastFrame() ?? '')
@@ -425,17 +398,17 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER) // → interactive casting
-    await tick()
+    await yieldMacrotask()
     stdin.write('Another half-typed question')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC) // open the discard confirm
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Discard this consultation?')
 
     stdin.write('n') // cancel — keep casting
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).not.toContain('Discard this consultation?')
     // Still on the casting screen, not Home.
@@ -452,17 +425,17 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER) // → interactive casting
-    await tick()
+    await yieldMacrotask()
     stdin.write('Yet another question')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC) // open the discard confirm
-    await tick()
+    await yieldMacrotask()
     expect(stripAnsi(lastFrame() ?? '')).toContain('Discard this consultation?')
 
     stdin.write('y') // confirm discard → back to Home
-    await tick()
+    await yieldMacrotask()
     const frame = stripAnsi(lastFrame() ?? '')
     expect(frame).toContain('New interactive consultation')
     expect(frame).not.toContain('Discard this consultation?')
@@ -486,14 +459,14 @@ describe('<HexagramApp> — animated home banner', () => {
         bannerTestOverride={override}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     const first = stripAnsi(lastFrame() ?? '')
     // The RNG threaded through: the all-yang figure is 乾.
     expect(first).toContain('乾')
 
     // The interval-disable flag threaded through: after ~3 banner ticks'
     // worth of real time the frame is byte-identical — the banner is frozen.
-    await tick(350)
+    await yieldMacrotask(350)
     expect(stripAnsi(lastFrame() ?? '')).toBe(first)
     unmount()
   })
@@ -512,14 +485,14 @@ describe('<HexagramApp> — animated home banner', () => {
         bannerTestOverride={override}
       />,
     )
-    await tick()
+    await yieldMacrotask()
     const settled = stripAnsi(lastFrame() ?? '')
     expect(settled).not.toContain('✕')
 
     // Poll across several cycles' worth of ticks for a moving marker.
     let animated = false
     for (let beat = 0; beat < 40; beat += 1) {
-      await tick(50)
+      await yieldMacrotask(50)
       if (stripAnsi(lastFrame() ?? '').includes('✕')) {
         animated = true
         break
