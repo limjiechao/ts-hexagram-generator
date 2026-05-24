@@ -31,6 +31,14 @@ interface CastingStatusProps {
    * routes its own SPACE.
    */
   onSkip: () => void
+  /**
+   * Witness signal — fired once per `active: false → true` transition from
+   * inside the same `useEffect` that binds `useInput`. Lets the viewer (and
+   * tests) gate cross-state keystrokes on the input handler being live,
+   * sidestepping Ink's bind race where `useInput` registers on the macrotask
+   * after commit and bytes written in between are silently dropped.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -54,6 +62,7 @@ export function CastingStatus({
   width,
   active,
   onSkip,
+  onReady,
 }: CastingStatusProps): ReactElement {
   // Latest-`onSkip` ref so the `useInput` handler always calls the current
   // callback without `useInput` re-subscribing when the parent hands a fresh
@@ -61,6 +70,13 @@ export function CastingStatus({
   const onSkipRef = useRef(onSkip)
   useEffect(() => {
     onSkipRef.current = onSkip
+  })
+
+  // Latest-`onReady` ref so the fire-once effect below never has to depend on
+  // (and re-run for) a fresh closure from the parent.
+  const onReadyRef = useRef(onReady)
+  useEffect(() => {
+    onReadyRef.current = onReady
   })
 
   useInput(
@@ -71,6 +87,22 @@ export function CastingStatus({
     },
     { isActive: active },
   )
+
+  // Witness the `active: false → true` transition from inside a `useEffect`
+  // — which runs on the same post-commit macrotask phase as Ink's internal
+  // `useInput` listener registration. Firing here is positive proof that the
+  // keyboard handler is bound: callers (viewer, tests) can gate the next
+  // SPACE on `onReady` and dodge the bind-race window where bytes written
+  // between commit and bind would be silently dropped.
+  const wasActiveRef = useRef(false)
+  useEffect(() => {
+    if (active && !wasActiveRef.current) {
+      wasActiveRef.current = true
+      onReadyRef.current?.()
+    } else if (!active && wasActiveRef.current) {
+      wasActiveRef.current = false
+    }
+  }, [active])
 
   return (
     <Box
