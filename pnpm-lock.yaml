@@ -211,6 +211,8 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
+  packages/test-utils: {}
+
   packages/types: {}
 
   packages/viewer-core:

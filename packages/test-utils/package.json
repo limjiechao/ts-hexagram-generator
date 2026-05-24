@@ -1,0 +1,24 @@
+{
+  "name": "@hexagram/test-utils",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Test helpers for the Yijing hexagram oracle workspace — waitFor, waitForReady, pressUntil, yieldMacrotask, pumpSliderTick",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  }
+}
