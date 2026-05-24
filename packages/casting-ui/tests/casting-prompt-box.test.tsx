@@ -90,6 +90,28 @@ describe('CastingPromptBox', () => {
     expect(onSubmit).toHaveBeenCalledWith(25)
     unmount()
   })
+
+  it('fires onReady once after the slider-mode mount binds useInput', async () => {
+    // Witness contract — see SliderInputProps.onReady. Tests gate cross-cast
+    // SPACE on this signal instead of the spinner-glyph exploit.
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { unmount } = render(
+      <CastingPromptBox
+        lineNumber={1}
+        castIndex={0}
+        min={1}
+        max={48}
+        width={60}
+        inputMode="slider"
+        tickMs={50}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
+    unmount()
+  })
 })
 
 // ── SliderInput ──────────────────────────────────────────────────────────────
