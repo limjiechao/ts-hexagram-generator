@@ -2,12 +2,13 @@ import { defineConfig } from 'vitest/config'
 
 // Shell hosts integration tests that drive Home → casting → done end-to-end
 // through 18 cast iterations + a real file write, plus a 64-iteration
-// synchronous banner-layout render loop. On Windows GHA both can run 4-6 s,
-// brushing against vitest's default 5 s testTimeout with zero headroom.
-// Bumping the budget here keeps the same tests well within their natural
-// duration while still bounding a real hang.
+// synchronous banner-layout render loop. The 18-cast slider auto-play takes
+// ~12 s natural on Windows GHA (~670 ms per cast × 18), bottlenecked by
+// Ink's render cycle. The local `waitFor` helper gives those tests a 20 s
+// deadline; this `testTimeout` sits comfortably above that so a real hang
+// still surfaces as a useful diagnostic.
 export default defineConfig({
   test: {
-    testTimeout: 15_000,
+    testTimeout: 30_000,
   },
 })

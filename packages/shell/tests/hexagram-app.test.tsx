@@ -84,16 +84,18 @@ const tick = (ms = 60): Promise<void> =>
  * Catches and retries on thrown errors, so an `expect(...)` assertion can be
  * dropped in directly — the assertion *is* the condition. On the final retry
  * the cached error is re-thrown, giving a useful failure message instead of
- * a bare timeout. Default deadline is 8000 ms because the shell integration
+ * a bare timeout. Default deadline is 20000 ms because the shell integration
  * tests cascade multiple async stages per `it(...)` (cast playback → file
- * write → render); the package's `vitest.config.ts` sets a 15000 ms
- * `testTimeout` above that. See the `cross-platform-tests` skill for the
- * canonical pattern.
+ * write → render), and the 18-cast slider auto-play takes ~12 s natural on
+ * Windows GHA — ~670 ms per cast × 18 — bottlenecked by Ink's render cycle,
+ * not by anything we can compress further. The package's `vitest.config.ts`
+ * sets a 30000 ms `testTimeout` above that. See the `cross-platform-tests`
+ * skill for the canonical pattern.
  */
 async function waitFor<T>(
   predicate: () => T | Promise<T>,
   {
-    timeoutMs = 8000,
+    timeoutMs = 20_000,
     intervalMs = 20,
   }: { timeoutMs?: number; intervalMs?: number } = {},
 ): Promise<T | undefined> {

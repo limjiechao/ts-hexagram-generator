@@ -39,7 +39,7 @@ const tick = (ms = 60): Promise<void> =>
 async function waitFor<T>(
   predicate: () => T | Promise<T>,
   {
-    timeoutMs = 4000,
+    timeoutMs = 8000,
     intervalMs = 20,
   }: { timeoutMs?: number; intervalMs?: number } = {},
 ): Promise<T | undefined> {
@@ -338,10 +338,14 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     await waitFor(async () => {
       await expect(fs.access(movingPath)).rejects.toThrow()
     })
-    const frame = stripAnsi(lastFrame() ?? '')
-    // The deleted row disappears; the surviving row stays.
-    expect(frame).not.toContain('happen')
-    expect(frame).toContain('Berlin')
+    // On a slow runner the list re-render can lag the in-app `fs.unlink`
+    // resolution by one or two paints — poll the frame as well.
+    await waitFor(() => {
+      const frame = stripAnsi(lastFrame() ?? '')
+      // The deleted row disappears; the surviving row stays.
+      expect(frame).not.toContain('happen')
+      expect(frame).toContain('Berlin')
+    })
   })
 
   it('shows a "✓ Deleted …" status line in the footer after a successful delete', async () => {
