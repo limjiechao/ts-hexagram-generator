@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'

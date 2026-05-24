@@ -1,3 +1,4 @@
+/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
 // Integration test for `<HexagramApp>` — the composition layer. It mounts the
 // real root component and drives the full PRD navigation model through
 // `ink-testing-library`, asserting the rendered screen at each step:
