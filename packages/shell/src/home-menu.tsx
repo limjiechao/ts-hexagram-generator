@@ -11,7 +11,7 @@
 
 import { BOLD_WHITE, NORMAL, ScreenShell } from '@hexagram/viewer-core'
 import { Box, Text, useInput, useWindowSize } from 'ink'
-import { useState, type ReactElement } from 'react'
+import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 import { AnimatedBanner } from './animated-banner.js'
 import type { BannerTestOverride } from './banner-state.js'
@@ -62,12 +62,31 @@ interface HomeMenuProps {
    * Production never sets it — the live animation is the default.
    */
   bannerTestOverride?: BannerTestOverride
+  /**
+   * Fired exactly once per mount, in a `useEffect` that runs after this
+   * component's `useInput` registration has been bound to Ink's stdin
+   * dispatcher. The contract is: by the time `onReady` is called, the next
+   * `stdin.write(...)` will be received by this menu's `useInput` handler.
+   *
+   * Exists to defuse the `useInput` bind race that previously forced test
+   * helpers (`pressUntil`) to retry the first cross-state keystroke up to ten
+   * times: Ink registers a `useInput` handler inside its own `useEffect`,
+   * which runs *after* the render commit on the next macrotask. Bytes written
+   * between commit and bind get dispatched to ancestor handlers and silently
+   * dropped. Because effects fire in declaration order, the `useEffect`
+   * powering this callback is queued immediately after the `useInput` hook
+   * above and therefore runs only once Ink's listener is in place — see the
+   * matching witness on `<HistoryList>` and `<CastingStatus>` for prior art.
+   * Defaults to a no-op.
+   */
+  onReady?: () => void
 }
 
 export function HomeMenu({
   onSelect,
   onQuit,
   bannerTestOverride,
+  onReady,
 }: HomeMenuProps): ReactElement {
   const { columns, rows } = useWindowSize()
   const cols = columns || 80
@@ -97,6 +116,25 @@ export function HomeMenu({
       if (item != null) onSelect(item.value)
     }
   })
+
+  // ── onReady witness signal ────────────────────────────────────────────────
+  // Fires after this component's `useInput` registration above has bound to
+  // Ink's stdin dispatcher. Effects run in declaration order, so this
+  // `useEffect` is queued immediately after the one Ink uses internally for
+  // `useInput` — by the time `onReady` is invoked, the next `stdin.write` is
+  // guaranteed to land on the handler above. Guarded by a ref so it fires
+  // exactly once per mount even if `onReady` identity changes between
+  // renders (a re-fire would defeat its meaning as a one-shot ready latch).
+  const readyFiredRef = useRef(false)
+  // `onReady` is read once on mount; subsequent identity changes do not
+  // re-fire the latch. The empty dep array is intentional and is NOT a
+  // missing-dep mistake — see the JSDoc on `onReady` for the contract.
+  useEffect(() => {
+    if (readyFiredRef.current) return
+    readyFiredRef.current = true
+    onReady?.()
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // ── Menu — three flat selectable rows. The focused row rides a bold inverse
   // bar (same affordance as the history list's focused row); the rest render
