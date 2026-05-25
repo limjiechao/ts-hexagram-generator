@@ -1,5 +1,5 @@
 /* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
-import { waitFor } from '@hexagram/test-utils'
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -7,10 +7,6 @@ import { ConfirmModal } from '../src/confirm-modal.js'
 import { stripAnsi } from '../src/viewer-layout.js'
 
 const ESC = String.fromCodePoint(0x1b)
-
-/** Yield to the event loop so Ink can process queued stdin + re-render. */
-const tick = (ms = 50): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms))
 
 describe('<ConfirmModal> — rendering', () => {
   it('renders the title, body lines and prompt', () => {
@@ -70,6 +66,7 @@ describe('<ConfirmModal> — keypress callbacks', () => {
   it('fires onConfirm when the confirm key (default Y) is pressed', async () => {
     const onConfirm = vi.fn()
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -78,17 +75,19 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write('Y')
-    await tick()
-    expect(onConfirm).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledOnce())
     expect(onCancel).not.toHaveBeenCalled()
     unmount()
   })
 
   it('confirm key is case-insensitive — lowercase y also fires onConfirm', async () => {
     const onConfirm = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -97,17 +96,19 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={() => {}}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write('y')
-    await tick()
-    expect(onConfirm).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledOnce())
     unmount()
   })
 
   it('fires onCancel when the cancel key (default N) is pressed', async () => {
     const onConfirm = vi.fn()
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -116,17 +117,19 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write('N')
-    await tick()
-    expect(onCancel).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce())
     expect(onConfirm).not.toHaveBeenCalled()
     unmount()
   })
 
   it('cancel key is case-insensitive — lowercase n also fires onCancel', async () => {
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -135,17 +138,19 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={() => {}}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write('n')
-    await tick()
-    expect(onCancel).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce())
     unmount()
   })
 
   it('fires onCancel when Escape is pressed', async () => {
     const onConfirm = vi.fn()
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -154,11 +159,12 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write(ESC)
-    await tick()
-    expect(onCancel).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce())
     expect(onConfirm).not.toHaveBeenCalled()
     unmount()
   })
@@ -166,6 +172,7 @@ describe('<ConfirmModal> — keypress callbacks', () => {
   it('ignores unrelated keys — no callback fires', async () => {
     const onConfirm = vi.fn()
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -174,14 +181,16 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     stdin.write('\r') // Enter
-    await tick()
+    await yieldMacrotask()
     stdin.write('x')
-    await tick()
+    await yieldMacrotask()
     stdin.write(`${ESC}[B`) // down arrow
-    await tick()
+    await yieldMacrotask()
     expect(onConfirm).not.toHaveBeenCalled()
     expect(onCancel).not.toHaveBeenCalled()
     unmount()
@@ -189,6 +198,7 @@ describe('<ConfirmModal> — keypress callbacks', () => {
 
   it('ignores the confirm key when modified by Ctrl', async () => {
     const onConfirm = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -197,11 +207,13 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         innerCols={60}
         onConfirm={onConfirm}
         onCancel={() => {}}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     // U+0019 is Ctrl+Y — input='y', key.ctrl=true; must not confirm.
     stdin.write(String.fromCodePoint(0x19))
-    await tick()
+    await yieldMacrotask()
     expect(onConfirm).not.toHaveBeenCalled()
     unmount()
   })
@@ -209,6 +221,7 @@ describe('<ConfirmModal> — keypress callbacks', () => {
   it('honours custom confirm/cancel keys supplied via props', async () => {
     const onConfirm = vi.fn()
     const onCancel = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <ConfirmModal
         title="Confirm"
@@ -219,19 +232,19 @@ describe('<ConfirmModal> — keypress callbacks', () => {
         cancelKey="k"
         onConfirm={onConfirm}
         onCancel={onCancel}
+        onReady={onReady}
       />,
     )
+    await waitForReady(onReady)
     // The default Y/N must no longer confirm/cancel.
     stdin.write('y')
-    await tick()
+    await yieldMacrotask()
     expect(onConfirm).not.toHaveBeenCalled()
     // The custom keys do.
     stdin.write('d')
-    await tick()
-    expect(onConfirm).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onConfirm).toHaveBeenCalledOnce())
     stdin.write('k')
-    await tick()
-    expect(onCancel).toHaveBeenCalledOnce()
+    await waitFor(() => expect(onCancel).toHaveBeenCalledOnce())
     unmount()
   })
 })
