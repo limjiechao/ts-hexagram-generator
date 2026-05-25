@@ -1,4 +1,3 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
 import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
@@ -8,6 +7,7 @@ import {
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file'
+import { yieldMacrotask } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
@@ -23,10 +23,6 @@ const ANSI_PATTERN = new RegExp(
 function stripAnsi(text: string): string {
   return text.replace(ANSI_PATTERN, '')
 }
-
-/** Yield to the event loop so Ink can process queued stdin + re-render. */
-const tick = (ms = 60): Promise<void> =>
-  new Promise((resolve) => setTimeout(resolve, ms))
 
 /**
  * Poll `predicate()` until it returns truthy (or `undefined`, treated as
@@ -65,7 +61,7 @@ async function waitFor<T>(
  * pass — i.e. the post-scan list heading (`Past Consultations · …`) or the
  * empty-state header (`No consultations yet.`) is rendered, *not* the
  * transient `Loading consultations from …` placeholder. Use this in place of
- * a blind `await tick()` right after `render(<HistoryApp …/>)` so subsequent
+ * a blind macrotask yield right after `render(<HistoryApp …/>)` so subsequent
  * `stdin.write(...)` calls land on a list whose `useInput` handler has a
  * focused row to act on.
  */
@@ -401,12 +397,13 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
-    await tick()
+    await yieldMacrotask()
     stdin.write('n')
-    await tick()
     // The file is still on disk (cancel is synchronous — no async wait needed).
     await expect(fs.access(movingPath)).resolves.toBeUndefined()
-    expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('happen')
+    })
   })
 
   it('Ctrl+D then Esc cancels — the file is left on disk', async () => {
@@ -414,7 +411,7 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     const { lastFrame, stdin } = render(<HistoryApp dir={tmpDir} />)
     await awaitListReady(lastFrame)
     stdin.write(CTRL_D)
-    await tick()
+    await yieldMacrotask()
     stdin.write(ESC)
     // After modal-cancel the list must re-render with the row content visible.
     await waitFor(() => {
@@ -431,7 +428,7 @@ describe('<HistoryApp> — Ctrl+D delete', () => {
     // Delete the focused file out-of-band so the in-app fs.unlink rejects.
     await fs.rm(movingPath)
     stdin.write(CTRL_D)
-    await tick()
+    await yieldMacrotask()
     stdin.write('y')
     // Wait until the error-tone status line shows up in the footer.
     await waitFor(() => {
@@ -539,7 +536,12 @@ describe('<HistoryApp> — injectable top-level exit', () => {
       frame.includes('Filter '),
     )
     stdin.write(ESC) // closes / clears the filter row, must not exit
-    await tick()
+    // Re-render after ESC: the filter row closes (or its text clears) — pick a
+    // visible signal that the keystroke has been processed so the subsequent
+    // negative assertion on `onExit` isn't racing the dispatch.
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).not.toContain('Filter ')
+    })
     expect(onExit).not.toHaveBeenCalled()
   })
 })
