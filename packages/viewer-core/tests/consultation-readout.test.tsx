@@ -1,5 +1,4 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
-import { waitFor } from '@hexagram/test-utils'
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { Text } from 'ink'
 import { render } from 'ink-testing-library'
@@ -21,11 +20,6 @@ vi.mock('ink', async (importOriginal) => {
   const actual = await importOriginal<typeof import('ink')>()
   return { ...actual, useWindowSize: () => windowSize.current }
 })
-
-const tick = (ms = 50): Promise<void> =>
-  new Promise((resolve) => {
-    setTimeout(resolve, ms)
-  })
 
 const TAB = '\t'
 
@@ -114,12 +108,15 @@ describe('ConsultationReadout — done (unlocked) state', () => {
   })
 
   it('switches tabs on Tab when unlocked', async () => {
-    const { lastFrame, stdin, unmount } = renderReadout({})
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = renderReadout({ onReady })
+    // Gate the first TAB on the onReady witness so the keystroke lands
+    // after Ink's useInput has bound to stdin — see ink-useinput-bind skill.
+    await waitForReady(onReady)
     const before = lastFrame() ?? ''
     stdin.write(TAB)
-    await tick()
+    await waitFor(() => expect(lastFrame() ?? '').not.toBe(before))
     const after = lastFrame() ?? ''
-    expect(after).not.toBe(before)
     expect(after).toContain('TRANSFORMATION:')
     unmount()
   })
@@ -143,10 +140,20 @@ describe('ConsultationReadout — locked (in-flow) state', () => {
   })
 
   it('does not switch tabs on Tab while locked', async () => {
-    const { lastFrame, stdin, unmount } = renderReadout({ locked: true })
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = renderReadout({
+      locked: true,
+      onReady,
+    })
+    // Gate the first TAB on the onReady witness so the keystroke lands
+    // after Ink's useInput has bound to stdin — see ink-useinput-bind skill.
+    await waitForReady(onReady)
     const before = lastFrame() ?? ''
     stdin.write(TAB)
-    await tick()
+    // Negative assertion — yield one macrotask to let any in-flight
+    // dispatch reach the input handler before asserting the frame did
+    // not change.
+    await yieldMacrotask()
     expect(lastFrame() ?? '').toBe(before)
     unmount()
   })
@@ -276,10 +283,13 @@ describe('ConsultationReadout — optional title / notice / onExit', () => {
 
   it('invokes the onExit prop on Escape', async () => {
     const onExit = vi.fn()
-    const { stdin, unmount } = renderReadout({ onExit })
+    const onReady = vi.fn()
+    const { stdin, unmount } = renderReadout({ onExit, onReady })
+    // Gate the first keystroke on the onReady witness so Escape lands
+    // after Ink's useInput has bound to stdin — see ink-useinput-bind skill.
+    await waitForReady(onReady)
     stdin.write('')
-    await tick()
-    expect(onExit).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(onExit).toHaveBeenCalledTimes(1))
     unmount()
   })
 })
