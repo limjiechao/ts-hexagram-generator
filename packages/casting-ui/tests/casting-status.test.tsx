@@ -1,9 +1,8 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CastingStatus, getCastingStatusHeight } from '../src/casting-status'
-import { tick, waitFor } from './helpers/async'
 import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes'
 
 describe('CastingStatus', () => {
@@ -81,6 +80,7 @@ describe('CastingStatus', () => {
 
   it('routes SPACE to onSkip while active', async () => {
     const onSkip = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <CastingStatus
         lineNumber={1}
@@ -88,11 +88,14 @@ describe('CastingStatus', () => {
         width={60}
         active
         onSkip={onSkip}
+        onReady={onReady}
       />,
     )
+    // Gate the first SPACE on the onReady witness so the keystroke lands
+    // after Ink's useInput has bound to stdin — see ink-useinput-bind skill.
+    await waitForReady(onReady)
     stdin.write(SPACE)
-    await tick()
-    expect(onSkip).toHaveBeenCalledTimes(1)
+    await waitFor(() => expect(onSkip).toHaveBeenCalledTimes(1))
     unmount()
   })
 
@@ -107,14 +110,18 @@ describe('CastingStatus', () => {
         onSkip={onSkip}
       />,
     )
+    // `active=false` on mount — the `onReady` witness never fires (it's
+    // gated on a false→true transition), so we yield one macrotask to let
+    // any in-flight dispatch reach `onSkip` before asserting it didn't.
     stdin.write(SPACE)
-    await tick()
+    await yieldMacrotask()
     expect(onSkip).not.toHaveBeenCalled()
     unmount()
   })
 
   it('ignores global exit keys (Esc / Ctrl+C)', async () => {
     const onSkip = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <CastingStatus
         lineNumber={1}
@@ -122,12 +129,17 @@ describe('CastingStatus', () => {
         width={60}
         active
         onSkip={onSkip}
+        onReady={onReady}
       />,
     )
+    // Gate the first keystroke on the onReady witness.
+    await waitForReady(onReady)
     stdin.write(ESCAPE)
-    await tick()
+    await yieldMacrotask()
     stdin.write(CTRL_C)
-    await tick()
+    // Negative assertion — give the second keystroke a macrotask to land
+    // (or not land) before asserting `onSkip` was never called.
+    await yieldMacrotask()
     expect(onSkip).not.toHaveBeenCalled()
     unmount()
   })
