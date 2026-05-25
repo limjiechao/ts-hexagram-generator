@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { Text } from 'ink'
 import { render } from 'ink-testing-library'
@@ -76,6 +77,16 @@ beforeEach(() => {
 })
 
 describe('ConsultationReadout — done (unlocked) state', () => {
+  it('fires onReady once after useInput is bound', async () => {
+    // Witness contract — see ConsultationReadoutProps.onReady. Hosts gate
+    // the first cross-state keystroke on this signal so a keystroke written
+    // between render-commit and Ink's useInput bind is not silently dropped.
+    const onReady = vi.fn()
+    const { unmount } = renderReadout({ onReady })
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
+    unmount()
+  })
+
   it('renders the query slot, all four tabs, and the saved path', () => {
     const { lastFrame, unmount } = renderReadout({})
     const frame = lastFrame() ?? ''
