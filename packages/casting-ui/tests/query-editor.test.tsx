@@ -4,7 +4,7 @@ import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { QueryEditor } from '../src/query-editor'
-import { tick } from './helpers/async'
+import { tick, waitFor } from './helpers/async'
 import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 
 // Controlled-state host so tests exercise the editor exactly the way the
@@ -190,6 +190,29 @@ describe('QueryEditor', () => {
     await tick()
     expect(onSubmit).toHaveBeenCalledTimes(1)
     expect(onSubmit).toHaveBeenCalledWith('Hello')
+    unmount()
+  })
+
+  it('fires onReady once per false→true focused transition', async () => {
+    // Witness contract — see QueryEditorProps.onReady. The viewer (and
+    // tests) gate the next keystroke on this signal so a byte written
+    // between commit and useInput bind isn't silently dropped.
+    const onReady = vi.fn()
+    const props = {
+      value: '',
+      width: 40,
+      placeholder: 'Enter your query',
+      onChange: () => {},
+      onSubmit: () => {},
+      onReady,
+    }
+    const { rerender, unmount } = render(
+      <QueryEditor {...props} focused={false} />,
+    )
+    // focused=false on first render → onReady has not been called.
+    expect(onReady).not.toHaveBeenCalled()
+    rerender(<QueryEditor {...props} focused />)
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     unmount()
   })
 
