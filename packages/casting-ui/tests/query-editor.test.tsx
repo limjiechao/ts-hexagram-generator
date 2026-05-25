@@ -1,10 +1,9 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { QueryEditor } from '../src/query-editor'
-import { tick, waitFor } from './helpers/async'
 import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 
 // Controlled-state host so tests exercise the editor exactly the way the
@@ -13,10 +12,12 @@ function QueryEditorHost({
   onSubmit,
   initialValue = '',
   focused = true,
+  onReady,
 }: {
   onSubmit: (final: string) => void
   initialValue?: string
   focused?: boolean
+  onReady?: () => void
 }): ReactElement {
   const [value, setValue] = useState(initialValue)
   return (
@@ -27,6 +28,7 @@ function QueryEditorHost({
       placeholder="Enter your query"
       onChange={setValue}
       onSubmit={() => onSubmit(value)}
+      onReady={onReady}
     />
   )
 }
@@ -121,16 +123,18 @@ describe('QueryEditor', () => {
 
   it('accumulates typed characters', async () => {
     const onSubmit = vi.fn()
+    const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
-      <QueryEditorHost onSubmit={onSubmit} />,
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
     )
+    // Gate the first keystroke on the onReady witness so the byte lands
+    // after Ink's useInput has bound to stdin — see ink-useinput-bind skill.
+    await waitForReady(onReady)
     stdin.write('Hi')
-    await tick()
-    const frame = lastFrame() ?? ''
-    expect(frame).toContain('Hi')
+    await waitFor(() => expect(lastFrame() ?? '').toContain('Hi'))
 
     // The typed text follows the `▌ ` accent bar — no border character.
-    const inputRow = frame
+    const inputRow = (lastFrame() ?? '')
       .split('\n')
       .find((row) => row.includes('Hi')) as string
     expect(inputRow).toBeDefined()
@@ -141,55 +145,76 @@ describe('QueryEditor', () => {
 
   it('accepts q as a regular character', async () => {
     const onSubmit = vi.fn()
+    const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
-      <QueryEditorHost onSubmit={onSubmit} />,
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
     )
+    await waitForReady(onReady)
     stdin.write('quit?')
-    await tick()
-    expect(lastFrame() ?? '').toContain('quit?')
+    await waitFor(() => expect(lastFrame() ?? '').toContain('quit?'))
     unmount()
   })
 
   it('pops characters on backspace', async () => {
     const onSubmit = vi.fn()
+    const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
-      <QueryEditorHost onSubmit={onSubmit} />,
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
     )
+    await waitForReady(onReady)
     stdin.write('Hello')
-    await tick()
+    await yieldMacrotask()
     stdin.write(BACKSPACE)
-    await tick()
-    expect(lastFrame() ?? '').toContain('Hell')
-    expect(lastFrame() ?? '').not.toContain('Hello')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Hell')
+      expect(lastFrame() ?? '').not.toContain('Hello')
+    })
     unmount()
   })
 
   it('treats backspace on empty buffer as a no-op', async () => {
     const onSubmit = vi.fn()
-    const { stdin, unmount } = render(<QueryEditorHost onSubmit={onSubmit} />)
+    const onReady = vi.fn()
+    const { stdin, unmount } = render(
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
     expect(() => stdin.write(BACKSPACE)).not.toThrow()
-    await tick()
+    // No assertion follows — yield one macrotask to let any in-flight
+    // dispatch settle before unmount, matching the prior tick() shape.
+    await yieldMacrotask()
     unmount()
   })
 
   it('does not submit on Enter with an empty buffer', async () => {
     const onSubmit = vi.fn()
-    const { stdin, unmount } = render(<QueryEditorHost onSubmit={onSubmit} />)
+    const onReady = vi.fn()
+    const { stdin, unmount } = render(
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
     stdin.write(ENTER)
-    await tick()
+    // Negative assertion — yield one macrotask so the keystroke has a
+    // chance to dispatch before asserting it didn't call onSubmit.
+    await yieldMacrotask()
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
 
   it('submits on Enter when the buffer is non-empty', async () => {
     const onSubmit = vi.fn()
-    const { stdin, unmount } = render(<QueryEditorHost onSubmit={onSubmit} />)
+    const onReady = vi.fn()
+    const { stdin, unmount } = render(
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
     stdin.write('Hello')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
-    expect(onSubmit).toHaveBeenCalledTimes(1)
-    expect(onSubmit).toHaveBeenCalledWith('Hello')
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      expect(onSubmit).toHaveBeenCalledWith('Hello')
+    })
     unmount()
   })
 
@@ -218,12 +243,17 @@ describe('QueryEditor', () => {
 
   it('does not consume Escape or Ctrl+C', async () => {
     const onSubmit = vi.fn()
+    const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
-      <QueryEditorHost onSubmit={onSubmit} />,
+      <QueryEditorHost onSubmit={onSubmit} onReady={onReady} />,
     )
+    await waitForReady(onReady)
     stdin.write(ESCAPE)
+    await yieldMacrotask()
     stdin.write(CTRL_C)
-    await tick()
+    // Negative assertion — give the second keystroke a macrotask to land
+    // before asserting the buffer didn't collect either byte.
+    await yieldMacrotask()
     // The buffer must NOT have collected escape/ctrl-c bytes; placeholder
     // still shown because nothing was typed.
     expect(lastFrame() ?? '').toContain('Enter your query')
