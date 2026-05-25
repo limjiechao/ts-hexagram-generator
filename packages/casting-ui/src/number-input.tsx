@@ -1,5 +1,5 @@
 import { Text, useInput } from 'ink'
-import type { ReactElement } from 'react'
+import { useEffect, useRef, type ReactElement } from 'react'
 
 import { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
@@ -11,6 +11,14 @@ interface NumberInputProps {
   onChange: (next: string) => void
   onSubmit: (parsed: number) => void
   onError: (message: string | null) => void
+  /**
+   * Witness signal — fired once per `focused: false → true` transition from
+   * inside the same `useEffect` that binds `useInput`. Lets the parent (and
+   * tests) gate cross-state keystrokes on the input handler being live,
+   * sidestepping Ink's bind race where `useInput` registers on the macrotask
+   * after commit and bytes written in between are silently dropped.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -28,7 +36,15 @@ export function NumberInput({
   onChange,
   onSubmit,
   onError,
+  onReady,
 }: NumberInputProps): ReactElement {
+  // Latest-`onReady` ref so the fire-once effect below never has to depend on
+  // (and re-run for) a fresh closure from the parent.
+  const onReadyRef = useRef(onReady)
+  useEffect(() => {
+    onReadyRef.current = onReady
+  })
+
   useInput(
     (input, key) => {
       if (isGlobalExitKey(input, key)) return
@@ -58,6 +74,22 @@ export function NumberInput({
     },
     { isActive: focused },
   )
+
+  // Witness the `focused: false → true` transition from inside a `useEffect`
+  // — which runs on the same post-commit macrotask phase as Ink's internal
+  // `useInput` listener registration. Firing here is positive proof that the
+  // keyboard handler is bound: callers (parent, tests) can gate the next
+  // keystroke on `onReady` and dodge the bind-race window where bytes written
+  // between commit and bind would be silently dropped.
+  const wasFocusedRef = useRef(false)
+  useEffect(() => {
+    if (focused && !wasFocusedRef.current) {
+      wasFocusedRef.current = true
+      onReadyRef.current?.()
+    } else if (!focused && wasFocusedRef.current) {
+      wasFocusedRef.current = false
+    }
+  }, [focused])
 
   return (
     <>
