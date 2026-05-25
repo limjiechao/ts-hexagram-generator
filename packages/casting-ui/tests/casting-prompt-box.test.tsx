@@ -1,10 +1,10 @@
-/* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CastingPromptBox, SliderInput } from '../src/casting-prompt-box'
-import { tick, waitFor } from './helpers/async'
+import { tick } from './helpers/async'
 import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
@@ -84,11 +84,12 @@ describe('CastingPromptBox', () => {
       <CastingPromptBoxHost onSubmit={onSubmit} onError={onError} />,
     )
     stdin.write('25')
-    await tick()
+    await yieldMacrotask()
     stdin.write(ENTER)
-    await tick()
-    expect(onSubmit).toHaveBeenCalledTimes(1)
-    expect(onSubmit).toHaveBeenCalledWith(25)
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      expect(onSubmit).toHaveBeenCalledWith(25)
+    })
     unmount()
   })
 
