@@ -47,8 +47,8 @@ export {
 export {
   castingSection,
   emergingHexagramSection,
+  hexagramTextSection,
   linesBlock,
-  noMovingLinesSection,
   querySection,
   standingHexagramSection,
   transformationSection,

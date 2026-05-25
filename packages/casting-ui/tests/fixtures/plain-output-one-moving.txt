@@ -72,6 +72,46 @@
   [1;97mLXIV. The Wei Žî Hexagram
 
 
+[1;90mHEXAGRAM:
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m未濟：亨，小狐汔濟，濡其尾，无攸利。
+
+  [0m(Exegesis)
+  [1;97m火在水上，未濟；君子以慎辨物居方。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m未济：亨，小狐汔济，濡其尾，无攸利。
+
+  [0m(Exegesis)
+  [1;97m火在水上，未济；君子以慎辨物居方。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mBEFORE COMPLETION. Success.
+  But if the little fox, after nearly completing the crossing,
+  Gets his tail in the water,
+  There is nothing that would further.
+
+  [0m(Exegesis)
+  [1;97mFire over water:
+  The image of the condition before transition.
+  Thus the superior man is careful
+  In the differentiation of things,
+  So that each finds its place.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97mWei Žî intimates progress and success (in the circumstances which it implies). (We see) a young fox that has nearly crossed (the stream), when its tail gets immersed. There will be no advantage in any way.
+
+  [0m(Exegesis)
+  [1;97mLXIV. (The trigram representing) water and that for fire above it form Wei Žî. The superior man, in accordance with this, carefully discriminates among (the qualities of) things, and the (different) positions they (naturally) occupy.
+
 [1;90mLINES:
 [0m(One moving line)
 
@@ -147,7 +187,7 @@
   [1;97mXXXVIII. The Khwei Hexagram
 
 
-[1;90mLINES:
+[1;90mHEXAGRAM:
 [90m[Traditional Chinese]
 
   [0m(Scripture)

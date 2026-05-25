@@ -296,17 +296,12 @@ ${BOTTOM}
 `.trim()
 }
 
-export function noMovingLinesSection(
-  hexagram: Hexagram,
-  options: { showNoMovingLinesNotice?: boolean } = {},
-): string {
-  const { showNoMovingLinesNotice = true } = options
+export function hexagramTextSection(hexagram: Hexagram): string {
   const { Text } = getHexagramRecord(hexagram)
-  const notice = showNoMovingLinesNotice ? `${NORMAL}(No moving lines)\n\n` : ''
 
   return `
-${BOLD_GREY}LINES:
-${notice}${NORMAL_GREY}[Traditional Chinese]
+${BOLD_GREY}HEXAGRAM:
+${NORMAL_GREY}[Traditional Chinese]
 
   ${NORMAL}(Scripture)
   ${BOLD_WHITE}${Text.Chinese.Traditional.Scripture.Hexagram}
@@ -389,12 +384,14 @@ ${NORMAL_GREY}[English, James Legge]
 `.trim()
 }
 
-// LINES block for a hexagram: scripture/exegesis keyed off how many moving
-// lines it has (none / one / multiple).
+// LINES block for a hexagram: per-line scripture/exegesis when one moving
+// line is present, or a "no reference available" notice for multiple. With
+// zero moving lines the block is empty — the HEXAGRAM-level scripture is
+// rendered separately via `hexagramTextSection`.
 export function linesBlock(hexagram: Hexagram): string {
   const movingLines = hexagram.filter(isMovingLine)
 
-  if (movingLines.length === 0) return noMovingLinesSection(hexagram)
+  if (movingLines.length === 0) return ''
   if (movingLines.length === 1) return oneMovingLineSection(hexagram)
 
   return `${BOLD_GREY}LINES:

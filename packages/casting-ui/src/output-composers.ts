@@ -3,9 +3,9 @@ import type { CastingRecord, Hexagram } from '@hexagram/types'
 import {
   castingSection,
   emergingHexagramSection,
+  hexagramTextSection,
   isMovingLine,
   linesBlock,
-  noMovingLinesSection,
   querySection,
   standingHexagramSection,
   transformationSection,
@@ -22,21 +22,22 @@ export function consultationConsoleOutput(
   casting: CastingRecord,
 ): string {
   const movingLines = hexagram.filter(isMovingLine)
+  const standingLines = linesBlock(hexagram)
 
-  return `
+  const sections = [
+    querySection(query),
+    castingSection(casting),
+    transformationSection(hexagram),
+    standingHexagramSection(hexagram),
+    hexagramTextSection(hexagram),
+    ...(standingLines ? [standingLines] : []),
+    ...(movingLines.length > 0
+      ? [
+          emergingHexagramSection(hexagram),
+          hexagramTextSection(getEmergingHexagram(hexagram)),
+        ]
+      : []),
+  ]
 
-${querySection(query)}
-
-${castingSection(casting)}
-
-${transformationSection(hexagram)}
-
-${standingHexagramSection(hexagram)}
-
-${linesBlock(hexagram)}
-
-${movingLines.length > 0 ? emergingHexagramSection(hexagram) : ''}
-
-${movingLines.length > 0 ? noMovingLinesSection(getEmergingHexagram(hexagram), { showNoMovingLinesNotice: false }) : ''}
-`
+  return `\n\n${sections.join('\n\n')}\n`
 }

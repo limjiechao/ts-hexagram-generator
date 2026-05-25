@@ -61,9 +61,7 @@
   [1;97mI. The Khien Hexagram
 
 
-[1;90mLINES:
-[0m(No moving lines)
-
+[1;90mHEXAGRAM:
 [90m[Traditional Chinese]
 
   [0m(Scripture)
@@ -97,7 +95,3 @@
 
   [0m(Exegesis)
   [1;97mI. Heaven, in its motion, (gives the idea of) strength. The superior man, in accordance with this, nerves himself to ceaseless activity.
-
-
-
-

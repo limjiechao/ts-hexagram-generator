@@ -8,8 +8,8 @@ import type {
 import {
   castingSection,
   emergingHexagramSection,
+  hexagramTextSection,
   linesBlock,
-  noMovingLinesSection,
   querySection,
   standingHexagramSection,
   transformationSection,
@@ -49,16 +49,22 @@ export function buildConsultationSections(
   casting: CastingRecord | null,
 ): ConsultationSections {
   const movingLines = hexagram.filter(isMovingLine)
+  const standingLines = linesBlock(hexagram)
 
   return {
     query: querySection(query),
     casting: castingSection(casting),
     transformation: transformationSection(hexagram),
-    standing:
-      `${standingHexagramSection(hexagram)}\n\n${linesBlock(hexagram)}`.trim(),
+    standing: [
+      standingHexagramSection(hexagram),
+      hexagramTextSection(hexagram),
+      ...(standingLines ? [standingLines] : []),
+    ]
+      .join('\n\n')
+      .trim(),
     emerging:
       movingLines.length > 0
-        ? `${emergingHexagramSection(hexagram)}\n\n${noMovingLinesSection(getEmergingHexagram(hexagram), { showNoMovingLinesNotice: false })}`.trim()
+        ? `${emergingHexagramSection(hexagram)}\n\n${hexagramTextSection(getEmergingHexagram(hexagram))}`.trim()
         : null,
   }
 }
