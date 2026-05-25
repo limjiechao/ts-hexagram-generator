@@ -20,6 +20,11 @@ import {
 } from '@hexagram/casting-ui'
 import { render } from 'ink'
 
+import { resolveBannerIntervalMs } from './banner-flag.js'
+import {
+  DEFAULT_BANNER_TICK_MS,
+  type BannerTimingConfig,
+} from './banner-state.js'
 import { HexagramApp, type CastingFlags } from './hexagram-app.js'
 
 /** The stderr message written when the environment is non-interactive. */
@@ -49,8 +54,9 @@ function isInteractiveEnv(): boolean {
  *
  * On a clean run it:
  *   - snapshots the casting flags (`--numeric-input`, `--wrap-width`,
- *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`) from
- *     `process.argv` via the shared resolvers,
+ *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`) and the
+ *     `--banner-interval-ms` knob from `process.argv` via the shared
+ *     resolvers,
  *   - renders `<HexagramApp>` ONCE on the alternate screen with
  *     `exitOnCtrlC: false` — the screens own Ctrl+C (the casting viewer's
  *     discard-confirm depends on Ctrl+C reaching its keymap, not Ink's
@@ -74,10 +80,21 @@ export async function runHexagram(): Promise<boolean> {
     castRevealMs: resolveCastRevealMs(),
   }
 
-  const instance = render(<HexagramApp castingFlags={castingFlags} />, {
-    exitOnCtrlC: false,
-    alternateScreen: true,
-  })
+  // Snapshot the banner cadence in the same pre-render moment. The same `ms`
+  // value drives both the static-figure dwell and the pulse dwell — symmetry
+  // is enforced inside the state machine, the flag only sizes it.
+  const bannerTiming: BannerTimingConfig = {
+    intervalMs: resolveBannerIntervalMs(),
+    tickMs: DEFAULT_BANNER_TICK_MS,
+  }
+
+  const instance = render(
+    <HexagramApp castingFlags={castingFlags} bannerTiming={bannerTiming} />,
+    {
+      exitOnCtrlC: false,
+      alternateScreen: true,
+    },
+  )
   await instance.waitUntilExit()
   return true
 }

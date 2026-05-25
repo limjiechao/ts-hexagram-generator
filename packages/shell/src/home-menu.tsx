@@ -14,7 +14,7 @@ import { Box, Text, useInput, useWindowSize } from 'ink'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
 import { AnimatedBanner } from './animated-banner.js'
-import type { BannerTestOverride } from './banner-state.js'
+import type { BannerTestOverride, BannerTimingConfig } from './banner-state.js'
 import { IdentityBlock } from './identity-block.js'
 
 /**
@@ -63,6 +63,12 @@ interface HomeMenuProps {
    */
   bannerTestOverride?: BannerTestOverride
   /**
+   * Banner animation cadence, forwarded verbatim to `<AnimatedBanner>`.
+   * `<HexagramApp>` builds this from `--banner-interval-ms`; tests can
+   * override to lock a deterministic cycle length.
+   */
+  bannerTiming?: BannerTimingConfig
+  /**
    * Fired exactly once per mount, in a `useEffect` that runs after this
    * component's `useInput` registration has been bound to Ink's stdin
    * dispatcher. The contract is: by the time `onReady` is called, the next
@@ -86,6 +92,7 @@ export function HomeMenu({
   onSelect,
   onQuit,
   bannerTestOverride,
+  bannerTiming,
   onReady,
 }: HomeMenuProps): ReactElement {
   const { columns, rows } = useWindowSize()
@@ -175,7 +182,7 @@ export function HomeMenu({
       <Box marginBottom={2} flexShrink={0}>
         <IdentityBlock />
       </Box>
-      <AnimatedBanner testOverride={bannerTestOverride} />
+      <AnimatedBanner testOverride={bannerTestOverride} timing={bannerTiming} />
       {menu}
     </Box>
   )

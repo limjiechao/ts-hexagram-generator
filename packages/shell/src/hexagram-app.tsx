@@ -25,7 +25,7 @@ import { HistoryApp } from '@hexagram/history-ui'
 import { useApp } from 'ink'
 import { useReducer, type ReactElement } from 'react'
 
-import type { BannerTestOverride } from './banner-state.js'
+import type { BannerTestOverride, BannerTimingConfig } from './banner-state.js'
 import { HomeMenu, type HomeMenuSelection } from './home-menu.js'
 import { initialNavState, navReducer } from './nav-machine.js'
 
@@ -78,6 +78,13 @@ interface HexagramAppProps {
    * `<AnimatedBanner>`. Production never sets it.
    */
   bannerTestOverride?: BannerTestOverride
+  /**
+   * Home banner animation cadence. `runHexagram()` snapshots this from
+   * `--banner-interval-ms` and passes it in; omitted in tests so the banner
+   * uses `DEFAULT_BANNER_TIMING`. Forwarded verbatim to `<HomeMenu>` →
+   * `<AnimatedBanner>`.
+   */
+  bannerTiming?: BannerTimingConfig
 }
 
 /**
@@ -102,6 +109,7 @@ export function HexagramApp({
   castingFlags,
   sliderCommitRevealMs,
   bannerTestOverride,
+  bannerTiming,
 }: HexagramAppProps): ReactElement {
   const { exit } = useApp()
   const [nav, dispatch] = useReducer(navReducer, initialNavState)
@@ -125,6 +133,7 @@ export function HexagramApp({
         }}
         onQuit={exit}
         bannerTestOverride={bannerTestOverride}
+        bannerTiming={bannerTiming}
       />
     )
   }

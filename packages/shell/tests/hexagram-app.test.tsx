@@ -41,7 +41,10 @@ import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import type { BannerTestOverride } from '../src/banner-state'
+import type {
+  BannerTestOverride,
+  BannerTimingConfig,
+} from '../src/banner-state'
 import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
 import { HomeMenu } from '../src/home-menu'
 
@@ -474,16 +477,21 @@ describe('<HexagramApp> — animated home banner', () => {
 
   it('continuously animates the banner when the interval is enabled', async () => {
     // Interval enabled; rng `() => 0.5` ⇒ all-yin figure, plan forces one
-    // moving line. Within a few 108 ms ticks the banner enters its pulse
-    // frames and a moving ✕ marker appears — proof the animation loop runs.
+    // moving line. The test passes a minimal `bannerTiming` so the static
+    // half collapses to a single 108 ms tick — pulse frames (and the moving
+    // ✕ marker that proves the animation loop runs) appear on the very next
+    // tick. Without this override the default symmetric cadence keeps the
+    // banner in the static phase for 2160 ms, longer than the test's poll.
     const override: BannerTestOverride = {
       rng: () => 0.5,
       disableInterval: false,
     }
+    const briskTiming: BannerTimingConfig = { intervalMs: 108, tickMs: 108 }
     const { lastFrame, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
         bannerTestOverride={override}
+        bannerTiming={briskTiming}
       />,
     )
     await yieldMacrotask()

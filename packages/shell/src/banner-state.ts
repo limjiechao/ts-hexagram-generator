@@ -1,10 +1,13 @@
 // Functional Core for the live home banner — the animation state machine.
-// State is `{ hex, movingLines, phaseIndex }`; the cycle is the signed-off
-// "Six Lines, Changing" sequence: two settled lead-in frames, twenty pulse
-// frames, one flipped frame (23 frames, one 108 ms tick each ≈ 2.48 s/cycle).
-// Pure: no React, no I/O, no Math.random — the RNG is injected so every frame
-// transition is deterministic given a seeded RNG and unit-testable without
-// rendering Ink.
+// State is `{ hex, movingLines, phaseIndex }`; a cycle is split into a static
+// half (the figure dwells unchanged) and a pulse half (moving lines beat
+// bright ↔ dim) of equal length, so a static hexagram is rendered for exactly
+// as long as the pulsing transformation that precedes it. The phase counts are
+// derived from `BannerTimingConfig.intervalMs / tickMs`, so the same `ms`
+// knob controls both halves — symmetry by construction, not by convention.
+// Pure: no React, no I/O, no `cryptoRandom` — the RNG is injected so every
+// frame transition is deterministic given a seeded RNG and unit-testable
+// without rendering Ink.
 
 import type { Hexagram, Line } from '@hexagram/types'
 
@@ -21,7 +24,7 @@ export type Rng = () => number
  * The banner animation state.
  * - `hex` — the current *settled* figure, bottom-first; only ever 7/8 values.
  * - `movingLines` — the current cycle's moving-line indices (sorted, 0..5).
- * - `phaseIndex` — cursor into the 23-frame cycle (0..22).
+ * - `phaseIndex` — cursor into the current cycle (0 .. 2 * framesPerPhase - 1).
  */
 export interface BannerState {
   readonly hex: Hexagram
@@ -33,7 +36,7 @@ export interface BannerState {
 export interface BannerFrame {
   /** The six line cells, bottom-first (parallel to the `hex` tuple). */
   readonly lines: readonly BannerLineCells[]
-  /** The hexagram whose name to display — the new figure on the flipped frame. */
+  /** The hexagram whose name to display — the current cycle's `hex`. */
   readonly nameHex: Hexagram
 }
 
@@ -45,20 +48,51 @@ export interface BannerTestOverride {
   /** Deterministic RNG replacing the live `cryptoRandom`, so frames are reproducible. */
   readonly rng: Rng
   /**
-   * When true the 108 ms tick is never started — the banner freezes on its
-   * initial settled frame, keeping component frame tests deterministic.
+   * When true the per-tick interval is never started — the banner freezes on
+   * its initial settled frame, keeping component frame tests deterministic.
    */
   readonly disableInterval: boolean
 }
 
-/** The animation tick interval, in milliseconds (≈2.48 s for the 23-frame cycle). */
-export const BANNER_TICK_MS = 108
+/**
+ * The banner animation cadence. `intervalMs` controls how long each half of
+ * the cycle (the static half and the pulse half) stays on screen; both halves
+ * are equal by construction, so a single `--banner-interval-ms` knob sets the
+ * symmetric pacing. `tickMs` is the per-frame interval driving the visible
+ * pulse beat — it stays at 108 ms unless a test overrides it.
+ */
+export interface BannerTimingConfig {
+  readonly intervalMs: number
+  readonly tickMs: number
+}
 
-// Cycle geometry. 0,1 settled · 2..21 pulse (20 frames) · 22 flipped.
-const SETTLED_FRAMES = 2
-const PULSE_FRAMES = 20
-const FLIPPED_INDEX = SETTLED_FRAMES + PULSE_FRAMES // 22
+/** The canonical per-frame interval the live animation runs at. */
+export const DEFAULT_BANNER_TICK_MS = 108
+
+/**
+ * The default duration each half of a cycle stays on screen, in ms. Matches
+ * the pre-existing 20-frame pulse (20 × 108 ms) so the static figure now
+ * dwells just as long as the pulse — symmetry restored without speeding the
+ * existing pulse rhythm up or slowing it down.
+ */
+export const DEFAULT_BANNER_INTERVAL_MS = 2160
+
+/** The default timing — `--banner-interval-ms` adjusts only `intervalMs`. */
+export const DEFAULT_BANNER_TIMING: BannerTimingConfig = {
+  intervalMs: DEFAULT_BANNER_INTERVAL_MS,
+  tickMs: DEFAULT_BANNER_TICK_MS,
+}
+
 const MOVE_PROBABILITY = 0.4
+
+/**
+ * Frames per static (or pulse) phase, derived from `intervalMs / tickMs`.
+ * Floor-clamped to one frame so an absurdly small `intervalMs` still produces
+ * a runnable cycle — a zero-length phase would lock the wrap into a tight loop.
+ */
+export function framesPerPhase(timing: BannerTimingConfig): number {
+  return Math.max(1, Math.round(timing.intervalMs / timing.tickMs))
+}
 
 /** A fresh random settled hexagram — six independent young yang/yin lines. */
 function randomHex(rng: Rng): Hexagram {
@@ -107,13 +141,18 @@ export function createBannerState(rng: Rng): BannerState {
 
 /**
  * Advance one tick. Within a cycle this only moves `phaseIndex` forward. When
- * it wraps past the flipped frame it commits the flip into `hex` and draws a
- * fresh moving-line plan for the next cycle — the only point `rng` is
- * consulted during animation.
+ * it wraps past the cycle's last frame it commits the flip into `hex` and
+ * draws a fresh moving-line plan for the next cycle — the only point `rng` is
+ * consulted during animation. Defaults to `DEFAULT_BANNER_TIMING`.
  */
-export function advanceBannerState(state: BannerState, rng: Rng): BannerState {
+export function advanceBannerState(
+  state: BannerState,
+  rng: Rng,
+  timing: BannerTimingConfig = DEFAULT_BANNER_TIMING,
+): BannerState {
+  const cycleLength = framesPerPhase(timing) * 2
   const nextPhase = state.phaseIndex + 1
-  if (nextPhase > FLIPPED_INDEX) {
+  if (nextPhase >= cycleLength) {
     return {
       hex: flipHexagram(state.hex, state.movingLines),
       movingLines: planMovingLines(rng),
@@ -124,25 +163,18 @@ export function advanceBannerState(state: BannerState, rng: Rng): BannerState {
 }
 
 /**
- * Derive the render-ready frame for a state. Settled lead-in frames (0,1) and
- * the flipped frame (22) draw a static figure; pulse frames (2..21) draw the
- * moving lines beating bright ↔ dim. The flipped frame shows — and names — the
- * post-flip figure, so the name updates the instant the lines settle.
+ * Derive the render-ready frame for a state. The first half of the cycle
+ * draws the current figure statically; the second half pulses the moving
+ * lines bright ↔ dim. Defaults to `DEFAULT_BANNER_TIMING`.
  */
-export function deriveBannerFrame(state: BannerState): BannerFrame {
+export function deriveBannerFrame(
+  state: BannerState,
+  timing: BannerTimingConfig = DEFAULT_BANNER_TIMING,
+): BannerFrame {
   const { hex, movingLines, phaseIndex } = state
+  const frames = framesPerPhase(timing)
 
-  if (phaseIndex >= FLIPPED_INDEX) {
-    const flipped = flipHexagram(hex, movingLines)
-    return {
-      lines: flipped.map((line) =>
-        deriveBannerLine(polarityOf(line), false, false),
-      ),
-      nameHex: flipped,
-    }
-  }
-
-  if (phaseIndex < SETTLED_FRAMES) {
+  if (phaseIndex < frames) {
     return {
       lines: hex.map((line) =>
         deriveBannerLine(polarityOf(line), false, false),
@@ -151,7 +183,7 @@ export function deriveBannerFrame(state: BannerState): BannerFrame {
     }
   }
 
-  const bright = (phaseIndex - SETTLED_FRAMES) % 2 === 0
+  const bright = (phaseIndex - frames) % 2 === 0
   return {
     lines: hex.map((line, index) =>
       deriveBannerLine(polarityOf(line), movingLines.includes(index), bright),

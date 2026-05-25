@@ -1,9 +1,10 @@
 // `<AnimatedBanner>` — the imperative shell of the home banner animation: a
-// `useReducer` over the pure `banner-state` core, ticked by a 108 ms
-// `setInterval`. It renders the six animated hexagram rows and the two-line
-// name, scoped narrowly so only this subtree re-renders per tick — the static
-// identity block and the menu are untouched. The interval is cleared on
-// unmount, so leaving Home leaks no timer and every return is a fresh cycle.
+// `useReducer` over the pure `banner-state` core, ticked by a `setInterval` at
+// `timing.tickMs` (108 ms by default). It renders the six animated hexagram
+// rows and the two-line name, scoped narrowly so only this subtree re-renders
+// per tick — the static identity block and the menu are untouched. The
+// interval is cleared on unmount, so leaving Home leaks no timer and every
+// return is a fresh cycle.
 
 import { cryptoRandom } from '@hexagram/core/crypto-random'
 import { getHexagramRecord } from '@hexagram/core/getters'
@@ -20,11 +21,12 @@ import { useEffect, useReducer, type ReactElement } from 'react'
 import type { BannerLineRole } from './banner-lines.js'
 import {
   advanceBannerState,
-  BANNER_TICK_MS,
   createBannerState,
+  DEFAULT_BANNER_TIMING,
   deriveBannerFrame,
   type BannerState,
   type BannerTestOverride,
+  type BannerTimingConfig,
 } from './banner-state.js'
 
 interface AnimatedBannerProps {
@@ -34,6 +36,12 @@ interface AnimatedBannerProps {
    * default. Forwarded from `<HexagramApp>` via `<HomeMenu>`.
    */
   readonly testOverride?: BannerTestOverride
+  /**
+   * Animation cadence — controls both the static-figure dwell and the pulse
+   * dwell (equal by construction). Defaults to `DEFAULT_BANNER_TIMING`; the
+   * composed CLI forwards a snapshot derived from `--banner-interval-ms`.
+   */
+  readonly timing?: BannerTimingConfig
 }
 
 /** The two SGR runs for a line, by colour role: `[value colour, bar colour]`. */
@@ -50,34 +58,37 @@ function lineColors(role: BannerLineRole): readonly [string, string] {
 
 /**
  * The animated banner: six hexagram rows (top line first) above the two-line
- * hexagram name, both re-derived from the pure core every 108 ms tick.
+ * hexagram name, both re-derived from the pure core every `timing.tickMs` tick.
  */
 export function AnimatedBanner({
   testOverride,
+  timing = DEFAULT_BANNER_TIMING,
 }: AnimatedBannerProps): ReactElement {
   const rng = testOverride?.rng ?? cryptoRandom
 
   // `useReducer` over the pure core; the action is unused (every tick simply
-  // advances). The reducer closes over `rng`; React always uses the latest.
+  // advances). The reducer closes over `rng` and `timing`; React always uses
+  // the latest captured values.
   const [state, tick] = useReducer(
     // eslint-disable-next-line unused-imports/no-unused-vars
     (current: BannerState, _: void): BannerState =>
-      advanceBannerState(current, rng),
+      advanceBannerState(current, rng, timing),
     rng,
     createBannerState,
   )
 
+  const tickMs = timing.tickMs
   useEffect(() => {
     if (testOverride?.disableInterval === true) return
     const id = setInterval(() => {
       tick()
-    }, BANNER_TICK_MS)
+    }, tickMs)
     return () => {
       clearInterval(id)
     }
-  }, [testOverride?.disableInterval])
+  }, [testOverride?.disableInterval, tickMs])
 
-  const frame = deriveBannerFrame(state)
+  const frame = deriveBannerFrame(state, timing)
   const record = getHexagramRecord(frame.nameHex)
   // `lines` is bottom-first; the banner draws the top line first.
   const topDownLines = frame.lines.toReversed()
