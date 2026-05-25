@@ -9,7 +9,7 @@ import {
   resolveRandomViewerArgs,
   runConsultationViewer,
 } from '@hexagram/casting-ui'
-import { generateRandomConsultation } from '@hexagram/core/random'
+import { generateRandomConsultation } from '@hexagram/core/random-casting'
 
 async function main(): Promise<void> {
   try {

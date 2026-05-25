@@ -5,6 +5,7 @@
 // identity block and the menu are untouched. The interval is cleared on
 // unmount, so leaving Home leaks no timer and every return is a fresh cycle.
 
+import { cryptoRandom } from '@hexagram/core/crypto-random'
 import { getHexagramRecord } from '@hexagram/core/getters'
 import {
   BOLD_GREY,
@@ -29,7 +30,7 @@ import {
 interface AnimatedBannerProps {
   /**
    * Test-only override — an injected RNG and an interval-disable flag.
-   * Production never sets it: the live Math.random-driven animation is the
+   * Production never sets it: the live `cryptoRandom`-driven animation is the
    * default. Forwarded from `<HexagramApp>` via `<HomeMenu>`.
    */
   readonly testOverride?: BannerTestOverride
@@ -54,7 +55,7 @@ function lineColors(role: BannerLineRole): readonly [string, string] {
 export function AnimatedBanner({
   testOverride,
 }: AnimatedBannerProps): ReactElement {
-  const rng = testOverride?.rng ?? Math.random
+  const rng = testOverride?.rng ?? cryptoRandom
 
   // `useReducer` over the pure core; the action is unused (every tick simply
   // advances). The reducer closes over `rng`; React always uses the latest.

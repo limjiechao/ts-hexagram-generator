@@ -58,8 +58,9 @@ const randomConsultationMock = vi.hoisted(() => {
   ]) as CastingRecord
   return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
 })
-vi.mock('@hexagram/core/random', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('@hexagram/core/random')>()
+vi.mock('@hexagram/core/random-casting', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@hexagram/core/random-casting')>()
   return { ...actual, generateRandomConsultation: randomConsultationMock }
 })
 

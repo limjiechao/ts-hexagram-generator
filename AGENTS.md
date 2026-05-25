@@ -103,9 +103,11 @@ Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping 
 
 ### Random vs. interactive
 
-- **`packages/core/src/random.ts`** — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record. Pure library code — no CLI entry.
+- **`packages/core/src/random-casting.ts`** — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record. Pure library code — no CLI entry.
 - **`packages/casting-ui/src/interactive-flow.ts`** — same generator wired to `@inquirer/prompts` for the plain-mode terminal flow (`getHexagramViaInteraction`, `getOneLineViaInteraction`).
-- **`apps/cli/src/{random,interactive}.ts`** — the two bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random` and the viewer + output helpers from `@hexagram/casting-ui`.
+- **`apps/cli/src/{random,interactive}.ts`** — the two bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random-casting` and the viewer + output helpers from `@hexagram/casting-ui`.
+
+`@hexagram/core` also exposes `cryptoRandom()` at `@hexagram/core/crypto-random` — a `[0, 1)` float helper backed by `node:crypto.randomInt`. It's the production RNG behind the home banner's `<AnimatedBanner>` animation, replacing `Math.random` so no flow in the app depends on V8's pseudorandom generator.
 
 Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/casting-ui/src/utils-mode.ts`:
 
@@ -183,7 +185,7 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/casting-ui` + `@hexagram/history-ui` → `@hexagram/shell` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
-- `packages/core/tsdown.config.ts` — five entries: `index`, `random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
+- `packages/core/tsdown.config.ts` — six entries: `index`, `random-casting`, `crypto-random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
 - `packages/consultation-file/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
 - `packages/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
 - `packages/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.

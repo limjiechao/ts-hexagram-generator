@@ -4,7 +4,7 @@ import {
   generateRandomHexagram,
   generateRandomHexagrams,
   generateRandomLines,
-} from '../src/random'
+} from '../src/random-casting'
 
 describe('generateRandomHexagram', () => {
   test('generateRandomHexagram() should return a valid hexagram', () => {

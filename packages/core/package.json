@@ -10,10 +10,15 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
-    "./random": {
-      "source": "./src/random.ts",
-      "types": "./dist/random.d.mts",
-      "import": "./dist/random.mjs"
+    "./random-casting": {
+      "source": "./src/random-casting.ts",
+      "types": "./dist/random-casting.d.mts",
+      "import": "./dist/random-casting.mjs"
+    },
+    "./crypto-random": {
+      "source": "./src/crypto-random.ts",
+      "types": "./dist/crypto-random.d.mts",
+      "import": "./dist/crypto-random.mjs"
     },
     "./getters": {
       "source": "./src/getters.ts",

@@ -42,7 +42,7 @@ export interface BannerFrame {
  * Production never sets it — the live animation is the default.
  */
 export interface BannerTestOverride {
-  /** Deterministic RNG replacing Math.random, so frames are reproducible. */
+  /** Deterministic RNG replacing the live `cryptoRandom`, so frames are reproducible. */
   readonly rng: Rng
   /**
    * When true the 108 ms tick is never started — the banner freezes on its
