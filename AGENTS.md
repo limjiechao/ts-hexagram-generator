@@ -73,7 +73,7 @@ The statistical distribution test (`generateLines() should return valid report` 
 The May 2026 9-round stabilisation (`4eae942` → `800d3fc`) showed that the "load-induced" tier of flakes (rounds 4–6) is invisible on a quiet macOS dev box. Three scripts reproduce the 2-CPU contention an Ubuntu GHA runner sees:
 
 ```bash
-pnpm test:flake          # turbo run test -- --repeat 5 (each test re-runs 5× in-process)
+pnpm test:flake          # 5× chained `turbo run test --force` (whole suite re-runs end-to-end)
 pnpm test:stress         # 4× concurrent test:flake (saturates CPU; the strongest signal)
 pnpm test:stress:once    # 4× concurrent single-pass test (cheaper)
 ```
