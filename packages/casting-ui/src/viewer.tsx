@@ -107,6 +107,14 @@ interface ConsultationViewerProps {
   // callers don't need this and leave it `undefined` — the component's
   // optional `onReady` then no-ops.
   onCastingStatusReady?: () => void
+  // Test-only mount-witness — forwarded to the slider-mode
+  // `<CastingPromptBox onReady>`. Fires once per slider mount, after its
+  // `useInput` has registered with Ink's stdin dispatcher. Tests gate the
+  // next cross-cast SPACE press on this signal (via `waitForReady(spy)`)
+  // instead of polling the Braille spinner glyph. Production callers omit
+  // it; ignored in `inputMode: 'number'` and during the number-mode random
+  // playback (which mounts `<CastingStatus>` instead of the slider prompt).
+  onSliderReady?: () => void
 }
 
 // Which exit path a pending discard confirmation belongs to. `back` is the
@@ -134,6 +142,7 @@ export function ConsultationViewer({
   onExit,
   exitLabel = 'quit',
   onCastingStatusReady,
+  onSliderReady,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   // The soft-back destination — the injected `onExit`, or Ink's program exit
@@ -513,6 +522,7 @@ export function ConsultationViewer({
       onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
       onSubmit={handleCastSubmit}
       onError={(message) => dispatch({ type: 'castingError', message })}
+      onReady={onSliderReady}
     />
   )
 
