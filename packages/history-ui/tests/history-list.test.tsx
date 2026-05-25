@@ -1,4 +1,4 @@
-import { waitFor, yieldMacrotask } from '@hexagram/test-utils'
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import type { Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
@@ -1118,6 +1118,86 @@ describe('<HistoryList>', () => {
     for (let i = 0; i < 25; i += 1) {
       expect(frame).toContain(`2026-04-${String(i + 1).padStart(2, '0')} 09:00`)
     }
+  })
+
+  // ── UX: up/down wrap around the list edges ───────────────────────────────────
+
+  it('↑ from the first row wraps focus to the last row', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    // Default focus is the first (newest) row.
+    stdin.write(`${ESC}[A`) // up arrow
+    await yieldMacrotask()
+    // The focused row is the one rendered with inverse-video. After the wrap
+    // it must contain the LAST entry's timestamp, not the first.
+    const focusedLines = (lastFrame() ?? '')
+      .split('\n')
+      .filter((l) => l.includes(`${ESC}[7m`))
+    expect(focusedLines.length).toBeGreaterThanOrEqual(1)
+    const focusedJoined = focusedLines.join('\n')
+    expect(focusedJoined).toContain('2026-01-15 18:16')
+    expect(focusedJoined).not.toContain('2026-03-16 13:28')
+  })
+
+  it('↓ from the last row wraps focus to the first row', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    // Move to the last (bottom) row first…
+    stdin.write(`${ESC}[B`) // down arrow → row 2
+    await yieldMacrotask()
+    // …then one more ↓ should wrap back to the first row.
+    stdin.write(`${ESC}[B`)
+    await yieldMacrotask()
+    const focusedLines = (lastFrame() ?? '')
+      .split('\n')
+      .filter((l) => l.includes(`${ESC}[7m`))
+    expect(focusedLines.length).toBeGreaterThanOrEqual(1)
+    const focusedJoined = focusedLines.join('\n')
+    expect(focusedJoined).toContain('2026-03-16 13:28')
+    expect(focusedJoined).not.toContain('2026-01-15 18:16')
+  })
+
+  it('PgUp at the top still clamps (no wrap on page-step keys)', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin } = render(
+      <HistoryList
+        entries={fakeEntries}
+        unreadable={[]}
+        cols={80}
+        rows={24}
+        onPick={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write(`${ESC}[5~`) // PgUp at row 0
+    await yieldMacrotask()
+    const focusedJoined = (lastFrame() ?? '')
+      .split('\n')
+      .filter((l) => l.includes(`${ESC}[7m`))
+      .join('\n')
+    // Focus stayed on the first (newest) row — PgUp clamps, does not wrap.
+    expect(focusedJoined).toContain('2026-03-16 13:28')
   })
 
   // ── Bug fix: navigation stays live while the filter row is open ──────────────

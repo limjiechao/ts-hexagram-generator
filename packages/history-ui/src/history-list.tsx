@@ -205,10 +205,21 @@ function navigate(state: State, rawIndex: number, geom: NavGeometry): State {
 
 function reducer(state: State, action: Action): State {
   switch (action.type) {
-    case 'up':
-      return navigate(state, action.currentIndex - 1, action)
-    case 'down':
-      return navigate(state, action.currentIndex + 1, action)
+    case 'up': {
+      // ↑ wraps from the first row to the last for better browsing UX.
+      // PgUp/g stay clamped — they have an explicit "go to top" meaning.
+      const size = action.listRows.length
+      if (size <= 1) return navigate(state, action.currentIndex, action)
+      const target = (action.currentIndex - 1 + size) % size
+      return navigate(state, target, action)
+    }
+    case 'down': {
+      // ↓ wraps from the last row to the first.
+      const size = action.listRows.length
+      if (size <= 1) return navigate(state, action.currentIndex, action)
+      const target = (action.currentIndex + 1) % size
+      return navigate(state, target, action)
+    }
     case 'pageUp':
       return navigate(state, action.currentIndex - PAGE_SIZE, action)
     case 'pageDown':
