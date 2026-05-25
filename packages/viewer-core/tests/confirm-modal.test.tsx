@@ -1,4 +1,5 @@
 /* eslint-disable no-restricted-syntax -- pre-existing `await tick(...)` calls; lifted by Wave 3 migration to @hexagram/test-utils. See cross-platform-tests skill. */
+import { waitFor } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
@@ -231,6 +232,29 @@ describe('<ConfirmModal> — keypress callbacks', () => {
     stdin.write('k')
     await tick()
     expect(onCancel).toHaveBeenCalledOnce()
+    unmount()
+  })
+})
+
+describe('<ConfirmModal> — onReady witness', () => {
+  it('fires onReady once after useInput is bound', async () => {
+    // Witness contract — see ConfirmModalProps.onReady. The host (and tests)
+    // gate the first keystroke on this signal so the byte written between
+    // modal-mount and useInput re-bind isn't dispatched to an ancestor
+    // handler. One mount → one fire.
+    const onReady = vi.fn()
+    const { unmount } = render(
+      <ConfirmModal
+        title="Confirm"
+        bodyLines={[]}
+        prompt="Y / N"
+        innerCols={60}
+        onConfirm={() => {}}
+        onCancel={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     unmount()
   })
 })
