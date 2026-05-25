@@ -1,5 +1,6 @@
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import {
+  useEffect,
   useMemo,
   useReducer,
   useRef,
@@ -156,6 +157,21 @@ export interface ConsultationReadoutProps {
    * actor on Y/N/Esc (Ink fans every keypress out to all mounted hooks).
    */
   readonly inputSuppressed?: boolean
+  /**
+   * Fired exactly once per mount, in a `useEffect` that runs after this
+   * component's `useInput` registration has been bound to Ink's stdin
+   * dispatcher. The contract is: by the time `onReady` is called, the next
+   * `stdin.write(...)` will be received by this readout's `useInput` handler.
+   *
+   * Exists to defuse the `useInput` bind race: Ink registers a `useInput`
+   * handler inside its own `useEffect`, which runs *after* the render commit
+   * on the next macrotask. Bytes written between commit and bind get
+   * dispatched to ancestor handlers and silently dropped. Because effects
+   * fire in declaration order, the `useEffect` powering this callback is
+   * queued immediately after the `useInput` hook above and therefore runs
+   * only once Ink's listener is in place. Defaults to a no-op.
+   */
+  readonly onReady?: () => void
 }
 
 // The four tabs the readout can show, derived from the sections. The Casting
@@ -210,6 +226,7 @@ export function ConsultationReadout({
   onExit,
   onHardQuit,
   inputSuppressed = false,
+  onReady,
 }: ConsultationReadoutProps): ReactElement {
   const { exit } = useApp()
   const exitReadout = onExit ?? exit
@@ -438,6 +455,25 @@ export function ConsultationReadout({
     }
     dispatchKey(input, key, ctx)
   })
+
+  // ── onReady witness signal ────────────────────────────────────────────────
+  // Fires after this component's `useInput` registration above has bound to
+  // Ink's stdin dispatcher. Effects run in declaration order, so this
+  // `useEffect` is queued immediately after the one Ink uses internally for
+  // `useInput` — by the time `onReady` is invoked, the next `stdin.write` is
+  // guaranteed to land on the handler above. Guarded by a ref so it fires
+  // exactly once per mount even if `onReady` identity changes between
+  // renders (a re-fire would defeat its meaning as a one-shot ready latch).
+  const readyFiredRef = useRef(false)
+  // `onReady` is read once on mount; subsequent identity changes do not
+  // re-fire the latch. The empty dep array is intentional and is NOT a
+  // missing-dep mistake — see the JSDoc on `onReady` for the contract.
+  useEffect(() => {
+    if (readyFiredRef.current) return
+    readyFiredRef.current = true
+    onReady?.()
+    // oxlint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   const verticalStatus = canScrollVertically
     ? `▲ ${offset + 1}–${Math.min(offset + viewportHeight, totalRows)} of ${totalRows} ▼`
