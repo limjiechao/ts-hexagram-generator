@@ -4,7 +4,7 @@ import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { NumberInput } from '../src/number-input'
-import { tick } from './helpers/async'
+import { tick, waitFor } from './helpers/async'
 import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
 
 function NumberInputHost({
@@ -172,6 +172,30 @@ describe('NumberInput', () => {
     expect(onError).toHaveBeenLastCalledWith(null)
     expect(lastFrame() ?? '').toContain('9')
     expect(lastFrame() ?? '').not.toContain('99')
+    unmount()
+  })
+
+  it('fires onReady once per false→true focused transition', async () => {
+    // Witness contract — see NumberInputProps.onReady. Callers can gate the
+    // next keystroke on this signal so a byte written between mount/refocus
+    // and `useInput` re-bind isn't silently dropped.
+    const onReady = vi.fn()
+    const props = {
+      value: '',
+      min: 1,
+      max: 48,
+      onChange: () => {},
+      onSubmit: () => {},
+      onError: () => {},
+      onReady,
+    }
+    const { rerender, unmount } = render(
+      <NumberInput {...props} focused={false} />,
+    )
+    // focused=false on first render → onReady has not been called.
+    expect(onReady).not.toHaveBeenCalled()
+    rerender(<NumberInput {...props} focused />)
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     unmount()
   })
 
