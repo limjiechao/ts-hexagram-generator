@@ -89,7 +89,7 @@ How will the journey unfold?
   8  ━━━   ━━━  （四, 4th）                   8  ━━━   ━━━  （四, 4th）
   7  ━━━━━━━━━  （三, 3rd）                   7  ━━━━━━━━━  （三, 3rd）
   9  ━━━━○━━━━  （二, 2nd）─────────────────▶ 8  ━━━   ━━━  （二, 2nd）
-  6  ━━━ × ━━━  （初, 1st）─────────────────▶ 7  ━━━━━━━━━  （初, 1st）
+  6  ━━━ ✕ ━━━  （初, 1st）─────────────────▶ 7  ━━━━━━━━━  （初, 1st）
 
   #48 井（jǐng）                              #63 既濟（jì jì）
   Ching / The Well                            Chi Chi / After Completion
@@ -105,7 +105,7 @@ _Line at bottom is first._
   8  ━━━   ━━━  （四, 4th）──┘   water (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐
   9  ━━━━○━━━━  （二, 2nd）──┼── 風（下卦）
-  6  ━━━ × ━━━  （初, 1st）──┘   wind, wood (lower trigram)
+  6  ━━━ ✕ ━━━  （初, 1st）──┘   wind, wood (lower trigram)
 ```
 
 _First is line at bottom._

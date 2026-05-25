@@ -3,6 +3,18 @@
 // scrolling), layout maths, the data-driven keymap, the ANSI palette, and the
 // section/composer renderers that turn a consultation into per-tab strings.
 
+// Pure render derivation for an animated hexagram line — the glyph + role
+// vocabulary shared by the home banner, the casting readout, and the hexagram
+// playground.
+export {
+  deriveBannerLine,
+  lineColors,
+  polarityOf,
+  type LineCells,
+  type LinePolarity,
+  type LineRole,
+} from './banner-lines.js'
+
 // Generic confirmation modal — title + context + Y/N keypress affordances,
 // framed in the viewer-core chrome. Owns its own input handling.
 export {
@@ -18,6 +30,9 @@ export {
   type CastingPromptPan,
   type ConsultationReadoutProps,
 } from './consultation-readout.js'
+
+// Editor primitives shared by every in-Ink single-line text editor.
+export { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
 // Output composers — assemble the per-tab section strings consumed by the
 // viewer and the plain console renderer.
@@ -53,6 +68,9 @@ export {
   standingHexagramSection,
   transformationSection,
 } from './output-sections.js'
+
+// TTY-and-environment guard shared by every Ink-only bin's run entry.
+export { isInteractiveEnv } from './run-utils.js'
 
 // Generic screen frame shared by the Readout and the History list.
 export {

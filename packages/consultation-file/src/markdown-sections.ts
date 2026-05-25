@@ -91,8 +91,12 @@ ${BOTTOM}
 `
 }
 
+// `✕` U+2715 — matches the home banner's and viewer-core's moving-yin glyph
+// so every render surface speaks one glyph vocabulary. Saved consultation
+// `.md` files containing the older `×` U+00D7 character self-heal on next
+// load via the history-app's byte-compare rerender.
 const LINE_DIAGRAM = {
-  6: '━━━ × ━━━',
+  6: '━━━ ✕ ━━━',
   7: '━━━━━━━━━',
   8: '━━━   ━━━',
   9: '━━━━○━━━━',

@@ -1,8 +1,8 @@
 {
-  "name": "@hexagram/shell",
+  "name": "@hexagram/playground-ui",
   "type": "module",
   "version": "0.0.0",
-  "description": "Composed terminal app for the Yijing hexagram oracle: a Home hub that navigates between the casting and history flows",
+  "description": "Terminal UI for the Yijing hexagram oracle (playground flow): Ink-based interactive explorer where each line cycles through 4 states (6/7/8/9), with live emerging-hexagram preview and save-as-consultation",
   "license": "MIT",
   "exports": {
     ".": {
@@ -24,17 +24,15 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/casting-ui": "workspace:*",
+    "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
-    "@hexagram/history-ui": "workspace:*",
-    "@hexagram/playground-ui": "workspace:*",
+    "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6"
   },
   "devDependencies": {
     "@hexagram/test-utils": "workspace:*",
-    "@hexagram/types": "workspace:*",
     "@types/react": "^19.2.14",
     "ink-testing-library": "^4.0.0"
   }

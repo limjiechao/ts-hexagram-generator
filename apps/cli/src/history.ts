@@ -4,6 +4,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { runHistoryViewer } from '@hexagram/history-ui'
+import { isInteractiveEnv } from '@hexagram/viewer-core'
 
 import { migrateLegacy } from './migrate-legacy.js'
 
@@ -14,11 +15,7 @@ async function main(): Promise<void> {
       await migrateLegacy(path.join(process.cwd(), 'consultations'))
       process.exit(0)
     }
-    const isTty = Boolean(process.stdout.isTTY)
-    const noColor =
-      process.env.NO_COLOR !== undefined && process.env.NO_COLOR !== ''
-    const ci = process.env.CI !== undefined && process.env.CI !== ''
-    if (!isTty || noColor || ci) {
+    if (!isInteractiveEnv()) {
       process.stderr.write(
         'hexagram-history requires an interactive terminal\n',
       )

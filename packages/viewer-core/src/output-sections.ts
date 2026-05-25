@@ -25,8 +25,13 @@ import {
   isMovingLine,
 } from './utils-validators.js'
 
+// `✕` U+2715 — matches the home banner's moving-yin glyph so every render
+// surface (banner, casting readout, history readout, playground) speaks one
+// glyph vocabulary. Saved consultation `.md` files containing the older `×`
+// U+00D7 character self-heal on next load via the history-app's byte-compare
+// rerender.
 const hexagramLineDiagramMap = {
-  6: '━━━ × ━━━',
+  6: '━━━ ✕ ━━━',
   7: '━━━━━━━━━',
   8: '━━━   ━━━',
   9: '━━━━○━━━━',

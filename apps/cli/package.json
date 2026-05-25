@@ -3,12 +3,13 @@
   "type": "module",
   "version": "0.0.0",
   "private": true,
-  "description": "Yijing hexagram oracle CLI bins (hexagram, hexagram-random, hexagram-interactive, hexagram-history)",
+  "description": "Yijing hexagram oracle CLI bins (hexagram, hexagram-random, hexagram-interactive, hexagram-history, hexagram-playground)",
   "license": "MIT",
   "bin": {
     "hexagram": "./dist/hexagram.mjs",
     "hexagram-history": "./dist/history.mjs",
     "hexagram-interactive": "./dist/interactive.mjs",
+    "hexagram-playground": "./dist/playground.mjs",
     "hexagram-random": "./dist/random.mjs"
   },
   "files": [
@@ -23,7 +24,9 @@
     "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/history-ui": "workspace:*",
+    "@hexagram/playground-ui": "workspace:*",
     "@hexagram/shell": "workspace:*",
-    "@hexagram/types": "workspace:*"
+    "@hexagram/types": "workspace:*",
+    "@hexagram/viewer-core": "workspace:*"
   }
 }

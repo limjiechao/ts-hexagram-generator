@@ -8,17 +8,10 @@
 
 import { cryptoRandom } from '@hexagram/core/crypto-random'
 import { getHexagramRecord } from '@hexagram/core/getters'
-import {
-  BOLD_GREY,
-  BOLD_RED,
-  DIM_RED,
-  NORMAL,
-  NORMAL_GREY,
-} from '@hexagram/viewer-core'
+import { lineColors, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import { useEffect, useReducer, type ReactElement } from 'react'
 
-import type { BannerLineRole } from './banner-lines.js'
 import {
   advanceBannerState,
   createBannerState,
@@ -42,18 +35,6 @@ interface AnimatedBannerProps {
    * composed CLI forwards a snapshot derived from `--banner-interval-ms`.
    */
   readonly timing?: BannerTimingConfig
-}
-
-/** The two SGR runs for a line, by colour role: `[value colour, bar colour]`. */
-function lineColors(role: BannerLineRole): readonly [string, string] {
-  switch (role) {
-    case 'static':
-      return [NORMAL_GREY, BOLD_GREY]
-    case 'moving-bright':
-      return [BOLD_RED, BOLD_RED]
-    case 'moving-dim':
-      return [DIM_RED, DIM_RED]
-  }
 }
 
 /**

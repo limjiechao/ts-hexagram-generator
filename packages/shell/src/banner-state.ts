@@ -10,12 +10,11 @@
 // without rendering Ink.
 
 import type { Hexagram, Line } from '@hexagram/types'
-
 import {
   deriveBannerLine,
   polarityOf,
-  type BannerLineCells,
-} from './banner-lines.js'
+  type LineCells,
+} from '@hexagram/viewer-core'
 
 /** An injected random source — returns a float in `[0, 1)`, like Math.random. */
 export type Rng = () => number
@@ -35,7 +34,7 @@ export interface BannerState {
 /** A render-ready banner frame derived from a `BannerState`. */
 export interface BannerFrame {
   /** The six line cells, bottom-first (parallel to the `hex` tuple). */
-  readonly lines: readonly BannerLineCells[]
+  readonly lines: readonly LineCells[]
   /** The hexagram whose name to display — the current cycle's `hex`. */
   readonly nameHex: Hexagram
 }

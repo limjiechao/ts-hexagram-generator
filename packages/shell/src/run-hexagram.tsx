@@ -18,6 +18,7 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
 } from '@hexagram/casting-ui'
+import { isInteractiveEnv } from '@hexagram/viewer-core'
 import { render } from 'ink'
 
 import { resolveBannerIntervalMs } from './banner-flag.js'
@@ -29,21 +30,6 @@ import { HexagramApp, type CastingFlags } from './hexagram-app.js'
 
 /** The stderr message written when the environment is non-interactive. */
 const NON_INTERACTIVE_MESSAGE = 'hexagram requires an interactive terminal\n'
-
-/**
- * Whether the current process environment is interactive enough to run the
- * Ink alternate-screen UI. Refuses on a non-TTY stdout, on `NO_COLOR`, and on
- * `CI` — mirroring `hexagram-history`'s guard exactly. `hexagram` is TTY-only:
- * there is no plain-mode fallback, so a non-interactive environment is a hard
- * refusal rather than a degraded mode.
- */
-function isInteractiveEnv(): boolean {
-  const isTty = Boolean(process.stdout.isTTY)
-  const noColor =
-    process.env.NO_COLOR !== undefined && process.env.NO_COLOR !== ''
-  const ci = process.env.CI !== undefined && process.env.CI !== ''
-  return isTty && !noColor && !ci
-}
 
 /**
  * Run the composed `hexagram` CLI. Resolves to `true` on a clean quit and

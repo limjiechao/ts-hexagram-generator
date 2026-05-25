@@ -77,12 +77,18 @@ importers:
       '@hexagram/history-ui':
         specifier: workspace:*
         version: link:../../packages/history-ui
+      '@hexagram/playground-ui':
+        specifier: workspace:*
+        version: link:../../packages/playground-ui
       '@hexagram/shell':
         specifier: workspace:*
         version: link:../../packages/shell
       '@hexagram/types':
         specifier: workspace:*
         version: link:../../packages/types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../../packages/viewer-core
 
   packages/casting-ui:
     dependencies:
@@ -186,6 +192,37 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
+  packages/playground-ui:
+    dependencies:
+      '@hexagram/consultation-file':
+        specifier: workspace:*
+        version: link:../consultation-file
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+    devDependencies:
+      '@hexagram/test-utils':
+        specifier: workspace:*
+        version: link:../test-utils
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      ink-testing-library:
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.2.14)
+
   packages/shell:
     dependencies:
       '@hexagram/casting-ui':
@@ -197,6 +234,9 @@ importers:
       '@hexagram/history-ui':
         specifier: workspace:*
         version: link:../history-ui
+      '@hexagram/playground-ui':
+        specifier: workspace:*
+        version: link:../playground-ui
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core

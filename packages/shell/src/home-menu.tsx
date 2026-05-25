@@ -18,12 +18,16 @@ import type { BannerTestOverride, BannerTimingConfig } from './banner-state.js'
 import { IdentityBlock } from './identity-block.js'
 
 /**
- * The three Home-menu choices, in render order. The string union is the menu's
+ * The four Home-menu choices, in render order. The string union is the menu's
  * public vocabulary — `<HexagramApp>` maps each value onto a `nav-machine`
  * `NavEvent`. "interactive" is first so it is the default focused item (the
  * PRD's required default).
  */
-export type HomeMenuSelection = 'interactive' | 'random' | 'history'
+export type HomeMenuSelection =
+  | 'interactive'
+  | 'random'
+  | 'history'
+  | 'playground'
 
 /** A single menu row: the selection value plus its rendered label. */
 interface MenuItem {
@@ -40,6 +44,7 @@ const MENU_ITEMS: readonly MenuItem[] = [
   { value: 'interactive', label: 'New interactive consultation' },
   { value: 'random', label: 'New random consultation' },
   { value: 'history', label: 'Browse history' },
+  { value: 'playground', label: 'Hexagram Playground' },
 ]
 
 /** Footer key hints for the Home screen — Esc here quits the whole app. */

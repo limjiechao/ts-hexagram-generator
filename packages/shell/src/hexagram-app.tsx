@@ -22,6 +22,7 @@ import {
   type InputMode,
 } from '@hexagram/casting-ui'
 import { HistoryApp } from '@hexagram/history-ui'
+import { PlaygroundApp } from '@hexagram/playground-ui'
 import { useApp } from 'ink'
 import { useReducer, type ReactElement } from 'react'
 
@@ -102,6 +103,8 @@ function eventForSelection(
       return { type: 'newRandomConsultation' }
     case 'history':
       return { type: 'browseHistory' }
+    case 'playground':
+      return { type: 'openPlayground' }
   }
 }
 
@@ -150,6 +153,14 @@ export function HexagramApp({
         exitLabel={EXIT_LABEL}
       />
     )
+  }
+
+  // ── Playground ───────────────────────────────────────────────────────────
+  // A fresh `<PlaygroundApp>` mount every visit — entry state is always
+  // Qian, no persistence across visits. Esc with no typing run open routes
+  // back to Home via `onExit`.
+  if (nav.screen === 'playground') {
+    return <PlaygroundApp onExit={backToHome} exitLabel={EXIT_LABEL} />
   }
 
   // ── Casting ──────────────────────────────────────────────────────────────

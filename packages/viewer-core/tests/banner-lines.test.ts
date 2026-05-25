@@ -1,11 +1,17 @@
 // Pure unit tests for the banner-line render derivation — the Functional Core
-// of the home banner. No React, no Ink: `deriveBannerLine` / `polarityOf` are
-// exercised directly. This slice covers the static (non-moving) cases; the
-// moving/pulse cases are pinned in Slice 2.
+// of the line-glyph vocabulary shared by the home banner, the casting readout,
+// and the hexagram playground. No React, no Ink: `deriveBannerLine` /
+// `polarityOf` / `lineColors` are exercised directly.
 
 import { describe, expect, it } from 'vitest'
 
-import { deriveBannerLine, polarityOf } from '../src/banner-lines'
+import { deriveBannerLine, lineColors, polarityOf } from '../src/banner-lines'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  DIM_RED,
+  NORMAL_GREY,
+} from '../src/output-palette'
 
 describe('polarityOf', () => {
   it('classifies solid lines (7 young yang, 9 moving yang) as yang', () => {
@@ -71,5 +77,19 @@ describe('deriveBannerLine — moving lines', () => {
       value: 6,
       role: 'moving-dim',
     })
+  })
+})
+
+describe('lineColors', () => {
+  it('maps static to [normal-grey value, bold-grey bar]', () => {
+    expect(lineColors('static')).toEqual([NORMAL_GREY, BOLD_GREY])
+  })
+
+  it('maps moving-bright to bold-red on both', () => {
+    expect(lineColors('moving-bright')).toEqual([BOLD_RED, BOLD_RED])
+  })
+
+  it('maps moving-dim to dim-red on both', () => {
+    expect(lineColors('moving-dim')).toEqual([DIM_RED, DIM_RED])
   })
 })

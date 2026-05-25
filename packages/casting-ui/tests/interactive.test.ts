@@ -205,7 +205,7 @@ describe('CLI', () => {
             call[0].includes('9  ━━━━○━━━━') &&
             call[0].includes('8  ━━━   ━━━') &&
             call[0].includes('7  ━━━━━━━━━') &&
-            call[0].includes('6  ━━━ × ━━━') &&
+            call[0].includes('6  ━━━ ✕ ━━━') &&
             call[0].includes('9  ━━━━○━━━━') &&
             call[0].includes('9  ━━━━○━━━━'),
         ),

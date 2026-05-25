@@ -39,6 +39,7 @@
     "hexagram-history": "tsx apps/cli/src/history.ts",
     "hexagram-random": "tsx apps/cli/src/random.ts",
     "hexagram-interactive": "tsx apps/cli/src/interactive.ts",
+    "hexagram-playground": "tsx apps/cli/src/playground.ts",
     "generate-json-files": "turbo run generate-json-files --filter=@hexagram/core",
     "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/casting-ui --filter=@hexagram/consultation-file"
   },

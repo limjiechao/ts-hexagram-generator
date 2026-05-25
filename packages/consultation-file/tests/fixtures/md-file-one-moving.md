@@ -89,7 +89,7 @@ Should I take the new position?
   7  ━━━━━━━━━  （四, 4th）                   7  ━━━━━━━━━  （四, 4th）
   8  ━━━   ━━━  （三, 3rd）                   8  ━━━   ━━━  （三, 3rd）
   7  ━━━━━━━━━  （二, 2nd）                   7  ━━━━━━━━━  （二, 2nd）
-  6  ━━━ × ━━━  （初, 1st）─────────────────▶ 7  ━━━━━━━━━  （初, 1st）
+  6  ━━━ ✕ ━━━  （初, 1st）─────────────────▶ 7  ━━━━━━━━━  （初, 1st）
 
   #64 未濟（wèi jì）                          #38 睽（kuí）
   Wei Chi / Before Completion                 K’uei / Opposition
@@ -105,7 +105,7 @@ _Line at bottom is first._
   7  ━━━━━━━━━  （四, 4th）──┘   fire (upper trigram)
   8  ━━━   ━━━  （三, 3rd）──┐
   7  ━━━━━━━━━  （二, 2nd）──┼── 水（下卦）
-  6  ━━━ × ━━━  （初, 1st）──┘   water (lower trigram)
+  6  ━━━ ✕ ━━━  （初, 1st）──┘   water (lower trigram)
 ```
 
 _First is line at bottom._

@@ -1,12 +1,12 @@
 import {
   BOLD_WHITE,
+  Cursor,
+  isGlobalExitKey,
   NORMAL,
   QUERY_ACCENT_BAR_PREFIX,
 } from '@hexagram/viewer-core'
 import { Text, useInput } from 'ink'
 import { useEffect, useRef, type ReactElement } from 'react'
-
-import { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
 interface QueryEditorProps {
   value: string

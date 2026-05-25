@@ -1,7 +1,6 @@
+import { isGlobalExitKey } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import { useEffect, useRef, type ReactElement } from 'react'
-
-import { isGlobalExitKey } from './editor-primitives.js'
 
 /**
  * Rendered height of `<CastingStatus>`, border included. Colocated with the

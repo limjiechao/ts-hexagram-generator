@@ -1,4 +1,4 @@
-import { BOLD_RED, NORMAL } from '@hexagram/viewer-core'
+import { BOLD_RED, isGlobalExitKey, NORMAL } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
   useCallback,
@@ -12,7 +12,6 @@ import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
 import { armDelayTicks, firstLandingTick } from './bounce-trajectory.js'
-import { isGlobalExitKey } from './editor-primitives.js'
 import { NumberInput } from './number-input.js'
 
 /**

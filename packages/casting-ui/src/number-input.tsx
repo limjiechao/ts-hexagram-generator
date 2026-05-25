@@ -1,7 +1,6 @@
+import { Cursor, isGlobalExitKey } from '@hexagram/viewer-core'
 import { Text, useInput } from 'ink'
 import { useEffect, useRef, type ReactElement } from 'react'
-
-import { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
 interface NumberInputProps {
   value: string

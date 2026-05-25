@@ -5,7 +5,7 @@
 // bits (mounting screens, wiring Ink input). This file encapsulates every
 // navigation rule behind a tiny reducer interface.
 
-// The composed app has exactly three screens; precisely one is mounted at a
+// The composed app has exactly four screens; precisely one is mounted at a
 // time. `hexagram` opens on Home — the hub menu — and the casting screen
 // additionally carries which flow it is running.
 
@@ -17,18 +17,19 @@
 export type NavFlowKind = 'interactive' | 'random'
 
 /**
- * The navigation state — a discriminated union over the three screens. Exactly
+ * The navigation state — a discriminated union over the four screens. Exactly
  * one screen is mounted at a time, so the whole app's navigation is one of
- * these three shapes. Only `casting` carries extra data (`flowKind`).
+ * these four shapes. Only `casting` carries extra data (`flowKind`).
  */
 export type NavState =
   | { screen: 'home' }
   | { screen: 'history' }
+  | { screen: 'playground' }
   | { screen: 'casting'; flowKind: NavFlowKind }
 
 /**
- * The navigation events — the four things that can move between screens:
- * the three Home-menu selections, plus the soft "back" key (Esc) returning
+ * The navigation events — the five things that can move between screens:
+ * the four Home-menu selections, plus the soft "back" key (Esc) returning
  * to Home. Esc on Home quits the app, which is the shell's concern, not the
  * reducer's — see `backToHome` handling below.
  */
@@ -36,6 +37,7 @@ export type NavEvent =
   | { type: 'newInteractiveConsultation' }
   | { type: 'newRandomConsultation' }
   | { type: 'browseHistory' }
+  | { type: 'openPlayground' }
   | { type: 'backToHome' }
 
 /** The app opens on the Home menu — the hub. */
@@ -48,10 +50,11 @@ export const initialNavState: NavState = { screen: 'home' }
  *   - Home → casting (interactive) on "new interactive consultation"
  *   - Home → casting (random)      on "new random consultation"
  *   - Home → history               on "browse history"
- *   - history | casting → Home     on back-to-home
+ *   - Home → playground            on "open playground"
+ *   - history | playground | casting → Home  on back-to-home
  *
  * Defensive design — the PRD only fires menu selections from Home and only
- * fires `backToHome` from history/casting, but a reducer must be total. Any
+ * fires `backToHome` from non-Home screens, but a reducer must be total. Any
  * event that does not match its expected source screen is treated as a no-op
  * and the SAME state reference is returned (no churn for impossible events):
  *
@@ -73,6 +76,8 @@ export function navReducer(state: NavState, event: NavEvent): NavState {
         : state
     case 'browseHistory':
       return state.screen === 'home' ? { screen: 'history' } : state
+    case 'openPlayground':
+      return state.screen === 'home' ? { screen: 'playground' } : state
     case 'backToHome':
       return state.screen === 'home' ? state : { screen: 'home' }
   }
