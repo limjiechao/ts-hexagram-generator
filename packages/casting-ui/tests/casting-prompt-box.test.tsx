@@ -629,22 +629,24 @@ describe('CastingPromptBox (slider mode)', () => {
       )
       expect(pickFromFrame(lastFrame() ?? '')).toBe(5)
       stdin.write(SPACE)
-      await tick()
       // Reveal in progress: numeric heaps shown, cursor parked, parent not
       // yet notified.
+      await waitFor(() => {
+        expect(lastFrame() ?? '').toContain(
+          'Stalks: 40 | Left Heap:  5 | Right Heap: 35',
+        )
+      })
       const revealFrame = lastFrame() ?? ''
-      expect(revealFrame).toContain(
-        'Stalks: 40 | Left Heap:  5 | Right Heap: 35',
-      )
       expect(pickFromFrame(revealFrame)).toBe(5)
       expect(onSubmit).not.toHaveBeenCalled()
       // Cross the reveal boundary — onSubmit fires exactly once with the pick.
-      // shouldAdvanceTime drift during await tick() is ~50ms, so REVEAL_MS is
-      // ample headroom for one advance call to span the timer.
+      // shouldAdvanceTime drift during waitFor's poll is bounded by REVEAL_MS,
+      // which is ample headroom for one advance call to span the timer.
       vi.advanceTimersByTime(REVEAL_MS)
-      await tick()
-      expect(onSubmit).toHaveBeenCalledTimes(1)
-      expect(onSubmit).toHaveBeenCalledWith(5)
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(1)
+        expect(onSubmit).toHaveBeenCalledWith(5)
+      })
       unmount()
     } finally {
       vi.useRealTimers()
@@ -702,6 +704,7 @@ describe('CastingPromptBox (slider mode)', () => {
     // the animation — it routes to `onSkip`, not the per-cast `onSubmit`.
     const onSubmit = vi.fn()
     const onSkip = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <CastingPromptBox
         lineNumber={1}
@@ -716,12 +719,14 @@ describe('CastingPromptBox (slider mode)', () => {
         commitRevealMs={0}
         onSubmit={onSubmit}
         onSkip={onSkip}
+        onReady={onReady}
       />,
     )
-    await tick()
+    await waitForReady(onReady)
     stdin.write(SPACE)
-    await tick()
-    expect(onSkip).toHaveBeenCalledTimes(1)
+    await waitFor(() => {
+      expect(onSkip).toHaveBeenCalledTimes(1)
+    })
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
@@ -733,6 +738,7 @@ describe('CastingPromptBox (slider mode)', () => {
     try {
       const onSubmit = vi.fn()
       const onSkip = vi.fn()
+      const onReady = vi.fn()
       const { rerender, stdin, unmount } = render(
         <CastingPromptBox
           lineNumber={1}
@@ -747,8 +753,10 @@ describe('CastingPromptBox (slider mode)', () => {
           autoLand={{ target: 3, armDelayMs: 0 }}
           onSubmit={onSubmit}
           onSkip={onSkip}
+          onReady={onReady}
         />,
       )
+      await waitForReady(onReady)
       // Cross the landing tick (tick 2 = 100 ms) so the slider auto-lands.
       vi.advanceTimersByTime(400)
       rerender(
@@ -764,12 +772,13 @@ describe('CastingPromptBox (slider mode)', () => {
           autoLand={{ target: 3, armDelayMs: 0 }}
           onSubmit={onSubmit}
           onSkip={onSkip}
+          onReady={onReady}
         />,
       )
-      await tick()
       stdin.write(SPACE)
-      await tick()
-      expect(onSkip).toHaveBeenCalledTimes(1)
+      await waitFor(() => {
+        expect(onSkip).toHaveBeenCalledTimes(1)
+      })
       unmount()
     } finally {
       vi.useRealTimers()
@@ -779,6 +788,7 @@ describe('CastingPromptBox (slider mode)', () => {
   it('does not invoke onSkip for Ctrl+C / Escape during random playback', async () => {
     // Global exit keys keep their existing behaviour — they are NOT skip.
     const onSkip = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <CastingPromptBox
         lineNumber={1}
@@ -792,12 +802,13 @@ describe('CastingPromptBox (slider mode)', () => {
         commitRevealMs={0}
         onSubmit={() => {}}
         onSkip={onSkip}
+        onReady={onReady}
       />,
     )
-    await tick()
+    await waitForReady(onReady)
     stdin.write(CTRL_C)
     stdin.write(ESCAPE)
-    await tick()
+    await yieldMacrotask()
     expect(onSkip).not.toHaveBeenCalled()
     unmount()
   })
@@ -806,6 +817,7 @@ describe('CastingPromptBox (slider mode)', () => {
     // Interactive callers pass no auto-land — SPACE commits the cast exactly
     // as before; the skip routing must not leak into that path.
     const onSubmit = vi.fn()
+    const onReady = vi.fn()
     const { stdin, unmount } = render(
       <CastingPromptBox
         lineNumber={1}
@@ -817,9 +829,10 @@ describe('CastingPromptBox (slider mode)', () => {
         tickMs={50}
         commitRevealMs={0}
         onSubmit={onSubmit}
+        onReady={onReady}
       />,
     )
-    await tick()
+    await waitForReady(onReady)
     stdin.write(SPACE)
     // Windows GHA's slider commit + onSubmit microtask outruns a single 50 ms
     // tick — poll the assertion instead of racing it.
@@ -871,9 +884,10 @@ describe('CastingPromptBox (slider mode)', () => {
       expect(pickFromFrame(lastFrame() ?? '')).toBe(3)
       // Cross the (zero-length) reveal window so the deferred onSubmit fires.
       vi.advanceTimersByTime(50)
-      await tick()
-      expect(onSubmit).toHaveBeenCalledTimes(1)
-      expect(onSubmit).toHaveBeenCalledWith(3)
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(1)
+        expect(onSubmit).toHaveBeenCalledWith(3)
+      })
       unmount()
     } finally {
       vi.useRealTimers()
