@@ -4,7 +4,7 @@ import {
   QUERY_ACCENT_BAR_PREFIX,
 } from '@hexagram/viewer-core'
 import { Text, useInput } from 'ink'
-import type { ReactElement } from 'react'
+import { useEffect, useRef, type ReactElement } from 'react'
 
 import { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
@@ -15,6 +15,15 @@ interface QueryEditorProps {
   placeholder?: string
   onChange: (next: string) => void
   onSubmit: () => void
+  /**
+   * Witness — fires once on every `focused: false → true` transition, from a
+   * `useEffect` so it runs on the same post-commit macrotask as Ink's internal
+   * `useInput` listener registration. Callers (viewer, tests) can gate the
+   * next keystroke on this signal and dodge the bind-race window where bytes
+   * written between commit and bind would be silently dropped. See the
+   * `ink-useinput-bind` skill.
+   */
+  onReady?: () => void
 }
 
 /**
@@ -27,9 +36,17 @@ interface QueryEditorProps {
  * Ignores Escape and Ctrl+C so the viewer's global handler can exit cleanly.
  */
 export function QueryEditor(props: QueryEditorProps): ReactElement {
-  const { value, focused, placeholder, onChange, onSubmit } = props
+  const { value, focused, placeholder, onChange, onSubmit, onReady } = props
   // `props.width` is kept in the interface for call-site compatibility but
   // the accent-bar form renders inline text with no fixed-width constraint.
+
+  // Latest-`onReady` ref so the fire-once effect below never has to depend on
+  // (and re-run for) a fresh closure from the parent.
+  const onReadyRef = useRef(onReady)
+  useEffect(() => {
+    onReadyRef.current = onReady
+  })
+
   useInput(
     (input, key) => {
       if (isGlobalExitKey(input, key)) return
@@ -52,6 +69,22 @@ export function QueryEditor(props: QueryEditorProps): ReactElement {
     },
     { isActive: focused },
   )
+
+  // Witness the `focused: false → true` transition from inside a `useEffect`
+  // — which runs on the same post-commit macrotask phase as Ink's internal
+  // `useInput` listener registration. Firing here is positive proof that the
+  // keyboard handler is bound: callers (viewer, tests) can gate the next
+  // keystroke on `onReady` and dodge the bind-race window where bytes written
+  // between commit and bind would be silently dropped.
+  const wasFocusedRef = useRef(false)
+  useEffect(() => {
+    if (focused && !wasFocusedRef.current) {
+      wasFocusedRef.current = true
+      onReadyRef.current?.()
+    } else if (!focused && wasFocusedRef.current) {
+      wasFocusedRef.current = false
+    }
+  }, [focused])
 
   if (value.length === 0 && placeholder !== undefined) {
     // Empty buffer: accent bar + cursor (if focused) + dimmed placeholder.
