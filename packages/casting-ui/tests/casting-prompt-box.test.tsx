@@ -4,7 +4,6 @@ import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import { CastingPromptBox, SliderInput } from '../src/casting-prompt-box'
-import { tick } from './helpers/async'
 import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
