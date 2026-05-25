@@ -311,9 +311,10 @@ describe('SliderInput', () => {
         />,
       )
       stdin.write(SPACE)
-      await tick()
-      expect(onSubmit).toHaveBeenCalledTimes(1)
-      expect(onSubmit).toHaveBeenCalledWith(3)
+      await waitFor(() => {
+        expect(onSubmit).toHaveBeenCalledTimes(1)
+        expect(onSubmit).toHaveBeenCalledWith(3)
+      })
       // Further ticks must not produce additional submits (timer stopped).
       vi.advanceTimersByTime(200)
       expect(onSubmit).toHaveBeenCalledTimes(1)
@@ -405,7 +406,7 @@ describe('SliderInput', () => {
     )
     stdin.write(ESCAPE)
     stdin.write(CTRL_C)
-    await tick()
+    await yieldMacrotask()
     expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
