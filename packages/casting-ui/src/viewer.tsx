@@ -98,6 +98,15 @@ interface ConsultationViewerProps {
   // destination of the soft-back Escape. Defaults to `"quit"` (the standalone
   // bins); the composed CLI passes e.g. `"home"`.
   exitLabel?: string
+  // Test-only witness — forwarded to `<CastingStatus onReady>` so tests can
+  // gate cross-cast keystrokes on the status widget's `useInput` being live,
+  // sidestepping Ink's bind race. The status widget is keyed by
+  // `${lineNumber}-${state.castIndex}` and remounts per cast; `onReady`
+  // re-fires on each remount (the component's `wasActiveRef` resets per
+  // mount), so this callback is invoked once per cast slot. Production
+  // callers don't need this and leave it `undefined` — the component's
+  // optional `onReady` then no-ops.
+  onCastingStatusReady?: () => void
 }
 
 // Which exit path a pending discard confirmation belongs to. `back` is the
@@ -124,6 +133,7 @@ export function ConsultationViewer({
   sliderCommitRevealMs = SLIDER_COMMIT_REVEAL_MS,
   onExit,
   exitLabel = 'quit',
+  onCastingStatusReady,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   // The soft-back destination — the injected `onExit`, or Ink's program exit
@@ -519,6 +529,7 @@ export function ConsultationViewer({
       width={innerCols}
       active={confirmingDiscard === null}
       onSkip={handleSkipPlayback}
+      onReady={onCastingStatusReady}
     />
   )
 
