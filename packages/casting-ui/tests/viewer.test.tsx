@@ -1,4 +1,4 @@
-import { waitFor, yieldMacrotask } from '@hexagram/test-utils'
+import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { buildConsultationSections } from '@hexagram/viewer-core'
 import { render } from 'ink-testing-library'
@@ -6,7 +6,6 @@ import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { ConsultationViewer } from '../src/viewer'
-import { waitForSliderReady } from './helpers/async'
 import {
   ARROW_DOWN,
   ARROW_LEFT,
@@ -1281,22 +1280,28 @@ describe('ConsultationViewer (slider mode)', () => {
   })
 
   it('commits one split per SPACE press and advances the progress bar', async () => {
+    // The `onSliderReady` spy is forwarded to the slider-mode
+    // `<CastingPromptBox onReady>` and fired exactly once per mount, AFTER
+    // `useSliderBounce`'s `useInput` has registered with Ink's stdin
+    // dispatcher. Each cast remounts a fresh slider, so the spy accumulates
+    // one call per ready cast — we gate the Nth SPACE on
+    // `toHaveBeenCalledTimes(N)` to dodge the bind-race window on Windows
+    // GHA. This replaces the prior Braille-spinner-glyph poll (anti-fix 4
+    // from the ink-useinput-bind skill: an incidental render artefact as
+    // the witness signal).
+    const onSliderReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="interactive"
         inputMode="slider"
         sliderCommitRevealMs={0}
+        onSliderReady={onSliderReady}
       />,
     )
     stdin.write('Q')
     await yieldMacrotask()
     stdin.write(ENTER)
-    // `waitForSliderReady` polls the rendered frame for a Braille spinner
-    // glyph on the `Left Heap:` line — proof that the next cast's slider has
-    // mounted and bound `useInput`. Gating every SPACE on this signal closes
-    // the listener-less window between cast remounts on Windows GHA, where a
-    // bare `tick()` is too short for the post-mount effect to fire.
-    await waitForSliderReady(lastFrame)
+    await waitForReady(onSliderReady)
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('0/18')
     })
@@ -1304,12 +1309,16 @@ describe('ConsultationViewer (slider mode)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('1/18')
     })
-    await waitForSliderReady(lastFrame)
+    await waitFor(() => {
+      expect(onSliderReady).toHaveBeenCalledTimes(2)
+    })
     stdin.write(SPACE)
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('2/18')
     })
-    await waitForSliderReady(lastFrame)
+    await waitFor(() => {
+      expect(onSliderReady).toHaveBeenCalledTimes(3)
+    })
     stdin.write(SPACE)
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('3/18')
@@ -1322,29 +1331,33 @@ describe('ConsultationViewer (slider mode)', () => {
   })
 
   it('drives the full 18-split flow to done with SPACE', async () => {
+    // `onSliderReady` accumulates one call per cast mount; each iteration
+    // gates its SPACE on `toHaveBeenCalledTimes(index + 1)` so the press
+    // only lands AFTER the Nth cast's `useInput` has registered. This
+    // eliminates the dropped-SPACE race during the cross-cast unmount/remount
+    // window on Windows GHA, where a bare `tick()` is too short on a
+    // saturated runner and a single dropped SPACE stalled the whole flow.
+    const onSliderReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="interactive"
         inputMode="slider"
         sliderCommitRevealMs={0}
+        onSliderReady={onSliderReady}
       />,
     )
     stdin.write('A question')
     await yieldMacrotask()
     stdin.write(ENTER)
-    // Each iteration: wait for the next cast's slider to be mounted +
-    // input-bound (Braille spinner advanced past ⠋), press SPACE, then wait
-    // for the progress bar to confirm the commit before continuing. This
-    // eliminates the dropped-SPACE race during the cross-cast unmount/remount
-    // window on Windows GHA — bare `tick()` between writes is too short on a
-    // saturated runner and a single dropped SPACE stalled the whole flow.
-    //
     // The final iteration (index=17) commits cast 18 and transitions the
     // viewer to `computing → done` in the same cycle — the progress bar is
     // no longer rendered, so `18/18` never appears in the frame. The outer
     // `waitFor(consultationFileOutputMock)` is the gate for that step.
     for (let index = 0; index < 18; index += 1) {
-      await waitForSliderReady(lastFrame)
+      const readyCalls = index + 1
+      await waitFor(() => {
+        expect(onSliderReady).toHaveBeenCalledTimes(readyCalls)
+      })
       stdin.write(SPACE)
       if (index < 17) {
         const expected = `${index + 1}/18`
@@ -1369,12 +1382,14 @@ describe('ConsultationViewer (slider mode)', () => {
     // MAX_TICK_MS (250 ms), well above the 50 ms `tick()` wait. Otherwise
     // the slider would tick once before the assertion runs and the
     // position would no longer be 1.
+    const onSliderReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="interactive"
         inputMode="slider"
         sliderSweepMs={60_000}
         sliderCommitRevealMs={0}
+        onSliderReady={onSliderReady}
       />,
     )
     stdin.write('Q')
@@ -1382,12 +1397,15 @@ describe('ConsultationViewer (slider mode)', () => {
     stdin.write(ENTER)
     // Wait for cast 1's slider to bind input before the first SPACE — bare
     // `tick()` races the mount on Windows GHA and the SPACE was dropped.
-    await waitForSliderReady(lastFrame)
+    await waitForReady(onSliderReady)
     stdin.write(SPACE)
-    // Wait for cast 2 to be rendered. We deliberately do NOT call
-    // waitForSliderReady here — that would wait for cast 2's spinner to
-    // advance past ⠋, which (with sliderSweepMs=60_000 → tickMs ≈ 1.3 s)
-    // also ticks the cursor off position 1 and breaks `pickFromFrame`.
+    // Wait for cast 2's chrome to render. The `pickFromFrame(frame)`
+    // assertion below requires the cursor to still be at position 1, so we
+    // intentionally do NOT poll on cast 2's `onSliderReady` (which would
+    // tolerate microtasks while the slider's setInterval — with the
+    // 60_000 ms sweep → ~1.3 s tickMs — has not yet fired). The chrome
+    // assertion is sufficient: `Cast 2/3` only appears after the new mount
+    // has committed.
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Cast 2/3')
     })
