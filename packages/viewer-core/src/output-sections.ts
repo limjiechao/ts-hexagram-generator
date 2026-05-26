@@ -96,6 +96,17 @@ function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
 
+function capitalizeFirst(text: string): string {
+  if (text.length === 0) return text
+  return `${text[0]!.toUpperCase()}${text.slice(1)}`
+}
+
+// Width of the bar block on each side (value(1) + 2sp + bar(9) + 2sp +
+// pos(11) = 25), reused as the divider width under the hexagram identity
+// names so the dashes line up with the bar diagrams above them. Mirrors
+// `IDENTITY_DIVIDER_WIDTH` in playground-display.ts.
+const TRIGRAM_DIVIDER_WIDTH = 25
+
 export function transformationSection(hexagram: Hexagram): string {
   const movingLines = hexagram.filter(isMovingLine)
   if (movingLines.length === 0)
@@ -140,9 +151,12 @@ ${NORMAL}(No transformation)
     [standingLine1, emergingLine1, POSITION_LABELS[1]],
   ]
 
+  // Headers are left-flush with the bar-block column on each side (col 2
+  // for standing, col 46 for emerging) so the labels line up with the line
+  // value digits below them — matches the playground's left-aligned header.
   const headerLine =
-    `${BOLD_GREY}${padToColumn('  Standing', RIGHT_COLUMN)}${NORMAL}` +
-    `${BOLD_GREY}Emerging${NORMAL}`
+    `${BOLD_GREY}${padToColumn('  Standing Hexagram', RIGHT_COLUMN)}${NORMAL}` +
+    `${BOLD_GREY}Emerging Hexagram${NORMAL}`
 
   const lineRows = pairs
     .map(([standingLine, emergingLine, pos]) => {
@@ -155,15 +169,48 @@ ${NORMAL}(No transformation)
     })
     .join('\n')
 
-  // Footer line 1: #N Chinese（pinyin）  — aligned to RIGHT_COLUMN
+  // Footer rows below the diagram, paired side-by-side:
+  //   row 1: #N Chinese（pinyin） — aligned to RIGHT_COLUMN
+  //   row 2: Wilhelm-Baynes English name — ≥6-col gap after standing
+  //   row 3: a 25-col `─` divider per side, lining up with the bar block
+  //   row 4: `Upper: <Chinese> <Pinyin> (<English imagery>)` per side
+  //   row 5: `Lower: <Chinese> <Pinyin> (<English imagery>)` per side
+  // Row format for rows 4/5 mirrors the playground's identity stack so a
+  // future shared composer can render either surface from one builder.
   const standingFooter1 = `  #${standingMetadata.Order.WenWang} ${standingName.Chinese.Traditional}（${standingMetadata.Pronunciation.Pinyin}）`
   const emergingFooter1 = `#${emergingMetadata.Order.WenWang} ${emergingName.Chinese.Traditional}（${emergingMetadata.Pronunciation.Pinyin}）`
   const footer1 = `${BOLD_WHITE}${padToColumn(standingFooter1, RIGHT_COLUMN)}${emergingFooter1}${NORMAL}`
 
-  // Footer line 2: English — exactly 6 spaces after standing name
   const standingFooter2 = `  ${standingName.English.WilhelmBaynes}`
   const emergingFooter2 = emergingName.English.WilhelmBaynes
   const footer2 = `${NORMAL_GREY}${padToColumn(standingFooter2, RIGHT_COLUMN, 6)}${emergingFooter2}${NORMAL}`
+
+  const dividerRow = (() => {
+    const dashes = '─'.repeat(TRIGRAM_DIVIDER_WIDTH)
+    return `${NORMAL_GREY}${padToColumn(`  ${dashes}`, RIGHT_COLUMN)}${dashes}${NORMAL}`
+  })()
+
+  const trigramRow = (position: 'Upper' | 'Lower'): string => {
+    const standingTrigram = getTrigramRecord(
+      position === 'Upper'
+        ? standingMetadata.Trigram.Upper
+        : standingMetadata.Trigram.Lower,
+    )
+    const emergingTrigram = getTrigramRecord(
+      position === 'Upper'
+        ? emergingMetadata.Trigram.Upper
+        : emergingMetadata.Trigram.Lower,
+    )
+    const cell = (trigram: ReturnType<typeof getTrigramRecord>): string =>
+      `${position}: ${trigram.Name.Chinese.Traditional} ${capitalizeFirst(
+        String(trigram.Metadata.Pronunciation.Pinyin),
+      )} (${capitalizeFirst(String(trigram.Imagery.English.WilhelmBaynes))})`
+    const left = `  ${cell(standingTrigram)}`
+    const right = cell(emergingTrigram)
+    return `${NORMAL_GREY}${padToColumn(left, RIGHT_COLUMN)}${right}${NORMAL}`
+  }
+  const upperRow = trigramRow('Upper')
+  const lowerRow = trigramRow('Lower')
 
   return `
 ${BOLD_GREY}TRANSFORMATION:
@@ -174,6 +221,9 @@ ${lineRows}
 
 ${footer1}
 ${footer2}
+${dividerRow}
+${upperRow}
+${lowerRow}
 `.trim()
 }
 

@@ -226,7 +226,7 @@ describe('buildPlaygroundDisplay', () => {
   })
 
   describe('header row', () => {
-    it('row 0 contains BOTH "Standing" and "Emerging"', () => {
+    it('row 0 contains BOTH "Standing Hexagram" and "Emerging Hexagram"', () => {
       const out = buildPlaygroundDisplay({
         standing: QIAN,
         emerging: QIAN,
@@ -235,11 +235,11 @@ describe('buildPlaygroundDisplay', () => {
         hasMoving: false,
       })
       const header = stripAnsi(out.rows[0] ?? '')
-      expect(header.includes('Standing')).toBe(true)
-      expect(header.includes('Emerging')).toBe(true)
+      expect(header.includes('Standing Hexagram')).toBe(true)
+      expect(header.includes('Emerging Hexagram')).toBe(true)
     })
 
-    it('"Standing" is centered above the standing bar block (cols 2..26)', () => {
+    it('"Standing Hexagram" is left-aligned at the start of the standing bar block (col 2)', () => {
       const out = buildPlaygroundDisplay({
         standing: QIAN,
         emerging: QIAN,
@@ -249,15 +249,13 @@ describe('buildPlaygroundDisplay', () => {
       })
       const header = stripAnsi(out.rows[0] ?? '')
       // The standing bar block sits in cols [CHEVRON_WIDTH,
-      // CHEVRON_WIDTH + BAR_BLOCK_WIDTH) = [2, 27). "Standing" (8 chars) in
-      // a 25-col cell centers with leftPad = floor((25-8)/2) = 8 → starts at
-      // col 2 + 8 = 10.
-      const expectedStart =
-        CHEVRON_WIDTH + Math.floor((BAR_BLOCK_WIDTH - 8) / 2)
-      expect(header.indexOf('Standing')).toBe(expectedStart)
+      // CHEVRON_WIDTH + BAR_BLOCK_WIDTH) = [2, 27). The label is left-flush
+      // so the "S" sits at the bar block's first column (col 2) — directly
+      // above each line row's value digit.
+      expect(header.indexOf('Standing Hexagram')).toBe(CHEVRON_WIDTH)
     })
 
-    it('"Emerging" is centered above the emerging bar block (cols 46..70)', () => {
+    it('"Emerging Hexagram" is left-aligned at the right column anchor (col 46)', () => {
       const out = buildPlaygroundDisplay({
         standing: QIAN,
         emerging: QIAN,
@@ -267,12 +265,12 @@ describe('buildPlaygroundDisplay', () => {
       })
       const header = stripAnsi(out.rows[0] ?? '')
       // The emerging bar block sits in cols [LEFT_LINE_WIDTH + GAP_WIDTH,
-      // LEFT_LINE_WIDTH + GAP_WIDTH + BAR_BLOCK_WIDTH) = [46, 71). "Emerging"
-      // (8 chars) in a 25-col cell centers with leftPad = 8 → starts at
-      // col 46 + 8 = 54.
-      const expectedStart =
-        LEFT_LINE_WIDTH + GAP_WIDTH + Math.floor((BAR_BLOCK_WIDTH - 8) / 2)
-      expect(header.indexOf('Emerging')).toBe(expectedStart)
+      // LEFT_LINE_WIDTH + GAP_WIDTH + BAR_BLOCK_WIDTH) = [46, 71). The label
+      // is left-flush so the "E" sits at col 46 — directly above each line
+      // row's right-column value digit.
+      expect(header.indexOf('Emerging Hexagram')).toBe(
+        LEFT_LINE_WIDTH + GAP_WIDTH,
+      )
     })
   })
 

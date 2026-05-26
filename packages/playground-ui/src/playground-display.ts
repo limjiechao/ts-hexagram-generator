@@ -1,8 +1,9 @@
 // Pure renderer for the Playground's P6 top-half layout. Builds the
-// 12-row ANSI block consumed by `<PlaygroundApp>` (header row + 6 line rows
-// + blank + 4 identity rows). No React, no Ink — every output is a
-// deterministic function of the inputs, so the geometry, padding, dim-ghost
-// behaviour, and chevron placement are all unit-testable without rendering.
+// 13-row ANSI block consumed by `<PlaygroundApp>` (header row + 6 line rows
+// + blank + 4 identity rows + divider between rows 2 and 3 of the identity
+// stack). No React, no Ink — every output is a deterministic function of
+// the inputs, so the geometry, padding, dim-ghost behaviour, and chevron
+// placement are all unit-testable without rendering.
 //
 // Single-column geometry model (all three layers share one anchor):
 //
@@ -11,7 +12,11 @@
 //       └─ chevron(2)  └─ value(1)+2sp+bar(9)+2sp+pos(11) ─┘
 //
 //   * Line rows:        chevron + standing(25) + gap(19) + emerging(25) → pad to TOP_HALF_WIDTH
-//   * Header row:       blank chev + center('Standing', 25) + gap(19) + center('Emerging', 25) → pad
+//   * Header row:       blank chev + 'Standing Hexagram' left-flush in 25 + gap(19) +
+//                       'Emerging Hexagram' left-flush in 25 → pad. The "S" / "E"
+//                       sit directly above the line value digits below them, so
+//                       the header lines up with the casting viewer's
+//                       transformation tab.
 //   * Identity rows:    blank chev + left-flush ID (≤ 44 cols, overlaps into gap on left only)
 //                       + right-flush anchor at col 46 + left-flush ID (≤ 42 cols)
 //
@@ -147,19 +152,6 @@ function padRightToWidth(row: string, target: number): string {
   return gap > 0 ? `${row}${' '.repeat(gap)}` : row
 }
 
-function padCenterToWidth(
-  text: string,
-  target: number,
-  color?: string,
-): string {
-  const textWidth = visualWidth(text)
-  const total = Math.max(0, target - textWidth)
-  const leftPad = Math.floor(total / 2)
-  const rightPad = total - leftPad
-  const body = color ? `${color}${text}${NORMAL}` : text
-  return `${' '.repeat(leftPad)}${body}${' '.repeat(rightPad)}`
-}
-
 // Pad an already-coloured cell to `target` display cols. ANSI codes are
 // zero-width, so we measure only the plain content.
 function padCellToWidth(cell: string, target: number): string {
@@ -237,13 +229,22 @@ export function buildPlaygroundDisplay(
 // ---------------------------------------------------------------------------
 
 function buildHeaderRow(): string {
-  // The chevron column stays blank; "Standing" centers within the 25-col bar
-  // block (cols 2..26). The gap is 19 cols (cols 27..45). "Emerging" centers
-  // within the right 25-col bar block (cols 46..70). Trailing padding fills
-  // out to TOP_HALF_WIDTH.
+  // The chevron column stays blank; "Standing Hexagram" is left-flush at the
+  // start of the 25-col bar block (col 2), so the "S" sits directly above
+  // each line row's value digit. The gap is 19 cols (cols 27..45);
+  // "Emerging Hexagram" is left-flush at the right column anchor (col 46),
+  // again aligning with the right-column value digits. Trailing padding
+  // fills out to TOP_HALF_WIDTH. Matches the casting viewer's
+  // `transformationSection` header.
   const chevronPad = ' '.repeat(CHEVRON_WIDTH)
-  const left = padCenterToWidth('Standing', BAR_BLOCK_WIDTH, BOLD_GREY)
-  const right = padCenterToWidth('Emerging', BAR_BLOCK_WIDTH, BOLD_GREY)
+  const left = padCellToWidth(
+    `${BOLD_GREY}Standing Hexagram${NORMAL}`,
+    BAR_BLOCK_WIDTH,
+  )
+  const right = padCellToWidth(
+    `${BOLD_GREY}Emerging Hexagram${NORMAL}`,
+    BAR_BLOCK_WIDTH,
+  )
   const gap = ' '.repeat(GAP_WIDTH)
   return padRightToWidth(`${chevronPad}${left}${gap}${right}`, TOP_HALF_WIDTH)
 }

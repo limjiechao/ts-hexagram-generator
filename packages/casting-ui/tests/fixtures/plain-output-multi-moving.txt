@@ -25,7 +25,7 @@
 
 [1;90mTRANSFORMATION:
 
-[0m[1;90m  Standing                                    [0m[1;90mEmerging[0m
+[0m[1;90m  Standing Hexagram                           [0m[1;90mEmerging Hexagram[0m
 
   [1;97m8[0m  [1;97m━━━   ━━━[0m  （六, 6th）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （六, 6th）
   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）
@@ -36,6 +36,9 @@
 
 [1;97m  #48 井（jǐng）                              #63 既濟（jì jì）[0m
 [90m  Ching / The Well                            Chi Chi / After Completion[0m
+[90m  ─────────────────────────                   ─────────────────────────[0m
+[90m  Upper: 坎 Kǎn (Water)                       Upper: 坎 Kǎn (Water)[0m
+[90m  Lower: 巽 Xùn (Wind, wood)                  Lower: 離 Lí (Fire)[0m
 
 
 [1;90mSTANDING HEXAGRAM 48:
