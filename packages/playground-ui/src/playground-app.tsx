@@ -50,7 +50,7 @@ import {
 } from 'react'
 
 import { HexagramDisplay } from './hexagram-display.js'
-import { TOP_HALF_WIDTH } from './playground-display.js'
+import { TOP_HALF_ROWS, TOP_HALF_WIDTH } from './playground-display.js'
 import { dispatchPlaygroundKey, toKeymapSlice } from './playground-keymap.js'
 import { buildPlaygroundDerivation } from './playground-lines.js'
 import {
@@ -110,9 +110,6 @@ function describeSaveLine(
   return ''
 }
 
-// `buildPlaygroundDisplay` always emits 12 rows (1 header + 6 lines + 1 blank
-// + 4 identity). Hardcoded so viewport arithmetic doesn't call the renderer.
-const TOP_HALF_ROWS = 12
 // Title row + the two-line footer reserved by `<ScreenShell>`.
 const TITLE_ROWS = 1
 const FOOTER_ROWS = 2
@@ -299,8 +296,16 @@ export function PlaygroundApp({
     dispatch({ type: 'cancelSave' })
   }, [])
 
+  // `<ReadingsPanel>` is wrapped to `TOP_HALF_WIDTH` and the scrollbar (when
+  // mounted) consumes 1 col from that budget — so the readings text wraps to
+  // one less when the scrollbar is visible.
+  const readingsOverflows =
+    showReadings && readingsTotalRowsRef.current > readingsViewportHeight
+  const readingsWrapWidth =
+    Math.min(TOP_HALF_WIDTH, innerCols) - (readingsOverflows ? 1 : 0)
+
   const contentSlot = (
-    <Box flexDirection="column">
+    <Box flexDirection="column" alignItems="center">
       <HexagramDisplay
         standing={derivation.standing}
         emerging={derivation.emerging}
@@ -311,33 +316,41 @@ export function PlaygroundApp({
         innerCols={innerCols}
       />
       {showReadings && (
-        <Box marginTop={TOP_TO_READINGS_GAP}>
-          <ReadingsPanel
-            standing={derivation.standing}
-            movingLineIndex={
-              derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
-            }
-            wrapWidth={Math.min(TOP_HALF_WIDTH, innerCols)}
-            viewportHeight={readingsViewportHeight}
-            scrollOffset={scrollOffset}
-            onMeasure={handleReadingsMeasure}
-          />
+        <Box
+          marginTop={TOP_TO_READINGS_GAP}
+          flexDirection="row"
+          width={Math.min(TOP_HALF_WIDTH, innerCols)}
+        >
+          <Box flexGrow={1} flexShrink={1}>
+            <ReadingsPanel
+              standing={derivation.standing}
+              movingLineIndex={
+                derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
+              }
+              wrapWidth={readingsWrapWidth}
+              viewportHeight={readingsViewportHeight}
+              scrollOffset={scrollOffset}
+              onMeasure={handleReadingsMeasure}
+            />
+          </Box>
+          {readingsOverflows && (
+            <Box width={1} flexShrink={0}>
+              <ScrollbarTrack
+                offset={scrollOffset}
+                totalRows={readingsTotalRowsRef.current}
+                viewportHeight={readingsViewportHeight}
+              />
+            </Box>
+          )}
         </Box>
       )}
     </Box>
   )
 
-  // Mount the scrollbar only when the readings panel is visible AND its
-  // content actually overflows the viewport. Otherwise reserve the gutter
-  // column with whitespace so chrome above/below doesn't shift on toggle.
-  const scrollbarSlot =
-    showReadings && readingsTotalRowsRef.current > readingsViewportHeight ? (
-      <ScrollbarTrack
-        offset={scrollOffset}
-        totalRows={readingsTotalRowsRef.current}
-        viewportHeight={readingsViewportHeight}
-      />
-    ) : null
+  // Scrollbar lives inside `contentSlot` next to the readings panel so its
+  // vertical extent matches what it scrolls. The shell's right gutter stays
+  // empty.
+  const scrollbarSlot = null
 
   const belowContent = isSaving ? (
     <SaveStrip
@@ -353,8 +366,8 @@ export function PlaygroundApp({
       ? `   ◀ ${panOffset + 1}–${Math.min(panOffset + innerCols, TOP_HALF_WIDTH)} of ${TOP_HALF_WIDTH} ▶`
       : ''
   const keyHints =
-    ` ↑↓ focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · </> pan · ` +
-    `PgUp/PgDn scroll · g/G ends · Del undo · r reset · S save · ` +
+    ` Tab focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · </> pan · ` +
+    `↑↓ scroll · g/G ends · Del undo · r reset · S save · ` +
     `ESC ${effectiveExitLabel}${panChip}`
   const footer = (
     <Box flexDirection="column" flexShrink={0}>

@@ -8,9 +8,12 @@ import { NORMAL_GREY, stripAnsi } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'
 
 import {
+  BAR_BLOCK_WIDTH,
   buildPlaygroundDisplay,
-  COLUMN_WIDTH,
+  CHEVRON_WIDTH,
   GAP_WIDTH,
+  LEFT_LINE_WIDTH,
+  TOP_HALF_ROWS,
   TOP_HALF_WIDTH,
 } from '../src/playground-display'
 
@@ -45,13 +48,26 @@ const QIAN: Hexagram = [7, 7, 7, 7, 7, 7]
 
 describe('buildPlaygroundDisplay', () => {
   describe('geometry constants', () => {
-    it('TOP_HALF_WIDTH = COLUMN_WIDTH * 2 + GAP_WIDTH', () => {
-      expect(TOP_HALF_WIDTH).toBe(COLUMN_WIDTH * 2 + GAP_WIDTH)
+    it('LEFT_LINE_WIDTH = CHEVRON_WIDTH + BAR_BLOCK_WIDTH', () => {
+      expect(LEFT_LINE_WIDTH).toBe(CHEVRON_WIDTH + BAR_BLOCK_WIDTH)
+    })
+
+    it('TOP_HALF_ROWS = 12 (header + 6 lines + blank + 4 identity)', () => {
+      expect(TOP_HALF_ROWS).toBe(12)
+    })
+
+    it('TOP_HALF_WIDTH leaves room for the right identity cell from col 46', () => {
+      // Right column starts at `LEFT_LINE_WIDTH + GAP_WIDTH`. TOP_HALF_WIDTH
+      // must be at least that anchor + the right line block, with extra room
+      // when identity rows are wider than the line block.
+      expect(TOP_HALF_WIDTH).toBeGreaterThanOrEqual(
+        LEFT_LINE_WIDTH + GAP_WIDTH + BAR_BLOCK_WIDTH,
+      )
     })
   })
 
   describe('row count and width invariants', () => {
-    it('emits header + blank + 6 line rows + blank + 4 identity rows = 12 rows', () => {
+    it('emits TOP_HALF_ROWS rows', () => {
       const out = buildPlaygroundDisplay({
         standing: QIAN,
         emerging: QIAN,
@@ -59,7 +75,7 @@ describe('buildPlaygroundDisplay', () => {
         pulse: false,
         hasMoving: false,
       })
-      expect(out.rows.length).toBe(12)
+      expect(out.rows.length).toBe(TOP_HALF_ROWS)
     })
 
     it('every row has the declared total width', () => {
@@ -177,7 +193,7 @@ describe('buildPlaygroundDisplay', () => {
         pulse: false,
         hasMoving: false,
       })
-      // Identity rows are rows[9..11]; the row1 (#N name) is at index 9.
+      // Identity rows are rows[8..11]; row1 (#N name) is at index 8.
       const row1 = stripAnsi(out.rows[8] ?? '')
       const { Metadata, Name } = getHexagramRecord(QIAN)
       const label = `#${Metadata.Order.WenWang} ${Name.Chinese.Traditional}（${Metadata.Pronunciation.Pinyin}）`
@@ -195,14 +211,9 @@ describe('buildPlaygroundDisplay', () => {
         pulse: false,
         hasMoving: false,
       })
-      // The emerging column starts at COLUMN_WIDTH + GAP_WIDTH cols into the
-      // row. Search for the NORMAL_GREY escape sequence in the second half
-      // of the raw row.
+      // The emerging column starts at LEFT_LINE_WIDTH + GAP_WIDTH cols into
+      // the row. Easiest check: NORMAL_GREY should appear in the raw row.
       const raw = out.rows[8] ?? ''
-      // Easiest check: NORMAL_GREY should appear at least twice in the row
-      // (once for the standing row1 — actually BOLD_WHITE — and at least
-      // once for the emerging cell). Since standing's row1 is BOLD_WHITE,
-      // the first NORMAL_GREY occurrence comes from the emerging cell.
       expect(raw.includes(NORMAL_GREY)).toBe(true)
     })
 
@@ -229,7 +240,7 @@ describe('buildPlaygroundDisplay', () => {
   })
 
   describe('header row', () => {
-    it('row 0 contains BOTH "Standing" and "Emerging" centered', () => {
+    it('row 0 contains BOTH "Standing" and "Emerging"', () => {
       const out = buildPlaygroundDisplay({
         standing: QIAN,
         emerging: QIAN,
@@ -241,19 +252,146 @@ describe('buildPlaygroundDisplay', () => {
       expect(header.includes('Standing')).toBe(true)
       expect(header.includes('Emerging')).toBe(true)
     })
+
+    it('"Standing" is centered above the standing bar block (cols 2..26)', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      const header = stripAnsi(out.rows[0] ?? '')
+      // The standing bar block sits in cols [CHEVRON_WIDTH,
+      // CHEVRON_WIDTH + BAR_BLOCK_WIDTH) = [2, 27). "Standing" (8 chars) in
+      // a 25-col cell centers with leftPad = floor((25-8)/2) = 8 → starts at
+      // col 2 + 8 = 10.
+      const expectedStart =
+        CHEVRON_WIDTH + Math.floor((BAR_BLOCK_WIDTH - 8) / 2)
+      expect(header.indexOf('Standing')).toBe(expectedStart)
+    })
+
+    it('"Emerging" is centered above the emerging bar block (cols 46..70)', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      const header = stripAnsi(out.rows[0] ?? '')
+      // The emerging bar block sits in cols [LEFT_LINE_WIDTH + GAP_WIDTH,
+      // LEFT_LINE_WIDTH + GAP_WIDTH + BAR_BLOCK_WIDTH) = [46, 71). "Emerging"
+      // (8 chars) in a 25-col cell centers with leftPad = 8 → starts at
+      // col 46 + 8 = 54.
+      const expectedStart =
+        LEFT_LINE_WIDTH + GAP_WIDTH + Math.floor((BAR_BLOCK_WIDTH - 8) / 2)
+      expect(header.indexOf('Emerging')).toBe(expectedStart)
+    })
   })
 
-  describe('all 64 hexagrams', () => {
-    function enumerateHexagrams(): Hexagram[] {
-      const out: Hexagram[] = []
-      for (let n = 0; n < 64; n++) {
-        const bits = n.toString(2).padStart(6, '0')
-        const hex = bits.split('').map((b) => (b === '0' ? 7 : 8))
-        out.push([hex[5], hex[4], hex[3], hex[2], hex[1], hex[0]] as Hexagram)
-      }
-      return out
-    }
+  describe('identity stack alignment', () => {
+    it('identity row 1 starts at col 2 (under the value digit, not under the chevron)', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      // Row 8 is the first identity row (#N Chinese（pinyin）).
+      const row = stripAnsi(out.rows[8] ?? '')
+      // The first non-space character should sit at col CHEVRON_WIDTH = 2.
+      // For QIAN that row begins with "#1 ".
+      expect(row.startsWith('  #1 ')).toBe(true)
+      expect(row.slice(0, CHEVRON_WIDTH)).toBe(' '.repeat(CHEVRON_WIDTH))
+      expect(row[CHEVRON_WIDTH]).toBe('#')
+    })
 
+    it('emerging identity row 1 starts at col 46 (the right column anchor)', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      const row = stripAnsi(out.rows[8] ?? '')
+      // In dim-ghost mode both columns show "#1 乾（qián）". The SECOND
+      // occurrence of "#1 " marks the start of the right column. `indexOf`
+      // returns a char position; convert to a visual column by measuring
+      // everything before that position.
+      const RIGHT_COL_START = LEFT_LINE_WIDTH + GAP_WIDTH
+      const secondCharIdx = row.indexOf('#1 ', CHEVRON_WIDTH + 1)
+      expect(visualWidth(row.slice(0, secondCharIdx))).toBe(RIGHT_COL_START)
+    })
+  })
+
+  describe('trigram identity rows (font-fallback fix)', () => {
+    it('trigram identity rows contain no U+2630–U+2637 characters', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      // Rows 10 and 11 are the Upper/Lower trigram identity rows.
+      const upperRow = stripAnsi(out.rows[10] ?? '')
+      const lowerRow = stripAnsi(out.rows[11] ?? '')
+      const trigramSymbolPattern = /[\u2630-\u2637]/
+      expect(trigramSymbolPattern.test(upperRow)).toBe(false)
+      expect(trigramSymbolPattern.test(lowerRow)).toBe(false)
+    })
+
+    it('renders Upper/Lower rows in the "<Position>: <Chinese> <Pinyin> (<English>)" format', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      const upperRow = stripAnsi(out.rows[10] ?? '')
+      const lowerRow = stripAnsi(out.rows[11] ?? '')
+      // QIAN's upper and lower trigrams are both 乾 (Qián, Heaven).
+      expect(upperRow.includes('Upper: 乾 Qián (Heaven)')).toBe(true)
+      expect(lowerRow.includes('Lower: 乾 Qián (Heaven)')).toBe(true)
+    })
+
+    it('exhaustively excludes U+2630–U+2637 across all 64 hexagrams', () => {
+      const all = enumerateHexagrams()
+      const trigramSymbolPattern = /[\u2630-\u2637]/
+      for (const standing of all) {
+        const emerging = getEmergingHexagram(standing)
+        const out = buildPlaygroundDisplay({
+          standing,
+          emerging,
+          focusIndex: null,
+          pulse: false,
+          hasMoving: standing.some((line) => line === 6 || line === 9),
+        })
+        for (const row of out.rows) {
+          expect(
+            trigramSymbolPattern.test(stripAnsi(row)),
+            `hexagram ${JSON.stringify(standing)}: row contains trigram symbol`,
+          ).toBe(false)
+        }
+      }
+    })
+  })
+
+  function enumerateHexagrams(): Hexagram[] {
+    const out: Hexagram[] = []
+    for (let n = 0; n < 64; n++) {
+      const bits = n.toString(2).padStart(6, '0')
+      const hex = bits.split('').map((b) => (b === '0' ? 7 : 8))
+      out.push([hex[5], hex[4], hex[3], hex[2], hex[1], hex[0]] as Hexagram)
+    }
+    return out
+  }
+
+  describe('all 64 hexagrams', () => {
     it('renders every hexagram without throwing, with stable row count + width', () => {
       const all = enumerateHexagrams()
       for (const standing of all) {
@@ -265,7 +403,7 @@ describe('buildPlaygroundDisplay', () => {
           pulse: false,
           hasMoving: standing.some((line) => line === 6 || line === 9),
         })
-        expect(out.rows.length).toBe(12)
+        expect(out.rows.length).toBe(TOP_HALF_ROWS)
         for (const row of out.rows) {
           expect(rowWidth(row)).toBe(TOP_HALF_WIDTH)
         }

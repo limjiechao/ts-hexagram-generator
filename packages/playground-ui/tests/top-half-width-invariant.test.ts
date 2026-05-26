@@ -1,26 +1,16 @@
 // Width-invariant guard for the playground's identity stack. Re-derives the
 // worst-case display width across all 64 hexagrams (same logic the
 // `scripts/measure-identity-stack-width.ts` scan uses) and asserts it fits
-// inside the hardcoded `COLUMN_WIDTH`. If the hexagram/trigram data ever
-// gains a longer name, this test fails loudly — at which point the scan
-// should be re-run and `COLUMN_WIDTH` bumped.
+// inside the hardcoded `IDENTITY_STACK_WIDTH`. If the hexagram/trigram data
+// ever gains a longer name, this test fails loudly — at which point the scan
+// should be re-run and `IDENTITY_STACK_WIDTH` bumped (which in turn drives
+// `TOP_HALF_WIDTH`).
 
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/types'
 import { describe, expect, it } from 'vitest'
 
-import { COLUMN_WIDTH } from '../src/playground-display'
-
-const TRIGRAM_SYMBOL: Record<string, string> = {
-  '1': '☰',
-  '2': '☱',
-  '3': '☲',
-  '4': '☳',
-  '5': '☴',
-  '6': '☵',
-  '7': '☶',
-  '8': '☷',
-}
+import { IDENTITY_STACK_WIDTH, TOP_HALF_WIDTH } from '../src/playground-display'
 
 function visualWidth(text: string): number {
   let width = 0
@@ -43,6 +33,11 @@ function visualWidth(text: string): number {
   return width
 }
 
+function capitalizeFirst(text: string): string {
+  if (text.length === 0) return text
+  return `${text[0]!.toUpperCase()}${text.slice(1)}`
+}
+
 function enumerateHexagrams(): Hexagram[] {
   const out: Hexagram[] = []
   for (let n = 0; n < 64; n++) {
@@ -60,7 +55,7 @@ interface Worst {
 }
 
 describe('playground identity-stack width invariant', () => {
-  it('every identity-stack row fits inside COLUMN_WIDTH', () => {
+  it('every identity-stack row fits inside IDENTITY_STACK_WIDTH', () => {
     let worst: Worst = { width: 0, label: '', row: '' }
 
     for (const standing of enumerateHexagrams()) {
@@ -69,20 +64,28 @@ describe('playground identity-stack width invariant', () => {
       const chinese = String(record.Name.Chinese.Traditional)
       const pinyin = String(record.Metadata.Pronunciation.Pinyin)
       const english = String(record.Name.English.WilhelmBaynes)
-      const upperKey = record.Metadata.Trigram.Upper as unknown as number
-      const lowerKey = record.Metadata.Trigram.Lower as unknown as number
-      const upperTrigram = getTrigramRecord(upperKey as never)
-      const lowerTrigram = getTrigramRecord(lowerKey as never)
-      const upperSym =
-        TRIGRAM_SYMBOL[String(upperTrigram.Metadata.Order.Fuxi)] ?? '◌'
-      const lowerSym =
-        TRIGRAM_SYMBOL[String(lowerTrigram.Metadata.Order.Fuxi)] ?? '◌'
+      const upperTrigram = getTrigramRecord(record.Metadata.Trigram.Upper)
+      const lowerTrigram = getTrigramRecord(record.Metadata.Trigram.Lower)
+      const upperChinese = String(upperTrigram.Name.Chinese.Traditional)
+      const lowerChinese = String(lowerTrigram.Name.Chinese.Traditional)
+      const upperPinyin = capitalizeFirst(
+        String(upperTrigram.Metadata.Pronunciation.Pinyin),
+      )
+      const lowerPinyin = capitalizeFirst(
+        String(lowerTrigram.Metadata.Pronunciation.Pinyin),
+      )
+      const upperEnglish = capitalizeFirst(
+        String(upperTrigram.Imagery.English.WilhelmBaynes),
+      )
+      const lowerEnglish = capitalizeFirst(
+        String(lowerTrigram.Imagery.English.WilhelmBaynes),
+      )
 
       const rows = [
         `#${wenwang} ${chinese}（${pinyin}）`,
         english,
-        `${upperSym} ${String(upperTrigram.Name.Chinese.Traditional)}`,
-        `${lowerSym} ${String(lowerTrigram.Name.Chinese.Traditional)}`,
+        `Upper: ${upperChinese} ${upperPinyin} (${upperEnglish})`,
+        `Lower: ${lowerChinese} ${lowerPinyin} (${lowerEnglish})`,
       ]
       for (const row of rows) {
         const w = visualWidth(row)
@@ -95,6 +98,16 @@ describe('playground identity-stack width invariant', () => {
     expect(
       worst.width,
       `widest identity row: "${worst.row}" (${worst.label}) is ${worst.width} cols`,
-    ).toBeLessThanOrEqual(COLUMN_WIDTH)
+    ).toBeLessThanOrEqual(IDENTITY_STACK_WIDTH)
+  })
+
+  it('TOP_HALF_WIDTH accommodates the right identity cell starting at col 46', () => {
+    // The right identity cell starts at col `LEFT_LINE_WIDTH + GAP_WIDTH = 46`
+    // and must hold at least `IDENTITY_STACK_WIDTH` cols of content. So
+    // `TOP_HALF_WIDTH >= 46 + IDENTITY_STACK_WIDTH`.
+    const RIGHT_COLUMN_START = 27 + 19 // LEFT_LINE_WIDTH + GAP_WIDTH
+    expect(TOP_HALF_WIDTH).toBeGreaterThanOrEqual(
+      RIGHT_COLUMN_START + IDENTITY_STACK_WIDTH,
+    )
   })
 })

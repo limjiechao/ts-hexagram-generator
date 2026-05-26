@@ -12,10 +12,15 @@
 // `<SaveStrip>` component; this keymap is suppressed entirely while
 // `state.mode === 'saving'`.
 //
-// Pan / scroll vocabulary (matches the viewer's app-wide vocabulary):
+// Focus / pan / scroll vocabulary (matches the viewer's app-wide vocabulary):
+//   `Tab` / `Shift+Tab` — move the focus chevron forward / backward between
+//     lines (L1 → L2 → … → L6, clamped at the ends by the reducer).
+//   `↑` / `↓` (and `PgUp` / `PgDn` as aliases) — vertical scroll inside the
+//     readings panel. Arrows scroll-not-focus because Ghostty's alt-screen
+//     trackpad emits ↑/↓ events, and laptop keyboards without PgUp/PgDn keys
+//     would otherwise have no way to reach the readings panel.
 //   `<` / `>` — horizontal pan of the top half (when the top half is wider
 //     than the inner content area).
-//   `PgUp` / `PgDn` — vertical scroll inside the readings panel.
 //   `g` / `G` — jump to the top / bottom of the readings panel.
 
 import type { Key } from 'ink'
@@ -51,8 +56,9 @@ export interface PlaygroundKeyContext {
   readonly panTopBy: (delta: number) => void
   /**
    * Adjust the readings panel's vertical scroll offset by `delta` rows. The
-   * host clamps against `max(0, totalRows - viewportHeight)`. Wired to PgUp
-   * (delta = -(viewportHeight - 1)) and PgDn (delta = +(viewportHeight - 1)).
+   * host clamps against `max(0, totalRows - viewportHeight)`. Wired to ↑
+   * and PgUp (delta = -(viewportHeight - 1)) and to ↓ and PgDn
+   * (delta = +(viewportHeight - 1)).
    */
   readonly scrollReadingsBy: (delta: number) => void
   /**
@@ -97,21 +103,29 @@ export const PLAYGROUND_BINDINGS: readonly PlaygroundKeyBinding[] = [
       }
     },
   },
-  // ── ↑/↓ — focus ──────────────────────────────────────────────────────────
+  // ── Tab / Shift+Tab — focus forward / backward ───────────────────────────
+  // Shift+Tab is declared FIRST so dispatch order ensures it wins; the plain
+  // Tab matcher below excludes shifted Tab via `key.shift !== true`. Same
+  // precedence pattern as `viewer-keymap.ts`'s done-mode Tab handlers.
+  // `isUnmodified` rejects Ctrl/Meta but not Shift, so Shift+Tab still passes
+  // through cleanly. Forward = +1 (L1→L2→…→L6); backward = -1 — matches the
+  // previous `↑ = +1` / `↓ = -1` mapping that the arrows used to own.
   {
-    id: 'focus-up',
+    id: 'focus-back',
     when: NOT_SAVING,
-    match: (_input, key) => key.upArrow === true,
+    match: (_input, key) =>
+      isUnmodified(key) && key.tab === true && key.shift === true,
     run: (ctx) => {
-      ctx.dispatch({ type: 'focusMove', delta: 1 })
+      ctx.dispatch({ type: 'focusMove', delta: -1 })
     },
   },
   {
-    id: 'focus-down',
+    id: 'focus-forward',
     when: NOT_SAVING,
-    match: (_input, key) => key.downArrow === true,
+    match: (_input, key) =>
+      isUnmodified(key) && key.tab === true && key.shift !== true,
     run: (ctx) => {
-      ctx.dispatch({ type: 'focusMove', delta: -1 })
+      ctx.dispatch({ type: 'focusMove', delta: 1 })
     },
   },
   // ── SPACE — flip polarity preserving motion ──────────────────────────────
@@ -157,10 +171,29 @@ export const PLAYGROUND_BINDINGS: readonly PlaygroundKeyBinding[] = [
       ctx.panTopBy(1)
     },
   },
-  // ── PgUp/PgDn — vertical scroll the readings panel ───────────────────────
+  // ── ↑/↓ and PgUp/PgDn — vertical scroll the readings panel ───────────────
+  // ↑/↓ are the primary scroll keys (Ghostty's alt-screen trackpad emits
+  // them, and PgUp/PgDn aren't available on laptop keyboards). PgUp/PgDn
+  // remain as aliases so any user with a full keyboard can still page-scroll.
   // Page delta is computed by the host (it knows the viewport height); we
   // signal "page" with a magnitude the host interprets — see how the
   // viewer's PgUp/PgDn handlers clamp.
+  {
+    id: 'scroll-readings-up-arrow',
+    when: NOT_SAVING,
+    match: (_input, key) => key.upArrow === true,
+    run: (ctx) => {
+      ctx.scrollReadingsBy(Number.NEGATIVE_INFINITY)
+    },
+  },
+  {
+    id: 'scroll-readings-down-arrow',
+    when: NOT_SAVING,
+    match: (_input, key) => key.downArrow === true,
+    run: (ctx) => {
+      ctx.scrollReadingsBy(Number.POSITIVE_INFINITY)
+    },
+  },
   {
     id: 'scroll-readings-up',
     when: NOT_SAVING,

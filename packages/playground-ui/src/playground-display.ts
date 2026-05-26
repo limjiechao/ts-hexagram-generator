@@ -1,19 +1,23 @@
 // Pure renderer for the Playground's P6 top-half layout. Builds the
-// 12-row ANSI block consumed by `<PlaygroundApp>` (header row + blank + 6
-// line rows + blank + 4 identity rows). No React, no Ink — every output is a
+// 12-row ANSI block consumed by `<PlaygroundApp>` (header row + 6 line rows
+// + blank + 4 identity rows). No React, no Ink — every output is a
 // deterministic function of the inputs, so the geometry, padding, dim-ghost
 // behaviour, and chevron placement are all unit-testable without rendering.
 //
-// Visual blueprint per line row:
+// Single-column geometry model (all three layers share one anchor):
 //
-//   [chevron 2]  [value 1]  [2 sp]  [bar 9]  [2 sp]  [pos 11]
-//     [arrow/gap 19]
-//   [value 1]  [2 sp]  [bar 9]  [2 sp]  [pos 11]
-//     [right-pad to TOP_HALF_WIDTH]
+//   col 0 1 2 ........... 26 27 .......... 45 46 .......... 70 71 ... 87
+//       [chev]   [bar block 25]  [gap 19]      [bar block 25]   [pad]
+//       └─ chevron(2)  └─ value(1)+2sp+bar(9)+2sp+pos(11) ─┘
 //
-// Header row centers `Standing` / `Emerging` over each COLUMN_WIDTH column.
-// Identity stack (4 rows below) shows hexagram identity + trigrams in two
-// COLUMN_WIDTH columns separated by GAP_WIDTH.
+//   * Line rows:        chevron + standing(25) + gap(19) + emerging(25) → pad to TOP_HALF_WIDTH
+//   * Header row:       blank chev + center('Standing', 25) + gap(19) + center('Emerging', 25) → pad
+//   * Identity rows:    blank chev + left-flush ID (≤ 44 cols, overlaps into gap on left only)
+//                       + right-flush anchor at col 46 + left-flush ID (≤ 42 cols)
+//
+// `TOP_HALF_WIDTH` is driven by the worst-case identity row on the right side
+// (where the chevron column isn't reserved), so the right ID extends from
+// col 46 to col 46 + max(RIGHT_LINE_WIDTH, IDENTITY_STACK_WIDTH).
 //
 // When `hasMoving === false`, the emerging side is a "dim ghost" — same
 // identity as standing but rendered in NORMAL_GREY everywhere.
@@ -35,25 +39,23 @@ import {
 } from '@hexagram/viewer-core'
 
 // ---------------------------------------------------------------------------
-// Geometry constants
+// Geometry constants (single-column model)
 // ---------------------------------------------------------------------------
 
+/** Focus-chevron column (always reserved, even when not focused). */
+export const CHEVRON_WIDTH = 2
+
 /**
- * Column width (display cols) for each side of the playground top half.
- * Picked to fit both the line area (27 cols) and the widest identity-stack
- * row across all 64 hexagrams plus a small buffer.
- *
- * As of 2026-05-26 the worst case is hexagram #9 小畜
- * (Hsiao Ch’u / The Taming Power of the Small — 42 cols on the Wilhelm-Baynes
- * row); 42 + 2 = 44. Re-run the scan after any hexagram-data change:
- *
- *   pnpm --filter @hexagram/playground-ui exec tsx \
- *     scripts/measure-identity-stack-width.ts
- *
- * The `top-half-width-invariant.test.ts` test guards this constant — it fails
- * if the actual max ever exceeds COLUMN_WIDTH.
+ * Width of the bar+pos block on each side (no chevron):
+ *   value(1) + 2sp + bar(9) + 2sp + pos(11) = 25 cols.
  */
-export const COLUMN_WIDTH = 44
+export const BAR_BLOCK_WIDTH = 25
+
+/** Width of the left line cell (chevron + bar block). */
+export const LEFT_LINE_WIDTH: number = CHEVRON_WIDTH + BAR_BLOCK_WIDTH
+
+/** Width of the right line cell (no chevron on the right). */
+export const RIGHT_LINE_WIDTH: number = BAR_BLOCK_WIDTH
 
 /**
  * Inter-column gap width — matches the casting viewer's `MOVING_ARROW` /
@@ -62,24 +64,49 @@ export const COLUMN_WIDTH = 44
  */
 export const GAP_WIDTH = 19
 
+/**
+ * Worst-case identity-stack row width in display cols, scanned across all
+ * 64 hexagrams. As of 2026-05-26 the worst case is hexagram #9 小畜
+ * (Hsiao Ch’u / The Taming Power of the Small — 42 cols on the Wilhelm-Baynes
+ * row); the new trigram rows (`Upper: 巽 Xùn (Wind, wood)` etc., 26 cols max)
+ * are narrower than that. Re-run the scan after any hexagram-data change:
+ *
+ *   pnpm --filter @hexagram/playground-ui exec tsx \
+ *     scripts/measure-identity-stack-width.ts
+ *
+ * The `top-half-width-invariant.test.ts` test guards this constant — it fails
+ * if the actual max ever exceeds `IDENTITY_STACK_WIDTH`.
+ */
+export const IDENTITY_STACK_WIDTH = 42
+
+/**
+ * Right-side identity cell width: the larger of the line block and the
+ * identity-stack row. Drives where the row's right padding starts.
+ */
+const RIGHT_IDENTITY_CELL_WIDTH: number = Math.max(
+  RIGHT_LINE_WIDTH,
+  IDENTITY_STACK_WIDTH,
+)
+
+/**
+ * Left-side identity cell width: stretches from after the chevron (col 2) up
+ * to the start of the right column (col `LEFT_LINE_WIDTH + GAP_WIDTH = 46`),
+ * so identity rows up to 44 cols sit before the right column begins. The
+ * worst-case identity (42 cols) fits with 2 cols of margin.
+ */
+const LEFT_IDENTITY_CELL_WIDTH: number =
+  LEFT_LINE_WIDTH + GAP_WIDTH - CHEVRON_WIDTH
+
 /** Total display width of every emitted row. */
-export const TOP_HALF_WIDTH: number = COLUMN_WIDTH * 2 + GAP_WIDTH
+export const TOP_HALF_WIDTH: number =
+  LEFT_LINE_WIDTH + GAP_WIDTH + RIGHT_IDENTITY_CELL_WIDTH
 
-// ---------------------------------------------------------------------------
-// Trigram unicode symbols (FuxiOrder 1..8). Inlined so this display module
-// owns its glyph vocabulary independently of any React component.
-// ---------------------------------------------------------------------------
-
-const TRIGRAM_SYMBOL: Record<string, string> = {
-  '1': '☰',
-  '2': '☱',
-  '3': '☲',
-  '4': '☳',
-  '5': '☴',
-  '6': '☵',
-  '7': '☶',
-  '8': '☷',
-}
+/**
+ * Number of rows in the top-half block: 1 header + 6 line rows + 1 blank
+ * + 4 identity rows = 12. Exported so `<PlaygroundApp>` can size its
+ * top-half slot without re-deriving the row count.
+ */
+export const TOP_HALF_ROWS = 12
 
 // ---------------------------------------------------------------------------
 // CJK-aware width measurement (replicates `visualWidth` from
@@ -87,7 +114,7 @@ const TRIGRAM_SYMBOL: Record<string, string> = {
 // internal-only import on a viewer-core helper).
 // ---------------------------------------------------------------------------
 
-function visualWidth(text: string): number {
+export function visualWidth(text: string): number {
   let width = 0
   for (const character of text) {
     const codePoint = character.codePointAt(0) ?? 0
@@ -139,6 +166,11 @@ function padCellToWidth(cell: string, target: number): string {
   return gap > 0 ? `${cell}${' '.repeat(gap)}` : cell
 }
 
+function capitalizeFirst(text: string): string {
+  if (text.length === 0) return text
+  return `${text[0]!.toUpperCase()}${text.slice(1)}`
+}
+
 // ---------------------------------------------------------------------------
 // Public API
 // ---------------------------------------------------------------------------
@@ -164,8 +196,8 @@ export interface PlaygroundDisplayOutput {
 
 /**
  * Build the playground's top-half display block: header + blank + 6 line rows
- * + blank + 4 identity rows = 12 rows total. Every row is padded to exactly
- * `TOP_HALF_WIDTH` display columns.
+ * + blank + 4 identity rows = `TOP_HALF_ROWS` rows total. Every row is padded
+ * to exactly `TOP_HALF_WIDTH` display columns.
  */
 export function buildPlaygroundDisplay(
   inputs: PlaygroundDisplayInputs,
@@ -203,12 +235,15 @@ export function buildPlaygroundDisplay(
 // ---------------------------------------------------------------------------
 
 function buildHeaderRow(): string {
-  // 2-col chevron slot stays empty in the header; centered headings inside
-  // each COLUMN_WIDTH column.
-  const left = padCenterToWidth('Standing', COLUMN_WIDTH, BOLD_GREY)
-  const right = padCenterToWidth('Emerging', COLUMN_WIDTH, BOLD_GREY)
+  // The chevron column stays blank; "Standing" centers within the 25-col bar
+  // block (cols 2..26). The gap is 19 cols (cols 27..45). "Emerging" centers
+  // within the right 25-col bar block (cols 46..70). Trailing padding fills
+  // out to TOP_HALF_WIDTH.
+  const chevronPad = ' '.repeat(CHEVRON_WIDTH)
+  const left = padCenterToWidth('Standing', BAR_BLOCK_WIDTH, BOLD_GREY)
+  const right = padCenterToWidth('Emerging', BAR_BLOCK_WIDTH, BOLD_GREY)
   const gap = ' '.repeat(GAP_WIDTH)
-  return padRightToWidth(`${left}${gap}${right}`, TOP_HALF_WIDTH)
+  return padRightToWidth(`${chevronPad}${left}${gap}${right}`, TOP_HALF_WIDTH)
 }
 
 // ---------------------------------------------------------------------------
@@ -290,8 +325,8 @@ function buildIdentityStack(
   // Per-row colour choices for the standing column:
   //   row1 (#N Chinese（pinyin）) : BOLD_WHITE
   //   row2 (Wilhelm-Baynes EN)    : NORMAL_GREY
-  //   row3 (upper trigram)        : NORMAL_GREY
-  //   row4 (lower trigram)        : NORMAL_GREY
+  //   row3 (Upper: trigram)       : NORMAL_GREY
+  //   row4 (Lower: trigram)       : NORMAL_GREY
   const standingColors = [BOLD_WHITE, NORMAL_GREY, NORMAL_GREY, NORMAL_GREY]
   // Emerging column uses NORMAL_GREY everywhere in dim mode; otherwise mirror
   // the standing scheme.
@@ -299,22 +334,27 @@ function buildIdentityStack(
     ? [NORMAL_GREY, NORMAL_GREY, NORMAL_GREY, NORMAL_GREY]
     : [BOLD_WHITE, NORMAL_GREY, NORMAL_GREY, NORMAL_GREY]
 
+  const chevronPad = ' '.repeat(CHEVRON_WIDTH)
   const rows: string[] = []
   for (let rowIndex = 0; rowIndex < 4; rowIndex++) {
     const leftText = standingId[rowIndex] ?? ''
     const rightText = emergingId[rowIndex] ?? ''
     const leftColor = standingColors[rowIndex] ?? NORMAL
     const rightColor = emergingColors[rowIndex] ?? NORMAL
+    // Left identity is left-flush at col 2, padded to fill cols 2..45 (so the
+    // right column always starts at col 46, matching the line rows).
     const leftCell = padCellToWidth(
       `${leftColor}${leftText}${NORMAL}`,
-      COLUMN_WIDTH,
+      LEFT_IDENTITY_CELL_WIDTH,
     )
+    // Right identity is left-flush at col 46, padded out to its cell width.
     const rightCell = padCellToWidth(
       `${rightColor}${rightText}${NORMAL}`,
-      COLUMN_WIDTH,
+      RIGHT_IDENTITY_CELL_WIDTH,
     )
-    const gap = ' '.repeat(GAP_WIDTH)
-    rows.push(padRightToWidth(`${leftCell}${gap}${rightCell}`, TOP_HALF_WIDTH))
+    rows.push(
+      padRightToWidth(`${chevronPad}${leftCell}${rightCell}`, TOP_HALF_WIDTH),
+    )
   }
   return rows
 }
@@ -330,20 +370,26 @@ function identityRows(
   const chinese = String(record.Name.Chinese.Traditional)
   const pinyin = String(record.Metadata.Pronunciation.Pinyin)
   const english = String(record.Name.English.WilhelmBaynes)
-  const upperKey = record.Metadata.Trigram.Upper as unknown as number
-  const lowerKey = record.Metadata.Trigram.Lower as unknown as number
-  const upperTrigram = getTrigramRecord(upperKey as never)
-  const lowerTrigram = getTrigramRecord(lowerKey as never)
-  const upperSym =
-    TRIGRAM_SYMBOL[String(upperTrigram.Metadata.Order.Fuxi)] ?? '◌'
-  const lowerSym =
-    TRIGRAM_SYMBOL[String(lowerTrigram.Metadata.Order.Fuxi)] ?? '◌'
+  const upperTrigram = getTrigramRecord(record.Metadata.Trigram.Upper)
+  const lowerTrigram = getTrigramRecord(record.Metadata.Trigram.Lower)
   const upperChinese = String(upperTrigram.Name.Chinese.Traditional)
   const lowerChinese = String(lowerTrigram.Name.Chinese.Traditional)
+  const upperPinyin = capitalizeFirst(
+    String(upperTrigram.Metadata.Pronunciation.Pinyin),
+  )
+  const lowerPinyin = capitalizeFirst(
+    String(lowerTrigram.Metadata.Pronunciation.Pinyin),
+  )
+  const upperEnglish = capitalizeFirst(
+    String(upperTrigram.Imagery.English.WilhelmBaynes),
+  )
+  const lowerEnglish = capitalizeFirst(
+    String(lowerTrigram.Imagery.English.WilhelmBaynes),
+  )
   return [
     `#${wenwang} ${chinese}（${pinyin}）`,
     english,
-    `${upperSym} ${upperChinese}`,
-    `${lowerSym} ${lowerChinese}`,
+    `Upper: ${upperChinese} ${upperPinyin} (${upperEnglish})`,
+    `Lower: ${lowerChinese} ${lowerPinyin} (${lowerEnglish})`,
   ] as const
 }

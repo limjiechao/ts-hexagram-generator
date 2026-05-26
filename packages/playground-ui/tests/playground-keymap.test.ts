@@ -108,17 +108,65 @@ describe('Esc', () => {
   })
 })
 
-describe('arrow keys — focus', () => {
-  it('↑ dispatches focusMove +1', () => {
+describe('Tab / Shift+Tab — focus', () => {
+  it('Tab dispatches focusMove +1', () => {
     const { ctx, dispatched } = buildContext()
-    dispatchPlaygroundKey('', { ...emptyKey(), upArrow: true }, ctx)
+    dispatchPlaygroundKey('', { ...emptyKey(), tab: true }, ctx)
     expect(dispatched).toEqual([{ action: { type: 'focusMove', delta: 1 } }])
   })
 
-  it('↓ dispatches focusMove -1', () => {
+  it('Shift+Tab dispatches focusMove -1', () => {
+    const { ctx, dispatched } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), tab: true, shift: true }, ctx)
+    expect(dispatched).toEqual([{ action: { type: 'focusMove', delta: -1 } }])
+  })
+
+  it('Shift+Tab matcher precedes plain Tab (no double-fire of +1)', () => {
+    const { ctx, dispatched } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), tab: true, shift: true }, ctx)
+    // Exactly one action — the focus-back (-1) binding wins; the focus-forward
+    // (+1) binding's `key.shift !== true` guard means it never fires.
+    expect(dispatched).toEqual([{ action: { type: 'focusMove', delta: -1 } }])
+    expect(dispatched).toHaveLength(1)
+  })
+
+  it('ignores Ctrl+Tab', () => {
+    const { ctx, dispatched } = buildContext()
+    const handled = dispatchPlaygroundKey(
+      '',
+      { ...emptyKey(), tab: true, ctrl: true },
+      ctx,
+    )
+    expect(handled).toBe(false)
+    expect(dispatched).toHaveLength(0)
+  })
+})
+
+describe('↑/↓ — scroll readings (not focus)', () => {
+  it('↑ (key.upArrow) fires scrollReadingsBy with NEGATIVE_INFINITY', () => {
+    const { ctx, scrollDeltas } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), upArrow: true }, ctx)
+    expect(scrollDeltas).toEqual([Number.NEGATIVE_INFINITY])
+  })
+
+  it('↓ (key.downArrow) fires scrollReadingsBy with POSITIVE_INFINITY', () => {
+    const { ctx, scrollDeltas } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), downArrow: true }, ctx)
+    expect(scrollDeltas).toEqual([Number.POSITIVE_INFINITY])
+  })
+
+  it('regression: ↑ (key.upArrow) does NOT dispatch focusMove', () => {
+    // The user-visible bug we fixed in Wave 1 BRAVO: trackpad-emitted ↑ used
+    // to move the focus chevron, leaving the readings panel unreachable.
+    const { ctx, dispatched } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), upArrow: true }, ctx)
+    expect(dispatched).toHaveLength(0)
+  })
+
+  it('regression: ↓ (key.downArrow) does NOT dispatch focusMove', () => {
     const { ctx, dispatched } = buildContext()
     dispatchPlaygroundKey('', { ...emptyKey(), downArrow: true }, ctx)
-    expect(dispatched).toEqual([{ action: { type: 'focusMove', delta: -1 } }])
+    expect(dispatched).toHaveLength(0)
   })
 })
 
@@ -288,9 +336,18 @@ describe('S — save', () => {
 
 describe('saving mode', () => {
   it('suppresses every binding (none fire)', () => {
-    const { ctx, dispatched, exitFired } = buildContext({ mode: 'saving' })
+    const {
+      ctx,
+      dispatched,
+      exitFired,
+      panDeltas,
+      scrollDeltas,
+      scrollTargets,
+    } = buildContext({ mode: 'saving' })
     const inputs: Array<[string, Partial<Key>]> = [
       ['', { escape: true }],
+      ['', { tab: true }],
+      ['', { tab: true, shift: true }],
       ['', { upArrow: true }],
       ['', { downArrow: true }],
       [' ', {}],
@@ -317,5 +374,8 @@ describe('saving mode', () => {
     }
     expect(dispatched).toHaveLength(0)
     expect(exitFired()).toBe(false)
+    expect(panDeltas).toHaveLength(0)
+    expect(scrollDeltas).toHaveLength(0)
+    expect(scrollTargets).toHaveLength(0)
   })
 })

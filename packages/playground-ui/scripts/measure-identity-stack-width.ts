@@ -3,22 +3,18 @@
 //
 //   pnpm --filter @hexagram/playground-ui exec tsx scripts/measure-identity-stack-width.ts
 //
-// Prints the worst-case width per row kind and a recommended COLUMN_WIDTH
-// (max + 2-col buffer). Re-run if hexagram/trigram data ever changes.
+// Prints the worst-case width per row kind and a recommended TOP_HALF_WIDTH
+// (max + 2-col buffer, mirrored on both sides + GAP_WIDTH). Re-run if
+// hexagram/trigram data ever changes.
+//
+// Identity rows match `identityRows()` in `playground-display.ts`:
+//   row1: #<wenwang> <chinese>（<pinyin>）
+//   row2: <Wilhelm-Baynes English>
+//   row3: Upper: <chinese> <Pinyin> (<English imagery>)
+//   row4: Lower: <chinese> <Pinyin> (<English imagery>)
 
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import type { Hexagram, Line } from '@hexagram/types'
-
-const TRIGRAM_SYMBOL: Record<string, string> = {
-  '1': '☰',
-  '2': '☱',
-  '3': '☲',
-  '4': '☳',
-  '5': '☴',
-  '6': '☵',
-  '7': '☶',
-  '8': '☷',
-}
 
 function visualWidth(text: string): number {
   let width = 0
@@ -39,6 +35,11 @@ function visualWidth(text: string): number {
     width += isFullwidth ? 2 : 1
   }
   return width
+}
+
+function capitalizeFirst(text: string): string {
+  if (text.length === 0) return text
+  return text[0]!.toUpperCase() + text.slice(1)
 }
 
 // Iterate all 64 records by enumerating every yang/yin tuple via the
@@ -80,19 +81,27 @@ function measure(): void {
     const chinese = record.Name.Chinese.Traditional
     const pinyin = record.Metadata.Pronunciation.Pinyin
     const english = record.Name.English.WilhelmBaynes
-    const upperKey = record.Metadata.Trigram.Upper as unknown as number
-    const lowerKey = record.Metadata.Trigram.Lower as unknown as number
-    const upperTrigram = getTrigramRecord(upperKey as never)
-    const lowerTrigram = getTrigramRecord(lowerKey as never)
-    const upperFuxi = String(upperTrigram.Metadata.Order.Fuxi)
-    const lowerFuxi = String(lowerTrigram.Metadata.Order.Fuxi)
-    const upperSym = TRIGRAM_SYMBOL[upperFuxi] ?? '◌'
-    const lowerSym = TRIGRAM_SYMBOL[lowerFuxi] ?? '◌'
+    const upperTrigram = getTrigramRecord(record.Metadata.Trigram.Upper)
+    const lowerTrigram = getTrigramRecord(record.Metadata.Trigram.Lower)
+    const upperChinese = upperTrigram.Name.Chinese.Traditional
+    const lowerChinese = lowerTrigram.Name.Chinese.Traditional
+    const upperPinyin = capitalizeFirst(
+      upperTrigram.Metadata.Pronunciation.Pinyin,
+    )
+    const lowerPinyin = capitalizeFirst(
+      lowerTrigram.Metadata.Pronunciation.Pinyin,
+    )
+    const upperEnglish = capitalizeFirst(
+      upperTrigram.Imagery.English.WilhelmBaynes,
+    )
+    const lowerEnglish = capitalizeFirst(
+      lowerTrigram.Imagery.English.WilhelmBaynes,
+    )
 
     const row1 = `#${wenwang} ${chinese}（${pinyin}）`
     const row2 = english
-    const row3 = `${upperSym} ${upperTrigram.Name.Chinese.Traditional}`
-    const row4 = `${lowerSym} ${lowerTrigram.Name.Chinese.Traditional}`
+    const row3 = `Upper: ${upperChinese} ${upperPinyin} (${upperEnglish})`
+    const row4 = `Lower: ${lowerChinese} ${lowerPinyin} (${lowerEnglish})`
 
     const w1 = visualWidth(row1)
     const w2 = visualWidth(row2)
@@ -118,16 +127,38 @@ function measure(): void {
   }
 
   console.log('Worst-case identity-stack row widths:')
-  console.log(`  row1 (#N Chinese（pinyin）): ${maxRow1} cols — ${maxRow1Hex}`)
-  console.log(`  row2 (Wilhelm-Baynes EN):    ${maxRow2} cols — ${maxRow2Hex}`)
-  console.log(`  row3 (upper trigram):        ${maxRow3} cols — ${maxRow3Hex}`)
-  console.log(`  row4 (lower trigram):        ${maxRow4} cols — ${maxRow4Hex}`)
+  console.log(
+    `  row1 (#N Chinese（pinyin）):      ${maxRow1} cols — ${maxRow1Hex}`,
+  )
+  console.log(
+    `  row2 (Wilhelm-Baynes EN):         ${maxRow2} cols — ${maxRow2Hex}`,
+  )
+  console.log(
+    `  row3 (Upper trigram):             ${maxRow3} cols — ${maxRow3Hex}`,
+  )
+  console.log(
+    `  row4 (Lower trigram):             ${maxRow4} cols — ${maxRow4Hex}`,
+  )
   const overallMax = Math.max(maxRow1, maxRow2, maxRow3, maxRow4)
   console.log(`Overall max identity-stack width: ${overallMax}`)
-  const LINE_AREA = 2 + 1 + 2 + 9 + 2 + 11
-  console.log(`Line-area width (chevron+value+bar+pos): ${LINE_AREA}`)
+  // New geometry (single-column model — see `playground-display.ts`):
+  //   CHEVRON_WIDTH(2) + BAR_BLOCK_WIDTH(25) = LEFT_LINE_WIDTH(27)
+  //   Right column anchored at col LEFT_LINE_WIDTH + GAP_WIDTH = 46.
+  //   Right identity cell extends max(BAR_BLOCK_WIDTH, overallMax) cols.
+  //   Left identity cell stretches across cols 2..45 (44 cols), overflowing
+  //   the gap on the left side — fits up to 44 cols of content.
+  const BAR_BLOCK_WIDTH = 25
+  const CHEVRON_WIDTH = 2
+  const LEFT_LINE_WIDTH = CHEVRON_WIDTH + BAR_BLOCK_WIDTH
+  const GAP_WIDTH = 19
+  const rightCell = Math.max(BAR_BLOCK_WIDTH, overallMax)
+  const TOP_HALF_WIDTH = LEFT_LINE_WIDTH + GAP_WIDTH + rightCell
   console.log(
-    `Recommended COLUMN_WIDTH = max(${overallMax}, ${LINE_AREA}) + 2 = ${Math.max(overallMax, LINE_AREA) + 2}`,
+    `Line-area widths: LEFT_LINE_WIDTH=${LEFT_LINE_WIDTH}, BAR_BLOCK_WIDTH=${BAR_BLOCK_WIDTH}, GAP_WIDTH=${GAP_WIDTH}`,
+  )
+  console.log(`Recommended TOP_HALF_WIDTH = ${TOP_HALF_WIDTH}`)
+  console.log(
+    `(Left identity cell width = ${LEFT_LINE_WIDTH + GAP_WIDTH - CHEVRON_WIDTH} cols — caller must keep identity rows ≤ this.)`,
   )
 }
 
