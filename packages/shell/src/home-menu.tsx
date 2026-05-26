@@ -1,5 +1,5 @@
 // `<HomeMenu>` — the Home screen of the composed `hexagram` CLI. It is the hub
-// the app opens on: a small app-level banner over three flat, selectable menu
+// the app opens on: a small app-level banner over four flat, selectable menu
 // items, framed in the shared `<ScreenShell>` chrome so it sits visually
 // alongside the history list and the consultation readout.
 //
@@ -109,13 +109,15 @@ export function HomeMenu({
       return
     }
     if (key.upArrow) {
-      setFocusIndex((index) => (index > 0 ? index - 1 : index))
+      // ↑ wraps from the first row to the last, matching the history list.
+      setFocusIndex(
+        (index) => (index - 1 + MENU_ITEMS.length) % MENU_ITEMS.length,
+      )
       return
     }
     if (key.downArrow) {
-      setFocusIndex((index) =>
-        index < MENU_ITEMS.length - 1 ? index + 1 : index,
-      )
+      // ↓ wraps from the last row to the first.
+      setFocusIndex((index) => (index + 1) % MENU_ITEMS.length)
       return
     }
     if (key.return) {
@@ -143,7 +145,7 @@ export function HomeMenu({
     // oxlint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
-  // ── Menu — three flat selectable rows. The focused row rides a bold inverse
+  // ── Menu — four flat selectable rows. The focused row rides a bold inverse
   // bar (same affordance as the history list's focused row); the rest render
   // as bold-white labels. A leading `›` marker on the focused row makes the
   // selection legible even where inverse video is muted.
