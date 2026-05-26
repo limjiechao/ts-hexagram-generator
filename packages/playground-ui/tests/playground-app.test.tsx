@@ -267,6 +267,62 @@ describe('<PlaygroundApp>', () => {
     unmount()
   })
 
+  it('saved path is shown absolute when tmpdir lives outside cwd', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <PlaygroundApp saveDir={tmpdir} pulseIntervalMs={0} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
+    stdin.write('S')
+    await waitFor(() =>
+      expect(lastFrame() ?? '').toContain('Save consultation'),
+    )
+    stdin.write('h')
+    stdin.write('i')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/hi/)
+    })
+    stdin.write(ENTER)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Saved to')
+    })
+    // tmpdir is under `os.tmpdir()` which is NOT a subdirectory of the
+    // worktree cwd — `path.relative()` would have produced `../../...`.
+    // The display fallback should show the absolute tmpdir path instead.
+    expect(lastFrame() ?? '').toContain(tmpdir)
+    unmount()
+  })
+
+  it('pan chip appears on the second footer row when terminal is narrower than TOP_HALF_WIDTH', async () => {
+    // TOP_HALF_WIDTH is 88. Mock a narrow terminal so maxPanOffset > 0.
+    const prev = windowSize.current
+    windowSize.current = { columns: 60, rows: 30 }
+    try {
+      const onReady = vi.fn()
+      const { lastFrame, unmount } = render(
+        <PlaygroundApp
+          saveDir={tmpdir}
+          pulseIntervalMs={0}
+          onReady={onReady}
+        />,
+      )
+      await waitForReady(onReady)
+      const frame = lastFrame() ?? ''
+      // Pan chip uses ◀ / ▶ — neither glyph appears anywhere else in the
+      // playground chrome.
+      expect(frame).toMatch(/◀\s+\d+–\d+\s+of\s+88\s+▶/)
+      // Pan chip lives on the second footer row, NOT concatenated onto the
+      // first row's keyHints line.
+      const lines = frame.split('\n')
+      const keyHintsLine = lines.find((l) => l.includes('Tab focus'))
+      expect(keyHintsLine).toBeDefined()
+      expect(keyHintsLine).not.toMatch(/◀/)
+      unmount()
+    } finally {
+      windowSize.current = prev
+    }
+  })
+
   it('ESC closes an open save strip without saving', async () => {
     const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(

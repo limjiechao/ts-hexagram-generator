@@ -44,6 +44,7 @@ import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import {
   useCallback,
   useEffect,
+  useMemo,
   useReducer,
   useRef,
   type ReactElement,
@@ -57,8 +58,8 @@ import {
   initialPlaygroundState,
   playgroundReducer,
 } from './playground-state.js'
-import { ReadingsPanel } from './readings-panel.js'
-import { SaveStrip } from './save-strip.js'
+import { buildReadingsRows, ReadingsPanel } from './readings-panel.js'
+import { SAVE_STRIP_ROWS, SaveStrip } from './save-strip.js'
 import { usePulse } from './use-pulse.js'
 
 interface PlaygroundAppProps {
@@ -115,8 +116,6 @@ const TITLE_ROWS = 1
 const FOOTER_ROWS = 2
 // Margin between the top half and the readings panel.
 const TOP_TO_READINGS_GAP = 1
-// `<SaveStrip>` border + 4 inner rows ≈ 7 visual rows when mounted.
-const SAVE_STRIP_ROWS = 7
 
 export function PlaygroundApp({
   onExit,
@@ -148,7 +147,6 @@ export function PlaygroundApp({
   // pokes the tree on each mutation. Matches `<ConsultationReadout>`'s pattern.
   const panOffsetRef = useRef(0)
   const scrollOffsetRef = useRef(0)
-  const readingsTotalRowsRef = useRef(0)
   const [, forceRender] = useReducer((n: number) => n + 1, 0)
 
   // ── Viewport maths ────────────────────────────────────────────────────────
@@ -169,10 +167,27 @@ export function PlaygroundApp({
   const panOffset = clamp(panOffsetRef.current, 0, maxPanOffset)
   if (panOffsetRef.current !== panOffset) panOffsetRef.current = panOffset
 
+  // Readings rows — built synchronously from current state so the host (not
+  // the panel) is the authority on totalRows. The gutter reserves 1 col for
+  // the scrollbar whether or not it ends up mounted; that keeps the wrap
+  // width stable across overflow toggles.
+  const readingsWrapWidth = Math.max(1, Math.min(TOP_HALF_WIDTH, innerCols) - 1)
+  const readingsRows: readonly string[] = useMemo(() => {
+    if (!showReadings) return []
+    const idx = derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
+    return buildReadingsRows(derivation.standing, idx, readingsWrapWidth)
+  }, [
+    showReadings,
+    derivation.singleMovingIndex,
+    derivation.standing,
+    readingsWrapWidth,
+  ])
+  const readingsOverflows = readingsRows.length > readingsViewportHeight
+
   // Scroll ceiling — clamp to current readings height.
   const maxScrollOffset = Math.max(
     0,
-    readingsTotalRowsRef.current - readingsViewportHeight,
+    readingsRows.length - readingsViewportHeight,
   )
   const scrollOffset = clamp(scrollOffsetRef.current, 0, maxScrollOffset)
   if (scrollOffsetRef.current !== scrollOffset)
@@ -217,16 +232,9 @@ export function PlaygroundApp({
     [maxScrollOffset],
   )
 
-  // ── Readings measurement callback ─────────────────────────────────────────
-  const handleReadingsMeasure = useCallback((totalRows: number) => {
-    if (readingsTotalRowsRef.current === totalRows) return
-    readingsTotalRowsRef.current = totalRows
-    forceRender()
-  }, [])
-
-  // Reset scroll + measurement whenever the readings target changes (different
-  // moving line, or readings hide/show). Stops the user from landing on a
-  // stale offset that belongs to a previous reading.
+  // Reset scroll whenever the readings target changes (different moving
+  // line, or readings hide/show). Stops the user from landing on a stale
+  // offset that belongs to a previous reading.
   const readingsKey = showReadings
     ? `${derivation.singleMovingIndex}-${state.lines.join(',')}`
     : 'none'
@@ -234,7 +242,6 @@ export function PlaygroundApp({
   if (lastReadingsKeyRef.current !== readingsKey) {
     lastReadingsKeyRef.current = readingsKey
     scrollOffsetRef.current = 0
-    readingsTotalRowsRef.current = 0
   }
 
   useInput((input, key) => {
@@ -281,8 +288,12 @@ export function PlaygroundApp({
       if (saveDir !== undefined) params.dir = saveDir
       saveConsultationFile(params)
         .then((filePath) => {
+          // Show the cwd-relative path when the consultation lives inside
+          // the working tree (the common case); otherwise fall back to the
+          // absolute path so the user isn't squinting at `../../..`.
           const relative = path.relative(process.cwd(), filePath)
-          dispatch({ type: 'saveSucceeded', relativePath: relative })
+          const display = relative.startsWith('..') ? filePath : relative
+          dispatch({ type: 'saveSucceeded', relativePath: display })
         })
         .catch((error: unknown) => {
           const message = error instanceof Error ? error.message : String(error)
@@ -295,14 +306,6 @@ export function PlaygroundApp({
   const handleSaveCancel = useCallback(() => {
     dispatch({ type: 'cancelSave' })
   }, [])
-
-  // `<ReadingsPanel>` is wrapped to `TOP_HALF_WIDTH` and the scrollbar (when
-  // mounted) consumes 1 col from that budget — so the readings text wraps to
-  // one less when the scrollbar is visible.
-  const readingsOverflows =
-    showReadings && readingsTotalRowsRef.current > readingsViewportHeight
-  const readingsWrapWidth =
-    Math.min(TOP_HALF_WIDTH, innerCols) - (readingsOverflows ? 1 : 0)
 
   const contentSlot = (
     <Box flexDirection="column" alignItems="center">
@@ -323,25 +326,22 @@ export function PlaygroundApp({
         >
           <Box flexGrow={1} flexShrink={1}>
             <ReadingsPanel
-              standing={derivation.standing}
-              movingLineIndex={
-                derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
-              }
-              wrapWidth={readingsWrapWidth}
+              rows={readingsRows}
               viewportHeight={readingsViewportHeight}
               scrollOffset={scrollOffset}
-              onMeasure={handleReadingsMeasure}
             />
           </Box>
-          {readingsOverflows && (
-            <Box width={1} flexShrink={0}>
+          {/* Reserve the 1-col gutter unconditionally; only mount the
+              scrollbar inside it when readings overflow the viewport. */}
+          <Box width={1} flexShrink={0}>
+            {readingsOverflows && (
               <ScrollbarTrack
                 offset={scrollOffset}
-                totalRows={readingsTotalRowsRef.current}
+                totalRows={readingsRows.length}
                 viewportHeight={readingsViewportHeight}
               />
-            </Box>
-          )}
+            )}
+          </Box>
         </Box>
       )}
     </Box>
@@ -363,16 +363,22 @@ export function PlaygroundApp({
   const saveLine = describeSaveLine(state.savedPath, state.saveError)
   const panChip =
     maxPanOffset > 0
-      ? `   ◀ ${panOffset + 1}–${Math.min(panOffset + innerCols, TOP_HALF_WIDTH)} of ${TOP_HALF_WIDTH} ▶`
+      ? `◀ ${panOffset + 1}–${Math.min(panOffset + innerCols, TOP_HALF_WIDTH)} of ${TOP_HALF_WIDTH} ▶`
       : ''
   const keyHints =
     ` Tab focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · </> pan · ` +
     `↑↓ scroll · g/G ends · Del undo · r reset · S save · ` +
-    `ESC ${effectiveExitLabel}${panChip}`
+    `ESC ${effectiveExitLabel}`
+  // Second footer row carries the save-status line on the left and the pan
+  // chip on the right (when panning is reachable). `justifyContent` keeps
+  // them from colliding on narrow terminals.
   const footer = (
     <Box flexDirection="column" flexShrink={0}>
       <Text dimColor>{keyHints}</Text>
-      <Text>{`${BOLD_GREY}${saveLine}${NORMAL}`}</Text>
+      <Box flexDirection="row" justifyContent="space-between">
+        <Text>{`${BOLD_GREY}${saveLine}${NORMAL}`}</Text>
+        {panChip.length > 0 && <Text dimColor>{panChip}</Text>}
+      </Box>
     </Box>
   )
 

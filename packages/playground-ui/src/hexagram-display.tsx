@@ -17,8 +17,8 @@ interface HexagramDisplayProps {
   readonly emerging: Hexagram
   /** Whether the standing has any moving lines. */
   readonly hasMoving: boolean
-  /** 0-based bottom-first focus cursor on the standing card; `null` to hide. */
-  readonly focusIndex: number | null
+  /** 0-based bottom-first focus cursor on the standing card. */
+  readonly focusIndex: number
   /** Pulse boolean from `usePulse`. */
   readonly pulse: boolean
   /**

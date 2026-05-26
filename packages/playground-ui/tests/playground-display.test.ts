@@ -134,20 +134,6 @@ describe('buildPlaygroundDisplay', () => {
         expect(plain.startsWith('  ')).toBe(true)
       }
     })
-
-    it('focusIndex=null omits the chevron from every line row', () => {
-      const out = buildPlaygroundDisplay({
-        standing: QIAN,
-        emerging: QIAN,
-        focusIndex: null,
-        pulse: false,
-        hasMoving: false,
-      })
-      const lineRows = out.rows.slice(1, 7).map(stripAnsi)
-      for (const plain of lineRows) {
-        expect(plain.startsWith('  ')).toBe(true)
-      }
-    })
   })
 
   describe('moving-line arrow', () => {
@@ -158,7 +144,7 @@ describe('buildPlaygroundDisplay', () => {
       const out = buildPlaygroundDisplay({
         standing,
         emerging,
-        focusIndex: null,
+        focusIndex: 0,
         pulse: false,
         hasMoving: true,
       })
@@ -223,7 +209,7 @@ describe('buildPlaygroundDisplay', () => {
       const out = buildPlaygroundDisplay({
         standing,
         emerging,
-        focusIndex: null,
+        focusIndex: 0,
         pulse: false,
         hasMoving: true,
       })
@@ -367,7 +353,7 @@ describe('buildPlaygroundDisplay', () => {
         const out = buildPlaygroundDisplay({
           standing,
           emerging,
-          focusIndex: null,
+          focusIndex: 0,
           pulse: false,
           hasMoving: standing.some((line) => line === 6 || line === 9),
         })

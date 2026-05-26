@@ -1,10 +1,9 @@
 // `<ReadingsPanel>` — the scrollable readings strip shown below the
-// hexagram cards when exactly one line is moving. Renders the focused
-// moving line's scripture and exegesis (image-wing / 象傳) in both
-// Traditional Chinese and Wilhelm-Baynes English, ANSI-wrapped to a
-// host-supplied column width and clipped to a host-supplied viewport
-// height. Scroll state lives in `<PlaygroundApp>`; this component is
-// presentational.
+// hexagram cards when exactly one line is moving. Purely presentational:
+// the host computes the pre-wrapped row array via `buildReadingsRows`
+// (exported below) during its own render and passes it down with the
+// viewport height and scroll offset. The panel renders the slice; the
+// host owns measurement and clamping.
 //
 // Mount condition is the host's responsibility: it must only mount this
 // component iff `derivation.singleMovingIndex !== null`. For 0 or 2+
@@ -22,40 +21,28 @@ import {
   ScrollableSection,
   wrapToWidth,
 } from '@hexagram/viewer-core'
-import { useEffect, type ReactElement } from 'react'
+import type { ReactElement } from 'react'
 
 interface ReadingsPanelProps {
-  /** The standing hexagram — used to look up the line's scripture/exegesis. */
-  readonly standing: Hexagram
   /**
-   * The 0-based bottom-first index of the single moving line (0 → Line 1,
-   * 5 → Line 6). The host only mounts this strip when exactly one line is
-   * moving, so this is always a valid line index.
+   * Pre-built, ANSI-wrapped rows for the readings strip. Produced by
+   * `buildReadingsRows()` (exported from this module) and passed down
+   * by the host so total-row measurement and scroll clamping happen
+   * synchronously during the host's render — no `useEffect` round trip.
    */
-  readonly movingLineIndex: 0 | 1 | 2 | 3 | 4 | 5
-  /**
-   * Width to which the readings content is hard-wrapped — pinned by the
-   * caller to the top-half's `TOP_HALF_WIDTH` so the bottom half never
-   * exceeds the top half's footprint.
-   */
-  readonly wrapWidth: number
+  readonly rows: readonly string[]
   /**
    * Vertical viewport height in rows — the host computes this from
    * remaining space below the top-half hexagrams. Always ≥ 1.
    */
   readonly viewportHeight: number
   /**
-   * Scroll offset in rows (0-based), provided by the host. The component
-   * is presentational — scroll state lives in `<PlaygroundApp>`.
+   * Scroll offset in rows (0-based), already clamped by the host to a
+   * valid in-range value. The panel does NOT clamp defensively — an
+   * out-of-range offset is a host bug and should surface, not be
+   * silently masked.
    */
   readonly scrollOffset: number
-  /**
-   * Reports `totalRows` back to the host on every render so the host can
-   * clamp the scroll offset and size the scrollbar. Deferred via
-   * `useEffect` so the callback lands AFTER the render commit and never
-   * triggers a parent setState-during-render warning.
-   */
-  readonly onMeasure?: (totalRows: number) => void
 }
 
 const LINE_KEYS: readonly ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'] = [
@@ -110,36 +97,30 @@ function buildContent(
   ].join('\n')
 }
 
-export function ReadingsPanel({
-  standing,
-  movingLineIndex,
-  wrapWidth,
-  viewportHeight,
-  scrollOffset,
-  onMeasure,
-}: ReadingsPanelProps): ReactElement {
+/**
+ * Pure row-builder for the readings strip. Returns the ANSI-wrapped
+ * rows the host then slices for the panel. Exported so the host can
+ * compute `totalRows` synchronously during its render and clamp the
+ * scroll offset before passing it down — no `onMeasure` callback,
+ * no extra render pass.
+ */
+export function buildReadingsRows(
+  standing: Hexagram,
+  movingLineIndex: 0 | 1 | 2 | 3 | 4 | 5,
+  wrapWidth: number,
+): string[] {
   const content = buildContent(standing, movingLineIndex)
   const wrapped = wrapToWidth(content, wrapWidth)
-  const rows = wrapped.split('\n')
-  const totalRows = rows.length
+  return wrapped.split('\n')
+}
 
-  useEffect(() => {
-    onMeasure?.(totalRows)
-  }, [onMeasure, totalRows])
+export function ReadingsPanel({
+  rows,
+  viewportHeight,
+  scrollOffset,
+}: ReadingsPanelProps): ReactElement {
+  const height = Math.max(1, viewportHeight)
+  const visible = rows.slice(scrollOffset, scrollOffset + height)
 
-  const safeOffset = Math.max(
-    0,
-    Math.min(scrollOffset, Math.max(0, totalRows - 1)),
-  )
-  const visible = rows.slice(
-    safeOffset,
-    safeOffset + Math.max(1, viewportHeight),
-  )
-
-  return (
-    <ScrollableSection
-      rows={visible}
-      viewportHeight={Math.max(1, viewportHeight)}
-    />
-  )
+  return <ScrollableSection rows={visible} viewportHeight={height} />
 }

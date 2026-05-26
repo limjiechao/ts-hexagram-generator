@@ -179,8 +179,8 @@ export interface PlaygroundDisplayInputs {
   readonly standing: Hexagram
   /** Already computed by caller via `getEmergingHexagram`. */
   readonly emerging: Hexagram
-  /** 0..5 bottom-first cursor; `null` to hide the chevron entirely. */
-  readonly focusIndex: number | null
+  /** 0..5 bottom-first cursor; always supplied by the playground reducer. */
+  readonly focusIndex: number
   /** Pulse beat from `usePulse`; only consulted for moving lines. */
   readonly pulse: boolean
   /** Whether the standing hexagram has any moving lines. */

@@ -16,6 +16,19 @@ import {
 import { Box, Text, useInput } from 'ink'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 
+/**
+ * Total visual rows occupied by a mounted `<SaveStrip>`:
+ *   - round border (top + bottom): 2
+ *   - title row: 1
+ *   - three `marginTop={1}` blank rows: 3
+ *   - three text rows (Enter query: + query line + ⏎ save · ESC cancel): 3
+ * = 9
+ *
+ * Exported so `<PlaygroundApp>`'s viewport math can account for the strip
+ * without re-measuring at runtime.
+ */
+export const SAVE_STRIP_ROWS = 9
+
 interface SaveStripProps {
   /** Inner content width in columns (from the `<ScreenShell>` slot). */
   readonly innerCols: number
