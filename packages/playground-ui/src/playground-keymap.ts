@@ -11,6 +11,12 @@
 // not trigger reset. The save-editor mode owns its own input via the
 // `<SaveStrip>` component; this keymap is suppressed entirely while
 // `state.mode === 'saving'`.
+//
+// Pan / scroll vocabulary (matches the viewer's app-wide vocabulary):
+//   `<` / `>` — horizontal pan of the top half (when the top half is wider
+//     than the inner content area).
+//   `PgUp` / `PgDn` — vertical scroll inside the readings panel.
+//   `g` / `G` — jump to the top / bottom of the readings panel.
 
 import type { Key } from 'ink'
 
@@ -37,6 +43,24 @@ export interface PlaygroundKeyContext {
    * standalone) decides whether that means "back to home" or "quit".
    */
   readonly exit: () => void
+  /**
+   * Adjust the top-half horizontal pan offset by `delta` (display cols). The
+   * host clamps against the renderer's `TOP_HALF_WIDTH - innerCols` ceiling.
+   * Wired to `<` (delta -1) and `>` (delta +1).
+   */
+  readonly panTopBy: (delta: number) => void
+  /**
+   * Adjust the readings panel's vertical scroll offset by `delta` rows. The
+   * host clamps against `max(0, totalRows - viewportHeight)`. Wired to PgUp
+   * (delta = -(viewportHeight - 1)) and PgDn (delta = +(viewportHeight - 1)).
+   */
+  readonly scrollReadingsBy: (delta: number) => void
+  /**
+   * Jump the readings panel's vertical scroll offset to an absolute row.
+   * `Number.POSITIVE_INFINITY` snaps to the last visible position (the
+   * host clamps); `0` snaps to the top. Wired to `g` (top) and `G` (bottom).
+   */
+  readonly scrollReadingsTo: (target: number) => void
 }
 
 export interface PlaygroundKeyBinding {
@@ -114,6 +138,60 @@ export const PLAYGROUND_BINDINGS: readonly PlaygroundKeyBinding[] = [
     match: (_input, key) => key.leftArrow === true,
     run: (ctx) => {
       ctx.dispatch({ type: 'cycleBackward' })
+    },
+  },
+  // ── </> — horizontal pan of the top half ─────────────────────────────────
+  {
+    id: 'pan-top-left',
+    when: NOT_SAVING,
+    match: (input, key) => isUnmodified(key) && input === '<',
+    run: (ctx) => {
+      ctx.panTopBy(-1)
+    },
+  },
+  {
+    id: 'pan-top-right',
+    when: NOT_SAVING,
+    match: (input, key) => isUnmodified(key) && input === '>',
+    run: (ctx) => {
+      ctx.panTopBy(1)
+    },
+  },
+  // ── PgUp/PgDn — vertical scroll the readings panel ───────────────────────
+  // Page delta is computed by the host (it knows the viewport height); we
+  // signal "page" with a magnitude the host interprets — see how the
+  // viewer's PgUp/PgDn handlers clamp.
+  {
+    id: 'scroll-readings-up',
+    when: NOT_SAVING,
+    match: (_input, key) => key.pageUp === true,
+    run: (ctx) => {
+      ctx.scrollReadingsBy(Number.NEGATIVE_INFINITY)
+    },
+  },
+  {
+    id: 'scroll-readings-down',
+    when: NOT_SAVING,
+    match: (_input, key) => key.pageDown === true,
+    run: (ctx) => {
+      ctx.scrollReadingsBy(Number.POSITIVE_INFINITY)
+    },
+  },
+  // ── g / G — jump to top / bottom of the readings panel ───────────────────
+  {
+    id: 'readings-top',
+    when: NOT_SAVING,
+    match: (input, key) => isUnmodified(key) && input === 'g',
+    run: (ctx) => {
+      ctx.scrollReadingsTo(0)
+    },
+  },
+  {
+    id: 'readings-bottom',
+    when: NOT_SAVING,
+    match: (input, key) => isUnmodified(key) && input === 'G',
+    run: (ctx) => {
+      ctx.scrollReadingsTo(Number.POSITIVE_INFINITY)
     },
   },
   // ── 6/7/8/9 — live-type bottom-first ─────────────────────────────────────

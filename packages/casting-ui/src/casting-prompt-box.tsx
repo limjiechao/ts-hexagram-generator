@@ -38,7 +38,7 @@ export const SLIDER_COMMIT_REVEAL_MS = 500
 // Slider-mode prompt title. The interactive flow instructs the user to press
 // SPACE; the random flow auto-drives the slider, so its title just narrates.
 // Shared between `<SliderCastingPrompt>` (which renders it) and `viewer.tsx`'s
-// `castingPromptContentWidth` (which measures it to size the ←/→ pan) so the
+// `castingPromptContentWidth` (which measures it to size the `<` / `>` pan) so the
 // two can never drift — a wider title would silently under-reserve pan space.
 export function sliderPromptTitle(
   lineNumber: number,
@@ -540,7 +540,7 @@ interface CastingPromptBoxProps {
   tickMs?: number
   /**
    * Horizontal pan offset, in display columns, applied to slider-mode rows
-   * for narrow terminals. The viewer drives this via ←/→ during the casting
+   * for narrow terminals. The viewer drives this via `<` / `>` during the casting
    * phase. Ignored in number mode (which has no overflow).
    */
   horizontalOffset?: number
@@ -596,7 +596,7 @@ interface CastingPromptBoxProps {
  *    `<SliderCastingPrompt>`. Rows are pre-built strings padded to at
  *    least the inner box width and sliced via `sliceAnsi` against
  *    `horizontalOffset`, so the box never reflows on narrow terminals
- *    (←/→ in the viewer pans it).
+ *    (`<` / `>` in the viewer pans it).
  *  - **number**: the legacy typed-number prompt + `<NumberInput>` row.
  *    Unchanged from before the slider feature; opted into via
  *    `--numeric-input`.
@@ -693,7 +693,7 @@ interface SliderCastingPromptProps {
  * Slider-mode body of `<CastingPromptBox>`. Owns the bouncing state via
  * `useSliderBounce` and renders five sliced rows (title, blank, bar, blank,
  * readout) so the box content never reflows on narrow terminals — the viewer
- * can pan ←/→ to scroll instead.
+ * can pan `<` / `>` to scroll instead.
  *
  * Three visual states drive the readout row:
  *  1. **Ticking** — the cursor sweeps and the readout shows two
@@ -737,7 +737,7 @@ function SliderCastingPrompt({
 
   // Ref pattern: the timer must read the LATEST onSubmit when it fires, but
   // the effect must NOT re-run when onSubmit's identity changes. Otherwise
-  // any parent re-render (e.g. ←/→ pan during the post-SPACE reveal) would
+  // any parent re-render (e.g. `<` / `>` pan during the post-SPACE reveal) would
   // produce a new inline-arrow onSubmit, cleanup the pending timeout, and
   // restart the 1-second dwell from zero — potentially stalling indefinitely
   // on the 18th cast.

@@ -422,7 +422,7 @@ export function ConsultationViewer({
   })()
 
   // Intrinsic content width of the casting prompt box (inside its border) —
-  // drives the ←/→ pan during the slider-mode casting flow.
+  // drives the `<` / `>` pan during the slider-mode casting flow.
   const castingPromptContentWidth =
     state.mode === 'casting' && inputMode === 'slider'
       ? Math.max(

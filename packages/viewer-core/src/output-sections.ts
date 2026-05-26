@@ -49,10 +49,13 @@ function getLineColor(line: Line): typeof BOLD_RED | typeof BOLD_WHITE {
 //
 // position labels like （六, 6th）: （(2) + CJK(2) + ", "(2) + "6th"(3) + ）(2) = 11 cols
 const RIGHT_COLUMN = 46
-const MOVING_ARROW = '─────────────────▶ ' // 17×─ + ▶ + 1 space = 19 cols
-const STATIC_GAP = '                   ' // 19 spaces
+/** 19-col inter-column connector for moving lines: 17×─ + ▶ + 1 space. */
+export const MOVING_ARROW = '─────────────────▶ '
+/** 19-col blank gap for static lines (matches `MOVING_ARROW` width). */
+export const STATIC_GAP = '                   '
 
-const POSITION_LABELS = {
+/** Bottom-first (`1`..`6`) fullwidth position labels for hexagram diagrams. */
+export const POSITION_LABELS = {
   1: '（初, 1st）',
   2: '（二, 2nd）',
   3: '（三, 3rd）',

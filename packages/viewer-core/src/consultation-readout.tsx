@@ -65,7 +65,7 @@ import {
 /**
  * Casting-prompt pan wiring. When the above-footer slot hosts content wider
  * than the terminal (the slider-mode casting prompt on a narrow terminal),
- * the readout owns a horizontal pan offset for it; `←/→` pan it via the
+ * the readout owns a horizontal pan offset for it; `<` / `>` pan it via the
  * keymap. `contentWidth` is the slot content's intrinsic display width.
  */
 export interface CastingPromptPan {
@@ -402,7 +402,7 @@ export function ConsultationReadout({
   }
 
   // Casting-prompt pan ceiling — the slot content can overflow narrow
-  // terminals; `←/→` pan it. The box itself stays at `innerCols` so it
+  // terminals; `<` / `>` pan it. The box itself stays at `innerCols` so it
   // never reflows.
   const castingInnerWidth = Math.max(1, innerCols - 2) // subtract round border
   const maxCastingHorizontalOffset = Math.max(
@@ -441,15 +441,9 @@ export function ConsultationReadout({
       hardQuit: hardQuitReadout,
       panCastingPromptBy: (delta) =>
         panCastingPromptBy(delta, maxCastingHorizontalOffset),
-      panCastingPromptByPage: (delta) =>
-        panCastingPromptBy(
-          delta * (castingInnerWidth - 1),
-          maxCastingHorizontalOffset,
-        ),
       stepToTab,
       jumpToTab,
       panActiveBy,
-      panActiveByPage: (delta) => panActiveBy(delta * (innerCols - 1)),
       scrollActiveBy,
       scrollActiveTo,
     }

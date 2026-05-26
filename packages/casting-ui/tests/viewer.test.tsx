@@ -8,7 +8,6 @@ import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { ConsultationViewer } from '../src/viewer'
 import {
   ARROW_DOWN,
-  ARROW_LEFT,
   ARROW_RIGHT,
   CTRL_C,
   ENTER,
@@ -171,11 +170,11 @@ describe('ConsultationViewer', () => {
     unmount()
   })
 
-  it('does not switch tabs on the arrow keys (they pan instead)', async () => {
-    // Use a wide-enough viewport for the 107-col casting table so ARROW_RIGHT
-    // is a no-op pan (no overflow → nothing to scroll). The test verifies the
-    // key does not advance the tab; pan side-effects would falsify the
-    // `CASTING:` substring check by shifting it off the left edge.
+  it('does not switch tabs on the arrow keys (arrows are unbound; `<` / `>` pan)', async () => {
+    // Use a wide-enough viewport for the 107-col casting table so the
+    // keypress is a no-op (no overflow → nothing to scroll). The test
+    // verifies the arrow key does not advance the tab — arrows are not
+    // bound anywhere in done-mode now that pan moved to `<` / `>`.
     windowSize.current = { columns: 120, rows: 30 }
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
@@ -246,19 +245,19 @@ describe('ConsultationViewer', () => {
       unmount()
     })
 
-    it('pans wide content horizontally with the arrow keys', async () => {
+    it('pans wide content horizontally with `<` / `>`', async () => {
       windowSize.current = { columns: 40, rows: 20 }
       const { lastFrame, stdin, unmount } = render(
         <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
       )
       const before = lastFrame() ?? ''
 
-      stdin.write(ARROW_RIGHT)
+      stdin.write('>')
       await yieldMacrotask()
       const afterRight = lastFrame() ?? ''
       expect(afterRight).not.toBe(before)
 
-      stdin.write(ARROW_LEFT)
+      stdin.write('<')
       await yieldMacrotask()
       const afterLeft = lastFrame() ?? ''
       expect(afterLeft).toBe(before)
@@ -1206,7 +1205,7 @@ describe('ConsultationViewer (Pass #2)', () => {
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
-    // New compact wording: "Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc quit"
+    // New compact wording: "Tab switch · ↑↓ scroll · </> pan · g/G ends · Esc quit"
     expect(frame.includes('Tab switch')).toBe(true)
     expect(frame.includes('scroll')).toBe(true)
     unmount()
@@ -1437,10 +1436,10 @@ describe('ConsultationViewer (slider mode)', () => {
     unmount()
   })
 
-  it('pans the casting prompt box horizontally with ←/→ on narrow terminals', async () => {
+  it('pans the casting prompt box horizontally with `<` / `>` on narrow terminals', async () => {
     // 50-col terminal → innerCols 47 → box content 45 cols, but the title
     // is 53 chars. The end of the title ("part the stalks") is initially
-    // clipped; → should pan it into view.
+    // clipped; `>` should pan it into view.
     windowSize.current = { columns: 50, rows: 30 }
     try {
       const { lastFrame, stdin, unmount } = render(
@@ -1450,12 +1449,12 @@ describe('ConsultationViewer (slider mode)', () => {
       await yieldMacrotask()
       stdin.write(ENTER)
       await yieldMacrotask()
-      // Right-arrow several times — sliceAnsi shifts the visible window.
+      // `>` several times — sliceAnsi shifts the visible window.
       const initialFrame = lastFrame() ?? ''
       expect(initialFrame).toContain('Line 1/6')
       // Pan right by a generous chunk so we see the right edge of the title.
       for (let index = 0; index < 20; index += 1) {
-        stdin.write(ARROW_RIGHT)
+        stdin.write('>')
         await yieldMacrotask()
       }
       const pannedFrame = lastFrame() ?? ''

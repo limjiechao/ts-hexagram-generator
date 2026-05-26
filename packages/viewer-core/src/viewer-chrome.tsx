@@ -29,7 +29,7 @@ export type NonEmpty<T> = readonly [T, ...T[]]
 // ── Key-hint formatters ──────────────────────────────────────────────────────
 
 export const KEY_HINTS_TEMPLATE = (): string =>
-  `Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc quit`
+  `Tab switch · ↑↓ scroll · </> pan · g/G ends · Esc quit`
 
 /**
  * The casting flow whose footer hints are being formatted. The interactive
@@ -48,7 +48,7 @@ export type CastingFlowKind = 'interactive' | 'random'
  * instead skips the rest of the animation. Number mode normally advertises
  * Enter for parity with the in-tab prompt label — but the random flow's
  * number-mode reveal is timer-driven with nothing to commit, so it advertises
- * SPACE: skip there too. ←/→ is the horizontal-pan binding the viewer
+ * SPACE: skip there too. `<` / `>` is the horizontal-pan binding the viewer
  * registers when slider content overflows.
  *
  * Escape and Ctrl+C are separate keys: Escape is the soft back / exit (its
@@ -71,7 +71,7 @@ export function keyHintsForCasting(
     return `Enter: commit   ${exitHints}`
   }
   const spaceHint = flowKind === 'random' ? 'SPACE: skip' : 'SPACE: part'
-  return `${spaceHint}   ←→: pan   ${exitHints}`
+  return `${spaceHint}   </>: pan   ${exitHints}`
 }
 
 /**

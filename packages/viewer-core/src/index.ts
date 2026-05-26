@@ -58,14 +58,19 @@ export {
   WHITE,
 } from './output-palette.js'
 
-// Section builders — the per-section ANSI string renderers.
+// Section builders — the per-section ANSI string renderers, plus the shared
+// geometry constants (position labels, inter-column connector / gap) that
+// downstream renderers like the playground reuse for byte-identical layout.
 export {
   castingSection,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,
+  MOVING_ARROW,
+  POSITION_LABELS,
   querySection,
   standingHexagramSection,
+  STATIC_GAP,
   transformationSection,
 } from './output-sections.js'
 

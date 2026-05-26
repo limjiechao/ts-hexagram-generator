@@ -44,12 +44,18 @@ interface DispatchedAction {
 interface Probe {
   readonly dispatched: DispatchedAction[]
   readonly exitFired: () => boolean
+  readonly panDeltas: number[]
+  readonly scrollDeltas: number[]
+  readonly scrollTargets: number[]
   readonly ctx: PlaygroundKeyContext
 }
 
 function buildContext(state: Partial<PlaygroundStateSlice> = {}): Probe {
   const dispatched: DispatchedAction[] = []
   const exit = vi.fn()
+  const panDeltas: number[] = []
+  const scrollDeltas: number[] = []
+  const scrollTargets: number[] = []
   const ctx: PlaygroundKeyContext = {
     state: {
       mode: state.mode ?? 'idle',
@@ -59,8 +65,24 @@ function buildContext(state: Partial<PlaygroundStateSlice> = {}): Probe {
       dispatched.push({ action })
     },
     exit,
+    panTopBy: (delta) => {
+      panDeltas.push(delta)
+    },
+    scrollReadingsBy: (delta) => {
+      scrollDeltas.push(delta)
+    },
+    scrollReadingsTo: (target) => {
+      scrollTargets.push(target)
+    },
   }
-  return { dispatched, ctx, exitFired: () => exit.mock.calls.length > 0 }
+  return {
+    dispatched,
+    ctx,
+    exitFired: () => exit.mock.calls.length > 0,
+    panDeltas,
+    scrollDeltas,
+    scrollTargets,
+  }
 }
 
 describe('Esc', () => {
@@ -197,6 +219,59 @@ describe('r — reset', () => {
   })
 })
 
+describe('</> — horizontal pan of the top half', () => {
+  it('"<" calls panTopBy(-1)', () => {
+    const { ctx, panDeltas } = buildContext()
+    dispatchPlaygroundKey('<', emptyKey(), ctx)
+    expect(panDeltas).toEqual([-1])
+  })
+
+  it('">" calls panTopBy(+1)', () => {
+    const { ctx, panDeltas } = buildContext()
+    dispatchPlaygroundKey('>', emptyKey(), ctx)
+    expect(panDeltas).toEqual([1])
+  })
+
+  it('ignores Ctrl+<', () => {
+    const { ctx, panDeltas } = buildContext()
+    const handled = dispatchPlaygroundKey(
+      '<',
+      { ...emptyKey(), ctrl: true },
+      ctx,
+    )
+    expect(handled).toBe(false)
+    expect(panDeltas).toHaveLength(0)
+  })
+})
+
+describe('PgUp/PgDn — scroll readings', () => {
+  it('PgUp calls scrollReadingsBy(-Infinity) — host pages it', () => {
+    const { ctx, scrollDeltas } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), pageUp: true }, ctx)
+    expect(scrollDeltas).toEqual([Number.NEGATIVE_INFINITY])
+  })
+
+  it('PgDn calls scrollReadingsBy(+Infinity) — host pages it', () => {
+    const { ctx, scrollDeltas } = buildContext()
+    dispatchPlaygroundKey('', { ...emptyKey(), pageDown: true }, ctx)
+    expect(scrollDeltas).toEqual([Number.POSITIVE_INFINITY])
+  })
+})
+
+describe('g/G — jump readings to top/bottom', () => {
+  it('"g" jumps to row 0', () => {
+    const { ctx, scrollTargets } = buildContext()
+    dispatchPlaygroundKey('g', emptyKey(), ctx)
+    expect(scrollTargets).toEqual([0])
+  })
+
+  it('"G" jumps to +Infinity (host clamps to last row)', () => {
+    const { ctx, scrollTargets } = buildContext()
+    dispatchPlaygroundKey('G', emptyKey(), ctx)
+    expect(scrollTargets).toEqual([Number.POSITIVE_INFINITY])
+  })
+})
+
 describe('S — save', () => {
   it('dispatches beginSave on bare "S"', () => {
     const { ctx, dispatched } = buildContext()
@@ -221,6 +296,12 @@ describe('saving mode', () => {
       [' ', {}],
       ['', { leftArrow: true }],
       ['', { rightArrow: true }],
+      ['<', {}],
+      ['>', {}],
+      ['', { pageUp: true }],
+      ['', { pageDown: true }],
+      ['g', {}],
+      ['G', {}],
       ['8', {}],
       ['', { delete: true }],
       ['r', {}],

@@ -160,7 +160,7 @@ describe('FooterBar — status row hint ordering', () => {
   })
 
   it('renders flow key hints (not done-mode hints) during casting flow', () => {
-    const castingHints = 'SPACE: part   ←→: pan   Esc/Ctrl+C: quit'
+    const castingHints = 'SPACE: part   </>: pan   Esc/Ctrl+C: quit'
     const { lastFrame, unmount } = render(
       <FooterBar
         {...baseProps}
@@ -182,7 +182,7 @@ describe('FooterBar — status row hint ordering', () => {
       <FooterBar
         {...baseProps}
         cols={80}
-        doneKeyHints="Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc back to history"
+        doneKeyHints="Tab switch · ↑↓ scroll · </> pan · g/G ends · Esc back to history"
         verticalStatus={null}
         horizontalStatus={null}
         wrapChip={null}

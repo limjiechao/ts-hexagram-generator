@@ -10,11 +10,10 @@ import type { Key } from 'ink'
 // `viewer.tsx`'s `useInput` callback. Global Escape calls `ctx.exit` (the
 // soft back key) and Ctrl+C calls `ctx.hardQuit` (the hard quit) — kept
 // separate so the casting viewer can route the two keys to different
-// destinations. ←/→ during a slider-mode cast pan the casting prompt; once
-// `done`, the full Tab / digit / arrow / page / Home / End binding set
-// applies. Shift-modified arrows pan by `innerCols - 1` (a "page" pan) — that
-// math lives in the closures passed in via `KeyContext`, so the bindings here
-// just toggle on `key.shift`.
+// destinations. `<` / `>` during a slider-mode cast pan the casting prompt;
+// once `done`, the full Tab / digit / arrow / page / Home / End binding set
+// applies. Pan is single-cell only (no Shift-modified page pan) — `<` / `>`
+// are already shift-modified characters, so there is no second tier to bind.
 
 export type InputMode = 'slider' | 'number'
 
@@ -44,15 +43,11 @@ export interface KeyContext {
   // `delta` is signed cells (1 = one column). The closure passed in by the
   // viewer is responsible for clamping against the prompt's pan ceiling.
   readonly panCastingPromptBy: (delta: number) => void
-  // Shift-modified ←/→ during a cast: pan by one page (`innerCols - 1`).
-  readonly panCastingPromptByPage: (delta: number) => void
   readonly stepToTab: (delta: number) => void
   readonly jumpToTab: (index: number) => void
   // `delta` is signed cells. The closure passed in by the viewer clamps
   // against the active tab's content width.
   readonly panActiveBy: (delta: number) => void
-  // Shift-modified ←/→ in `done` mode: pan by one page (`innerCols - 1`).
-  readonly panActiveByPage: (delta: number) => void
   readonly scrollActiveBy: (delta: number) => void
   readonly scrollActiveTo: (offset: number) => void
 }
@@ -91,19 +86,17 @@ export const BINDINGS: readonly KeyBinding[] = [
   {
     id: 'casting/pan-left',
     when: IN_CASTING_SLIDER,
-    match: (_input, key) => key.leftArrow === true,
-    run: (ctx, _input, key) => {
-      if (key.shift === true) ctx.panCastingPromptByPage(-1)
-      else ctx.panCastingPromptBy(-1)
+    match: (input) => input === '<',
+    run: (ctx) => {
+      ctx.panCastingPromptBy(-1)
     },
   },
   {
     id: 'casting/pan-right',
     when: IN_CASTING_SLIDER,
-    match: (_input, key) => key.rightArrow === true,
-    run: (ctx, _input, key) => {
-      if (key.shift === true) ctx.panCastingPromptByPage(1)
-      else ctx.panCastingPromptBy(1)
+    match: (input) => input === '>',
+    run: (ctx) => {
+      ctx.panCastingPromptBy(1)
     },
   },
   // ── Done mode ────────────────────────────────────────────────────────────
@@ -143,19 +136,17 @@ export const BINDINGS: readonly KeyBinding[] = [
   {
     id: 'done/pan-left',
     when: IN_DONE,
-    match: (_input, key) => key.leftArrow === true,
-    run: (ctx, _input, key) => {
-      if (key.shift === true) ctx.panActiveByPage(-1)
-      else ctx.panActiveBy(-1)
+    match: (input) => input === '<',
+    run: (ctx) => {
+      ctx.panActiveBy(-1)
     },
   },
   {
     id: 'done/pan-right',
     when: IN_DONE,
-    match: (_input, key) => key.rightArrow === true,
-    run: (ctx, _input, key) => {
-      if (key.shift === true) ctx.panActiveByPage(1)
-      else ctx.panActiveBy(1)
+    match: (input) => input === '>',
+    run: (ctx) => {
+      ctx.panActiveBy(1)
     },
   },
   {

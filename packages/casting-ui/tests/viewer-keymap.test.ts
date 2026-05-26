@@ -51,11 +51,9 @@ function makeContext(
     exit: ReturnType<typeof vi.fn>
     hardQuit: ReturnType<typeof vi.fn>
     panCastingPromptBy: ReturnType<typeof vi.fn>
-    panCastingPromptByPage: ReturnType<typeof vi.fn>
     stepToTab: ReturnType<typeof vi.fn>
     jumpToTab: ReturnType<typeof vi.fn>
     panActiveBy: ReturnType<typeof vi.fn>
-    panActiveByPage: ReturnType<typeof vi.fn>
     scrollActiveBy: ReturnType<typeof vi.fn>
     scrollActiveTo: ReturnType<typeof vi.fn>
   }
@@ -64,11 +62,9 @@ function makeContext(
     exit: vi.fn(),
     hardQuit: vi.fn(),
     panCastingPromptBy: vi.fn(),
-    panCastingPromptByPage: vi.fn(),
     stepToTab: vi.fn(),
     jumpToTab: vi.fn(),
     panActiveBy: vi.fn(),
-    panActiveByPage: vi.fn(),
     scrollActiveBy: vi.fn(),
     scrollActiveTo: vi.fn(),
   }
@@ -79,11 +75,9 @@ function makeContext(
     exit: spies.exit,
     hardQuit: spies.hardQuit,
     panCastingPromptBy: spies.panCastingPromptBy,
-    panCastingPromptByPage: spies.panCastingPromptByPage,
     stepToTab: spies.stepToTab,
     jumpToTab: spies.jumpToTab,
     panActiveBy: spies.panActiveBy,
-    panActiveByPage: spies.panActiveByPage,
     scrollActiveBy: spies.scrollActiveBy,
     scrollActiveTo: spies.scrollActiveTo,
     spies,
@@ -214,40 +208,28 @@ describe('global bindings', () => {
 // ── Casting bindings (slider mode only) ──────────────────────────────────────
 
 describe('casting bindings', () => {
-  it('casting/pan-left — ←  pans the casting prompt by -1', () => {
+  it('casting/pan-left — `<` pans the casting prompt by -1', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'slider')
-    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(true)
+    expect(dispatchKey('<', makeKey(), ctx)).toBe(true)
     expect(ctx.spies.panCastingPromptBy).toHaveBeenCalledWith(-1)
-    expect(ctx.spies.panCastingPromptByPage).not.toHaveBeenCalled()
   })
 
-  it('casting/pan-right — →  pans the casting prompt by +1', () => {
+  it('casting/pan-right — `>` pans the casting prompt by +1', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'slider')
-    expect(dispatchKey('', makeKey({ rightArrow: true }), ctx)).toBe(true)
+    expect(dispatchKey('>', makeKey(), ctx)).toBe(true)
     expect(ctx.spies.panCastingPromptBy).toHaveBeenCalledWith(1)
-    expect(ctx.spies.panCastingPromptByPage).not.toHaveBeenCalled()
   })
 
-  it('Shift+← pans the casting prompt by one page (-1)', () => {
+  it('arrow keys do NOT pan the casting prompt (rebound to `<` / `>`)', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'slider')
-    expect(
-      dispatchKey('', makeKey({ leftArrow: true, shift: true }), ctx),
-    ).toBe(true)
-    expect(ctx.spies.panCastingPromptByPage).toHaveBeenCalledWith(-1)
+    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(false)
+    expect(dispatchKey('', makeKey({ rightArrow: true }), ctx)).toBe(false)
     expect(ctx.spies.panCastingPromptBy).not.toHaveBeenCalled()
-  })
-
-  it('Shift+→ pans the casting prompt by one page (+1)', () => {
-    const ctx = makeContext(makeState({ mode: 'casting' }), 'slider')
-    expect(
-      dispatchKey('', makeKey({ rightArrow: true, shift: true }), ctx),
-    ).toBe(true)
-    expect(ctx.spies.panCastingPromptByPage).toHaveBeenCalledWith(1)
   })
 
   it('does NOT pan in number-input mode (slider-only feature)', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'number')
-    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(false)
+    expect(dispatchKey('<', makeKey(), ctx)).toBe(false)
     expect(ctx.spies.panCastingPromptBy).not.toHaveBeenCalled()
   })
 })
@@ -303,25 +285,22 @@ describe('done-mode tab navigation', () => {
 describe('done-mode pan / scroll', () => {
   const done = (): FlowState => makeState({ mode: 'done' })
 
-  it('done/pan-left — ← pans active tab by -1', () => {
+  it('done/pan-left — `<` pans active tab by -1', () => {
     const ctx = makeContext(done())
-    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(true)
+    expect(dispatchKey('<', makeKey(), ctx)).toBe(true)
     expect(ctx.spies.panActiveBy).toHaveBeenCalledWith(-1)
-    expect(ctx.spies.panActiveByPage).not.toHaveBeenCalled()
   })
 
-  it('done/pan-right — → pans active tab by +1', () => {
+  it('done/pan-right — `>` pans active tab by +1', () => {
     const ctx = makeContext(done())
-    expect(dispatchKey('', makeKey({ rightArrow: true }), ctx)).toBe(true)
+    expect(dispatchKey('>', makeKey(), ctx)).toBe(true)
     expect(ctx.spies.panActiveBy).toHaveBeenCalledWith(1)
   })
 
-  it('Shift+← in done pans active tab by one page', () => {
+  it('arrow keys do NOT pan the active tab (rebound to `<` / `>`)', () => {
     const ctx = makeContext(done())
-    expect(
-      dispatchKey('', makeKey({ leftArrow: true, shift: true }), ctx),
-    ).toBe(true)
-    expect(ctx.spies.panActiveByPage).toHaveBeenCalledWith(-1)
+    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(false)
+    expect(dispatchKey('', makeKey({ rightArrow: true }), ctx)).toBe(false)
     expect(ctx.spies.panActiveBy).not.toHaveBeenCalled()
   })
 
@@ -389,9 +368,9 @@ describe('dispatchKey negatives', () => {
     expect(calledNames(ctx.spies)).toEqual([])
   })
 
-  it('← in awaitingQuery is unhandled (neither casting-slider nor done)', () => {
+  it('`<` in awaitingQuery is unhandled (neither casting-slider nor done)', () => {
     const ctx = makeContext(makeState({ mode: 'awaitingQuery' }))
-    expect(dispatchKey('', makeKey({ leftArrow: true }), ctx)).toBe(false)
+    expect(dispatchKey('<', makeKey(), ctx)).toBe(false)
     expect(calledNames(ctx.spies)).toEqual([])
   })
 
@@ -426,8 +405,10 @@ describe('dispatch order', () => {
 
   it('Escape always wins over any modal binding (e.g. casting flow)', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'slider')
-    // Escape + leftArrow both set — Escape's binding is first in the table.
-    dispatchKey('', makeKey({ escape: true, leftArrow: true }), ctx)
+    // Escape + `<` both possible — Escape's binding is first in the table.
+    // (Realistic input pair: Ink emits escape as a flag, not as `input`, so
+    // the pan matcher's `input === '<'` check would still pass if dispatched.)
+    dispatchKey('<', makeKey({ escape: true }), ctx)
     expect(ctx.spies.exit).toHaveBeenCalledTimes(1)
     expect(ctx.spies.panCastingPromptBy).not.toHaveBeenCalled()
   })

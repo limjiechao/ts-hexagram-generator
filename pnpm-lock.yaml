@@ -212,6 +212,9 @@ importers:
       react:
         specifier: ^19.2.6
         version: 19.2.6
+      slice-ansi:
+        specifier: ^9.0.0
+        version: 9.0.0
     devDependencies:
       '@hexagram/test-utils':
         specifier: workspace:*

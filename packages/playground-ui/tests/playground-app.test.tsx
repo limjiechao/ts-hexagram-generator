@@ -44,10 +44,18 @@ describe('<PlaygroundApp>', () => {
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Playground')
-    // Both cards render the standing hexagram (#1 Qian / Heaven).
-    expect(frame).toContain('STANDING #1')
-    expect(frame).toContain('EMERGING')
-    // 6 yang line glyphs (one per row, both cards) — at least the standing's L1.
+    // P6 layout: centered "Standing" / "Emerging" column headings (no card
+    // borders, no `STANDING #N` titles).
+    expect(frame).toContain('Standing')
+    expect(frame).toContain('Emerging')
+    // Identity stack below — Qian (#1) on both sides (emerging is the dim
+    // ghost mirror because there are no moving lines).
+    expect(frame).toContain('#1 乾')
+    expect(frame).toContain('Ch’ien')
+    // Position labels rendered alongside each line row.
+    expect(frame).toContain('（初, 1st）')
+    expect(frame).toContain('（六, 6th）')
+    // Yang static bar glyphs (one per line, both sides).
     expect(frame).toContain('━━━━━━━━━')
     // The focus chevron is rendered with ANSI codes between `›` and the
     // trailing space, so assert on the bare glyph alone.

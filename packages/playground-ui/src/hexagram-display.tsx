@@ -1,32 +1,40 @@
-// `<HexagramDisplay>` — composes the two trigram cards side-by-side. The
-// standing card always renders. The emerging card always renders too, but
-// dims into a ghost mirror when no lines are moving (the spec's
-// "no-transformation" state — keeps the layout from reflowing).
+// `<HexagramDisplay>` — thin React wrapper over `buildPlaygroundDisplay`
+// (the pure renderer). Slices each row by the host's horizontal pan offset so
+// the top half never wraps on narrow terminals; the host owns the offset and
+// re-renders this component when it changes.
 
 import type { Hexagram } from '@hexagram/types'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
+import sliceAnsi from 'slice-ansi'
 
-import { TrigramPanel } from './trigram-panel.js'
+import { buildPlaygroundDisplay } from './playground-display.js'
 
 interface HexagramDisplayProps {
-  /** The currently configured (standing) hexagram. */
+  /** The standing hexagram. */
   readonly standing: Hexagram
   /** The emerging hexagram (6→7, 9→8 from `standing`). */
   readonly emerging: Hexagram
-  /** Whether at least one line in `standing` is moving (6 or 9). */
+  /** Whether the standing has any moving lines. */
   readonly hasMoving: boolean
-  /** 0-based bottom-first focus cursor on the standing card. */
-  readonly focusIndex: number
+  /** 0-based bottom-first focus cursor on the standing card; `null` to hide. */
+  readonly focusIndex: number | null
   /** Pulse boolean from `usePulse`. */
   readonly pulse: boolean
+  /**
+   * Horizontal pan offset (display cols). The host clamps this against
+   * `TOP_HALF_WIDTH - innerCols` and increments / decrements it via the `</>`
+   * key bindings.
+   */
+  readonly panOffset: number
+  /** Visible width in cols — typically `<ScreenShell>`'s `innerCols`. */
+  readonly innerCols: number
 }
 
 /**
- * Two trigram cards in a horizontal row. The emerging card renders dim when
- * `hasMoving === false` so the layout stays stable; the user sees the same
- * hexagram on both sides but the emerging side is muted, signalling "no
- * transformation yet".
+ * Render the playground's top-half block as `<Text>`-per-row, sliced
+ * horizontally. ANSI codes are zero-width, so `sliceAnsi` slices by display
+ * columns.
  */
 export function HexagramDisplay({
   standing,
@@ -34,28 +42,27 @@ export function HexagramDisplay({
   hasMoving,
   focusIndex,
   pulse,
+  panOffset,
+  innerCols,
 }: HexagramDisplayProps): ReactElement {
+  const { rows } = buildPlaygroundDisplay({
+    standing,
+    emerging,
+    focusIndex,
+    pulse,
+    hasMoving,
+  })
+  const window = Math.max(1, innerCols)
+  const sliced = rows.map((row) =>
+    sliceAnsi(row, panOffset, panOffset + window),
+  )
+
   return (
-    <Box flexDirection="row" flexShrink={0}>
-      <TrigramPanel
-        role="STANDING"
-        hexagram={standing}
-        focusIndex={focusIndex}
-        pulse={pulse}
-        showArrows={hasMoving}
-      />
-      <Box width={4} flexShrink={0}>
-        {/* Spacer column between the two cards. */}
-        <Text> </Text>
-      </Box>
-      <TrigramPanel
-        role="EMERGING"
-        hexagram={hasMoving ? emerging : standing}
-        focusIndex={null}
-        pulse={false}
-        showArrows={false}
-        dim={!hasMoving}
-      />
+    <Box flexDirection="column" flexShrink={0}>
+      {sliced.map((row, index) => (
+        // Positional row keys: row order is fixed (12 rows) and never reorders.
+        <Text key={index}>{row.length === 0 ? ' ' : row}</Text>
+      ))}
     </Box>
   )
 }

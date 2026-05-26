@@ -2,19 +2,26 @@
 // over the pure `playgroundReducer` (state) and `dispatchPlaygroundKey`
 // (input dispatch), plus the isolated `usePulse` hook (display-only timer).
 //
-// Layout (matches the locked P7 prototype):
+// Layout (P6 — sparse banner-aesthetic, no card chrome):
 //
 //   ScreenShell                                  (title: "Playground")
-//     ↳ aboveContent — optional saved-path / error notice
+//     ↳ aboveContent — null
 //     ↳ contentSlot
-//         ↳ <HexagramDisplay> — standing + emerging trigram cards
-//         ↳ <JudgmentStrip>   — only when exactly 1 line is moving
+//         ↳ <HexagramDisplay>  — top half: 12 ANSI rows, pan-sliced
+//         ↳ <ReadingsPanel>    — bottom half: scrollable readings, only
+//                                when exactly 1 line is moving
+//     ↳ scrollbarSlot          — <ScrollbarTrack> for the readings panel
+//                                (whitespace when readings are hidden)
 //     ↳ belowContent
-//         ↳ <SaveStrip>       — only when state.mode === 'saving'
+//         ↳ <SaveStrip>        — only when state.mode === 'saving'
 //     ↳ footerSlot
 //         ↳ key hints line · saved-path / error line
 //
-// Save behavior:
+// Pan + scroll state lives here as refs so the keymap can mutate without
+// triggering a setState cascade; a `forceRender` reducer pokes React on
+// each mutation. Identical pattern to `<ConsultationReadout>`.
+//
+// Save behaviour:
 //   - S → dispatch 'beginSave' → <SaveStrip> opens → on submit, fire the
 //     async save and dispatch 'saveSucceeded' or 'saveFailed' from its
 //     resolution.
@@ -27,9 +34,11 @@ import process from 'node:process'
 import { saveConsultationFile } from '@hexagram/consultation-file'
 import {
   BOLD_GREY,
+  clamp,
   computeInnerCols,
   NORMAL,
   ScreenShell,
+  ScrollbarTrack,
 } from '@hexagram/viewer-core'
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import {
@@ -41,13 +50,14 @@ import {
 } from 'react'
 
 import { HexagramDisplay } from './hexagram-display.js'
-import { JudgmentStrip } from './judgment-strip.js'
+import { TOP_HALF_WIDTH } from './playground-display.js'
 import { dispatchPlaygroundKey, toKeymapSlice } from './playground-keymap.js'
 import { buildPlaygroundDerivation } from './playground-lines.js'
 import {
   initialPlaygroundState,
   playgroundReducer,
 } from './playground-state.js'
+import { ReadingsPanel } from './readings-panel.js'
 import { SaveStrip } from './save-strip.js'
 import { usePulse } from './use-pulse.js'
 
@@ -100,6 +110,17 @@ function describeSaveLine(
   return ''
 }
 
+// `buildPlaygroundDisplay` always emits 12 rows (1 header + 6 lines + 1 blank
+// + 4 identity). Hardcoded so viewport arithmetic doesn't call the renderer.
+const TOP_HALF_ROWS = 12
+// Title row + the two-line footer reserved by `<ScreenShell>`.
+const TITLE_ROWS = 1
+const FOOTER_ROWS = 2
+// Margin between the top half and the readings panel.
+const TOP_TO_READINGS_GAP = 1
+// `<SaveStrip>` border + 4 inner rows ≈ 7 visual rows when mounted.
+const SAVE_STRIP_ROWS = 7
+
 export function PlaygroundApp({
   onExit,
   exitLabel,
@@ -124,6 +145,101 @@ export function PlaygroundApp({
   const pulseOn = usePulse(pulseIntervalMs)
   const derivation = buildPlaygroundDerivation(state.lines)
 
+  // ── Pan + scroll state ────────────────────────────────────────────────────
+  // Held in refs so the keymap can mutate them synchronously without
+  // round-tripping through React's commit phase; a `forceRender` reducer
+  // pokes the tree on each mutation. Matches `<ConsultationReadout>`'s pattern.
+  const panOffsetRef = useRef(0)
+  const scrollOffsetRef = useRef(0)
+  const readingsTotalRowsRef = useRef(0)
+  const [, forceRender] = useReducer((n: number) => n + 1, 0)
+
+  // ── Viewport maths ────────────────────────────────────────────────────────
+  const showReadings = derivation.singleMovingIndex !== null
+  const isSaving = state.mode === 'saving'
+  const readingsViewportHeight = Math.max(
+    1,
+    termRows -
+      TITLE_ROWS -
+      TOP_HALF_ROWS -
+      (showReadings ? TOP_TO_READINGS_GAP : 0) -
+      (isSaving ? SAVE_STRIP_ROWS : 0) -
+      FOOTER_ROWS,
+  )
+
+  // Pan ceiling — anything beyond `TOP_HALF_WIDTH - innerCols` is unreachable.
+  const maxPanOffset = Math.max(0, TOP_HALF_WIDTH - innerCols)
+  const panOffset = clamp(panOffsetRef.current, 0, maxPanOffset)
+  if (panOffsetRef.current !== panOffset) panOffsetRef.current = panOffset
+
+  // Scroll ceiling — clamp to current readings height.
+  const maxScrollOffset = Math.max(
+    0,
+    readingsTotalRowsRef.current - readingsViewportHeight,
+  )
+  const scrollOffset = clamp(scrollOffsetRef.current, 0, maxScrollOffset)
+  if (scrollOffsetRef.current !== scrollOffset)
+    scrollOffsetRef.current = scrollOffset
+
+  // ── Keymap callbacks ──────────────────────────────────────────────────────
+  const panTopBy = useCallback(
+    (delta: number) => {
+      const next = clamp(panOffsetRef.current + delta, 0, maxPanOffset)
+      if (next === panOffsetRef.current) return
+      panOffsetRef.current = next
+      forceRender()
+    },
+    [maxPanOffset],
+  )
+  const scrollReadingsBy = useCallback(
+    (delta: number) => {
+      // `Number.±INFINITY` deltas mean "one page" — the host translates them
+      // now that it knows the viewport height (keymap stays viewport-agnostic).
+      const pageStep = Math.max(1, readingsViewportHeight - 1)
+      let effective = delta
+      if (delta === Number.POSITIVE_INFINITY) effective = pageStep
+      if (delta === Number.NEGATIVE_INFINITY) effective = -pageStep
+      const next = clamp(
+        scrollOffsetRef.current + effective,
+        0,
+        maxScrollOffset,
+      )
+      if (next === scrollOffsetRef.current) return
+      scrollOffsetRef.current = next
+      forceRender()
+    },
+    [maxScrollOffset, readingsViewportHeight],
+  )
+  const scrollReadingsTo = useCallback(
+    (target: number) => {
+      const next = clamp(target, 0, maxScrollOffset)
+      if (next === scrollOffsetRef.current) return
+      scrollOffsetRef.current = next
+      forceRender()
+    },
+    [maxScrollOffset],
+  )
+
+  // ── Readings measurement callback ─────────────────────────────────────────
+  const handleReadingsMeasure = useCallback((totalRows: number) => {
+    if (readingsTotalRowsRef.current === totalRows) return
+    readingsTotalRowsRef.current = totalRows
+    forceRender()
+  }, [])
+
+  // Reset scroll + measurement whenever the readings target changes (different
+  // moving line, or readings hide/show). Stops the user from landing on a
+  // stale offset that belongs to a previous reading.
+  const readingsKey = showReadings
+    ? `${derivation.singleMovingIndex}-${state.lines.join(',')}`
+    : 'none'
+  const lastReadingsKeyRef = useRef(readingsKey)
+  if (lastReadingsKeyRef.current !== readingsKey) {
+    lastReadingsKeyRef.current = readingsKey
+    scrollOffsetRef.current = 0
+    readingsTotalRowsRef.current = 0
+  }
+
   useInput((input, key) => {
     // The save editor owns input — let it handle everything.
     if (state.mode === 'saving') return
@@ -139,6 +255,9 @@ export function PlaygroundApp({
       state: toKeymapSlice(state),
       dispatch,
       exit: handleExit,
+      panTopBy,
+      scrollReadingsBy,
+      scrollReadingsTo,
     })
   })
 
@@ -188,29 +307,55 @@ export function PlaygroundApp({
         hasMoving={derivation.hasMoving}
         focusIndex={state.focusIndex}
         pulse={pulseOn}
+        panOffset={panOffset}
+        innerCols={innerCols}
       />
-      {derivation.singleMovingIndex !== null && (
-        <JudgmentStrip
-          standing={derivation.standing}
-          movingLineIndex={
-            derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
-          }
-        />
+      {showReadings && (
+        <Box marginTop={TOP_TO_READINGS_GAP}>
+          <ReadingsPanel
+            standing={derivation.standing}
+            movingLineIndex={
+              derivation.singleMovingIndex as 0 | 1 | 2 | 3 | 4 | 5
+            }
+            wrapWidth={Math.min(TOP_HALF_WIDTH, innerCols)}
+            viewportHeight={readingsViewportHeight}
+            scrollOffset={scrollOffset}
+            onMeasure={handleReadingsMeasure}
+          />
+        </Box>
       )}
     </Box>
   )
 
-  const belowContent =
-    state.mode === 'saving' ? (
-      <SaveStrip
-        innerCols={innerCols}
-        onSubmit={handleSaveSubmit}
-        onCancel={handleSaveCancel}
+  // Mount the scrollbar only when the readings panel is visible AND its
+  // content actually overflows the viewport. Otherwise reserve the gutter
+  // column with whitespace so chrome above/below doesn't shift on toggle.
+  const scrollbarSlot =
+    showReadings && readingsTotalRowsRef.current > readingsViewportHeight ? (
+      <ScrollbarTrack
+        offset={scrollOffset}
+        totalRows={readingsTotalRowsRef.current}
+        viewportHeight={readingsViewportHeight}
       />
     ) : null
 
+  const belowContent = isSaving ? (
+    <SaveStrip
+      innerCols={innerCols}
+      onSubmit={handleSaveSubmit}
+      onCancel={handleSaveCancel}
+    />
+  ) : null
+
   const saveLine = describeSaveLine(state.savedPath, state.saveError)
-  const keyHints = ` ↑↓ focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · Del undo · r reset · S save · ESC ${effectiveExitLabel}`
+  const panChip =
+    maxPanOffset > 0
+      ? `   ◀ ${panOffset + 1}–${Math.min(panOffset + innerCols, TOP_HALF_WIDTH)} of ${TOP_HALF_WIDTH} ▶`
+      : ''
+  const keyHints =
+    ` ↑↓ focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · </> pan · ` +
+    `PgUp/PgDn scroll · g/G ends · Del undo · r reset · S save · ` +
+    `ESC ${effectiveExitLabel}${panChip}`
   const footer = (
     <Box flexDirection="column" flexShrink={0}>
       <Text dimColor>{keyHints}</Text>
@@ -225,7 +370,7 @@ export function PlaygroundApp({
       title="Playground"
       aboveContent={null}
       contentSlot={contentSlot}
-      scrollbarSlot={null}
+      scrollbarSlot={scrollbarSlot}
       belowContent={belowContent}
       footerSlot={footer}
     />

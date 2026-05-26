@@ -54,7 +54,7 @@ const DEFAULT_MAX_WRAP_WIDTH = 120
  * the list rather than quitting the program, so the hint says so verbatim.
  */
 const LOADED_READOUT_KEY_HINTS =
-  'Tab switch · ↑↓ scroll · ←→ pan · g/G ends · Esc back to history'
+  'Tab switch · ↑↓ scroll · </> pan · g/G ends · Esc back to history'
 
 type AppState =
   | {

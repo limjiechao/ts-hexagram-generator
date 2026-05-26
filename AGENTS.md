@@ -13,9 +13,10 @@ ts-hexagram-generator/         # workspace root (private)
 │   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
 │   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), renderers, legacy converter
 │   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer, Inquirer flow, ANSI section renderers
-│   └── history-ui/            # @hexagram/history-ui — Ink history browser
+│   ├── history-ui/            # @hexagram/history-ui — Ink history browser
+│   └── playground-ui/         # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
 └── apps/
-    └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-history bins
+    └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-history + hexagram-playground bins
 ```
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
@@ -37,6 +38,7 @@ pnpm format:fix         # oxfmt --write at root
 # Run the CLIs directly (no build needed — tsx + the `source` exports condition)
 pnpm hexagram-random        # tsx apps/cli/src/random.ts
 pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
+pnpm hexagram-playground    # tsx apps/cli/src/playground.ts (Ink-only 4-state line explorer)
 pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
 pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
 
@@ -115,7 +117,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   The viewer owns a state machine (`packages/casting-ui/src/viewer-flow.ts`): `awaitingQuery → casting → computing → done`. On entry the query box is editable (an in-tab `<QueryEditor>`) and the Casting table is empty (`·` placeholder cells). Once the query is submitted:
   - **`flowKind: 'interactive'`** — a bordered `<CastingPromptBox>` (in `packages/casting-ui/src/casting-prompt-box.tsx`, with sibling input widgets `query-editor.tsx`, `number-input.tsx`, and shared primitives in `editor-primitives.tsx`) appears above the footer for each of the 18 splits in turn. The prompt's input widget is selected by `inputMode` (resolved from `--numeric-input` via `resolveInputMode()` in `packages/casting-ui/src/utils-mode.ts`):
-    - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The per-cast tickMs is derived from `--slider-sweep-ms` so each end-to-end sweep takes roughly the same time regardless of the cast's stalk count. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `Stalks: N | Left Heap: <glyph> | Right Heap: <glyph>` readout are both centred and stay anchored as the cursor moves, separated by blank spacer rows above and below the bar. The two Braille spinners counter-rotate (left clockwise, right anticlockwise) so the user sees lively motion without ever seeing the cursor's numeric value. On SPACE the cursor freezes on the chosen cell, the readout swaps the two spinner glyphs for the concrete `Left Heap: <pick> | Right Heap: <max − pick>`, and the viewer auto-advances to the next cast after `SLIDER_COMMIT_REVEAL_MS` (≈1 s, set in `casting-prompt-box.tsx`; tests opt out by passing `0` via the viewer's `sliderCommitRevealMs` prop). The 18th cast (line 6 / cast 3) reveals the same way before the viewer transitions to `computing`. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), ←/→ pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
+    - **`inputMode: 'slider'`** (default) — a bouncing-slider cursor sweeps left↔right across a `max - min + 1` cell bar (1 cell = 1 value); the user presses **SPACE** to lock the current value as the `SplitRecord`. The per-cast tickMs is derived from `--slider-sweep-ms` so each end-to-end sweep takes roughly the same time regardless of the cast's stalk count. The title line reads verbatim `"Line N/6 · Cast C/3: — Press SPACE to part the stalks"`; bar and `Stalks: N | Left Heap: <glyph> | Right Heap: <glyph>` readout are both centred and stay anchored as the cursor moves, separated by blank spacer rows above and below the bar. The two Braille spinners counter-rotate (left clockwise, right anticlockwise) so the user sees lively motion without ever seeing the cursor's numeric value. On SPACE the cursor freezes on the chosen cell, the readout swaps the two spinner glyphs for the concrete `Left Heap: <pick> | Right Heap: <max − pick>`, and the viewer auto-advances to the next cast after `SLIDER_COMMIT_REVEAL_MS` (≈1 s, set in `casting-prompt-box.tsx`; tests opt out by passing `0` via the viewer's `sliderCommitRevealMs` prop). The 18th cast (line 6 / cast 3) reveals the same way before the viewer transitions to `computing`. The casting prompt box is wrapped at the terminal's `innerCols` and never reflows — on narrow terminals (e.g. `--wrap-width 40`), `<` / `>` pans the prompt box horizontally; ↑/↓/PgUp/PgDn/g/G remain no-ops during the flow.
     - **`inputMode: 'number'`** — the legacy typed-`<NumberInput>` prompt; Enter commits, out-of-range values are rejected with an inline error.
 
     Each commit advances the per-line `makeLineGenerator` and fills the matching cell in the table. While casting is in flight, all non-Casting tabs are locked and rendered with `dimColor`; only Escape and Ctrl+C exit.
@@ -124,7 +126,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/casting-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
 
-  After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `packages/casting-ui/src/utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling.
+  After both flows reach `done`, the file is saved via `consultationFileOutput()`, the tabs unlock, and the existing chrome (Tab cycling, scroll, pan, saved-path footer) re-enables. Content hard-wraps at `--wrap-width <n>` columns (default 120, via `resolveWrapWidth()` in `packages/casting-ui/src/utils-mode.ts`) — capped to the terminal width on narrower terminals, and floored so the fixed-width diagrams are never broken; the remainder is reachable by horizontal scrolling with `<` / `>`.
 
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 

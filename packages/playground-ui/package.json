@@ -29,7 +29,8 @@
     "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
-    "react": "^19.2.6"
+    "react": "^19.2.6",
+    "slice-ansi": "^9.0.0"
   },
   "devDependencies": {
     "@hexagram/test-utils": "workspace:*",
