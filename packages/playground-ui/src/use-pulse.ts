@@ -1,5 +1,5 @@
 // `usePulse(intervalMs)` — a tiny isolated timer hook that returns a boolean
-// flipping each `intervalMs`. The Hexagram Playground passes the result to
+// flipping each `intervalMs`. The Playground passes the result to
 // `<LineCard>` so the moving lines render bright on `true` and dim on
 // `false`, matching the home banner's cadence. Keeping the timer out of the
 // reducer means the cards re-render on the pulse beat but the state machine

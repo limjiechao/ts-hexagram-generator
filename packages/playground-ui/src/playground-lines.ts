@@ -1,4 +1,4 @@
-// Pure helpers for the Hexagram Playground's line transitions. No React, no
+// Pure helpers for the Playground's line transitions. No React, no
 // Ink, no I/O — every function is deterministic and unit-testable in
 // isolation. The reducer in `playground-state.ts` composes these primitives;
 // see also `playground-keymap.ts` for the input → action mapping.
@@ -14,7 +14,7 @@ import { getEmergingHexagram } from '@hexagram/core/getters'
 import type { Hexagram, Line } from '@hexagram/types'
 import { isMovingLine } from '@hexagram/viewer-core'
 
-/** The Hexagram Playground opens on Qian #1 — all six lines young yang (7). */
+/** The Playground opens on Qian #1 — all six lines young yang (7). */
 export const INITIAL_HEXAGRAM: Hexagram = [7, 7, 7, 7, 7, 7]
 
 /** All four `Line` values; total order picked by the spec for cycling. */

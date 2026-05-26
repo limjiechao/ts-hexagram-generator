@@ -1,4 +1,4 @@
-// Pure unit tests for the Hexagram Playground's data-driven keymap. Each
+// Pure unit tests for the Playground's data-driven keymap. Each
 // binding is exercised directly by walking `dispatchPlaygroundKey` with a
 // synthetic `Key`-shaped object — no Ink, no React.
 

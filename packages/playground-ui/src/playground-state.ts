@@ -1,4 +1,4 @@
-// Pure state machine for the Hexagram Playground. No React, no Ink, no I/O —
+// Pure state machine for the Playground. No React, no Ink, no I/O —
 // the reducer is total and deterministic, so every transition is unit-testable
 // against the action union without mounting `<PlaygroundApp>`. The Ink
 // orchestrator wires `useReducer(playgroundReducer, initialPlaygroundState())`

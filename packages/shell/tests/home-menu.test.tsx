@@ -98,7 +98,7 @@ describe('HomeMenu', () => {
     await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
 
     // Default focus is row 0 ("New interactive consultation"). Pressing ↑ once
-    // must wrap focus to the last row ("Hexagram Playground"); pressing ENTER
+    // must wrap focus to the last row ("Playground"); pressing ENTER
     // then must fire `onSelect('playground')`.
     //
     // `yieldMacrotask` between keystrokes is load-bearing: ENTER's handler

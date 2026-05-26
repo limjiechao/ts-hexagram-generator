@@ -6,7 +6,7 @@
 // the derivation is unit-testable without rendering Ink.
 //
 // Originally introduced for the home banner; lifted here so the casting
-// readout, the home banner, and the hexagram playground can all share one
+// readout, the home banner, and the playground can all share one
 // glyph + role vocabulary without `playground-ui` depending on `shell`.
 
 import type { Line } from '@hexagram/types'

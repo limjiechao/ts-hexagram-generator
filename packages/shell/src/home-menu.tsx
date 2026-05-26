@@ -44,7 +44,7 @@ const MENU_ITEMS: readonly MenuItem[] = [
   { value: 'interactive', label: 'New interactive consultation' },
   { value: 'random', label: 'New random consultation' },
   { value: 'history', label: 'Browse history' },
-  { value: 'playground', label: 'Hexagram Playground' },
+  { value: 'playground', label: 'Playground' },
 ]
 
 /** Footer key hints for the Home screen — Esc here quits the whole app. */

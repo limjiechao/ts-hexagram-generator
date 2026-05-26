@@ -1,5 +1,5 @@
 // @hexagram/playground-ui — terminal UI for the Yijing hexagram oracle's
-// Hexagram Playground: an Ink-based interactive explorer where each line
+// Playground: an Ink-based interactive explorer where each line
 // cycles through 4 states (6/7/8/9), with a live emerging-hexagram preview
 // and save-as-consultation.
 

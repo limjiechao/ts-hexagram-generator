@@ -43,7 +43,7 @@ describe('<PlaygroundApp>', () => {
     )
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Hexagram Playground')
+    expect(frame).toContain('Playground')
     // Both cards render the standing hexagram (#1 Qian / Heaven).
     expect(frame).toContain('STANDING #1')
     expect(frame).toContain('EMERGING')

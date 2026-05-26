@@ -1,4 +1,4 @@
-// Pure unit tests for the Hexagram Playground reducer. No React, no Ink —
+// Pure unit tests for the Playground reducer. No React, no Ink —
 // state transitions are exercised directly by dispatching actions against
 // `initialPlaygroundState()`.
 

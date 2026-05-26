@@ -1,6 +1,6 @@
 // Pure unit tests for the banner-line render derivation — the Functional Core
 // of the line-glyph vocabulary shared by the home banner, the casting readout,
-// and the hexagram playground. No React, no Ink: `deriveBannerLine` /
+// and the playground. No React, no Ink: `deriveBannerLine` /
 // `polarityOf` / `lineColors` are exercised directly.
 
 import { describe, expect, it } from 'vitest'

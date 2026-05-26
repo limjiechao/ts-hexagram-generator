@@ -1,4 +1,4 @@
-// Data-driven keymap for the Hexagram Playground. Pure module — no React or
+// Data-driven keymap for the Playground. Pure module — no React or
 // Ink imports beyond the `Key` type — so each binding is unit-testable
 // without mounting ink-testing-library. `dispatchPlaygroundKey()` walks
 // `PLAYGROUND_BINDINGS` in declaration order and returns true the moment a

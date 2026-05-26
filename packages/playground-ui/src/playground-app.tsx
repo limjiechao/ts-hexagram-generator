@@ -1,10 +1,10 @@
-// `<PlaygroundApp>` — the Hexagram Playground orchestrator. Imperative shell
+// `<PlaygroundApp>` — the Playground orchestrator. Imperative shell
 // over the pure `playgroundReducer` (state) and `dispatchPlaygroundKey`
 // (input dispatch), plus the isolated `usePulse` hook (display-only timer).
 //
 // Layout (matches the locked P7 prototype):
 //
-//   ScreenShell                                  (title: "Hexagram Playground")
+//   ScreenShell                                  (title: "Playground")
 //     ↳ aboveContent — optional saved-path / error notice
 //     ↳ contentSlot
 //         ↳ <HexagramDisplay> — standing + emerging trigram cards
@@ -222,7 +222,7 @@ export function PlaygroundApp({
     <ScreenShell
       cols={cols}
       rows={termRows}
-      title="Hexagram Playground"
+      title="Playground"
       aboveContent={null}
       contentSlot={contentSlot}
       scrollbarSlot={null}
