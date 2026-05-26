@@ -21,6 +21,23 @@ ts-hexagram-generator/         # workspace root (private)
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
 
+## Data hygiene — DO NOT commit personal data
+
+The `consultations/` directory is gitignored because saved readings may
+contain private or identifying details from real consultations. NEVER:
+
+- Copy a real consultation into a fixture, doc, example, or comment.
+- Author a fixture query that includes real-world identifying details.
+  Use invented names and generic scenarios — see `packages/consultation-file/tests/fixtures/cases.ts`
+  for the generic style, and the `legacy-real-*.txt` corpus for the
+  fictional-but-scenario-rich style (Greyfen Hold, Steward Aelric, etc.).
+- Paste a snippet from `consultations/` into a commit message, PR body,
+  issue, ADR, comment, or chat transcript that lands in the repo.
+
+If you find personal data in a fixture or doc, treat it as a leak: scrub
+the working tree AND flag it to the user so they can plan a history
+rewrite — do not assume the leak is contained to the current commit.
+
 ## Commands
 
 All commands run from the worktree root unless noted. Most fan out across packages via Turborepo.
