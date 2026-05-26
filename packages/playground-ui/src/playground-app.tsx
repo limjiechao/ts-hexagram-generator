@@ -366,8 +366,8 @@ export function PlaygroundApp({
       ? `◀ ${panOffset + 1}–${Math.min(panOffset + innerCols, TOP_HALF_WIDTH)} of ${TOP_HALF_WIDTH} ▶`
       : ''
   const keyHints =
-    ` Tab focus · SPACE flip · ←/→ cycle · 6/7/8/9 type · </> pan · ` +
-    `↑↓ scroll · g/G ends · Del undo · r reset · S save · ` +
+    ` Tab focus ↑ · ⇧Tab focus ↓ · SPACE flip · ←/→ cycle · 6/7/8/9 type · ` +
+    `</> pan · ↑↓ scroll · g/G ends · Del undo · r reset · S save · ` +
     `ESC ${effectiveExitLabel}`
   // Second footer row carries the save-status line on the left and the pan
   // chip on the right (when panning is reachable). `justifyContent` keeps

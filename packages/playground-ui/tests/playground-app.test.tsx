@@ -88,6 +88,37 @@ describe('<PlaygroundApp>', () => {
     unmount()
   })
 
+  it('Tab wraps from L6 → L1 (typing on L1 lands the digit on the bottommost line)', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <PlaygroundApp saveDir={tmpdir} pulseIntervalMs={0} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
+    // 5 Tabs walk focus from L1 → L6. The 6th Tab must wrap back to L1.
+    for (let n = 0; n < 6; n++) stdin.write('\t')
+    // Typing a moving-yang digit at the wrapped focus must mark L1, which is
+    // the bottommost line row. The moving-arrow body only appears next to L1
+    // when L1 itself is moving.
+    stdin.write('9')
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toMatch(/─────────────────▶/)
+    })
+    unmount()
+  })
+
+  it('footer shows both forward and backward focus hints (Tab ↑ and ⇧Tab ↓)', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, unmount } = render(
+      <PlaygroundApp saveDir={tmpdir} pulseIntervalMs={0} onReady={onReady} />,
+    )
+    await waitForReady(onReady)
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Tab focus ↑')
+    expect(frame).toContain('⇧Tab focus ↓')
+    unmount()
+  })
+
   it('↑ scrolls the readings panel and does NOT move focus', async () => {
     const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(

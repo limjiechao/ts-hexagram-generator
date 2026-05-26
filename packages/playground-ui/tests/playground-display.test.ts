@@ -52,8 +52,8 @@ describe('buildPlaygroundDisplay', () => {
       expect(LEFT_LINE_WIDTH).toBe(CHEVRON_WIDTH + BAR_BLOCK_WIDTH)
     })
 
-    it('TOP_HALF_ROWS = 12 (header + 6 lines + blank + 4 identity)', () => {
-      expect(TOP_HALF_ROWS).toBe(12)
+    it('TOP_HALF_ROWS = 13 (header + 6 lines + blank + 2 name + 1 divider + 2 trigram)', () => {
+      expect(TOP_HALF_ROWS).toBe(13)
     })
 
     it('TOP_HALF_WIDTH leaves room for the right identity cell from col 46', () => {
@@ -313,6 +313,41 @@ describe('buildPlaygroundDisplay', () => {
     })
   })
 
+  describe('identity-stack divider', () => {
+    it('inserts a horizontal-rule row between the English name and the trigram rows', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      // Row 10 is the divider (row 8 = name, row 9 = English, row 10 = divider,
+      // row 11 = Upper trigram, row 12 = Lower trigram).
+      const divider = stripAnsi(out.rows[10] ?? '')
+      // Divider uses ─ (U+2500). The English-name row above must NOT contain
+      // any ─ characters, so the regex match is uniquely the divider.
+      expect(divider).toMatch(/─{10,}/)
+      const englishName = stripAnsi(out.rows[9] ?? '')
+      expect(englishName.includes('─')).toBe(false)
+    })
+
+    it('divider appears on both the standing and emerging sides', () => {
+      const out = buildPlaygroundDisplay({
+        standing: QIAN,
+        emerging: QIAN,
+        focusIndex: 0,
+        pulse: false,
+        hasMoving: false,
+      })
+      const divider = stripAnsi(out.rows[10] ?? '')
+      // Two separate runs of ─ — one in the left identity cell, one in the
+      // right. They are separated by padding spaces.
+      const runs = divider.match(/─+/g) ?? []
+      expect(runs.length).toBe(2)
+    })
+  })
+
   describe('trigram identity rows (font-fallback fix)', () => {
     it('trigram identity rows contain no U+2630–U+2637 characters', () => {
       const out = buildPlaygroundDisplay({
@@ -322,9 +357,10 @@ describe('buildPlaygroundDisplay', () => {
         pulse: false,
         hasMoving: false,
       })
-      // Rows 10 and 11 are the Upper/Lower trigram identity rows.
-      const upperRow = stripAnsi(out.rows[10] ?? '')
-      const lowerRow = stripAnsi(out.rows[11] ?? '')
+      // Rows 11 and 12 are the Upper/Lower trigram identity rows
+      // (row 10 is the divider inserted after the English-name row).
+      const upperRow = stripAnsi(out.rows[11] ?? '')
+      const lowerRow = stripAnsi(out.rows[12] ?? '')
       const trigramSymbolPattern = /[\u2630-\u2637]/
       expect(trigramSymbolPattern.test(upperRow)).toBe(false)
       expect(trigramSymbolPattern.test(lowerRow)).toBe(false)
@@ -338,8 +374,8 @@ describe('buildPlaygroundDisplay', () => {
         pulse: false,
         hasMoving: false,
       })
-      const upperRow = stripAnsi(out.rows[10] ?? '')
-      const lowerRow = stripAnsi(out.rows[11] ?? '')
+      const upperRow = stripAnsi(out.rows[11] ?? '')
+      const lowerRow = stripAnsi(out.rows[12] ?? '')
       // QIAN's upper and lower trigrams are both 乾 (Qián, Heaven).
       expect(upperRow.includes('Upper: 乾 Qián (Heaven)')).toBe(true)
       expect(lowerRow.includes('Lower: 乾 Qián (Heaven)')).toBe(true)

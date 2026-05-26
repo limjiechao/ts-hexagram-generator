@@ -80,7 +80,10 @@ export interface PlaygroundState {
 }
 
 export type PlaygroundAction =
-  /** ↑/↓ — move focus by `delta` (clamped to 0..5). */
+  /**
+   * Tab / Shift+Tab — move focus by `delta` with wrap-around: Tab on L6
+   * jumps to L1, Shift+Tab on L1 jumps to L6.
+   */
   | { readonly type: 'focusMove'; readonly delta: -1 | 1 }
   /** SPACE — flip polarity at the focused line, preserving motion. */
   | { readonly type: 'flipPolarity' }
@@ -129,6 +132,16 @@ const FOCUS_MAX = 5
 function clampFocus(index: number): number {
   if (index < FOCUS_MIN) return FOCUS_MIN
   if (index > FOCUS_MAX) return FOCUS_MAX
+  return index
+}
+
+// Wrap-around variant of `clampFocus`, used only for Tab / Shift+Tab
+// navigation: pressing Tab on L6 jumps to L1, Shift+Tab on L1 jumps to L6.
+// Typing-driven cursor advances still use `clampFocus` because the L6
+// barrier on digit overflow is intentional.
+function wrapFocus(index: number): number {
+  if (index < FOCUS_MIN) return FOCUS_MAX
+  if (index > FOCUS_MAX) return FOCUS_MIN
   return index
 }
 
@@ -185,9 +198,9 @@ export function playgroundReducer(
 
   switch (action.type) {
     case 'focusMove': {
-      const nextIndex = clampFocus(state.focusIndex + action.delta)
+      const nextIndex = wrapFocus(state.focusIndex + action.delta)
       if (nextIndex === state.focusIndex) return state
-      // Arrow navigation closes any typing run — a new run after this will
+      // Tab navigation closes any typing run — a new run after this will
       // snapshot the post-move state.
       return { ...state, focusIndex: nextIndex, typingRun: null }
     }

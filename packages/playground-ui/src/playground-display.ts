@@ -103,10 +103,11 @@ export const TOP_HALF_WIDTH: number =
 
 /**
  * Number of rows in the top-half block: 1 header + 6 line rows + 1 blank
- * + 4 identity rows = 12. Exported so `<PlaygroundApp>` can size its
- * top-half slot without re-deriving the row count.
+ * + 2 name rows + 1 divider + 2 trigram rows = 13. Exported so
+ * `<PlaygroundApp>` can size its top-half slot without re-deriving the
+ * row count.
  */
-export const TOP_HALF_ROWS = 12
+export const TOP_HALF_ROWS = 13
 
 // ---------------------------------------------------------------------------
 // CJK-aware width measurement (replicates `visualWidth` from
@@ -195,9 +196,10 @@ export interface PlaygroundDisplayOutput {
 }
 
 /**
- * Build the playground's top-half display block: header + blank + 6 line rows
- * + blank + 4 identity rows = `TOP_HALF_ROWS` rows total. Every row is padded
- * to exactly `TOP_HALF_WIDTH` display columns.
+ * Build the playground's top-half display block: header + 6 line rows
+ * + blank + 2 name rows + 1 divider + 2 trigram rows = `TOP_HALF_ROWS`
+ * rows total. Every row is padded to exactly `TOP_HALF_WIDTH` display
+ * columns.
  */
 export function buildPlaygroundDisplay(
   inputs: PlaygroundDisplayInputs,
@@ -309,6 +311,12 @@ function buildLineRow(input: LineRowInputs): string {
 // Identity stack (below the line rows)
 // ---------------------------------------------------------------------------
 
+/**
+ * Visible width of the identity-stack divider on each side — matches the
+ * bar block above so the divider lines up with the hexagram structure.
+ */
+const IDENTITY_DIVIDER_WIDTH = BAR_BLOCK_WIDTH
+
 function buildIdentityStack(
   standing: Hexagram,
   emerging: Hexagram,
@@ -355,8 +363,27 @@ function buildIdentityStack(
     rows.push(
       padRightToWidth(`${chevronPad}${leftCell}${rightCell}`, TOP_HALF_WIDTH),
     )
+    // After the English-name row (index 1), insert a divider that visually
+    // separates the name block above from the trigram block below.
+    if (rowIndex === 1) {
+      rows.push(buildIdentityDivider())
+    }
   }
   return rows
+}
+
+function buildIdentityDivider(): string {
+  const chevronPad = ' '.repeat(CHEVRON_WIDTH)
+  const dashes = '─'.repeat(IDENTITY_DIVIDER_WIDTH)
+  const left = padCellToWidth(
+    `${NORMAL_GREY}${dashes}${NORMAL}`,
+    LEFT_IDENTITY_CELL_WIDTH,
+  )
+  const right = padCellToWidth(
+    `${NORMAL_GREY}${dashes}${NORMAL}`,
+    RIGHT_IDENTITY_CELL_WIDTH,
+  )
+  return padRightToWidth(`${chevronPad}${left}${right}`, TOP_HALF_WIDTH)
 }
 
 function identityRows(

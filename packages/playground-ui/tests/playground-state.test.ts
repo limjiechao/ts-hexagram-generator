@@ -45,19 +45,21 @@ describe('focusMove', () => {
     expect(down.focusIndex).toBe(0)
   })
 
-  it('clamps at the bottom (0)', () => {
+  it('wraps from the bottom (L1) to the top (L6) on Shift+Tab', () => {
     const state = initialPlaygroundState()
+    expect(state.focusIndex).toBe(0)
     const next = reduce(state, { type: 'focusMove', delta: -1 })
-    expect(next.focusIndex).toBe(0)
-    expect(next).toBe(state) // no-op → same reference
+    expect(next.focusIndex).toBe(5)
   })
 
-  it('clamps at the top (5)', () => {
+  it('wraps from the top (L6) back to the bottom (L1) on Tab', () => {
     let state = initialPlaygroundState()
-    for (let index = 0; index < 10; index += 1) {
+    for (let index = 0; index < 5; index += 1) {
       state = reduce(state, { type: 'focusMove', delta: 1 })
     }
     expect(state.focusIndex).toBe(5)
+    const wrapped = reduce(state, { type: 'focusMove', delta: 1 })
+    expect(wrapped.focusIndex).toBe(0)
   })
 
   it('closes an open typing run', () => {
