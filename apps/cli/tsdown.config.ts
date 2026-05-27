@@ -5,6 +5,7 @@ export default defineConfig({
     './src/hexagram.ts',
     './src/history.ts',
     './src/interactive.ts',
+    './src/manual.ts',
     './src/playground.ts',
     './src/random.ts',
   ],
