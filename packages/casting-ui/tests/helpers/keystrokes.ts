@@ -15,3 +15,4 @@ export const ARROW_RIGHT = '[C'
 export const ARROW_LEFT = '[D'
 
 export const TAB = '\t'
+export const CTRL_R = ''

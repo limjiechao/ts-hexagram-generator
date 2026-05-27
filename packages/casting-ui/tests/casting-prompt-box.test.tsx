@@ -8,7 +8,14 @@ import {
   SliderInput,
   getCastingPromptHeight,
 } from '../src/casting-prompt-box'
-import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
+import {
+  CTRL_C,
+  CTRL_R,
+  ENTER,
+  ESCAPE,
+  SPACE,
+  TAB,
+} from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
 function CastingPromptBoxHost({
@@ -983,5 +990,305 @@ describe('getCastingPromptHeight', () => {
   it("defaults flowKind to 'interactive' so existing callers stay source-compatible", () => {
     expect(getCastingPromptHeight('number', false)).toBe(5)
     expect(getCastingPromptHeight('slider', false)).toBe(7)
+  })
+})
+
+// ── CastingPromptBox — manual branch ────────────────────────────────────────
+
+describe('CastingPromptBox (manual flow)', () => {
+  // Baseline: cast 2/3 of line 3, current round has 40 unparted stalks
+  // (max = 39, the maximum legal pick is max). Tests opt out of the post-
+  // commit reveal dwell with `manualRevealMs={0}` unless they specifically
+  // want to observe the reveal text.
+  const baseProps = {
+    lineNumber: 3 as const,
+    castIndex: 1 as const,
+    min: 1,
+    max: 39,
+    unpartedStalks: 40,
+    width: 60,
+    inputMode: 'number' as const,
+    flowKind: 'manual' as const,
+    manualRevealMs: 0,
+  }
+
+  it('renders title, unparted, two-field input, and the live derived row', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 3/6 · Cast 2/3')
+    expect(frame).toContain('Unparted stalks: 40')
+    // The two-field input row. The numeric buffers start empty so the
+    // bracket cells render only their cursor / blank — assert on the
+    // textual scaffold around them.
+    expect(frame).toContain('Left heap:')
+    expect(frame).toContain('piles × 4 +')
+    expect(frame).toContain('remainder')
+    // Derived row with empty buffers — the prompt shows the range hint.
+    expect(frame).toMatch(/split = \?.*range 1 to 39/)
+    unmount()
+  })
+
+  it('updates the derived row live as digits are typed into either field', async () => {
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    // Piles is the default focused field.
+    stdin.write('6')
+    await waitFor(() => expect(lastFrame() ?? '').toMatch(/split = \?/))
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('3')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/→ split = 27 \(range 1 to 39\)/)
+    })
+    unmount()
+  })
+
+  it('Tab cycles focus between piles and remainder; digits land in the focused field', async () => {
+    // Observe focus indirectly via the derived row — piles=5, remainder=2
+    // yields split=22; tabbing back to piles and appending '7' makes
+    // piles='57', split=4*57+2=230 → out of range. Each step uniquely
+    // identifies the focused field.
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('5')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('2')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/→ split = 22 \(range 1 to 39\)/)
+    })
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('7')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(
+        /→ split = 230 \(out of range, must be 1 to 39\)/,
+      )
+    })
+    unmount()
+  })
+
+  it('Enter is a no-op when the derived split is out of range', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    // piles upper bound = floor((39-1)/4) = 9. Pick 9 + 4 = 40 (out of range).
+    stdin.write('9')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('4')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(
+        /→ split = 40 \(out of range, must be 1 to 39\)/,
+      )
+    })
+    stdin.write(ENTER)
+    await yieldMacrotask()
+    expect(onSubmit).not.toHaveBeenCalled()
+    unmount()
+  })
+
+  it('Enter commits with onSubmit(4 × piles + remainder) when in range', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('6') // piles
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('3') // remainder
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      expect(onSubmit).toHaveBeenCalledWith(27)
+    })
+    unmount()
+  })
+
+  it('boundary commit: piles=0, remainder=1 calls onSubmit(1)', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('0') // piles
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('1') // remainder
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitFor(() => {
+      expect(onSubmit).toHaveBeenCalledTimes(1)
+      expect(onSubmit).toHaveBeenCalledWith(1)
+    })
+    unmount()
+  })
+
+  it('post-commit reveal swaps the derived row to "Round resolved" for manualRevealMs', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    // Non-zero dwell so we can observe the reveal frame before onSubmit fires.
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        manualRevealMs={150}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('6')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('3')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    // Reveal text appears immediately; onSubmit hasn't fired yet.
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(
+        /→ Round resolved: suspended \d+ · next: \d+ unparted/,
+      )
+    })
+    expect(onSubmit).not.toHaveBeenCalled()
+    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(27), {
+      timeoutMs: 1000,
+    })
+    unmount()
+  })
+
+  it('reveal computes next/suspended for a round-2 commit (no suspended-from-right)', async () => {
+    // Round 2: castIndex = 1, no "1 from right" suspension.
+    //   pick = 27, unparted = 40
+    //   leftRem  = ((27 - 1) % 4) + 1 = 3
+    //   right    = 40 - 27 = 13 stalks
+    //   rightRem = ((13 - 1) % 4) + 1 = 1
+    //   suspended = leftRem + rightRem = 4
+    //   next      = 40 - 4 = 36
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        manualRevealMs={150}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('6')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('3')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain('suspended 4')
+      expect(frame).toContain('next: 36')
+    })
+    unmount()
+  })
+
+  it('reveal computes next/suspended for a round-1 commit (1 suspended from right)', async () => {
+    // Round 1: castIndex = 0, max = 48, unparted = 49.
+    //   pick = 24, leftRem = ((24-1)%4)+1 = 4
+    //   right after suspension = 49 - 24 - 1 = 24 stalks
+    //   rightRem = ((24-1)%4)+1 = 4
+    //   suspended = 1 (the from-right) + leftRem + rightRem = 9
+    //   next       = 49 - 9 = 40
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        castIndex={0}
+        max={48}
+        unpartedStalks={49}
+        manualRevealMs={150}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('6')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('4')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain('suspended 9')
+      expect(frame).toContain('next: 40')
+    })
+    unmount()
+  })
+
+  it('Ctrl+R is NOT consumed by the prompt (no state change, no onSubmit)', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    const before = lastFrame()
+    stdin.write(CTRL_R)
+    await yieldMacrotask()
+    expect(onSubmit).not.toHaveBeenCalled()
+    // The frame should be unchanged — Ctrl+R is owned by the viewer, not us.
+    expect(lastFrame()).toBe(before)
+    unmount()
   })
 })
