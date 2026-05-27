@@ -1,16 +1,19 @@
 # `hexagram-manual` — design spec
 
-**Status:** design approved 2026-05-27, awaiting implementation plan
+**Status:** design approved 2026-05-27, prompt-input shape revised 2026-05-28, awaiting implementation plan
 **Owner:** Lim Jiechao
 
 ## Goal
 
 Add a third casting flow — `hexagram-manual` — for users who cast with
 physical yarrow stalks. The user does the four-operations sort on their
-desk, then transcribes the result into the CLI by reporting the split
-index (left heap size) for each of the 18 casts. The CLI derives the
-six lines and saves a consultation file in the same format as the
-existing `interactive` and `random` flows.
+desk, then transcribes the result into the CLI per cast by reporting
+two numbers that match what they physically observe in the left heap
+after sorting: the count of 4-piles and the leftover remainder. The
+CLI derives the split index (`4 × piles + remainder`), advances the
+shared line generator, derives the six lines, and saves a consultation
+file in the same format as the existing `interactive` and `random`
+flows.
 
 Ships as a 5th item in the composed `hexagram` home menu and as a
 standalone `hexagram-manual` bin.
@@ -31,10 +34,20 @@ The brainstorming session walked seven decision branches. The chosen
 options are listed here so the implementation plan inherits the
 constraints without re-litigating.
 
-1. **Input model — split-index entry.** Per cast, the user types a
-   number in `1..N-1` where `N` is the round's unparted stalk count.
-   Full `CastingRecord` is persisted; lines are derived by the existing
-   `makeLineGenerator`. Identical data shape to `interactive`.
+1. **Input model — two-field entry per cast.** Per cast, the user
+   enters two numbers that match what they physically observe after
+   sorting: the number of 4-piles in the left heap and the left
+   heap's remainder (1–4 stalks). The CLI derives
+   `pick = 4 × piles + remainder` and stores the real split index in
+   the `SplitRecord`. Full `CastingRecord` is persisted; lines are
+   derived by the existing `makeLineGenerator`. Identical storage shape
+   to `interactive` — no sentinel splits.
+
+   The two-field design replaces an earlier single-field "type the
+   computed pick" prompt that was rejected on review: physical casters
+   never observe the original left heap size; they only see the
+   post-sort piles and remainder. Asking for a back-computed `pick`
+   would impose 18 mental multiplications per consultation.
 
 2. **UX shape — live scratchpad.** Reuses the existing viewer chrome
    (casting table, progress bar, footer, tabs, save). Per-cast prompt
@@ -82,7 +95,7 @@ file at the spot its structure already implies.
 |---|---|
 | `packages/casting-ui/src/viewer-flow.ts` | Extend `FlowKind` to `'interactive' \| 'random' \| 'manual'`. Add `'lineRewound'` action + reducer case. |
 | `packages/casting-ui/src/use-line-generator.ts` | Add `rewindCurrentLine()` op alongside `submitSplit()`. Drops `lineGeneratorRef.current`, resets `currentMaxRef` to `stalksBeforeParting.length - 1`. |
-| `packages/casting-ui/src/casting-prompt-box.tsx` | Gate manual-specific extras (Unparted-stalks row, manual prompt copy, post-commit reveal row) on a new `flowKind`-derived prop. `inputMode` stays `'slider' \| 'number'` — manual forces `'number'`. |
+| `packages/casting-ui/src/casting-prompt-box.tsx` | Add a manual-mode branch (gated on a `flowKind`-derived prop) that renders the two-field input layout (piles + remainder), the Unparted-stalks anchor row, the live-derived split row, and the post-commit reveal row. Reuses two `<NumberInput>` instances side-by-side with shared Tab-focus state; no new input primitive file needed. `inputMode` stays `'slider' \| 'number'` for the slider/interactive split; manual is a sibling branch. |
 | `packages/casting-ui/src/viewer.tsx` | Accept `flowKind: 'manual'`. Mount casting prompt as interactive-number does. Add Ctrl+R handler scoped to `mode === 'casting' && flowKind === 'manual'` that calls `rewindCurrentLine()` then dispatches `lineRewound`. |
 | `packages/casting-ui/src/index.ts` | Export `runManualConsultationViewer(opts)`. |
 | `apps/cli/src/manual.ts` *(new)* | TTY guard + flag parse + `runManualConsultationViewer()` + exit code, mirroring `apps/cli/src/history.ts`. |
@@ -206,35 +219,57 @@ render's `currentMax` already reflects the reset.
 
 ### Casting prompt — manual variant
 
-Reuses the `inputMode === 'number'` branch in
-`casting-prompt-box.tsx:646-670`, with three additions gated on
-`isManualFlow`:
+Sibling branch to the `inputMode === 'number'` block in
+`casting-prompt-box.tsx:646-670`. Renders four content rows: title,
+Unparted stalks, two-field input, live-derived split (or, after Enter,
+the round-resolved reveal).
 
 ```
-During input (cast 2 of line 3 shown):
-╭───────────────────────────────────────────────╮
-│ Line 3/6 · Cast 2/3                           │
-│ Unparted stalks: 40                           │
-│ Enter the split (1 to 39): _                  │
-╰───────────────────────────────────────────────╯
-   Casting in progress ·  ■■■■□□□□□□□□□□□□□□  4/18  · Ctrl+R rewind line
+During input (cast 2 of line 3 shown, focus on piles field — cursor on first input):
+╭───────────────────────────────────────────────────╮
+│ Line 3/6 · Cast 2/3                               │
+│ Unparted stalks: 40                               │
+│ Left heap: [_] piles × 4 + [3] remainder          │
+│ → split = 3 (range 1 to 39)                       │
+╰───────────────────────────────────────────────────╯
+   Casting in progress ·  ■■■■□□□□□□□□□□□□□□  4/18  · Tab field · Ctrl+R rewind line
 
-After Enter — input row swaps in place for ~1s, then advance:
-╭───────────────────────────────────────────────╮
-│ Line 3/6 · Cast 2/3                           │
-│ Unparted stalks: 40                           │
-│ Round resolved: suspended 8 · next: 32 unparted │
-╰───────────────────────────────────────────────╯
+After both fields filled and Enter — derived row swaps for ~1s, then advance:
+╭───────────────────────────────────────────────────╮
+│ Line 3/6 · Cast 2/3                               │
+│ Unparted stalks: 40                               │
+│ Left heap: [6] piles × 4 + [3] remainder          │
+│ → Round resolved: suspended 8 · next: 32 unparted │
+╰───────────────────────────────────────────────────╯
+
+Out-of-range derived split (piles=9, remainder=4 with max=40 → split=40):
+╭───────────────────────────────────────────────────╮
+│ Line 3/6 · Cast 2/3                               │
+│ Unparted stalks: 40                               │
+│ Left heap: [9] piles × 4 + [4] remainder          │
+│ → split = 40 (out of range, must be 1 to 39)      │
+╰───────────────────────────────────────────────────╯
 ```
 
 #### Row content
 
 1. **Title** — `Line N/6 · Cast C/3`. Identical to interactive-number.
-2. **Unparted stalks row** — `Unparted stalks: M` where `M = currentMax + 1`.
-   Informational (not a validation aid). Anchors the round: "you have M
-   stalks; report where you parted (must therefore be 1..M-1)."
-3. **Input row** — `Enter the split (1 to M-1): _`. After Enter, swaps
-   in place to `Round resolved: suspended X · next: Y unparted` for
+2. **Unparted stalks row** — `Unparted stalks: M` where
+   `M = currentMax + 1`. Informational. Anchors the round: "you have M
+   stalks; report what you sorted (must therefore yield split 1..M-1)."
+3. **Two-field input row** — `Left heap: [piles] piles × 4 + [remainder] remainder`.
+   The two bracketed fields are `<NumberInput>` instances:
+   - `piles` ∈ `[0, floor((M-1) / 4)]` — count of 4-piles after sort.
+   - `remainder` ∈ `[1, 4]` — leftover stalks from the left heap (the
+     I Ching convention: a heap that's a multiple of 4 yields a
+     remainder of 4, never 0).
+   Tab cycles focus between the two fields (wrapping). Enter submits
+   when both fields have valid numeric values *and* the derived split
+   is in range; otherwise Enter is a no-op or surfaces an error
+   (see "Validation & error handling").
+4. **Derived row** — `→ split = N (range 1 to M-1)` while editing,
+   updating live as the user types. After commit, this same row swaps
+   in place to `→ Round resolved: suspended X · next: Y unparted` for
    ~1s, then the prompt re-mounts for the next cast.
 
 #### Reveal row math
@@ -249,23 +284,27 @@ round 1).
 
 #### Prompt height
 
-- Manual mode = interactive-number's height + 1 row (the Unparted
-  stalks row). `getCastingPromptHeight()` at
+- Manual mode = 4 content rows (title, unparted, two-field input,
+  derived/reveal) + border. `getCastingPromptHeight()` at
   `casting-prompt-box.tsx:503-509` currently returns 5 (no error) or 6
-  (with error) for number mode; manual mode adds 1 to each, returning 6
-  or 7.
-- Error state adds 1 row in manual mode exactly as in number mode.
+  (with error) for number mode; manual mode reserves **7 rows** to
+  cover the extra unparted + derived rows. There is no separate
+  error-state row count — invalid derived split surfaces *in* the
+  derived row by changing its text (the out-of-range example above),
+  so the prompt height is stable across editing → error → submit
+  → reveal transitions.
 - The viewer's vertical-space reservation reads through
-  `getCastingPromptHeight()` for layout maths, so the function's new
-  manual arm is the single source of truth.
+  `getCastingPromptHeight()`, so the function's new manual arm is the
+  single source of truth.
 
 #### Footer
 
 Existing casting footer: `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"`.
-Manual appends `· Ctrl+R rewind line` when
+Manual appends `· Tab field` always (so the user knows how to move
+between piles and remainder) and `· Ctrl+R rewind line` when
 `flowKind === 'manual' && (castIndex > 0 || lineIndex > 0)`. The
-conditional hides the hint on line 1 cast 1, where Ctrl+R is a no-op
-anyway.
+Ctrl+R conditional hides that hint on line 1 cast 1, where it is a
+no-op anyway.
 
 #### Reveal dwell
 
@@ -275,16 +314,37 @@ viewer (same opt-out pattern as `sliderCommitRevealMs`).
 
 #### Validation & error handling
 
-Reuse `<NumberInput>`'s existing min/max validation + error row. No new
-error states. Out-of-range entry prints the existing red error string
-below the input, doesn't advance.
+Per-field validation reuses each `<NumberInput>`'s min/max enforcement:
+piles bound to `[0, floor((M-1) / 4)]`, remainder bound to `[1, 4]`.
+Out-of-bound digits never enter the buffer.
+
+The cross-field check — derived split must be in `[1, M-1]` — runs on
+every keystroke. The derived row reflects the result:
+- both fields populated, split in range → `→ split = N (range 1 to M-1)`
+- either field empty → `→ split = ? (range 1 to M-1)` (or similar
+  placeholder; left to implementation)
+- both populated, split out of range → `→ split = N (out of range, must be 1 to M-1)`
+
+Enter is gated: it fires `onSubmit(derivedPick)` only when both fields
+have values and the derived split is in range. Pressing Enter in any
+other state is a no-op (no red error string, no advance — the
+derived-row text already explains why submission is blocked).
+
+No separate red `<Text>` error row; the prompt height stays stable
+(see "Prompt height" above).
 
 #### Wrap & pan
 
-The number-mode prompt box doesn't pan. Manual adds a 1-row
-informational line that's shorter than the prompt row → still no
-overflow at the minimum wrap-width. `<` / `>` keys remain no-ops during
-the casting flow.
+Manual's two-field input row and the derived row are both wider than
+the existing number-mode prompt row in the worst case (`Left heap: [9]
+piles × 4 + [4] remainder` and `→ split = 49 (out of range, must be 1
+to 48)` are each ~45 columns). At the minimum wrap-width of 40,
+overflow is possible — manual mode inherits the same behaviour
+interactive-number already has at narrow widths: rows truncate at the
+box edge. `<` / `>` keys remain no-ops during the casting flow (no
+panning). If real-world feedback shows this is too cramped, a follow-up
+can either widen the minimum wrap-width or add panning to the manual
+prompt box; out of scope here.
 
 ### Visual diff vs existing modes
 
@@ -292,9 +352,10 @@ the casting flow.
 |---|---|---|---|
 | Title | `Line N/6 · Cast C/3: — Press SPACE…` | `Line N/6 · Cast C/3` | `Line N/6 · Cast C/3` |
 | Pre-input row | `Stalks: M \| Left Heap: ⠋ \| Right Heap: ⠏` | (none) | `Unparted stalks: M` |
-| Input row | bouncing bar | `Divide the stalks. Pick…: _` | `Enter the split (1 to M-1): _` |
-| Post-commit reveal | 500ms heap-count dwell | (none) | 1000ms `Round resolved` dwell |
-| Footer addendum | (none) | (none) | `· Ctrl+R rewind line` |
+| Input row | bouncing bar | `Divide the stalks. Pick…: _` | `Left heap: [piles] piles × 4 + [remainder] remainder` (two `<NumberInput>` fields, Tab to switch) |
+| Below-input row | (none) | (none — error shown when present) | live `→ split = N (range 1 to M-1)`, swaps in place on commit |
+| Post-commit reveal | 500ms heap-count dwell | (none) | 1000ms `→ Round resolved: suspended X · next: Y unparted` dwell |
+| Footer addendum | (none) | (none) | `· Tab field · Ctrl+R rewind line` |
 
 ## Bin & shell wiring
 
@@ -425,11 +486,17 @@ the case arm.
 ### Component tests
 
 `packages/casting-ui/tests/casting-prompt-box.test.tsx` (extend):
-  - manual mode renders 3 expected rows: title / `Unparted stalks: N` / `Enter the split (1 to N-1):`
-  - typing digits + Enter calls `onSubmit(parsed)`
-  - after `onSubmit`, the row swaps to `Round resolved: suspended X · next: Y unparted` for `manualRevealMs` ms before unmounting (use `manualRevealMs={0}` for snappy assertions; one separate test with a non-zero value)
-  - reveal-row math is correct across known cases (round 1, round 2, round 3 fixtures)
+  - manual mode renders 4 expected rows: title / `Unparted stalks: M` / `Left heap: [piles] piles × 4 + [remainder] remainder` / `→ split = N (range 1 to M-1)`
+  - default focus is on the piles field; Tab switches focus to remainder; Tab again wraps back to piles
+  - typing digits into piles updates the derived row live; typing digits into remainder also updates it live
+  - per-field bounds enforced by `<NumberInput>`: piles rejects digits that would exceed `floor((M-1)/4)`; remainder rejects digits outside `1..4`
+  - cross-field check: piles=9 + remainder=4 with max=40 → derived row reads `→ split = 40 (out of range, must be 1 to 39)` and Enter is a no-op
+  - valid commit: piles=6 + remainder=3 with max=40 → derived split = 27; Enter calls `onSubmit(27)`
+  - boundary commit: piles=0 + remainder=1 with max=40 → derived split = 1; Enter calls `onSubmit(1)`
+  - after `onSubmit`, the derived row swaps to `→ Round resolved: suspended X · next: Y unparted` for `manualRevealMs` ms before unmounting (use `manualRevealMs={0}` for snappy assertions; one separate test with a non-zero value)
+  - reveal-row math is correct across known cases (round 1, round 2, round 3 fixtures); `next` comes from the line generator's `FourOperationsResult.unpartedStalks.length`, `suspended` is `max - next`
   - Ctrl+R is NOT intercepted by the prompt (the viewer owns it)
+  - Tab is NOT propagated to the viewer (the prompt owns focus cycling)
 
 `packages/shell/tests/home-menu.test.tsx` (extend):
   - 5 items render in order
@@ -440,10 +507,11 @@ the case arm.
 ### Viewer integration test
 
 `packages/casting-ui/tests/viewer.test.tsx` (extend or add a manual-specific file):
-  - manual flow end-to-end: query → 18 casts → save (snapshot the saved file)
-  - Ctrl+R mid-line: types 2 splits, Ctrl+R, asserts cells revert and prompt returns to cast 1
-  - Ctrl+R cross-boundary: completes line 1, arrives at line 2 cast 1, Ctrl+R, asserts line 1 reverts and prompt re-mounts at line 1 cast 1
+  - manual flow end-to-end: query → 18 casts (each cast: type piles, Tab, type remainder, Enter) → save (snapshot the saved file)
+  - Ctrl+R mid-line: types 2 casts worth of piles+remainder, Ctrl+R, asserts cells revert and prompt returns to cast 1 with both fields empty
+  - Ctrl+R cross-boundary: completes line 1 (3 casts), arrives at line 2 cast 1, Ctrl+R, asserts line 1 reverts and prompt re-mounts at line 1 cast 1
   - Ctrl+R no-op at line 1 cast 1: state unchanged
+  - Ctrl+R while the remainder field has focus: state still rewinds (the handler is viewer-level, not field-scoped); after rewind, focus returns to the piles field
 
 ### Fixture parity
 
