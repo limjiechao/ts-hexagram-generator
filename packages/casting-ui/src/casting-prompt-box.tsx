@@ -13,6 +13,7 @@ import stringWidth from 'string-width'
 
 import { armDelayTicks, firstLandingTick } from './bounce-trajectory.js'
 import { NumberInput } from './number-input.js'
+import type { FlowKind } from './viewer-flow.js'
 
 /**
  * Auto-land configuration for the bouncing slider — supplied only by the
@@ -34,6 +35,12 @@ export interface SliderAutoLand {
 // (see `viewer.tsx` `<CastingPromptBox key=…>`), so this state is local to a
 // single cast.
 export const SLIDER_COMMIT_REVEAL_MS = 500
+
+// How long the manual-mode prompt holds its `→ Round resolved: …` reveal after
+// Enter before forwarding `onSubmit` upstream. Longer than the slider's 500 ms
+// because there's text to read; the spec's "Reveal dwell" target. Tests opt
+// out via `manualRevealMs={0}` to keep multi-cast assertions snappy.
+export const MANUAL_REVEAL_MS = 1000
 
 // Slider-mode prompt title. The interactive flow instructs the user to press
 // SPACE; the random flow auto-drives the slider, so its title just narrates.
@@ -499,11 +506,17 @@ export type CastingInputMode = 'slider' | 'number'
  *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
  *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
+ *   manual flow → always 7 — covers the title / unparted / two-field input /
+ *                 derived (or post-commit reveal) rows; matches slider so
+ *                 the manual prompt slots into the same vertical reservation
+ *                 the viewer already makes for slider mode.
  */
 export function getCastingPromptHeight(
   inputMode: CastingInputMode,
   hasError: boolean,
+  flowKind: FlowKind = 'interactive',
 ): number {
+  if (flowKind === 'manual') return 7
   if (inputMode === 'slider') return 7
   return hasError ? 6 : 5
 }

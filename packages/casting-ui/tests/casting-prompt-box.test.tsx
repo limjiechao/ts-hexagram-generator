@@ -3,7 +3,11 @@ import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CastingPromptBox, SliderInput } from '../src/casting-prompt-box'
+import {
+  CastingPromptBox,
+  SliderInput,
+  getCastingPromptHeight,
+} from '../src/casting-prompt-box'
 import { CTRL_C, ENTER, ESCAPE, SPACE } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
@@ -958,5 +962,26 @@ describe('CastingPromptBox (slider mode)', () => {
     // After panning 15 cols right, the title prefix should be off-screen.
     expect(lastFrame() ?? '').not.toContain(titleStart)
     unmount()
+  })
+})
+
+// ── getCastingPromptHeight (manual arm) ─────────────────────────────────────
+
+describe('getCastingPromptHeight', () => {
+  it('returns 7 for manual flow regardless of inputMode/error', () => {
+    expect(getCastingPromptHeight('number', false, 'manual')).toBe(7)
+    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(7)
+    expect(getCastingPromptHeight('number', true, 'manual')).toBe(7)
+  })
+
+  it('preserves the existing slider/number heights for interactive', () => {
+    expect(getCastingPromptHeight('number', false, 'interactive')).toBe(5)
+    expect(getCastingPromptHeight('number', true, 'interactive')).toBe(6)
+    expect(getCastingPromptHeight('slider', false, 'interactive')).toBe(7)
+  })
+
+  it("defaults flowKind to 'interactive' so existing callers stay source-compatible", () => {
+    expect(getCastingPromptHeight('number', false)).toBe(5)
+    expect(getCastingPromptHeight('slider', false)).toBe(7)
   })
 })
