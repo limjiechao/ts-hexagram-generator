@@ -1663,6 +1663,116 @@ describe('ConsultationViewer (manual flow)', () => {
     unmount()
   })
 
+  // ── Phase 7 — Byte-identity invariant ──────────────────────────────────
+  //
+  // Spec Q6: the saved consultation file's schema is unchanged across all
+  // three flows. No provenance field, no flow-conditional save path. The
+  // invariant: given the same casting input, manual and interactive must
+  // hand `saveConsultationFile` byte-identical `{ query, hexagram, casting }`.
+  // If this assertion ever fails, audit Phases 1–4 — a provenance leak has
+  // slipped in. Do NOT relax the comparison.
+  it('manual flow saves byte-identical to interactive for the same casting record', async () => {
+    // Yarrow convention: a heap divisible by 4 yields a remainder of 4
+    // (never 0). Decomposes a `pick` into the (piles, remainder) the
+    // manual prompt expects.
+    const decomposePick = (
+      pick: number,
+    ): { piles: number; remainder: number } => {
+      const remainder = ((pick - 1) % 4) + 1
+      const piles = (pick - remainder) / 4
+      return { piles, remainder }
+    }
+
+    // Picks (24, 20, 16) are valid for rounds 1/2/3 across all six lines
+    // and produce Line 6 (moving yin) every time → hexagram [6,6,6,6,6,6].
+    // 18 picks in a single flat array, line-major: cast 0 of line 0, cast 1
+    // of line 0, …, cast 2 of line 5.
+    const picks: number[] = []
+    for (let line = 0; line < 6; line += 1) {
+      picks.push(24, 20, 16)
+    }
+
+    // Drive interactive (number-input) flow to capture saveConsultationFile's
+    // call arguments. Reset the file-output mock first so we observe only
+    // this run's call. Wait for the next cast's prompt to appear in the
+    // frame before sending the next pick — yieldMacrotask alone is too
+    // short to span every commit + re-render on a saturated CI runner.
+    consultationFileOutputMock.mockClear()
+    {
+      const { stdin, lastFrame, unmount } = render(
+        <ConsultationViewer flowKind="interactive" inputMode="number" />,
+      )
+      stdin.write('A grounded query')
+      await yieldMacrotask()
+      stdin.write(ENTER)
+      for (let i = 0; i < picks.length; i += 1) {
+        const lineNumber = Math.floor(i / 3) + 1
+        const castIndex = (i % 3) + 1
+        await waitFor(() => {
+          expect(lastFrame() ?? '').toContain(
+            `Line ${lineNumber}/6 · Cast ${castIndex}/3`,
+          )
+        })
+        stdin.write(String(picks[i]))
+        await yieldMacrotask()
+        stdin.write(ENTER)
+      }
+      await waitFor(() => {
+        expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+      })
+      unmount()
+    }
+    const interactiveArgs = consultationFileOutputMock.mock.calls[0]?.[0]
+
+    // Drive manual flow with the same 18 picks decomposed into (piles,
+    // remainder). manualRevealMs=0 to skip the reveal dwell; the
+    // onManualPromptReady spy gates each cast's keystrokes on the new
+    // prompt mount.
+    consultationFileOutputMock.mockClear()
+    const onReady = vi.fn()
+    {
+      const { stdin, unmount } = render(
+        <ConsultationViewer
+          flowKind="manual"
+          inputMode="number"
+          manualRevealMs={0}
+          onManualPromptReady={onReady}
+        />,
+      )
+      stdin.write('A grounded query')
+      await yieldMacrotask()
+      stdin.write(ENTER)
+      for (let i = 0; i < picks.length; i += 1) {
+        const { piles, remainder } = decomposePick(picks[i]!)
+        await waitFor(() => {
+          expect(onReady).toHaveBeenCalledTimes(i + 1)
+        })
+        stdin.write(String(piles))
+        await yieldMacrotask()
+        stdin.write(TAB)
+        await yieldMacrotask()
+        stdin.write(String(remainder))
+        await yieldMacrotask()
+        stdin.write(ENTER)
+      }
+      await waitFor(() => {
+        expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+      })
+      unmount()
+    }
+    const manualArgs = consultationFileOutputMock.mock.calls[0]?.[0]
+
+    // The same call args → the same saved file. saveConsultationFile is a
+    // pure function of its input plus a per-call timestamp it generates
+    // internally; identical input means an identical body block and the
+    // only divergence is the timestamp.
+    expect(manualArgs).toBeDefined()
+    expect(interactiveArgs).toBeDefined()
+    expect(manualArgs?.query).toBe(interactiveArgs?.query)
+    expect(manualArgs?.hexagram).toEqual(interactiveArgs?.hexagram)
+    expect(manualArgs?.casting).toEqual(interactiveArgs?.casting)
+  }, 30_000)
+
   it('the casting footer carries the Tab field + Ctrl+R rewind line hints', async () => {
     const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
