@@ -133,23 +133,69 @@ describe('HomeMenu', () => {
     )
     await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
 
-    // Step ↓ three times to land on the last row, then ↓ once more — the
+    // Step ↓ four times to land on the last row (5 items total — interactive,
+    // random, manual, history, playground), then ↓ once more — the
     // wrap-around must bring focus back to row 0. ENTER then must fire
     // `onSelect('interactive')`. `yieldMacrotask` between keystrokes is
     // load-bearing for the same reason called out in the ↑-wrap test above.
-    stdin.write(DOWN)
-    await yieldMacrotask()
-    stdin.write(DOWN)
-    await yieldMacrotask()
+    for (let i = 0; i < 5; i++) {
+      stdin.write(DOWN)
+      await yieldMacrotask()
+    }
+    stdin.write(ENTER)
+    await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1))
+    expect(onSelect).toHaveBeenCalledWith('interactive')
+    expect(onQuit).not.toHaveBeenCalled()
+
+    unmount()
+  })
+
+  // ── Manual flow ─────────────────────────────────────────────────────────
+
+  it('renders five items in order: interactive, random, manual, history, playground', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, unmount } = render(
+      <HomeMenu
+        onSelect={() => {}}
+        onQuit={() => {}}
+        onReady={onReady}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
+    )
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
+    const frame = lastFrame() ?? ''
+    const positions = [
+      'New interactive consultation',
+      'New random consultation',
+      'New manual consultation',
+      'Browse history',
+      'Playground',
+    ].map((label) => frame.indexOf(label))
+    // Every label must be present (no -1) and in strictly-ascending order.
+    expect(positions.every((p) => p >= 0)).toBe(true)
+    expect(positions).toEqual([...positions].sort((a, b) => a - b))
+    unmount()
+  })
+
+  it('↓ ↓ ENTER selects "manual"', async () => {
+    const onReady = vi.fn()
+    const onSelect = vi.fn()
+    const { stdin, unmount } = render(
+      <HomeMenu
+        onSelect={onSelect}
+        onQuit={() => {}}
+        onReady={onReady}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
+    )
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     stdin.write(DOWN)
     await yieldMacrotask()
     stdin.write(DOWN)
     await yieldMacrotask()
     stdin.write(ENTER)
     await waitFor(() => expect(onSelect).toHaveBeenCalledTimes(1))
-    expect(onSelect).toHaveBeenCalledWith('interactive')
-    expect(onQuit).not.toHaveBeenCalled()
-
+    expect(onSelect).toHaveBeenCalledWith('manual')
     unmount()
   })
 })

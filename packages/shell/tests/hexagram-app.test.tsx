@@ -314,12 +314,13 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Browse history')
     })
 
-    // Home → Browse history (row 3). The history screen mounts fresh and
-    // re-scans `consultations/`, so the consultation just cast appears.
-    stdin.write(ARROW_DOWN)
-    await yieldMacrotask()
-    stdin.write(ARROW_DOWN)
-    await yieldMacrotask()
+    // Home → Browse history (row 4 — interactive=0, random=1, manual=2,
+    // history=3, playground=4). The history screen mounts fresh and re-scans
+    // `consultations/`, so the consultation just cast appears.
+    for (let i = 0; i < 3; i++) {
+      stdin.write(ARROW_DOWN)
+      await yieldMacrotask()
+    }
     stdin.write(ENTER)
     // History scan is async — wait until the scan resolves and the row renders.
     await waitFor(() => {
@@ -343,11 +344,11 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Browse history')
     })
 
-    // Home → Browse history.
-    stdin.write(ARROW_DOWN)
-    await yieldMacrotask()
-    stdin.write(ARROW_DOWN)
-    await yieldMacrotask()
+    // Home → Browse history (row 4 — see comment in sibling test above).
+    for (let i = 0; i < 3; i++) {
+      stdin.write(ARROW_DOWN)
+      await yieldMacrotask()
+    }
     stdin.write(ENTER)
     await waitFor(() => {
       expect(stripAnsi(lastFrame() ?? '')).toContain('Past Consultations')

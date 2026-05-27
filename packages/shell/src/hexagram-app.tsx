@@ -101,6 +101,8 @@ function eventForSelection(
       return { type: 'newInteractiveConsultation' }
     case 'random':
       return { type: 'newRandomConsultation' }
+    case 'manual':
+      return { type: 'newManualConsultation' }
     case 'history':
       return { type: 'browseHistory' }
     case 'playground':
