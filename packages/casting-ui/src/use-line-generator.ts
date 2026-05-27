@@ -11,6 +11,7 @@ import type { FlowAction, FlowState } from './viewer-flow.js'
 
 interface UseLineGeneratorResult {
   submitSplit: (pick: number) => void
+  rewindCurrentLine: () => void
   currentMax: number
 }
 
@@ -93,5 +94,18 @@ export function useLineGenerator(
     dispatch({ type: 'splitCommitted', pick, max, line })
   }
 
-  return { submitSplit, currentMax: currentMaxRef.current }
+  // Manual-flow rewind. Drops the active line generator and resets the
+  // displayed `currentMax` to the round-1 range so the upcoming
+  // `lineRewound` reducer step (the viewer dispatches it right after this
+  // call) lands the next render on a clean cast-0 prompt with max 48.
+  const rewindCurrentLine = (): void => {
+    lineGeneratorRef.current = null
+    currentMaxRef.current = stalksBeforeParting.length - 1
+  }
+
+  return {
+    submitSplit,
+    rewindCurrentLine,
+    currentMax: currentMaxRef.current,
+  }
 }
