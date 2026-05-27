@@ -9,12 +9,12 @@
 // time. `hexagram` opens on Home — the hub menu — and the casting screen
 // additionally carries which flow it is running.
 
-// The casting flow comes in two kinds. This union is deliberately defined
+// The casting flow comes in three kinds. This union is deliberately defined
 // LOCALLY rather than imported from `@hexagram/casting-ui`: keeping this a
 // leaf-pure module means no workspace runtime imports. The string values are
-// kept identical to `casting-ui`'s `FlowKind` (`'interactive' | 'random'`) so
-// the screen state hands straight through to the casting flow.
-export type NavFlowKind = 'interactive' | 'random'
+// kept identical to `casting-ui`'s `FlowKind` (`'interactive' | 'random' |
+// 'manual'`) so the screen state hands straight through to the casting flow.
+export type NavFlowKind = 'interactive' | 'random' | 'manual'
 
 /**
  * The navigation state — a discriminated union over the four screens. Exactly
@@ -36,6 +36,7 @@ export type NavState =
 export type NavEvent =
   | { type: 'newInteractiveConsultation' }
   | { type: 'newRandomConsultation' }
+  | { type: 'newManualConsultation' }
   | { type: 'browseHistory' }
   | { type: 'openPlayground' }
   | { type: 'backToHome' }
@@ -73,6 +74,10 @@ export function navReducer(state: NavState, event: NavEvent): NavState {
     case 'newRandomConsultation':
       return state.screen === 'home'
         ? { screen: 'casting', flowKind: 'random' }
+        : state
+    case 'newManualConsultation':
+      return state.screen === 'home'
+        ? { screen: 'casting', flowKind: 'manual' }
         : state
     case 'browseHistory':
       return state.screen === 'home' ? { screen: 'history' } : state

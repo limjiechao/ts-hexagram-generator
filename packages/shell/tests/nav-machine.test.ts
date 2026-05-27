@@ -41,6 +41,13 @@ describe('navReducer — Home menu selections', () => {
     })
   })
 
+  it('Home → manual casting on "new manual consultation"', () => {
+    expect(navReducer(home, { type: 'newManualConsultation' })).toEqual({
+      screen: 'casting',
+      flowKind: 'manual',
+    })
+  })
+
   it('Home → history on "browse history"', () => {
     expect(navReducer(home, { type: 'browseHistory' })).toEqual({
       screen: 'history',
@@ -71,6 +78,13 @@ describe('navReducer — back-to-home', () => {
       screen: 'home',
     })
   })
+
+  it('manual casting → Home on back-to-home', () => {
+    const casting: NavState = { screen: 'casting', flowKind: 'manual' }
+    expect(navReducer(casting, { type: 'backToHome' })).toEqual({
+      screen: 'home',
+    })
+  })
 })
 
 // ── Defensive branches — events the PRD never fires from a given screen ──────
@@ -90,6 +104,7 @@ describe('navReducer — impossible events are ignored', () => {
     const events: NavEvent[] = [
       { type: 'newInteractiveConsultation' },
       { type: 'newRandomConsultation' },
+      { type: 'newManualConsultation' },
       { type: 'browseHistory' },
     ]
     for (const event of events) {
