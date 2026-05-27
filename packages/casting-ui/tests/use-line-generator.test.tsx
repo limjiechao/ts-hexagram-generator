@@ -1,4 +1,4 @@
-import { yieldMacrotask } from '@hexagram/test-utils'
+import { waitFor } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { useReducer, type Dispatch } from 'react'
 import { describe, expect, it } from 'vitest'
@@ -43,25 +43,48 @@ function Harness({ apiRef }: { apiRef: { current: HarnessApi | null } }): null {
   return null
 }
 
+// Hook tests must observe a per-render snapshot of `currentMax`, but the
+// dispatch that triggers the re-render commits on a later microtask — under
+// 2-CPU contention (turbo's `test:stress`) a fixed-delay `yieldMacrotask(0)`
+// is not long enough for React to flush. `waitForCurrentMax` retries the
+// snapshot read against `waitFor`'s 4 s deadline, so an arbitrarily delayed
+// commit still surfaces a passing test instead of a stale-closure flake.
+// (See `superpowers:cross-platform-tests` Lesson A — attack the class, not
+// the instance.)
+async function waitForCurrentMax(
+  apiRef: { current: HarnessApi | null },
+  expected: number,
+): Promise<void> {
+  await waitFor(() => {
+    expect(apiRef.current?.currentMax).toBe(expected)
+  })
+}
+
+async function waitForCurrentMaxLessThan(
+  apiRef: { current: HarnessApi | null },
+  threshold: number,
+): Promise<number> {
+  await waitFor(() => {
+    expect(apiRef.current?.currentMax).toBeLessThan(threshold)
+  })
+  return apiRef.current!.currentMax
+}
+
 describe('useLineGenerator — rewindCurrentLine', () => {
   it('clears the generator ref and resets currentMax to 48', async () => {
     const apiRef: { current: HarnessApi | null } = { current: null }
     render(<Harness apiRef={apiRef} />)
-    await yieldMacrotask(0)
-    expect(apiRef.current!.currentMax).toBe(48)
+    await waitForCurrentMax(apiRef, 48)
 
     // First cast advances the generator: round 2's max < 48.
     apiRef.current!.submitSplit(20)
-    await yieldMacrotask(0)
-    const round2Max = apiRef.current!.currentMax
-    expect(round2Max).toBeLessThan(48)
+    await waitForCurrentMaxLessThan(apiRef, 48)
 
     // Viewer order: ref reset first, then reducer dispatch.
     apiRef.current!.rewindCurrentLine()
     apiRef.current!.dispatch({ type: 'lineRewound' })
-    await yieldMacrotask(0)
+    await waitForCurrentMax(apiRef, 48)
 
-    expect(apiRef.current!.currentMax).toBe(48)
     expect(apiRef.current!.state.castIndex).toBe(0)
     expect(apiRef.current!.state.lineIndex).toBe(0)
   })
@@ -69,23 +92,19 @@ describe('useLineGenerator — rewindCurrentLine', () => {
   it('after rewind, a castIndex=0 submitSplit builds a fresh generator', async () => {
     const apiRef: { current: HarnessApi | null } = { current: null }
     render(<Harness apiRef={apiRef} />)
-    await yieldMacrotask(0)
+    await waitForCurrentMax(apiRef, 48)
 
     apiRef.current!.submitSplit(20)
-    await yieldMacrotask(0)
-    const round2MaxBefore = apiRef.current!.currentMax
-    expect(round2MaxBefore).toBeLessThan(48)
+    const round2MaxBefore = await waitForCurrentMaxLessThan(apiRef, 48)
 
     apiRef.current!.rewindCurrentLine()
     apiRef.current!.dispatch({ type: 'lineRewound' })
-    await yieldMacrotask(0)
-    expect(apiRef.current!.currentMax).toBe(48)
+    await waitForCurrentMax(apiRef, 48)
     expect(apiRef.current!.state.castIndex).toBe(0)
 
     // Submitting again with the same pick should rebuild the generator and
     // land on the same round-2 max as before — deterministic given `pick`.
     apiRef.current!.submitSplit(20)
-    await yieldMacrotask(0)
-    expect(apiRef.current!.currentMax).toBe(round2MaxBefore)
+    await waitForCurrentMax(apiRef, round2MaxBefore)
   })
 })
