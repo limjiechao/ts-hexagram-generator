@@ -448,7 +448,11 @@ export function ConsultationViewer({
   const castingPromptHeight = ((): number => {
     if (state.mode !== 'casting') return 0
     if (isNumberRandomPlayback) return getCastingStatusHeight()
-    return getCastingPromptHeight(inputMode, state.error !== null, state.flowKind)
+    return getCastingPromptHeight(
+      inputMode,
+      state.error !== null,
+      state.flowKind,
+    )
   })()
 
   // Intrinsic content width of the casting prompt box (inside its border) —
@@ -639,8 +643,7 @@ export function ConsultationViewer({
                 state.flowKind,
               )
               if (state.flowKind !== 'manual') return base
-              const showRewind =
-                state.lineIndex > 0 || state.castIndex > 0
+              const showRewind = state.lineIndex > 0 || state.castIndex > 0
               return showRewind
                 ? `${base}   · Tab field   · Ctrl+R rewind line`
                 : `${base}   · Tab field`
@@ -719,7 +722,7 @@ export async function runConsultationViewer(
  * mode probes consistent). `--wrap-width` is the only knob exposed to the
  * bin; tests can also pass `manualRevealMs: 0` to bypass the reveal dwell.
  */
-export async function runManualConsultationViewer(opts: {
+export function runManualConsultationViewer(opts: {
   maxWrapWidth?: number
   manualRevealMs?: number
 }): Promise<void> {

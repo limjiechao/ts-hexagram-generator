@@ -1705,7 +1705,7 @@ describe('ConsultationViewer (manual flow)', () => {
       stdin.write('A grounded query')
       await yieldMacrotask()
       stdin.write(ENTER)
-      for (let i = 0; i < picks.length; i += 1) {
+      for (const [i, pick] of picks.entries()) {
         const lineNumber = Math.floor(i / 3) + 1
         const castIndex = (i % 3) + 1
         await waitFor(() => {
@@ -1713,7 +1713,7 @@ describe('ConsultationViewer (manual flow)', () => {
             `Line ${lineNumber}/6 · Cast ${castIndex}/3`,
           )
         })
-        stdin.write(String(picks[i]))
+        stdin.write(String(pick))
         await yieldMacrotask()
         stdin.write(ENTER)
       }
@@ -1722,7 +1722,11 @@ describe('ConsultationViewer (manual flow)', () => {
       })
       unmount()
     }
-    const interactiveArgs = consultationFileOutputMock.mock.calls[0]?.[0]
+    const interactiveArgs = (
+      consultationFileOutputMock.mock.calls as unknown as Array<
+        [{ query: string; hexagram: Hexagram; casting: CastingRecord }]
+      >
+    )[0]?.[0]
 
     // Drive manual flow with the same 18 picks decomposed into (piles,
     // remainder). manualRevealMs=0 to skip the reveal dwell; the
@@ -1742,8 +1746,8 @@ describe('ConsultationViewer (manual flow)', () => {
       stdin.write('A grounded query')
       await yieldMacrotask()
       stdin.write(ENTER)
-      for (let i = 0; i < picks.length; i += 1) {
-        const { piles, remainder } = decomposePick(picks[i]!)
+      for (const [i, pick] of picks.entries()) {
+        const { piles, remainder } = decomposePick(pick!)
         await waitFor(() => {
           expect(onReady).toHaveBeenCalledTimes(i + 1)
         })
@@ -1760,7 +1764,11 @@ describe('ConsultationViewer (manual flow)', () => {
       })
       unmount()
     }
-    const manualArgs = consultationFileOutputMock.mock.calls[0]?.[0]
+    const manualArgs = (
+      consultationFileOutputMock.mock.calls as unknown as Array<
+        [{ query: string; hexagram: Hexagram; casting: CastingRecord }]
+      >
+    )[0]?.[0]
 
     // The same call args → the same saved file. saveConsultationFile is a
     // pure function of its input plus a per-call timestamp it generates

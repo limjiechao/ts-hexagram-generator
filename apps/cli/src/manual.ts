@@ -17,9 +17,7 @@ import { isInteractiveEnv } from '@hexagram/viewer-core'
 async function main(): Promise<void> {
   try {
     if (!isInteractiveEnv()) {
-      process.stderr.write(
-        'hexagram-manual requires an interactive terminal\n',
-      )
+      process.stderr.write('hexagram-manual requires an interactive terminal\n')
       process.exit(1)
     }
     await runManualConsultationViewer({

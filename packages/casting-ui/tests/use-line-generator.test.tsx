@@ -1,8 +1,7 @@
+import { yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { useReducer, type Dispatch } from 'react'
 import { describe, expect, it } from 'vitest'
-
-import { yieldMacrotask } from '@hexagram/test-utils'
 
 import { useLineGenerator } from '../src/use-line-generator.js'
 import {
@@ -33,11 +32,7 @@ const initialManualCasting = (): FlowState => ({
   query: 'Will the rains come?',
 })
 
-function Harness({
-  apiRef,
-}: {
-  apiRef: { current: HarnessApi | null }
-}): null {
+function Harness({ apiRef }: { apiRef: { current: HarnessApi | null } }): null {
   const [state, dispatch] = useReducer(
     flowReducer,
     undefined,

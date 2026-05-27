@@ -52,13 +52,13 @@ constraints without re-litigating.
 2. **UX shape — live scratchpad.** Reuses the existing viewer chrome
    (casting table, progress bar, footer, tabs, save). Per-cast prompt
    replaces the slider with a typed `<NumberInput>`. New `flowKind:
-   'manual'` slots into the existing `awaitingQuery → casting →
-   computing → done` state machine.
+'manual'` slots into the existing `awaitingQuery → casting →
+computing → done` state machine.
 
 3. **Undo — line-bounded with two-line window.** A new `lineRewound`
    flow action clears the most recent line that has committed casts.
    Bound to Ctrl+R. Strict "current line only" was rejected during
-   design because the user only notices a miscount on the *next*
+   design because the user only notices a miscount on the _next_
    prompt, which is line+1 cast 0 when the bad line was just
    completed — see "Ctrl+R semantics" below for the exact rule.
 
@@ -66,7 +66,7 @@ constraints without re-litigating.
    interactive and random. No state-machine divergence.
 
 5. **No plain mode.** Bin refuses non-TTY with stderr `"hexagram-manual
-   requires an interactive terminal"` and exit 1, mirroring
+requires an interactive terminal"` and exit 1, mirroring
    `hexagram-history`. In plain mode, manual would be indistinguishable
    from `interactive --plain`; shipping it would be a confusing
    duplicate.
@@ -91,21 +91,21 @@ file at the spot its structure already implies.
 
 ### Files changed
 
-| File | Change |
-|---|---|
-| `packages/casting-ui/src/viewer-flow.ts` | Extend `FlowKind` to `'interactive' \| 'random' \| 'manual'`. Add `'lineRewound'` action + reducer case. |
-| `packages/casting-ui/src/use-line-generator.ts` | Add `rewindCurrentLine()` op alongside `submitSplit()`. Drops `lineGeneratorRef.current`, resets `currentMaxRef` to `stalksBeforeParting.length - 1`. |
+| File                                             | Change                                                                                                                                                                                                                                                                                                                                                                                                                                           |
+| ------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `packages/casting-ui/src/viewer-flow.ts`         | Extend `FlowKind` to `'interactive' \| 'random' \| 'manual'`. Add `'lineRewound'` action + reducer case.                                                                                                                                                                                                                                                                                                                                         |
+| `packages/casting-ui/src/use-line-generator.ts`  | Add `rewindCurrentLine()` op alongside `submitSplit()`. Drops `lineGeneratorRef.current`, resets `currentMaxRef` to `stalksBeforeParting.length - 1`.                                                                                                                                                                                                                                                                                            |
 | `packages/casting-ui/src/casting-prompt-box.tsx` | Add a manual-mode branch (gated on a `flowKind`-derived prop) that renders the two-field input layout (piles + remainder), the Unparted-stalks anchor row, the live-derived split row, and the post-commit reveal row. Reuses two `<NumberInput>` instances side-by-side with shared Tab-focus state; no new input primitive file needed. `inputMode` stays `'slider' \| 'number'` for the slider/interactive split; manual is a sibling branch. |
-| `packages/casting-ui/src/viewer.tsx` | Accept `flowKind: 'manual'`. Mount casting prompt as interactive-number does. Add Ctrl+R handler scoped to `mode === 'casting' && flowKind === 'manual'` that calls `rewindCurrentLine()` then dispatches `lineRewound`. |
-| `packages/casting-ui/src/index.ts` | Export `runManualConsultationViewer(opts)`. |
-| `apps/cli/src/manual.ts` *(new)* | TTY guard + flag parse + `runManualConsultationViewer()` + exit code, mirroring `apps/cli/src/history.ts`. |
-| `apps/cli/tsdown.config.ts` | Add `manual` entry. |
-| `apps/cli/package.json` | Add `"hexagram-manual": "./dist/manual.mjs"` to `bin`. Update description. |
-| `packages/shell/src/home-menu.tsx` | Extend `HomeMenuSelection` with `'manual'`. Insert at index 2 of `MENU_ITEMS`. |
-| `packages/shell/src/nav-machine.ts` | Add `{ type: 'newManualConsultation' }` event. Extend `NavFlowKind` to include `'manual'`. Add reducer case. |
-| `packages/shell/src/hexagram-app.tsx` | Translate `'manual'` menu selection to `newManualConsultation` event. |
-| `packages/shell/package.json` | Update description if it mentions the flow set. |
-| `AGENTS.md` | Extend the "Commands" and "Architecture" sections to document `hexagram-manual` alongside the existing bins. The CLAUDE.md / AGENTS.md is enumerative — adding the bin without updating these is a known regression source. |
+| `packages/casting-ui/src/viewer.tsx`             | Accept `flowKind: 'manual'`. Mount casting prompt as interactive-number does. Add Ctrl+R handler scoped to `mode === 'casting' && flowKind === 'manual'` that calls `rewindCurrentLine()` then dispatches `lineRewound`.                                                                                                                                                                                                                         |
+| `packages/casting-ui/src/index.ts`               | Export `runManualConsultationViewer(opts)`.                                                                                                                                                                                                                                                                                                                                                                                                      |
+| `apps/cli/src/manual.ts` _(new)_                 | TTY guard + flag parse + `runManualConsultationViewer()` + exit code, mirroring `apps/cli/src/history.ts`.                                                                                                                                                                                                                                                                                                                                       |
+| `apps/cli/tsdown.config.ts`                      | Add `manual` entry.                                                                                                                                                                                                                                                                                                                                                                                                                              |
+| `apps/cli/package.json`                          | Add `"hexagram-manual": "./dist/manual.mjs"` to `bin`. Update description.                                                                                                                                                                                                                                                                                                                                                                       |
+| `packages/shell/src/home-menu.tsx`               | Extend `HomeMenuSelection` with `'manual'`. Insert at index 2 of `MENU_ITEMS`.                                                                                                                                                                                                                                                                                                                                                                   |
+| `packages/shell/src/nav-machine.ts`              | Add `{ type: 'newManualConsultation' }` event. Extend `NavFlowKind` to include `'manual'`. Add reducer case.                                                                                                                                                                                                                                                                                                                                     |
+| `packages/shell/src/hexagram-app.tsx`            | Translate `'manual'` menu selection to `newManualConsultation` event.                                                                                                                                                                                                                                                                                                                                                                            |
+| `packages/shell/package.json`                    | Update description if it mentions the flow set.                                                                                                                                                                                                                                                                                                                                                                                                  |
+| `AGENTS.md`                                      | Extend the "Commands" and "Architecture" sections to document `hexagram-manual` alongside the existing bins. The CLAUDE.md / AGENTS.md is enumerative — adding the bin without updating these is a known regression source.                                                                                                                                                                                                                      |
 
 ### Files deliberately NOT touched
 
@@ -178,7 +178,7 @@ The rule is "rewind the most recent line with committed casts." Three
 cases:
 
 - `castIndex > 0` → rewind the current line (mid-line case).
-- `castIndex === 0 && lineIndex > 0` → rewind the *previous* line. This
+- `castIndex === 0 && lineIndex > 0` → rewind the _previous_ line. This
   is the post-line-completion case — the user has just committed cast 3
   of line N, the next prompt has rendered at line N+1 cast 1, and the
   user wants to revisit line N because the new prompt's
@@ -263,10 +263,10 @@ Out-of-range derived split (piles=9, remainder=4 with max=40 → split=40):
    - `remainder` ∈ `[1, 4]` — leftover stalks from the left heap (the
      I Ching convention: a heap that's a multiple of 4 yields a
      remainder of 4, never 0).
-   Tab cycles focus between the two fields (wrapping). Enter submits
-   when both fields have valid numeric values *and* the derived split
-   is in range; otherwise Enter is a no-op or surfaces an error
-   (see "Validation & error handling").
+     Tab cycles focus between the two fields (wrapping). Enter submits
+     when both fields have valid numeric values _and_ the derived split
+     is in range; otherwise Enter is a no-op or surfaces an error
+     (see "Validation & error handling").
 4. **Derived row** — `→ split = N (range 1 to M-1)` while editing,
    updating live as the user types. After commit, this same row swaps
    in place to `→ Round resolved: suspended X · next: Y unparted` for
@@ -289,7 +289,7 @@ round 1).
   `casting-prompt-box.tsx:503-509` currently returns 5 (no error) or 6
   (with error) for number mode; manual mode reserves **7 rows** to
   cover the extra unparted + derived rows. There is no separate
-  error-state row count — invalid derived split surfaces *in* the
+  error-state row count — invalid derived split surfaces _in_ the
   derived row by changing its text (the out-of-range example above),
   so the prompt height is stable across editing → error → submit
   → reveal transitions.
@@ -320,6 +320,7 @@ Out-of-bound digits never enter the buffer.
 
 The cross-field check — derived split must be in `[1, M-1]` — runs on
 every keystroke. The derived row reflects the result:
+
 - both fields populated, split in range → `→ split = N (range 1 to M-1)`
 - either field empty → `→ split = ? (range 1 to M-1)` (or similar
   placeholder; left to implementation)
@@ -348,14 +349,14 @@ prompt box; out of scope here.
 
 ### Visual diff vs existing modes
 
-| Element | Slider | Number (interactive) | Manual |
-|---|---|---|---|
-| Title | `Line N/6 · Cast C/3: — Press SPACE…` | `Line N/6 · Cast C/3` | `Line N/6 · Cast C/3` |
-| Pre-input row | `Stalks: M \| Left Heap: ⠋ \| Right Heap: ⠏` | (none) | `Unparted stalks: M` |
-| Input row | bouncing bar | `Divide the stalks. Pick…: _` | `Left heap: [piles] piles × 4 + [remainder] remainder` (two `<NumberInput>` fields, Tab to switch) |
-| Below-input row | (none) | (none — error shown when present) | live `→ split = N (range 1 to M-1)`, swaps in place on commit |
-| Post-commit reveal | 500ms heap-count dwell | (none) | 1000ms `→ Round resolved: suspended X · next: Y unparted` dwell |
-| Footer addendum | (none) | (none) | `· Tab field · Ctrl+R rewind line` |
+| Element            | Slider                                       | Number (interactive)              | Manual                                                                                             |
+| ------------------ | -------------------------------------------- | --------------------------------- | -------------------------------------------------------------------------------------------------- |
+| Title              | `Line N/6 · Cast C/3: — Press SPACE…`        | `Line N/6 · Cast C/3`             | `Line N/6 · Cast C/3`                                                                              |
+| Pre-input row      | `Stalks: M \| Left Heap: ⠋ \| Right Heap: ⠏` | (none)                            | `Unparted stalks: M`                                                                               |
+| Input row          | bouncing bar                                 | `Divide the stalks. Pick…: _`     | `Left heap: [piles] piles × 4 + [remainder] remainder` (two `<NumberInput>` fields, Tab to switch) |
+| Below-input row    | (none)                                       | (none — error shown when present) | live `→ split = N (range 1 to M-1)`, swaps in place on commit                                      |
+| Post-commit reveal | 500ms heap-count dwell                       | (none)                            | 1000ms `→ Round resolved: suspended X · next: Y unparted` dwell                                    |
+| Footer addendum    | (none)                                       | (none)                            | `· Tab field · Ctrl+R rewind line`                                                                 |
 
 ## Bin & shell wiring
 
@@ -366,10 +367,17 @@ prompt box; out of scope here.
 
 import process from 'node:process'
 
-import { resolveWrapWidth, runManualConsultationViewer } from '@hexagram/casting-ui'
+import {
+  resolveWrapWidth,
+  runManualConsultationViewer,
+} from '@hexagram/casting-ui'
 
 async function main(): Promise<void> {
-  if (!process.stdout.isTTY || process.env.NO_COLOR === '1' || process.env.CI === 'true') {
+  if (
+    !process.stdout.isTTY ||
+    process.env.NO_COLOR === '1' ||
+    process.env.CI === 'true'
+  ) {
     process.stderr.write('hexagram-manual requires an interactive terminal\n')
     process.exit(1)
     return
@@ -480,53 +488,59 @@ the case arm.
 ### Hook test
 
 `packages/casting-ui/tests/use-line-generator.test.tsx`:
-  - `rewindCurrentLine()` mid-line: clears `lineGeneratorRef`, resets `currentMax`
-  - subsequent `submitSplit(pick)` with `castIndex === 0` builds a fresh generator
+
+- `rewindCurrentLine()` mid-line: clears `lineGeneratorRef`, resets `currentMax`
+- subsequent `submitSplit(pick)` with `castIndex === 0` builds a fresh generator
 
 ### Component tests
 
 `packages/casting-ui/tests/casting-prompt-box.test.tsx` (extend):
-  - manual mode renders 4 expected rows: title / `Unparted stalks: M` / `Left heap: [piles] piles × 4 + [remainder] remainder` / `→ split = N (range 1 to M-1)`
-  - default focus is on the piles field; Tab switches focus to remainder; Tab again wraps back to piles
-  - typing digits into piles updates the derived row live; typing digits into remainder also updates it live
-  - per-field bounds enforced by `<NumberInput>`: piles rejects digits that would exceed `floor((M-1)/4)`; remainder rejects digits outside `1..4`
-  - cross-field check: piles=9 + remainder=4 with max=40 → derived row reads `→ split = 40 (out of range, must be 1 to 39)` and Enter is a no-op
-  - valid commit: piles=6 + remainder=3 with max=40 → derived split = 27; Enter calls `onSubmit(27)`
-  - boundary commit: piles=0 + remainder=1 with max=40 → derived split = 1; Enter calls `onSubmit(1)`
-  - after `onSubmit`, the derived row swaps to `→ Round resolved: suspended X · next: Y unparted` for `manualRevealMs` ms before unmounting (use `manualRevealMs={0}` for snappy assertions; one separate test with a non-zero value)
-  - reveal-row math is correct across known cases (round 1, round 2, round 3 fixtures); `next` comes from the line generator's `FourOperationsResult.unpartedStalks.length`, `suspended` is `max - next`
-  - Ctrl+R is NOT intercepted by the prompt (the viewer owns it)
-  - Tab is NOT propagated to the viewer (the prompt owns focus cycling)
+
+- manual mode renders 4 expected rows: title / `Unparted stalks: M` / `Left heap: [piles] piles × 4 + [remainder] remainder` / `→ split = N (range 1 to M-1)`
+- default focus is on the piles field; Tab switches focus to remainder; Tab again wraps back to piles
+- typing digits into piles updates the derived row live; typing digits into remainder also updates it live
+- per-field bounds enforced by `<NumberInput>`: piles rejects digits that would exceed `floor((M-1)/4)`; remainder rejects digits outside `1..4`
+- cross-field check: piles=9 + remainder=4 with max=40 → derived row reads `→ split = 40 (out of range, must be 1 to 39)` and Enter is a no-op
+- valid commit: piles=6 + remainder=3 with max=40 → derived split = 27; Enter calls `onSubmit(27)`
+- boundary commit: piles=0 + remainder=1 with max=40 → derived split = 1; Enter calls `onSubmit(1)`
+- after `onSubmit`, the derived row swaps to `→ Round resolved: suspended X · next: Y unparted` for `manualRevealMs` ms before unmounting (use `manualRevealMs={0}` for snappy assertions; one separate test with a non-zero value)
+- reveal-row math is correct across known cases (round 1, round 2, round 3 fixtures); `next` comes from the line generator's `FourOperationsResult.unpartedStalks.length`, `suspended` is `max - next`
+- Ctrl+R is NOT intercepted by the prompt (the viewer owns it)
+- Tab is NOT propagated to the viewer (the prompt owns focus cycling)
 
 `packages/shell/tests/home-menu.test.tsx` (extend):
-  - 5 items render in order
-  - default focus at index 0
-  - ↓ ↓ ↓ Enter selects manual (regression guard)
-  - ↑ from top wraps to playground
+
+- 5 items render in order
+- default focus at index 0
+- ↓ ↓ ↓ Enter selects manual (regression guard)
+- ↑ from top wraps to playground
 
 ### Viewer integration test
 
 `packages/casting-ui/tests/viewer.test.tsx` (extend or add a manual-specific file):
-  - manual flow end-to-end: query → 18 casts (each cast: type piles, Tab, type remainder, Enter) → save (snapshot the saved file)
-  - Ctrl+R mid-line: types 2 casts worth of piles+remainder, Ctrl+R, asserts cells revert and prompt returns to cast 1 with both fields empty
-  - Ctrl+R cross-boundary: completes line 1 (3 casts), arrives at line 2 cast 1, Ctrl+R, asserts line 1 reverts and prompt re-mounts at line 1 cast 1
-  - Ctrl+R no-op at line 1 cast 1: state unchanged
-  - Ctrl+R while the remainder field has focus: state still rewinds (the handler is viewer-level, not field-scoped); after rewind, focus returns to the piles field
+
+- manual flow end-to-end: query → 18 casts (each cast: type piles, Tab, type remainder, Enter) → save (snapshot the saved file)
+- Ctrl+R mid-line: types 2 casts worth of piles+remainder, Ctrl+R, asserts cells revert and prompt returns to cast 1 with both fields empty
+- Ctrl+R cross-boundary: completes line 1 (3 casts), arrives at line 2 cast 1, Ctrl+R, asserts line 1 reverts and prompt re-mounts at line 1 cast 1
+- Ctrl+R no-op at line 1 cast 1: state unchanged
+- Ctrl+R while the remainder field has focus: state still rewinds (the handler is viewer-level, not field-scoped); after rewind, focus returns to the piles field
 
 ### Fixture parity
 
 `packages/casting-ui/tests/fixtures/cases.ts` and `packages/consultation-file/tests/fixtures/cases.ts`:
-  - Add a `manual` variant to one or two existing cases. Reuse the same query + splits.
-  - Assert the saved `.md` is **byte-identical** to the same case's interactive output. This enforces the Q6 invariant: storage doesn't record mode, so identical splits must produce identical files.
-  - Regenerate via `pnpm generate-fixtures`.
+
+- Add a `manual` variant to one or two existing cases. Reuse the same query + splits.
+- Assert the saved `.md` is **byte-identical** to the same case's interactive output. This enforces the Q6 invariant: storage doesn't record mode, so identical splits must produce identical files.
+- Regenerate via `pnpm generate-fixtures`.
 
 ### Bin smoke test
 
 `apps/cli/tests/manual.test.ts` (new, mirroring history's smoke test pattern):
-  - `NO_COLOR=1` → stderr refusal, exit 1
-  - `CI=true` → same
-  - non-TTY `process.stdout` → same
-  - TTY + `--wrap-width 60` → calls `runManualConsultationViewer({ maxWrapWidth: 60 })`
+
+- `NO_COLOR=1` → stderr refusal, exit 1
+- `CI=true` → same
+- non-TTY `process.stdout` → same
+- TTY + `--wrap-width 60` → calls `runManualConsultationViewer({ maxWrapWidth: 60 })`
 
 ### Deliberately NOT tested
 

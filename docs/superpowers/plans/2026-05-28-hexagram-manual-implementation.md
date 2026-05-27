@@ -19,6 +19,7 @@
 **Why first:** Pure-function change, isolated to `viewer-flow.ts`, exercised by `viewer-flow.test.ts` (Vitest only — no Ink, no flake risk). Lands the type widening that every later phase depends on.
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/viewer-flow.ts:30` (FlowKind), `:52-71` (FlowAction), `:128-238` (reducer)
 - Test: `packages/casting-ui/tests/viewer-flow.test.ts`
 
@@ -42,6 +43,7 @@ it('FlowKind admits "manual"', () => {
 ```bash
 pnpm --filter @hexagram/casting-ui type:check
 ```
+
 Expected: `Type '"manual"' is not assignable to type 'FlowKind'`.
 
 - [ ] **Step 3: Widen the type at `viewer-flow.ts:30`**
@@ -70,12 +72,12 @@ git commit -m "feat(viewer-flow): extend FlowKind with 'manual'"
 Append to `packages/casting-ui/tests/viewer-flow.test.ts`:
 
 ```ts
-describe("flowReducer — lineRewound", () => {
+describe('flowReducer — lineRewound', () => {
   const baseCasting = () =>
-    flowReducer(
-      initialFlowState('manual'),
-      { type: 'queryChange', value: 'Will the rains come?' },
-    )
+    flowReducer(initialFlowState('manual'), {
+      type: 'queryChange',
+      value: 'Will the rains come?',
+    })
 
   const inCastingMode = (overrides: Partial<FlowState> = {}): FlowState => ({
     ...flowReducer(baseCasting(), { type: 'querySubmit' }),
@@ -87,8 +89,16 @@ describe("flowReducer — lineRewound", () => {
       lineIndex: 2,
       castIndex: 2,
       partialCasting: [
-        [{ pick: 21, max: 48 }, { pick: 17, max: 43 }, { pick: 9, max: 39 }],
-        [{ pick: 22, max: 48 }, { pick: 12, max: 40 }, { pick: 8, max: 36 }],
+        [
+          { pick: 21, max: 48 },
+          { pick: 17, max: 43 },
+          { pick: 9, max: 39 },
+        ],
+        [
+          { pick: 22, max: 48 },
+          { pick: 12, max: 40 },
+          { pick: 8, max: 36 },
+        ],
         [{ pick: 19, max: 48 }, { pick: 14, max: 42 }, null],
         [null, null, null],
         [null, null, null],
@@ -110,8 +120,16 @@ describe("flowReducer — lineRewound", () => {
       lineIndex: 2,
       castIndex: 0,
       partialCasting: [
-        [{ pick: 21, max: 48 }, { pick: 17, max: 43 }, { pick: 9, max: 39 }],
-        [{ pick: 22, max: 48 }, { pick: 12, max: 40 }, { pick: 8, max: 36 }],
+        [
+          { pick: 21, max: 48 },
+          { pick: 17, max: 43 },
+          { pick: 9, max: 39 },
+        ],
+        [
+          { pick: 22, max: 48 },
+          { pick: 12, max: 40 },
+          { pick: 8, max: 36 },
+        ],
         [null, null, null],
         [null, null, null],
         [null, null, null],
@@ -139,7 +157,10 @@ describe("flowReducer — lineRewound", () => {
   })
 
   it('is a no-op when mode !== casting', () => {
-    const state: FlowState = { ...inCastingMode({ castIndex: 2 }), mode: 'done' }
+    const state: FlowState = {
+      ...inCastingMode({ castIndex: 2 }),
+      mode: 'done',
+    }
     const next = flowReducer(state, { type: 'lineRewound' })
     expect(next).toBe(state)
   })
@@ -227,6 +248,7 @@ git commit -m "feat(viewer-flow): add lineRewound action for manual rewind"
 ## Phase 2: Hook extension — `rewindCurrentLine()`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/use-line-generator.ts:12-15` (return type), `:44-49` (refs), bottom (new function)
 - Test (new): `packages/casting-ui/tests/use-line-generator.test.tsx`
 
@@ -244,13 +266,14 @@ import React, { useReducer } from 'react'
 import { flowReducer, initialFlowState } from '../src/viewer-flow.js'
 import { useLineGenerator } from '../src/use-line-generator.js'
 
-type ApiRef = { submitSplit: (pick: number) => void; rewindCurrentLine: () => void; currentMax: number }
+type ApiRef = {
+  submitSplit: (pick: number) => void
+  rewindCurrentLine: () => void
+  currentMax: number
+}
 
 function Harness({ apiRef }: { apiRef: { current: ApiRef | null } }) {
-  const [state, dispatch] = useReducer(
-    flowReducer,
-    initialFlowState('manual'),
-  )
+  const [state, dispatch] = useReducer(flowReducer, initialFlowState('manual'))
   // Drive into casting mode for the first render
   if (state.mode === 'awaitingQuery') {
     dispatch({ type: 'queryChange', value: 'q' })
@@ -261,7 +284,7 @@ function Harness({ apiRef }: { apiRef: { current: ApiRef | null } }) {
   return null
 }
 
-it("rewindCurrentLine clears the generator ref and resets currentMax", () => {
+it('rewindCurrentLine clears the generator ref and resets currentMax', () => {
   const apiRef: { current: ApiRef | null } = { current: null }
   render(<Harness apiRef={apiRef} />)
   // first cast advances to round 2 (max < 49)
@@ -271,7 +294,7 @@ it("rewindCurrentLine clears the generator ref and resets currentMax", () => {
   expect(apiRef.current!.currentMax).toBe(48) // stalksBeforeParting.length - 1
 })
 
-it("after rewind, a castIndex=0 submitSplit builds a fresh generator", () => {
+it('after rewind, a castIndex=0 submitSplit builds a fresh generator', () => {
   const apiRef: { current: ApiRef | null } = { current: null }
   render(<Harness apiRef={apiRef} />)
   apiRef.current!.submitSplit(20)
@@ -335,6 +358,7 @@ git commit -m "feat(use-line-generator): add rewindCurrentLine op"
 ## Phase 3: Prompt component — manual branch
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx:36` (add `MANUAL_REVEAL_MS`), `:491` (extend CastingInputMode? no — keep slider/number; add a separate `flowKind` prop), `:503-509` (getCastingPromptHeight), `:525-577` (props), `:608-670` (component body — add sibling branch)
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 
@@ -438,7 +462,13 @@ Append to `casting-prompt-box.test.tsx`. Each test asserts one observable behavi
 
 ```tsx
 import { render } from 'ink-testing-library'
-import { waitFor, waitForReady, yieldMacrotask, TAB, ENTER } from '@hexagram/test-utils'
+import {
+  waitFor,
+  waitForReady,
+  yieldMacrotask,
+  TAB,
+  ENTER,
+} from '@hexagram/test-utils'
 
 import { CastingPromptBox } from '../src/casting-prompt-box.js'
 
@@ -456,7 +486,9 @@ const baseProps = {
 
 it('renders title, unparted, two-field input, derived rows', async () => {
   const onReady = vi.fn()
-  const { lastFrame } = render(<CastingPromptBox {...baseProps} onReady={onReady} />)
+  const { lastFrame } = render(
+    <CastingPromptBox {...baseProps} onReady={onReady} />,
+  )
   await waitForReady(onReady)
   const frame = lastFrame()!
   expect(frame).toContain('Line 3/6 · Cast 2/3')
@@ -467,7 +499,9 @@ it('renders title, unparted, two-field input, derived rows', async () => {
 
 it('Tab cycles focus between piles and remainder', async () => {
   const onReady = vi.fn()
-  const { stdin, lastFrame } = render(<CastingPromptBox {...baseProps} onReady={onReady} />)
+  const { stdin, lastFrame } = render(
+    <CastingPromptBox {...baseProps} onReady={onReady} />,
+  )
   await waitForReady(onReady)
   // assert piles cursor is shown initially (use a focus marker in the rendered text)
   stdin.write(TAB)
@@ -478,23 +512,41 @@ it('Tab cycles focus between piles and remainder', async () => {
   // piles is focused again (wrap)
 })
 
-it('derived split updates live as digits are typed into either field', async () => { /* ... */ })
+it('derived split updates live as digits are typed into either field', async () => {
+  /* ... */
+})
 
-it('piles upper bound is floor((max-1)/4); remainder bound is 1..4', async () => { /* ... */ })
+it('piles upper bound is floor((max-1)/4); remainder bound is 1..4', async () => {
+  /* ... */
+})
 
-it('out-of-range derived split surfaces in the derived row and Enter is a no-op', async () => { /* ... */ })
+it('out-of-range derived split surfaces in the derived row and Enter is a no-op', async () => {
+  /* ... */
+})
 
-it('valid commit calls onSubmit(4 × piles + remainder)', async () => { /* ... */ })
+it('valid commit calls onSubmit(4 × piles + remainder)', async () => {
+  /* ... */
+})
 
-it('boundary commit: piles=0, remainder=1 calls onSubmit(1)', async () => { /* ... */ })
+it('boundary commit: piles=0, remainder=1 calls onSubmit(1)', async () => {
+  /* ... */
+})
 
-it('post-commit reveal swaps derived row to "Round resolved" for manualRevealMs', async () => { /* ... */ })
+it('post-commit reveal swaps derived row to "Round resolved" for manualRevealMs', async () => {
+  /* ... */
+})
 
-it('reveal next/suspended comes from the line-generator next-round unpartedStalks length', async () => { /* ... */ })
+it('reveal next/suspended comes from the line-generator next-round unpartedStalks length', async () => {
+  /* ... */
+})
 
-it('Ctrl+R is NOT intercepted by the prompt', async () => { /* ... */ })
+it('Ctrl+R is NOT intercepted by the prompt', async () => {
+  /* ... */
+})
 
-it('Tab is NOT propagated outside the prompt', async () => { /* ... */ })
+it('Tab is NOT propagated outside the prompt', async () => {
+  /* ... */
+})
 ```
 
 For each test, fill in the body using the same `render` + `stdin.write` + `waitFor`/`yieldMacrotask` idiom shown in `viewer.test.tsx`. **Do not write a `await tick(50)` constant** — use `waitForReady(onReady)` and `waitFor(() => expect(...))` (see `superpowers:ansi-color-piping` and the `ink-useinput-bind` skill for the rationale). The `onReady` prop is fired from the same `useEffect` that binds the manual branch's `useInput`, identical to the slider's existing pattern.
@@ -522,9 +574,24 @@ At `:608` (component start), after destructuring props, branch:
 
 ```tsx
 if (flowKind === 'manual') {
-  return <ManualCastingPrompt {...{ lineNumber, castIndex, min, max, width, onSubmit, manualRevealMs, onReady, /* etc */ }} />
+  return (
+    <ManualCastingPrompt
+      {...{
+        lineNumber,
+        castIndex,
+        min,
+        max,
+        width,
+        onSubmit,
+        manualRevealMs,
+        onReady /* etc */,
+      }}
+    />
+  )
 }
-if (inputMode === 'slider') { /* existing */ }
+if (inputMode === 'slider') {
+  /* existing */
+}
 return /* existing number-mode Box */
 ```
 
@@ -573,6 +640,7 @@ git commit -m "feat(casting-prompt): add manual two-field input branch"
 ## Phase 4: Viewer integration — Ctrl+R, threading, exports
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/viewer.tsx:65-118` (props), `:153` (initialFlowState), `:309` (isNumberRandomPlayback — audit), `:388` (handleQuerySubmit — audit), `:517-518` (commitRevealMs thread; add manualRevealMs), `:597` (keyHintsForCasting — add manual footer hint), `:622-636` (runConsultationViewer — accept 'manual' implicitly via FlowKind widening)
 - Modify: `packages/casting-ui/src/index.ts` (add `runManualConsultationViewer` export)
 - Modify: `packages/viewer-core/src/...` if `keyHintsForCasting` lives there (verify during implementation)
@@ -586,11 +654,21 @@ In `packages/casting-ui/tests/viewer.test.tsx`, add a new `describe('manual flow
 
 ```ts
 describe('manual flow', () => {
-  it('drives query → 18 casts → save, byte-equivalent to an interactive run', async () => { /* see Phase 7 */ })
-  it('Ctrl+R mid-line clears the current line and returns to cast 0', async () => { /* ... */ })
-  it('Ctrl+R after a line completes rewinds to the previous line', async () => { /* ... */ })
-  it('Ctrl+R at line 0 cast 0 is a no-op', async () => { /* ... */ })
-  it('after Ctrl+R, focus returns to the piles field', async () => { /* ... */ })
+  it('drives query → 18 casts → save, byte-equivalent to an interactive run', async () => {
+    /* see Phase 7 */
+  })
+  it('Ctrl+R mid-line clears the current line and returns to cast 0', async () => {
+    /* ... */
+  })
+  it('Ctrl+R after a line completes rewinds to the previous line', async () => {
+    /* ... */
+  })
+  it('Ctrl+R at line 0 cast 0 is a no-op', async () => {
+    /* ... */
+  })
+  it('after Ctrl+R, focus returns to the piles field', async () => {
+    /* ... */
+  })
 })
 ```
 
@@ -750,6 +828,7 @@ git commit -m "feat(casting-ui): export runManualConsultationViewer"
 ## Phase 5: Shell wiring — menu + nav
 
 **Files:**
+
 - Modify: `packages/shell/src/home-menu.tsx:26-31` (HomeMenuSelection), `:43-48` (MENU_ITEMS)
 - Modify: `packages/shell/src/nav-machine.ts:17` (NavFlowKind), `:37-42` (NavEvent), `:67-84` (navReducer)
 - Modify: `packages/shell/src/hexagram-app.tsx:96-109` (eventForSelection)
@@ -761,16 +840,21 @@ git commit -m "feat(casting-ui): export runManualConsultationViewer"
 
 ```ts
 it('navReducer transitions Home → casting:manual on newManualConsultation', () => {
-  expect(navReducer({ screen: 'home' }, { type: 'newManualConsultation' }))
-    .toEqual({ screen: 'casting', flowKind: 'manual' })
+  expect(
+    navReducer({ screen: 'home' }, { type: 'newManualConsultation' }),
+  ).toEqual({ screen: 'casting', flowKind: 'manual' })
 })
 it('ignores newManualConsultation off Home', () => {
   const state = { screen: 'history' } as const
   expect(navReducer(state, { type: 'newManualConsultation' })).toBe(state)
 })
 it('backToHome from casting:manual returns to Home', () => {
-  expect(navReducer({ screen: 'casting', flowKind: 'manual' }, { type: 'backToHome' }))
-    .toEqual({ screen: 'home' })
+  expect(
+    navReducer(
+      { screen: 'casting', flowKind: 'manual' },
+      { type: 'backToHome' },
+    ),
+  ).toEqual({ screen: 'home' })
 })
 ```
 
@@ -783,11 +867,14 @@ pnpm --filter @hexagram/shell test
 - [ ] **Step 3: Extend types and reducer**
 
 At `:17`:
+
 ```ts
 export type NavFlowKind = 'interactive' | 'random' | 'manual'
 ```
+
 At `:37-42`, add `| { type: 'newManualConsultation' }`.
 In `navReducer`, add the case:
+
 ```ts
 case 'newManualConsultation':
   return state.screen === 'home'
@@ -836,6 +923,7 @@ pnpm --filter @hexagram/shell test tests/home-menu.test.tsx
 - [ ] **Step 3: Extend `HomeMenuSelection` and `MENU_ITEMS`**
 
 At `:26-31`:
+
 ```ts
 export type HomeMenuSelection =
   | 'interactive'
@@ -844,7 +932,9 @@ export type HomeMenuSelection =
   | 'history'
   | 'playground'
 ```
+
 At `:43-48`:
+
 ```ts
 const MENU_ITEMS: readonly MenuItem[] = [
   { value: 'interactive', label: 'New interactive consultation' },
@@ -882,6 +972,7 @@ git commit -m "feat(shell): add manual consultation entry to Home menu"
 ## Phase 6: Bin + tsdown + package.json
 
 **Files:**
+
 - Create: `apps/cli/src/manual.ts`
 - Modify: `apps/cli/tsdown.config.ts`
 - Modify: `apps/cli/package.json`
@@ -896,7 +987,10 @@ git commit -m "feat(shell): add manual consultation entry to Home menu"
 
 import process from 'node:process'
 
-import { resolveWrapWidth, runManualConsultationViewer } from '@hexagram/casting-ui'
+import {
+  resolveWrapWidth,
+  runManualConsultationViewer,
+} from '@hexagram/casting-ui'
 import { isInteractiveEnv } from '@hexagram/viewer-core'
 
 async function main(): Promise<void> {
@@ -991,7 +1085,9 @@ vi.mock('@hexagram/viewer-core', () => ({
 describe('hexagram-manual bin', () => {
   beforeEach(() => {
     mockRun.mockReset()
-    vi.spyOn(process, 'exit').mockImplementation(((code: number) => { throw new Error(`exit:${code}`) }) as never)
+    vi.spyOn(process, 'exit').mockImplementation(((code: number) => {
+      throw new Error(`exit:${code}`)
+    }) as never)
     vi.spyOn(process.stderr, 'write').mockImplementation(() => true)
   })
 
@@ -999,7 +1095,11 @@ describe('hexagram-manual bin', () => {
     const { isInteractiveEnv } = await import('@hexagram/viewer-core')
     ;(isInteractiveEnv as any).mockReturnValue(false)
     await expect(import('../src/manual.js')).rejects.toThrow('exit:1')
-    expect(process.stderr.write).toHaveBeenCalledWith(expect.stringContaining('hexagram-manual requires an interactive terminal'))
+    expect(process.stderr.write).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'hexagram-manual requires an interactive terminal',
+      ),
+    )
   })
 
   it('calls runManualConsultationViewer when interactive', async () => {
@@ -1036,6 +1136,7 @@ git commit -m "test(cli): smoke-test hexagram-manual TTY guard"
 **Why this matters:** Spec Q6 says manual writes the same frontmatter + body as interactive. The test guards against accidentally introducing a provenance field or a flow-conditional save path.
 
 **Files:**
+
 - Modify: `packages/casting-ui/tests/fixtures/cases.ts`
 - Modify: `packages/consultation-file/tests/fixtures/cases.ts` (if both files have a flow indicator — they don't currently; the fixture data is pure `{name, query, hexagram, casting}`, so the "manual variant" is a new test pairing, not a new data row)
 - Add: a `viewer.test.tsx` integration test that drives the same case through both flows and asserts equal saved bytes
@@ -1047,10 +1148,13 @@ git commit -m "test(cli): smoke-test hexagram-manual TTY guard"
 ```ts
 it('manual flow saves a file byte-identical to interactive flow for the same casting record', async () => {
   // Pick one fixture case (e.g., 'no-moving')
-  const targetCase = cases.find(c => c.name === 'no-moving')!
+  const targetCase = cases.find((c) => c.name === 'no-moving')!
 
   // Drive an interactive viewer with the case's picks (per-cast via number-input mode)
-  const interactivePath = await driveCase(targetCase, { flowKind: 'interactive', inputMode: 'number' })
+  const interactivePath = await driveCase(targetCase, {
+    flowKind: 'interactive',
+    inputMode: 'number',
+  })
 
   // Drive a manual viewer with the same picks (decompose each into piles+remainder)
   const manualPath = await driveCase(targetCase, { flowKind: 'manual' })
@@ -1122,6 +1226,7 @@ git commit -m "chore(fixtures): regenerate after manual-flow integration"
 ## Phase 8: Docs + final verification
 
 **Files:**
+
 - Modify: `AGENTS.md` (Commands + Architecture sections)
 - Modify: `packages/shell/package.json` description (if it enumerates flows — currently it does not enumerate, so probably a no-op)
 
@@ -1216,31 +1321,31 @@ After Phase 8 completes:
 
 ## Self-review against the spec
 
-| Spec section | Plan task(s) |
-|---|---|
-| Q1 Input model — two-field | Task 3.2 |
-| Q2 UX shape — live scratchpad | Tasks 3.2 + 4.1 |
-| Q3 Undo — two-line window | Tasks 1.2 + 2.2 + 4.2 |
-| Q4 Query timing — query first | inherited (no reducer change) |
-| Q5 No plain mode | Task 6.1 TTY guard |
-| Q6 No provenance field | Task 7.1 byte-identity test |
-| Q7 Wiring (menu/bin/keybinding) | Tasks 5.2 + 6.1 + 4.2 |
-| `lineRewound` action + reducer | Tasks 1.1 + 1.2 |
-| `rewindCurrentLine()` hook op | Task 2.2 |
-| Manual prompt branch | Task 3.2 |
-| `getCastingPromptHeight()` manual arm | Task 3.1 |
-| `MANUAL_REVEAL_MS` constant | Task 3.1 |
-| Ctrl+R handler in viewer | Task 4.2 |
-| `runManualConsultationViewer` export | Task 4.3 |
-| `apps/cli/src/manual.ts` bin | Task 6.1 |
-| Home menu + nav-machine wiring | Tasks 5.1 + 5.2 |
-| AGENTS.md docs | Task 8.1 |
-| Pure unit tests | Tasks 1.2 + 5.1 |
-| Hook test | Task 2.1 |
-| Component tests (11 items) | Task 3.2 |
-| Viewer integration (rewind scenarios) | Tasks 4.1 + 4.2 |
-| Fixture parity invariant | Task 7.1 |
-| Bin smoke test | Task 6.2 |
-| CI flake simulation | Tasks 3.2 + 5.2 + 8.2 (`test:stress:once` / `test:stress`) |
+| Spec section                          | Plan task(s)                                               |
+| ------------------------------------- | ---------------------------------------------------------- |
+| Q1 Input model — two-field            | Task 3.2                                                   |
+| Q2 UX shape — live scratchpad         | Tasks 3.2 + 4.1                                            |
+| Q3 Undo — two-line window             | Tasks 1.2 + 2.2 + 4.2                                      |
+| Q4 Query timing — query first         | inherited (no reducer change)                              |
+| Q5 No plain mode                      | Task 6.1 TTY guard                                         |
+| Q6 No provenance field                | Task 7.1 byte-identity test                                |
+| Q7 Wiring (menu/bin/keybinding)       | Tasks 5.2 + 6.1 + 4.2                                      |
+| `lineRewound` action + reducer        | Tasks 1.1 + 1.2                                            |
+| `rewindCurrentLine()` hook op         | Task 2.2                                                   |
+| Manual prompt branch                  | Task 3.2                                                   |
+| `getCastingPromptHeight()` manual arm | Task 3.1                                                   |
+| `MANUAL_REVEAL_MS` constant           | Task 3.1                                                   |
+| Ctrl+R handler in viewer              | Task 4.2                                                   |
+| `runManualConsultationViewer` export  | Task 4.3                                                   |
+| `apps/cli/src/manual.ts` bin          | Task 6.1                                                   |
+| Home menu + nav-machine wiring        | Tasks 5.1 + 5.2                                            |
+| AGENTS.md docs                        | Task 8.1                                                   |
+| Pure unit tests                       | Tasks 1.2 + 5.1                                            |
+| Hook test                             | Task 2.1                                                   |
+| Component tests (11 items)            | Task 3.2                                                   |
+| Viewer integration (rewind scenarios) | Tasks 4.1 + 4.2                                            |
+| Fixture parity invariant              | Task 7.1                                                   |
+| Bin smoke test                        | Task 6.2                                                   |
+| CI flake simulation                   | Tasks 3.2 + 5.2 + 8.2 (`test:stress:once` / `test:stress`) |
 
 No spec section is missing a task.

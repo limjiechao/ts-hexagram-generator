@@ -173,7 +173,7 @@ describe('HomeMenu', () => {
     ].map((label) => frame.indexOf(label))
     // Every label must be present (no -1) and in strictly-ascending order.
     expect(positions.every((p) => p >= 0)).toBe(true)
-    expect(positions).toEqual([...positions].sort((a, b) => a - b))
+    expect(positions).toEqual([...positions].toSorted((a, b) => a - b))
     unmount()
   })
 

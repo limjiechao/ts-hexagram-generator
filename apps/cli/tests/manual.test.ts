@@ -1,6 +1,9 @@
+import type { Buffer } from 'node:buffer'
 import { spawn } from 'node:child_process'
 import path from 'node:path'
+import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+
 import { describe, expect, it } from 'vitest'
 
 // `hexagram-manual` is Ink-only — the bin must refuse non-interactive
@@ -28,14 +31,22 @@ function runManual(env: Record<string, string>): Promise<RunResult> {
     // workspace's node_modules/.bin already does the right thing — tsx auto-
     // discovers the nearest tsconfig and resolves the workspace's `source`
     // export condition via the same vitest/Vite plumbing used elsewhere.
-    const tsxBin = path.resolve(here, '..', '..', '..', 'node_modules', '.bin', 'tsx')
+    const tsxBin = path.resolve(
+      here,
+      '..',
+      '..',
+      '..',
+      'node_modules',
+      '.bin',
+      'tsx',
+    )
     const child = spawn(tsxBin, [manualEntry], {
       cwd: cliCwd,
       // Strip every parent env var that would normally enable colour /
       // interactivity. We override one at a time below.
       env: {
-        PATH: process.env['PATH'] ?? '',
-        HOME: process.env['HOME'] ?? '',
+        PATH: process.env.PATH ?? '',
+        HOME: process.env.HOME ?? '',
         ...env,
       },
       stdio: ['pipe', 'pipe', 'pipe'],

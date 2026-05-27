@@ -16,7 +16,7 @@ ts-hexagram-generator/         # workspace root (private)
 │   ├── history-ui/            # @hexagram/history-ui — Ink history browser
 │   └── playground-ui/         # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
 └── apps/
-    └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-history + hexagram-playground bins
+    └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins
 ```
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
@@ -55,6 +55,7 @@ pnpm format:fix         # oxfmt --write at root
 # Run the CLIs directly (no build needed — tsx + the `source` exports condition)
 pnpm hexagram-random        # tsx apps/cli/src/random.ts
 pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
+pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 2-field piles + remainder prompt for physical yarrow casters)
 pnpm hexagram-playground    # tsx apps/cli/src/playground.ts (Ink-only 4-state line explorer)
 pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
 pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
@@ -71,7 +72,10 @@ pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → 
 # `CI=true` is set, so screen-reader and automation environments don't get
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
 # hexagram-history does NOT have a --plain mode — it is Ink-only and exits
-# with an error message and code 1 in non-TTY contexts.
+# with an error message and code 1 in non-TTY contexts. hexagram-manual is
+# also Ink-only and shares the same non-TTY guard; it only honours
+# `--wrap-width <n>` (no `--plain`, no `--numeric-input`, no slider knobs —
+# the manual prompt is its own input branch).
 
 # Per-package operations (use --filter for a single package)
 pnpm --filter @hexagram/core test
@@ -120,11 +124,11 @@ partTheStalks → suspendOneFromTheRight → sortLeftAndRightIntoFours → setAs
 
 Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping them: 6→7, 9→8.
 
-### Random vs. interactive
+### Random vs. interactive vs. manual
 
 - **`packages/core/src/random-casting.ts`** — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record. Pure library code — no CLI entry.
 - **`packages/casting-ui/src/interactive-flow.ts`** — same generator wired to `@inquirer/prompts` for the plain-mode terminal flow (`getHexagramViaInteraction`, `getOneLineViaInteraction`).
-- **`apps/cli/src/{random,interactive}.ts`** — the two bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random-casting` and the viewer + output helpers from `@hexagram/casting-ui`.
+- **`apps/cli/src/{random,interactive,manual}.ts`** — the three bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random-casting` and the viewer + output helpers from `@hexagram/casting-ui`. The manual bin uses the thin `runManualConsultationViewer({ maxWrapWidth })` wrapper exposed by `@hexagram/casting-ui` and refuses non-TTY contexts outright (no `--plain` branch).
 
 `@hexagram/core` also exposes `cryptoRandom()` at `@hexagram/core/crypto-random` — a `[0, 1)` float helper backed by `node:crypto.randomInt`. It's the production RNG behind the home banner's `<AnimatedBanner>` animation, replacing `Math.random` so no flow in the app depends on V8's pseudorandom generator.
 
@@ -140,6 +144,8 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
     Each commit advances the per-line `makeLineGenerator` and fills the matching cell in the table. While casting is in flight, all non-Casting tabs are locked and rendered with `dimColor`; only Escape and Ctrl+C exit.
 
   - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown (so `inputMode` is moot for random).
+
+  - **`flowKind: 'manual'`** — a sibling `<CastingPromptBox>` branch (`ManualCastingPrompt` in `casting-prompt-box.tsx`) for users who cast with physical yarrow stalks. Per cast the user observes the post-sort left-heap on their desk and transcribes two numbers: the count of 4-piles and the leftover remainder (1–4 stalks). The component derives `pick = 4 × piles + remainder`, advances the same `makeLineGenerator` the interactive flow uses, and saves identically (Spec § "No provenance field" — there is a Phase 7 byte-identity test in `packages/casting-ui/tests/viewer.test.tsx` that drives the same 18-pick sequence through both flows and asserts the captured `saveConsultationFile` args are equal). The prompt's layout is title / `Unparted stalks: M` / `Left heap: [piles] piles × 4 + [remainder] remainder` / derived split. Tab cycles focus between the two `<NumberInput>` fields; Enter commits the derived pick when in range; the derived row swaps in place to `→ Round resolved: suspended X · next: Y unparted` for `MANUAL_REVEAL_MS` (=1000 ms, set in `casting-prompt-box.tsx`; tests opt out via `manualRevealMs={0}` on the viewer). `Ctrl+R` rewinds the most-recent completed line (mid-line: wipes the current line; post-line-completion: drops back to the just-completed line). This is a two-line lookback window — the spec's `lineRewound` reducer + the hook's `rewindCurrentLine()` op are the single source of truth. The manual flow is Ink-only: the standalone `hexagram-manual` bin refuses non-TTY (NO_COLOR=1 / CI=true / piped stdout) with the same stderr-and-exit-1 guard as `hexagram-history`. No `--plain`, no `--numeric-input`, no slider knobs.
 
   The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/casting-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
 
@@ -208,7 +214,7 @@ Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ens
 - `packages/consultation-file/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
 - `packages/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry (the public surface re-exports everything consumers need).
 - `packages/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
-- `apps/cli/tsdown.config.ts` — four entries (`hexagram`, `interactive`, `random`, `history`) matching the four `bin` map entries.
+- `apps/cli/tsdown.config.ts` — six entries (`hexagram`, `interactive`, `random`, `manual`, `history`, `playground`) matching the six `bin` map entries.
 
 ### Linting
 

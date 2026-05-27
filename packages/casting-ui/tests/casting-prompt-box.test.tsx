@@ -5,17 +5,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   CastingPromptBox,
-  SliderInput,
   getCastingPromptHeight,
+  SliderInput,
 } from '../src/casting-prompt-box'
-import {
-  CTRL_C,
-  CTRL_R,
-  ENTER,
-  ESCAPE,
-  SPACE,
-  TAB,
-} from './helpers/keystrokes'
+import { CTRL_C, CTRL_R, ENTER, ESCAPE, SPACE, TAB } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
 function CastingPromptBoxHost({
@@ -1015,11 +1008,7 @@ describe('CastingPromptBox (manual flow)', () => {
   it('renders title, unparted, two-field input, and the live derived row', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={() => {}}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
@@ -1039,11 +1028,7 @@ describe('CastingPromptBox (manual flow)', () => {
   it('updates the derived row live as digits are typed into either field', async () => {
     const onReady = vi.fn()
     const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={() => {}}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
     // Piles is the default focused field.
@@ -1065,11 +1050,7 @@ describe('CastingPromptBox (manual flow)', () => {
     // identifies the focused field.
     const onReady = vi.fn()
     const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={() => {}}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
     stdin.write('5')
@@ -1095,11 +1076,7 @@ describe('CastingPromptBox (manual flow)', () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
     const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={onSubmit}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
     )
     await waitForReady(onReady)
     // piles upper bound = floor((39-1)/4) = 9. Pick 9 + 4 = 40 (out of range).
@@ -1123,11 +1100,7 @@ describe('CastingPromptBox (manual flow)', () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
     const { stdin, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={onSubmit}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
     )
     await waitForReady(onReady)
     stdin.write('6') // piles
@@ -1148,11 +1121,7 @@ describe('CastingPromptBox (manual flow)', () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
     const { stdin, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={onSubmit}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
     )
     await waitForReady(onReady)
     stdin.write('0') // piles
@@ -1276,11 +1245,7 @@ describe('CastingPromptBox (manual flow)', () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
     const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        onSubmit={onSubmit}
-        onReady={onReady}
-      />,
+      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
     )
     await waitForReady(onReady)
     const before = lastFrame()
