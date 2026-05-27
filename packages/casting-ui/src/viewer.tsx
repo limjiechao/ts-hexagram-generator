@@ -18,7 +18,7 @@ import {
   type CastingPromptPan,
   type ConsultationSections,
 } from '@hexagram/viewer-core'
-import { render, useApp, type Instance } from 'ink'
+import { render, useApp, useInput, type Instance } from 'ink'
 import {
   useEffect,
   useMemo,
@@ -31,6 +31,7 @@ import stringWidth from 'string-width'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
+  MANUAL_REVEAL_MS,
   SLIDER_COMMIT_REVEAL_MS,
   sliderPromptTitle,
   type SliderAutoLand,
@@ -115,6 +116,16 @@ interface ConsultationViewerProps {
   // it; ignored in `inputMode: 'number'` and during the number-mode random
   // playback (which mounts `<CastingStatus>` instead of the slider prompt).
   onSliderReady?: () => void
+  // Manual-flow reveal duration in ms — how long the manual prompt holds the
+  // post-Enter `→ Round resolved: …` row before firing `onSubmit` upstream.
+  // Defaults to `MANUAL_REVEAL_MS`; tests opt out with `0`. Ignored outside
+  // `flowKind === 'manual'`.
+  manualRevealMs?: number
+  // Manual-flow mount-witness — forwarded to the manual `<CastingPromptBox
+  // onReady>`. Fires once per manual-prompt mount (each cast remounts), so
+  // tests can gate cross-cast Tab/Enter on this signal instead of timing
+  // races. Production callers omit it.
+  onManualPromptReady?: () => void
 }
 
 // Which exit path a pending discard confirmation belongs to. `back` is the
@@ -143,6 +154,8 @@ export function ConsultationViewer({
   exitLabel = 'quit',
   onCastingStatusReady,
   onSliderReady,
+  manualRevealMs = MANUAL_REVEAL_MS,
+  onManualPromptReady,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   // The soft-back destination — the injected `onExit`, or Ink's program exit
@@ -169,9 +182,26 @@ export function ConsultationViewer({
   // its picks and selectable ranges straight from `state.castingPlan`. The
   // hook is still called unconditionally (Rules of Hooks); for a random flow
   // its `submitSplit` is simply never invoked.
-  const { submitSplit, currentMax: interactiveMax } = useLineGenerator(
-    state,
-    dispatch,
+  const {
+    submitSplit,
+    rewindCurrentLine,
+    currentMax: interactiveMax,
+  } = useLineGenerator(state, dispatch)
+
+  // Manual flow's Ctrl+R rewind. Gated to `mode === 'casting' && flowKind
+  // === 'manual'` so it never fires for interactive/random. The ref-mutation
+  // call MUST precede the reducer dispatch — `rewindCurrentLine()` resets
+  // `currentMaxRef.current` synchronously, so the next render (driven by
+  // `dispatch`) already reads the post-rewind max. See spec § "Ctrl+R
+  // handler location" and the use-line-generator hook test.
+  useInput(
+    (input, key) => {
+      if (key.ctrl && input === 'r') {
+        rewindCurrentLine()
+        dispatch({ type: 'lineRewound' })
+      }
+    },
+    { isActive: state.mode === 'casting' && state.flowKind === 'manual' },
   )
 
   // The current cast's selectable range. For the interactive flow it comes
@@ -418,7 +448,7 @@ export function ConsultationViewer({
   const castingPromptHeight = ((): number => {
     if (state.mode !== 'casting') return 0
     if (isNumberRandomPlayback) return getCastingStatusHeight()
-    return getCastingPromptHeight(inputMode, state.error !== null)
+    return getCastingPromptHeight(inputMode, state.error !== null, state.flowKind)
   })()
 
   // Intrinsic content width of the casting prompt box (inside its border) —
@@ -514,6 +544,9 @@ export function ConsultationViewer({
       error={state.error}
       width={innerCols}
       inputMode={inputMode}
+      flowKind={state.flowKind}
+      manualRevealMs={manualRevealMs}
+      unpartedStalks={currentMax + 1}
       tickMs={deriveTickMs(sliderSweepMs, currentMax)}
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}
@@ -522,7 +555,9 @@ export function ConsultationViewer({
       onChange={(value) => dispatch({ type: 'castingBufferChange', value })}
       onSubmit={handleCastSubmit}
       onError={(message) => dispatch({ type: 'castingError', message })}
-      onReady={onSliderReady}
+      onReady={
+        state.flowKind === 'manual' ? onManualPromptReady : onSliderReady
+      }
     />
   )
 
@@ -593,8 +628,23 @@ export function ConsultationViewer({
         state.mode === 'casting'
           ? // The random flow auto-drives the slider — its footer SPACE hint
             // reads "skip" (abandon the rest of the animation); the
-            // interactive flow's reads "part".
-            keyHintsForCasting(inputMode, exitLabel, state.flowKind)
+            // interactive flow's reads "part". The manual flow appends
+            // `· Tab field` always (so the user knows how to switch between
+            // the piles/remainder fields) and `· Ctrl+R rewind line` once
+            // there is something to rewind (any cast committed so far).
+            (() => {
+              const base = keyHintsForCasting(
+                inputMode,
+                exitLabel,
+                state.flowKind,
+              )
+              if (state.flowKind !== 'manual') return base
+              const showRewind =
+                state.lineIndex > 0 || state.castIndex > 0
+              return showRewind
+                ? `${base}   · Tab field   · Ctrl+R rewind line`
+                : `${base}   · Tab field`
+            })()
           : keyHintsFlowDefault(exitLabel)
       }
       inputMode={inputMode}
@@ -629,6 +679,7 @@ export async function runConsultationViewer(
         castBounceMs?: number
         castRevealMs?: number
         sliderCommitRevealMs?: number
+        manualRevealMs?: number
       }
     | ConsultationSections,
   maybeSavedPath?: string,
@@ -645,6 +696,7 @@ export async function runConsultationViewer(
             castBounceMs={argsOrSections.castBounceMs}
             castRevealMs={argsOrSections.castRevealMs}
             sliderCommitRevealMs={argsOrSections.sliderCommitRevealMs}
+            manualRevealMs={argsOrSections.manualRevealMs}
           />,
           { alternateScreen: true },
         )
@@ -657,4 +709,24 @@ export async function runConsultationViewer(
           { alternateScreen: true },
         )
   await instance.waitUntilExit()
+}
+
+/**
+ * Thin convenience wrapper over `runConsultationViewer` for the
+ * `hexagram-manual` bin and composed-shell menu entry. Pinned to
+ * `flowKind: 'manual'`, `inputMode: 'number'` (the manual prompt is its own
+ * branch — `inputMode` is moot, but `'number'` keeps any downstream input-
+ * mode probes consistent). `--wrap-width` is the only knob exposed to the
+ * bin; tests can also pass `manualRevealMs: 0` to bypass the reveal dwell.
+ */
+export async function runManualConsultationViewer(opts: {
+  maxWrapWidth?: number
+  manualRevealMs?: number
+}): Promise<void> {
+  return runConsultationViewer({
+    flowKind: 'manual',
+    inputMode: 'number',
+    maxWrapWidth: opts.maxWrapWidth,
+    manualRevealMs: opts.manualRevealMs,
+  })
 }

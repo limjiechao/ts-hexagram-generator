@@ -43,6 +43,7 @@ export {
 export {
   ConsultationViewer,
   runConsultationViewer,
+  runManualConsultationViewer,
   type FlowKind,
 } from './viewer.js'
 

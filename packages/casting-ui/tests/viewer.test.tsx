@@ -10,6 +10,7 @@ import {
   ARROW_DOWN,
   ARROW_RIGHT,
   CTRL_C,
+  CTRL_R,
   ENTER,
   ESCAPE,
   SPACE,
@@ -1464,5 +1465,227 @@ describe('ConsultationViewer (slider mode)', () => {
     } finally {
       windowSize.current = { columns: 100, rows: 24 }
     }
+  })
+})
+
+describe('ConsultationViewer (manual flow)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+  })
+
+  // Helper: drive one manual cast through the prompt. Uses `onManualPromptReady`
+  // as the witness signal so cross-cast Tab/Enter never lands during the bind
+  // race.
+  async function commitManualCast(
+    stdin: { write: (data: string) => unknown },
+    piles: string,
+    remainder: string,
+    onReady: ReturnType<typeof vi.fn>,
+    expectedReadyCount: number,
+  ): Promise<void> {
+    await waitFor(() =>
+      expect(onReady).toHaveBeenCalledTimes(expectedReadyCount),
+    )
+    stdin.write(piles)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write(remainder)
+    await yieldMacrotask()
+    stdin.write(ENTER)
+  }
+
+  it('reveals the manual prompt once the query is submitted', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('A question')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitForReady(onReady)
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 1/6 · Cast 1/3')
+    expect(frame).toContain('Unparted stalks: 49')
+    expect(frame).toContain('Left heap:')
+    expect(frame).toContain('piles × 4 +')
+    expect(frame).toContain('remainder')
+    expect(frame).toMatch(/range 1 to 48/)
+    unmount()
+  })
+
+  it('advances cast-by-cast as the user transcribes piles + remainder', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    // First cast: pick = 24 (piles=5, remainder=4 → 24)
+    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
+    })
+    unmount()
+  })
+
+  it('Ctrl+R mid-line clears the current line back to cast 1', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    // Commit cast 1, arrive at cast 2.
+    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
+    })
+    // Ctrl+R should rewind to cast 1 of the same line.
+    stdin.write(CTRL_R)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
+    })
+    // The unparted-stalks readout is back to the round-1 49.
+    expect(lastFrame() ?? '').toContain('Unparted stalks: 49')
+    unmount()
+  })
+
+  it('Ctrl+R after a line completes rewinds to the previous line', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    // Complete line 1 with three valid casts. The exact picks don't matter
+    // for this test as long as the generator advances cleanly through them.
+    // (5, 4) → 24; (5, 3) → 23-ish for round 2; (4, 1) for round 3 of line 1.
+    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await commitManualCast(stdin, '5', '3', onReady, 2)
+    await commitManualCast(stdin, '4', '1', onReady, 3)
+    // Line 2 cast 1 should now be on screen.
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 2/6 · Cast 1/3')
+    })
+    // Ctrl+R: per spec, with castIndex=0 and lineIndex=1, rewind drops back
+    // to line 1 cast 1 (the most recently completed line).
+    stdin.write(CTRL_R)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
+    })
+    unmount()
+  })
+
+  it('Ctrl+R at line 1 cast 1 is a no-op', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitForReady(onReady)
+    const before = lastFrame() ?? ''
+    stdin.write(CTRL_R)
+    await yieldMacrotask()
+    // Frame unchanged — still Line 1/6 · Cast 1/3, no rewind occurred.
+    expect(lastFrame() ?? '').toBe(before)
+    expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
+    unmount()
+  })
+
+  it('after a Ctrl+R rewind, the first digit lands in the piles field', async () => {
+    // Focus regression — Ctrl+R must remount the prompt with focusedField =
+    // 'piles' so the next keystroke writes into piles. Verifiable via the
+    // derived row: after rewind, type '5' → derived row shows piles=5 (the
+    // range hint still shows piles missing remainder, but the buffer hit
+    // piles, not remainder).
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
+    })
+    stdin.write(CTRL_R)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
+    })
+    // After rewind, the prompt remounts → piles is focused. '7' lands in
+    // piles. Tab → remainder; '2' lands in remainder. The derived row reads
+    // split = 4*7+2 = 30.
+    stdin.write('7')
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await yieldMacrotask()
+    stdin.write('2')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/→ split = 30 \(range 1 to 48\)/)
+    })
+    unmount()
+  })
+
+  it('the casting footer carries the Tab field + Ctrl+R rewind line hints', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('Q')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitForReady(onReady)
+    // At line 1 cast 1 the rewind hint is suppressed (nothing to rewind).
+    const initialFrame = lastFrame() ?? ''
+    expect(initialFrame).toContain('Tab field')
+    expect(initialFrame).not.toContain('Ctrl+R rewind line')
+    // After committing one cast, Ctrl+R is meaningful → hint appears.
+    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Ctrl+R rewind line')
+    })
+    unmount()
   })
 })
