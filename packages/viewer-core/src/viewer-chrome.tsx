@@ -38,7 +38,7 @@ export const KEY_HINTS_TEMPLATE = (): string =>
  * `casting-ui`'s `FlowKind` without importing it (keeps `viewer-core` free of
  * a `casting-ui` dependency — the chrome is shared infrastructure).
  */
-export type CastingFlowKind = 'interactive' | 'random'
+export type CastingFlowKind = 'interactive' | 'random' | 'manual'
 
 /**
  * Footer key hints during the casting phase. The slider's load-bearing key

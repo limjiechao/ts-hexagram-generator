@@ -4,8 +4,14 @@ import { describe, expect, it } from 'vitest'
 import {
   flowReducer,
   initialFlowState,
+  type FlowKind,
   type FlowState,
 } from '../src/viewer-flow'
+
+it('FlowKind admits "manual"', () => {
+  const kind: FlowKind = 'manual'
+  expect(kind).toBe('manual')
+})
 
 // The flow reducer is PURE — no React, no Ink, no crypto. These tests
 // construct a `FlowState` and dispatch actions directly. The random

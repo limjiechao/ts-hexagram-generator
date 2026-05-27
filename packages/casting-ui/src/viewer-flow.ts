@@ -27,7 +27,7 @@ export interface CastingPlan {
 // plain action dispatch and so the orchestrator file stays focused on the
 // imperative bits (generator threading, useInput, JSX).
 
-export type FlowKind = 'interactive' | 'random'
+export type FlowKind = 'interactive' | 'random' | 'manual'
 export type FlowMode = 'awaitingQuery' | 'casting' | 'computing' | 'done'
 
 export interface FlowState {
