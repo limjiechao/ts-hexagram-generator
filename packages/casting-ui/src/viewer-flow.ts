@@ -69,6 +69,13 @@ export type FlowAction =
       savedPath: string
     }
   | { type: 'computeFailed'; error: Error }
+  // Manual-flow rewind. The viewer calls `rewindCurrentLine()` on the
+  // line-generator hook first (sync ref reset), then dispatches this action so
+  // the next render's `currentMax` already reflects the reset. Mid-line
+  // rewinds clear the current line's casts; post-line-completion rewinds drop
+  // back to the previous line. No-op outside `mode === 'casting'`, when
+  // `flowKind !== 'manual'`, or at line 0 cast 0.
+  | { type: 'lineRewound' }
 
 // Use the same ANSI-pattern regex as `viewer-layout.ts` to avoid duplicating
 // the suppression. Inlined here so this module has no dependency on the
@@ -191,6 +198,47 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         completedLines,
         lineIndex: nextLineIndex,
         castIndex: nextCastIndex,
+        castingBuffer: '',
+        error: null,
+      }
+    }
+    case 'lineRewound': {
+      if (state.mode !== 'casting') return state
+      if (state.flowKind !== 'manual') return state
+
+      // Two-line undo window: mid-line wipes the current line; once the user
+      // has just completed a line (castIndex 0 of the next line), step back to
+      // that completed line. See spec § "Ctrl+R semantics".
+      const targetLineIndex =
+        state.castIndex === 0 && state.lineIndex > 0
+          ? ((state.lineIndex - 1) as FlowState['lineIndex'])
+          : state.lineIndex
+
+      // Boundary: line 0 cast 0 has nothing to rewind.
+      if (targetLineIndex === state.lineIndex && state.castIndex === 0) {
+        return state
+      }
+
+      const partialCasting = state.partialCasting.map(
+        (line, lineIndex) =>
+          (lineIndex === targetLineIndex
+            ? [null, null, null]
+            : line) as PartialCastingRecord[number],
+      ) as PartialCastingRecord
+
+      // Cross-line rewind drops the last completed line; mid-line rewind
+      // leaves `completedLines` alone (the current line never made it in).
+      const completedLines =
+        targetLineIndex < state.lineIndex
+          ? state.completedLines.slice(0, -1)
+          : state.completedLines
+
+      return {
+        ...state,
+        partialCasting,
+        completedLines,
+        lineIndex: targetLineIndex,
+        castIndex: 0,
         castingBuffer: '',
         error: null,
       }

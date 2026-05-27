@@ -219,3 +219,99 @@ describe('flowReducer — playbackSkipped', () => {
     expect(state.castingPlan).toBe(STUB_PLAN)
   })
 })
+
+describe('flowReducer — lineRewound', () => {
+  const inCastingMode = (overrides: Partial<FlowState> = {}): FlowState => ({
+    ...initialFlowState('manual', null, null),
+    mode: 'casting',
+    query: 'Will the rains come?',
+    ...overrides,
+  })
+
+  it("clears the current line's casts on a mid-line rewind", () => {
+    const state = inCastingMode({
+      lineIndex: 2,
+      castIndex: 2,
+      partialCasting: [
+        [
+          { pick: 21, max: 48 },
+          { pick: 17, max: 43 },
+          { pick: 9, max: 39 },
+        ],
+        [
+          { pick: 22, max: 48 },
+          { pick: 12, max: 40 },
+          { pick: 8, max: 36 },
+        ],
+        [{ pick: 19, max: 48 }, { pick: 14, max: 42 }, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ],
+      completedLines: [7, 8],
+      castingBuffer: 'leftover',
+      error: 'stale error',
+    })
+    const next = flowReducer(state, { type: 'lineRewound' })
+    expect(next.lineIndex).toBe(2)
+    expect(next.castIndex).toBe(0)
+    expect(next.partialCasting[2]).toEqual([null, null, null])
+    // Earlier completed lines stay intact — only the current (in-progress) one cleared.
+    expect(next.partialCasting[0]).toEqual(state.partialCasting[0])
+    expect(next.partialCasting[1]).toEqual(state.partialCasting[1])
+    expect(next.completedLines).toEqual([7, 8])
+    expect(next.castingBuffer).toBe('')
+    expect(next.error).toBeNull()
+  })
+
+  it('rewinds to the previous line when called immediately after a line completes', () => {
+    const state = inCastingMode({
+      lineIndex: 2,
+      castIndex: 0,
+      partialCasting: [
+        [
+          { pick: 21, max: 48 },
+          { pick: 17, max: 43 },
+          { pick: 9, max: 39 },
+        ],
+        [
+          { pick: 22, max: 48 },
+          { pick: 12, max: 40 },
+          { pick: 8, max: 36 },
+        ],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+        [null, null, null],
+      ],
+      completedLines: [7, 8],
+    })
+    const next = flowReducer(state, { type: 'lineRewound' })
+    expect(next.lineIndex).toBe(1)
+    expect(next.castIndex).toBe(0)
+    expect(next.partialCasting[1]).toEqual([null, null, null])
+    expect(next.partialCasting[0]).toEqual(state.partialCasting[0])
+    expect(next.completedLines).toEqual([7])
+  })
+
+  it('is a no-op at line 0 cast 0', () => {
+    const state = inCastingMode()
+    const next = flowReducer(state, { type: 'lineRewound' })
+    expect(next).toBe(state)
+  })
+
+  it('is a no-op when flowKind !== manual', () => {
+    const state = inCastingMode({ flowKind: 'interactive', castIndex: 2 })
+    const next = flowReducer(state, { type: 'lineRewound' })
+    expect(next).toBe(state)
+  })
+
+  it('is a no-op when mode !== casting', () => {
+    const state: FlowState = {
+      ...inCastingMode({ castIndex: 2 }),
+      mode: 'done',
+    }
+    const next = flowReducer(state, { type: 'lineRewound' })
+    expect(next).toBe(state)
+  })
+})
