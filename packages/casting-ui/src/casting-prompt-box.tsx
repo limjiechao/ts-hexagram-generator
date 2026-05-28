@@ -1054,6 +1054,72 @@ export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
   return combined
 }
 
+interface QuestionPanelRowsArgs {
+  focusedField: ManualFocusedField
+  unpartedStalks: number
+  state: ManualDiagramState
+}
+
+function questionForField(field: ManualFocusedField): string {
+  switch (field) {
+    case 'pilesL': return 'How many piles of 4 stalks in the LEFT heap?'
+    case 'remL':   return 'How many leftover stalks in the LEFT heap?'
+    case 'pilesR': return 'How many piles of 4 stalks in the RIGHT heap?'
+    case 'remR':   return 'How many leftover stalks in the RIGHT heap?'
+  }
+}
+
+/**
+ * Right-half question + dim range hint (editing) or the calm `Resolved.` /
+ * blank / `Enter to advance (or wait 2.5 s)` triple (resolved). Always
+ * returns exactly 3 rows so the row builder slots into the prompt's 6-row
+ * body alongside the 3-row `focusedInputBoxRows`.
+ *
+ * Dim ANSI is `\x1b[2m...\x1b[22m` (matches Ink's `<Text dimColor>` output).
+ */
+export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
+  const { focusedField, unpartedStalks, state } = args
+  if (state === 'resolved') {
+    return ['Resolved.', '', 'Enter to advance (or wait 2.5 s)']
+  }
+  const pilesMax = Math.max(0, Math.floor(unpartedStalks / 4))
+  const hint =
+    focusedField === 'pilesL' || focusedField === 'pilesR'
+      ? `valid 0 to ${pilesMax}`
+      : 'valid 1 to 4'
+  return [
+    questionForField(focusedField),
+    '',
+    `\x1b[2m${hint}\x1b[22m`,
+  ]
+}
+
+interface FocusedInputBoxRowsArgs {
+  value: string
+  focused: boolean
+}
+
+/**
+ * The manual prompt's current-value display — a 3-row drawn box. 8-col
+ * interior; the value sits left-of-centre with the cursor (an inverse
+ * space) right after when `focused`. Pure text — no `<NumberInput>` here;
+ * digit handling lives in the parent `useInput` after the Phase 7 rewrite.
+ */
+export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
+  const interior = 8
+  const top = `┌${'─'.repeat(interior)}┐`
+  const bottom = `└${'─'.repeat(interior)}┘`
+  const cursor = args.focused ? '\x1b[7m \x1b[27m' : ' '
+  // value + cursor sits inside `interior` cols; cursor is 1 display col.
+  const valueCols = args.value.length
+  const cursorCols = 1
+  // 3-col left margin; trailing pad fills the remainder.
+  const leading = 3
+  const trailingPad = Math.max(0, interior - leading - valueCols - cursorCols)
+  const middle = `│${' '.repeat(leading)}${args.value}${cursor}${' '.repeat(trailingPad)}│`
+  return [top, middle, bottom]
+}
+
 interface ManualCastingPromptProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2

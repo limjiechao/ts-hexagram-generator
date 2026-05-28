@@ -5,8 +5,10 @@ import { describe, expect, it, vi } from 'vitest'
 
 import {
   CastingPromptBox,
+  focusedInputBoxRows,
   getCastingPromptHeight,
   manualTitleRow,
+  questionPanelRows,
   SliderInput,
   twoHeapDiagramRows,
   validateManualInput,
@@ -221,6 +223,90 @@ describe('twoHeapDiagramRows', () => {
     for (const row of rows) {
       expect(row).not.toMatch(/\x1b\[7m/)
     }
+  })
+})
+
+describe('questionPanelRows', () => {
+  it('returns 3 rows: question / blank / dim hint for each field', () => {
+    const rows = questionPanelRows({
+      focusedField: 'pilesL',
+      unpartedStalks: 49,
+      state: 'editing',
+    })
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toContain('How many piles of 4 stalks in the LEFT heap?')
+    // Dim ANSI on the range hint row.
+    expect(rows[2]).toContain('\x1b[2m')
+    expect(rows[2]).toContain('valid 0 to 12')
+    expect(rows[2]).toContain('\x1b[22m')
+  })
+
+  it('emits valid 1 to 4 for remainder fields', () => {
+    const rows = questionPanelRows({
+      focusedField: 'remR',
+      unpartedStalks: 49,
+      state: 'editing',
+    })
+    expect(rows[2]).toContain('valid 1 to 4')
+  })
+
+  it('returns the Resolved. three-line block in resolved state', () => {
+    const rows = questionPanelRows({
+      focusedField: 'remR',
+      unpartedStalks: 49,
+      state: 'resolved',
+    })
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toContain('Resolved.')
+    expect(rows[1]?.trim()).toBe('')
+    expect(rows[2]).toContain('Enter to advance (or wait 2.5 s)')
+    expect(rows.join('\n')).not.toMatch(/valid \d+ to \d+/)
+  })
+
+  it('renders the LEFT heap pile question for pilesL', () => {
+    const rows = questionPanelRows({
+      focusedField: 'pilesL',
+      unpartedStalks: 49,
+      state: 'editing',
+    })
+    expect(rows[0]).toContain('LEFT heap')
+    expect(rows[0]).toContain('piles')
+  })
+
+  it('renders the RIGHT heap leftover question for remR', () => {
+    const rows = questionPanelRows({
+      focusedField: 'remR',
+      unpartedStalks: 49,
+      state: 'editing',
+    })
+    expect(rows[0]).toContain('RIGHT heap')
+    expect(rows[0]).toContain('leftover')
+  })
+})
+
+describe('focusedInputBoxRows', () => {
+  it('returns 3 rows: top border, value + cursor, bottom border', () => {
+    const rows = focusedInputBoxRows({ value: '1', focused: true })
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toMatch(/┌─+┐/)
+    expect(rows[2]).toMatch(/└─+┘/)
+    expect(rows[1]).toContain('│')
+    expect(rows[1]).toContain('1')
+    expect(rows[1]).toMatch(/\x1b\[7m \x1b\[27m/)
+  })
+
+  it('renders an empty value with cursor-only middle row', () => {
+    const rows = focusedInputBoxRows({ value: '', focused: true })
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toMatch(/┌─+┐/)
+    expect(rows[1]).toContain('│')
+    expect(rows[1]).toMatch(/\x1b\[7m \x1b\[27m/)
+  })
+
+  it('omits cursor when focused = false', () => {
+    const rows = focusedInputBoxRows({ value: '3', focused: false })
+    expect(rows[1]).toContain('3')
+    expect(rows[1]).not.toMatch(/\x1b\[7m/)
   })
 })
 
