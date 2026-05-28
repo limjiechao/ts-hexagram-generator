@@ -8,6 +8,7 @@ import {
   getCastingPromptHeight,
   manualTitleRow,
   SliderInput,
+  twoHeapDiagramRows,
   validateManualInput,
 } from '../src/casting-prompt-box'
 import { CTRL_C, CTRL_R, ENTER, ESCAPE, SPACE, TAB } from './helpers/keystrokes'
@@ -135,6 +136,91 @@ describe('manualTitleRow', () => {
     expect(manualTitleRow(3, 1, 'remR')).toBe(
       'Line 3/6 · Cast 2/3   ●●●●   step 4 of 4',
     )
+  })
+})
+
+describe('twoHeapDiagramRows', () => {
+  it('returns 5 rows; cells render ? for null, value for typed, inverse for active', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 5,
+      remL: 1,
+      pilesR: null,
+      remR: null,
+      focusedField: 'remL',
+      state: 'editing',
+    })
+    expect(rows).toHaveLength(5)
+    // Header row mentions both heaps.
+    expect(rows[0]).toContain('LEFT HEAP')
+    expect(rows[0]).toContain('RIGHT HEAP')
+    // Piles row: 5 (LEFT) and ? (RIGHT).
+    expect(rows[1]).toMatch(/piles\s+5/)
+    expect(rows[1]).toMatch(/piles\s+\?/)
+    // Rem row: active LEFT cell wears inverse-video ANSI; RIGHT is ?.
+    expect(rows[2]).toMatch(/rem\.\s+\x1b\[7m1\x1b\[27m/)
+    expect(rows[2]).toMatch(/rem\.\s+\?/)
+    // Totals: LEFT = 4·5 + 1 = 21; RIGHT = ?.
+    expect(rows[3]).toContain('= 21 stalks')
+    expect(rows[3]).toContain('= ? stalks')
+    // Footer.
+    expect(rows[4]).toContain('└')
+  })
+
+  it('wraps every row in BOLD_GREEN ... NORMAL when state === resolved', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 5,
+      remL: 4,
+      pilesR: 5,
+      remR: 4,
+      focusedField: 'remR',
+      state: 'resolved',
+    })
+    for (const row of rows) {
+      expect(row).toContain('\x1b[1;92m')
+      expect(row).toContain('\x1b[0m')
+    }
+    // No inverse video in resolved state.
+    for (const row of rows) {
+      expect(row).not.toMatch(/\x1b\[7m/)
+    }
+  })
+
+  it('renders an inverse-space cursor when the active cell is empty', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: null,
+      remL: null,
+      pilesR: null,
+      remR: null,
+      focusedField: 'pilesL',
+      state: 'editing',
+    })
+    expect(rows[1]).toMatch(/piles\s+\x1b\[7m \x1b\[27m/)
+  })
+
+  it('totals row uses ? when any component is null', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 3,
+      remL: null,
+      pilesR: null,
+      remR: 4,
+      focusedField: 'pilesR',
+      state: 'editing',
+    })
+    expect(rows[3]).toContain('= ? stalks')
+  })
+
+  it('no inverse styling when state === error (the bottom strip carries the cue)', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 5,
+      remL: 2,
+      pilesR: 4,
+      remR: 3,
+      focusedField: 'remR',
+      state: 'error',
+    })
+    for (const row of rows) {
+      expect(row).not.toMatch(/\x1b\[7m/)
+    }
   })
 })
 

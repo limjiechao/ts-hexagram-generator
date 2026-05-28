@@ -951,6 +951,109 @@ export function manualTitleRow(
   return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   step ${stepIndex + 1} of 4`
 }
 
+// State discriminant shared between the diagram, question panel, and bottom
+// strip row builders. Drives editing → error → resolved styling cues
+// (inverse-video on active cells, BOLD_GREEN wraps, etc).
+export type ManualDiagramState = 'editing' | 'error' | 'resolved'
+
+interface TwoHeapDiagramRowsArgs {
+  pilesL: number | null
+  remL: number | null
+  pilesR: number | null
+  remR: number | null
+  focusedField: ManualFocusedField
+  state: ManualDiagramState
+}
+
+// Card interior width (between the two vertical pipes). 13 cols accommodates
+// `LEFT HEAP` / `RIGHT HEAP` headers, `= XX stalks` totals (max 2 digits), and
+// the field rows.
+const HEAP_CARD_INTERIOR = 13
+
+// One ANSI inverse-video cell. Empty value renders a single inverse space
+// so an active cell never collapses (the cursor is always visible).
+function inverseCell(value: number | null): string {
+  const inner = value === null ? ' ' : String(value)
+  return `\x1b[7m${inner}\x1b[27m`
+}
+
+// Plain (no styling) representation: integer for non-null, `?` for null.
+function plainCell(value: number | null): string {
+  return value === null ? '?' : String(value)
+}
+
+function cellText(
+  value: number | null,
+  field: ManualFocusedField,
+  focusedField: ManualFocusedField,
+  state: ManualDiagramState,
+): string {
+  if (focusedField === field && state === 'editing') return inverseCell(value)
+  return plainCell(value)
+}
+
+// Build a single card's 5 rows (header / piles / rem / totals / footer).
+// Each text-content row has a leading `│` + interior + trailing `│`.
+function buildCardRows(
+  header: string,
+  pilesCell: string,
+  remCell: string,
+  totalLabel: string,
+): readonly string[] {
+  // Header: `┌─ HEADER ─...─┐` — fills interior with dashes around the header.
+  const headerInner = ` ${header} `
+  const dashCount = Math.max(0, HEAP_CARD_INTERIOR - headerInner.length)
+  // Centre-ish: leading 2 dashes + ` HEADER ` + trailing dashes.
+  const leadingDashes = '─'.repeat(2)
+  const trailingDashes = '─'.repeat(Math.max(0, dashCount - 2))
+  const headerRow = `┌${leadingDashes}${headerInner}${trailingDashes}┐`
+
+  // Field row: `│  LABEL    {cell}   │`. The pre-cell padding (`  LABEL    `)
+  // is 11 chars (label is e.g. `piles` or `rem.`, padded to 5 + trailing 4
+  // spaces). The trailing space count is `interior - 11 - displayWidth(cell)`.
+  const buildField = (label: string, cell: string): string => {
+    const labelPadded = `  ${label}`.padEnd(11, ' ')
+    const cellWidth = stringWidth(cell)
+    const trailing = Math.max(0, HEAP_CARD_INTERIOR - 11 - cellWidth)
+    return `│${labelPadded}${cell}${' '.repeat(trailing)}│`
+  }
+
+  // Totals row: `│  = X stalks  │` — pad to interior width.
+  const totalContent = `  = ${totalLabel} stalks`
+  const totalsTrail = Math.max(0, HEAP_CARD_INTERIOR - totalContent.length)
+  const totalsRow = `│${totalContent}${' '.repeat(totalsTrail)}│`
+
+  const footerRow = `└${'─'.repeat(HEAP_CARD_INTERIOR)}┘`
+
+  return [headerRow, buildField('piles', pilesCell), buildField('rem.', remCell), totalsRow, footerRow]
+}
+
+/**
+ * Build the 5-row LEFT + RIGHT heap card pair as pre-rendered text rows.
+ * Each returned row contains both cards joined by a 4-col gap. Active cells
+ * render inverse-video; resolved state wraps each row in BOLD_GREEN ... NORMAL.
+ * Pure function — no Ink involvement.
+ */
+export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
+  const { pilesL, remL, pilesR, remR, focusedField, state } = args
+  const pilesLCell = cellText(pilesL, 'pilesL', focusedField, state)
+  const remLCell = cellText(remL, 'remL', focusedField, state)
+  const pilesRCell = cellText(pilesR, 'pilesR', focusedField, state)
+  const remRCell = cellText(remR, 'remR', focusedField, state)
+  const leftTotalLabel =
+    pilesL === null || remL === null ? '?' : String(4 * pilesL + remL)
+  const rightTotalLabel =
+    pilesR === null || remR === null ? '?' : String(4 * pilesR + remR)
+  const leftRows = buildCardRows('LEFT HEAP', pilesLCell, remLCell, leftTotalLabel)
+  const rightRows = buildCardRows('RIGHT HEAP', pilesRCell, remRCell, rightTotalLabel)
+  const gap = '    '
+  const combined = leftRows.map((row, i) => `${row}${gap}${rightRows[i]!}`)
+  if (state === 'resolved') {
+    return combined.map((row) => `${BOLD_GREEN}${row}${NORMAL}`)
+  }
+  return combined
+}
+
 interface ManualCastingPromptProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
