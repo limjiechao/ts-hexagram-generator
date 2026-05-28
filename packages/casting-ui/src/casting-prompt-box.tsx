@@ -986,7 +986,13 @@ function computeManualRoundResult(
 export type ManualValidationResult =
   | { kind: 'incomplete' }
   | { kind: 'zero-remainder'; remL: number; remR: number }
-  | { kind: 'conservation'; total: number; unparted: number }
+  | {
+      kind: 'conservation'
+      total: number
+      unparted: number
+      leftHeapTotal: number
+      rightHeapTotal: number
+    }
   | {
       kind: 'suspended-sum'
       sum: number
@@ -1030,7 +1036,7 @@ export function validateManualInput(args: {
   // stalk must sum to the round's unparted count.
   const total = leftHeapTotal + rightHeapTotal + 1
   if (total !== unparted) {
-    return { kind: 'conservation', total, unparted }
+    return { kind: 'conservation', total, unparted, leftHeapTotal, rightHeapTotal }
   }
   // Suspended sum: the I-Ching invariant. Round 1 expects {5, 9};
   // rounds 2/3 expect {4, 8}. (The 1-from-right is folded in via the +1

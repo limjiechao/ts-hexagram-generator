@@ -1020,7 +1020,13 @@ describe('validateManualInput', () => {
       unparted: 49,
       castIndex: 0,
     })
-    expect(result).toEqual({ kind: 'conservation', total: 45, unparted: 49 })
+    expect(result).toEqual({
+      kind: 'conservation',
+      total: 45,
+      unparted: 49,
+      leftHeapTotal: 24,
+      rightHeapTotal: 20,
+    })
   })
 
   it('reports suspended-sum failure when conservation passes but the suspended sum is off', () => {
@@ -1136,6 +1142,25 @@ describe('validateManualInput', () => {
       leftHeapTotal: 24,
       rightHeapTotal: 24,
     })
+  })
+
+  it('conservation result carries heap totals for downstream rendering', () => {
+    // pL=5, rL=2 → left = 22; pR=4, rR=3 → right = 19;
+    // total = 22 + 19 + 1 = 42 ≠ 40 → conservation fires.
+    const result = validateManualInput({
+      pilesL: 5,
+      remL: 2,
+      pilesR: 4,
+      remR: 3,
+      unparted: 40,
+      castIndex: 1,
+    })
+    expect(result.kind).toBe('conservation')
+    if (result.kind !== 'conservation') return
+    expect(result.total).toBe(42)
+    expect(result.unparted).toBe(40)
+    expect(result.leftHeapTotal).toBe(22)
+    expect(result.rightHeapTotal).toBe(19)
   })
 })
 
