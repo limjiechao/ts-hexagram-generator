@@ -1106,44 +1106,41 @@ interface QuestionPanelRowsArgs {
   state: ManualDiagramState
 }
 
-// Each question is pre-wrapped to two lines so the right pane fits within
-// ~28 display cols (per spec — see the rendered-state mockup, where the
-// question reads "How many leftover stalks" / "in the LEFT heap?" stacked).
-function questionLinesForField(
-  field: ManualFocusedField,
-): readonly [string, string] {
+function questionLineForField(field: ManualFocusedField): string {
   switch (field) {
     case 'pilesL':
-      return ['How many piles of 4 stalks', 'in the LEFT heap?']
+      return 'How many piles of 4 stalks in the LEFT heap?'
     case 'remL':
-      return ['How many leftover stalks', 'in the LEFT heap?']
+      return 'How many leftover stalks in the LEFT heap?'
     case 'pilesR':
-      return ['How many piles of 4 stalks', 'in the RIGHT heap?']
+      return 'How many piles of 4 stalks in the RIGHT heap?'
     case 'remR':
-      return ['How many leftover stalks', 'in the RIGHT heap?']
+      return 'How many leftover stalks in the RIGHT heap?'
   }
 }
 
 /**
- * Right-half question (pre-wrapped to 2 lines) + dim range hint (editing) or
- * the calm `Resolved.` / blank / `Enter to advance (or wait 2.5 s)` triple
- * (resolved). Always returns exactly 3 rows so the row builder slots into the
- * prompt's 6-row body alongside the 3-row `focusedInputBoxRows`.
+ * Right-half question + dim parenthesised range hint (editing), or the calm
+ * `Resolved.` / `Enter to advance` 2-line summary (resolved). Always returns
+ * exactly 2 rows; the caller (`<ManualCastingPrompt>`) pads the right pane
+ * to 6 rows with the 3-row input box + a trailing blank.
  *
- * Dim ANSI is `\u001B[2m...\u001B[22m` (matches Ink's `<Text dimColor>` output).
+ * Dim ANSI is `\u001B[2m...\u001B[22m` (matches Ink's `<Text dimColor>`).
  */
 export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
   const { focusedField, unpartedStalks, state } = args
   if (state === 'resolved') {
-    return ['Resolved.', '', 'Enter to advance (or wait 2.5 s)']
+    return ['Resolved.', 'Enter to advance (or wait 2.5 s)']
   }
   const pilesMax = Math.max(0, Math.floor(unpartedStalks / 4))
-  const hint =
+  const hintText =
     focusedField === 'pilesL' || focusedField === 'pilesR'
-      ? `valid 0 to ${pilesMax}`
-      : 'valid 1 to 4'
-  const [line1, line2] = questionLinesForField(focusedField)
-  return [line1, line2, `\u001B[2m${hint}\u001B[22m`]
+      ? `(valid 0 to ${pilesMax})`
+      : '(valid 1 to 4)'
+  return [
+    questionLineForField(focusedField),
+    `\u001B[2m${hintText}\u001B[22m`,
+  ]
 }
 
 interface FocusedInputBoxRowsArgs {
@@ -1761,7 +1758,8 @@ function ManualCastingPrompt({
   const diagramWidth = (HEAP_CARD_INTERIOR + 2) * 2 + 4
   const diagramPaddedRows = diagramRows
 
-  // Right pane: 3 question rows + 3 input box rows. During the resolved
+  // Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
+  // rows, aligned with the 6 diagram rows on the left half. During the resolved
   // dwell the input box collapses to blanks (the Resolved. / Enter to
   // advance question panel already occupies the visual focus).
   const qRows = questionPanelRows({
@@ -1781,7 +1779,9 @@ function ManualCastingPrompt({
           focused: true,
         })
       : ['', '', '']
-  const rightRows = [...qRows, ...inputRows]
+  // Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
+  // rows, aligned with the 6 diagram rows on the left half.
+  const rightRows = [...qRows, ...inputRows, '']
 
   // Compose each body row from a left half (diagram, display width
   // `diagramWidth`) and a right half (question/input), gap = 4. Pad the

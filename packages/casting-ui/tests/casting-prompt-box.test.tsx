@@ -276,62 +276,64 @@ describe('twoHeapDiagramRows', () => {
 })
 
 describe('questionPanelRows', () => {
-  it('returns 3 rows: question line 1 / question line 2 / dim hint', () => {
+  it('returns a single-line question + parens range hint for each piles field', () => {
     const rows = questionPanelRows({
       focusedField: 'pilesL',
       unpartedStalks: 49,
       state: 'editing',
     })
-    expect(rows).toHaveLength(3)
-    // Question pre-wrapped to two lines so the right pane fits ~28 cols.
-    expect(rows[0]).toContain('How many piles of 4 stalks')
-    expect(rows[1]).toContain('in the LEFT heap?')
-    // Dim ANSI on the range hint row.
-    expect(rows[2]).toContain('\u001B[2m')
-    expect(rows[2]).toContain('valid 0 to 12')
-    expect(rows[2]).toContain('\u001B[22m')
+    expect(rows).toHaveLength(2)
+    expect(rows[0]).toBe('How many piles of 4 stalks in the LEFT heap?')
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/^\u001B\[2m\(valid 0 to 12\)\u001B\[22m$/)
   })
 
-  it('emits valid 1 to 4 for remainder fields', () => {
+  it('returns single-line question for each remainder field', () => {
     const rows = questionPanelRows({
-      focusedField: 'remR',
+      focusedField: 'remL',
       unpartedStalks: 49,
       state: 'editing',
     })
-    expect(rows[2]).toContain('valid 1 to 4')
+    expect(rows[0]).toBe('How many leftover stalks in the LEFT heap?')
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/^\u001B\[2m\(valid 1 to 4\)\u001B\[22m$/)
   })
 
-  it('returns the Resolved. three-line block in resolved state', () => {
-    const rows = questionPanelRows({
-      focusedField: 'remR',
-      unpartedStalks: 49,
-      state: 'resolved',
-    })
-    expect(rows).toHaveLength(3)
-    expect(rows[0]).toContain('Resolved.')
-    expect(rows[1]?.trim()).toBe('')
-    expect(rows[2]).toContain('Enter to advance (or wait 2.5 s)')
-    expect(rows.join('\n')).not.toMatch(/valid \d+ to \d+/)
+  it('returns RIGHT-heap variants', () => {
+    expect(
+      questionPanelRows({
+        focusedField: 'pilesR',
+        unpartedStalks: 49,
+        state: 'editing',
+      })[0],
+    ).toBe('How many piles of 4 stalks in the RIGHT heap?')
+    expect(
+      questionPanelRows({
+        focusedField: 'remR',
+        unpartedStalks: 49,
+        state: 'editing',
+      })[0],
+    ).toBe('How many leftover stalks in the RIGHT heap?')
   })
 
-  it('renders the LEFT heap pile question for pilesL', () => {
+  it('computes piles range from unparted/4', () => {
     const rows = questionPanelRows({
       focusedField: 'pilesL',
-      unpartedStalks: 49,
+      unpartedStalks: 40,
       state: 'editing',
     })
-    expect(rows[0]).toContain('piles')
-    expect(rows[1]).toContain('LEFT heap')
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/\(valid 0 to 10\)/)
   })
 
-  it('renders the RIGHT heap leftover question for remR', () => {
-    const rows = questionPanelRows({
-      focusedField: 'remR',
-      unpartedStalks: 49,
-      state: 'editing',
-    })
-    expect(rows[0]).toContain('leftover')
-    expect(rows[1]).toContain('RIGHT heap')
+  it('returns the resolved 2-row panel after commit', () => {
+    expect(
+      questionPanelRows({
+        focusedField: 'pilesL',
+        unpartedStalks: 49,
+        state: 'resolved',
+      }),
+    ).toEqual(['Resolved.', 'Enter to advance (or wait 2.5 s)'])
   })
 })
 
