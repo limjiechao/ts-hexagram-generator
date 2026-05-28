@@ -4,6 +4,7 @@ import {
   buildRandomViewerArgs,
   DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_CAST_REVEAL_MS,
+  DEFAULT_MANUAL_REVEAL_MS,
   DEFAULT_SLIDER_SWEEP_MS,
   deriveTickMs,
   MAX_TICK_MS,
@@ -11,6 +12,7 @@ import {
   parseCastBounceMs,
   parseCastRevealMs,
   parseCliFlags,
+  parseManualRevealMs,
   parseSliderSweepMs,
   parseWrapWidth,
   shouldForceNumericForAccessibility,
@@ -159,6 +161,58 @@ test('parseCastRevealMs() returns the first occurrence when given multiple', () 
   ).toBe(600)
 })
 
+test('DEFAULT_MANUAL_REVEAL_MS is 2500', () => {
+  expect(DEFAULT_MANUAL_REVEAL_MS).toBe(2500)
+})
+
+test('parseManualRevealMs() reads --manual-reveal-ms <n>', () => {
+  expect(parseManualRevealMs(['--manual-reveal-ms', '500'])).toBe(500)
+})
+
+test('parseManualRevealMs() reads --manual-reveal-ms=<n>', () => {
+  expect(parseManualRevealMs(['--manual-reveal-ms=1500'])).toBe(1500)
+})
+
+test('parseManualRevealMs() finds the flag among other arguments', () => {
+  expect(
+    parseManualRevealMs([
+      'foo',
+      '--manual-reveal-ms',
+      '800',
+      '--wrap-width=64',
+    ]),
+  ).toBe(800)
+})
+
+test('parseManualRevealMs() defaults to DEFAULT_MANUAL_REVEAL_MS without the flag', () => {
+  expect(parseManualRevealMs([])).toBe(DEFAULT_MANUAL_REVEAL_MS)
+  expect(parseManualRevealMs(['--plain'])).toBe(DEFAULT_MANUAL_REVEAL_MS)
+})
+
+test('parseManualRevealMs() ignores non-positive-integer values', () => {
+  expect(parseManualRevealMs(['--manual-reveal-ms', 'abc'])).toBe(
+    DEFAULT_MANUAL_REVEAL_MS,
+  )
+  expect(parseManualRevealMs(['--manual-reveal-ms=0'])).toBe(
+    DEFAULT_MANUAL_REVEAL_MS,
+  )
+  expect(parseManualRevealMs(['--manual-reveal-ms', '-5'])).toBe(
+    DEFAULT_MANUAL_REVEAL_MS,
+  )
+  expect(parseManualRevealMs(['--manual-reveal-ms', '1.5'])).toBe(
+    DEFAULT_MANUAL_REVEAL_MS,
+  )
+  expect(parseManualRevealMs(['--manual-reveal-ms'])).toBe(
+    DEFAULT_MANUAL_REVEAL_MS,
+  )
+})
+
+test('parseManualRevealMs() returns the first occurrence when given multiple', () => {
+  expect(
+    parseManualRevealMs(['--manual-reveal-ms=500', '--manual-reveal-ms=3000']),
+  ).toBe(500)
+})
+
 test('deriveTickMs() divides the sweep budget across (max - min) transitions', () => {
   // Cast 1 of every line: max=48 stalks, 48-1 = 47 transitions. 3000ms / 47 ≈ 63.83 → 64ms.
   expect(deriveTickMs(3000, 48)).toBe(64)
@@ -245,6 +299,7 @@ test('parseCliFlags() composes argv + TTY + env into a single config', () => {
     sliderSweepMs: DEFAULT_SLIDER_SWEEP_MS,
     castBounceMs: DEFAULT_CAST_BOUNCE_MS,
     castRevealMs: DEFAULT_CAST_REVEAL_MS,
+    manualRevealMs: DEFAULT_MANUAL_REVEAL_MS,
   })
 })
 
@@ -318,6 +373,15 @@ test('parseCliFlags() picks up --cast-reveal-ms', () => {
     envVars: { NO_COLOR: undefined, CI: undefined },
   })
   expect(flags.castRevealMs).toBe(900)
+})
+
+test('parseCliFlags() picks up --manual-reveal-ms', () => {
+  const flags = parseCliFlags({
+    argv: ['--manual-reveal-ms', '500'],
+    isTTY: true,
+    envVars: { NO_COLOR: undefined, CI: undefined },
+  })
+  expect(flags.manualRevealMs).toBe(500)
 })
 
 // `buildRandomViewerArgs` is the exact object the `hexagram-random` bin's Ink

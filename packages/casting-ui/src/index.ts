@@ -18,15 +18,17 @@ export { consultationConsoleOutput } from './output-composers.js'
 export { getUserQuery } from './prompts.js'
 
 // CLI flag resolution (output mode, input mode, wrap width, slider sweep ms,
-// cast bounce ms, cast reveal ms).
+// cast bounce ms, cast reveal ms, manual reveal ms).
 export {
   DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_CAST_REVEAL_MS,
+  DEFAULT_MANUAL_REVEAL_MS,
   DEFAULT_MAX_WRAP_WIDTH,
   DEFAULT_SLIDER_SWEEP_MS,
   resolveCastBounceMs,
   resolveCastRevealMs,
   resolveInputMode,
+  resolveManualRevealMs,
   resolveOutputMode,
   resolveRandomViewerArgs,
   resolveSliderSweepMs,

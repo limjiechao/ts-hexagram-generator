@@ -16,6 +16,7 @@ export interface CliFlags {
   sliderSweepMs: number
   castBounceMs: number
   castRevealMs: number
+  manualRevealMs: number
 }
 
 const PLAIN_MODE_FLAGS = new Set(['--plain', '--no-ui'])
@@ -43,6 +44,16 @@ export const DEFAULT_CAST_BOUNCE_MS = 1500
  * is a tuning knob.
  */
 export const DEFAULT_CAST_REVEAL_MS = 700
+
+/**
+ * Ceremonial default for `--manual-reveal-ms` — the per-cast reveal dwell of
+ * the manual yarrow-stalk flow's derived-split readout. The physical caster
+ * has already done the sorting offline, so the on-screen "Round resolved:
+ * suspended X · next: Y unparted" line lingers long enough to confirm before
+ * the prompt advances. A designed pace, not a hard requirement — the flag is
+ * a tuning knob (tests opt out by passing `0`).
+ */
+export const DEFAULT_MANUAL_REVEAL_MS = 2500
 
 /**
  * Per-cast tick interval that keeps the end-to-end slider sweep at roughly
@@ -168,6 +179,29 @@ export function parseCastRevealMs(argv: readonly string[]): number {
 }
 
 /**
+ * Parse the `--manual-reveal-ms <n>` / `--manual-reveal-ms=<n>` flag. Pure —
+ * takes `argv` explicitly so it can be unit-tested without `process`. Falls
+ * back to `DEFAULT_MANUAL_REVEAL_MS` when the flag is absent or the value is
+ * not a positive integer. Mirrors `parseCastRevealMs` exactly.
+ */
+export function parseManualRevealMs(argv: readonly string[]): number {
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === '--manual-reveal-ms') {
+      value = argv[index + 1]
+    } else if (argument?.startsWith('--manual-reveal-ms=') === true) {
+      value = argument.slice('--manual-reveal-ms='.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number.parseInt(value, 10)
+      if (parsed > 0) return parsed
+    }
+  }
+  return DEFAULT_MANUAL_REVEAL_MS
+}
+
+/**
  * Accessibility-driven force-numeric heuristic. The Ink slider is purely
  * visual (a bouncing cursor with no semantic value at any frame), so any
  * environment that signals "no animation/colour" or "non-interactive
@@ -208,6 +242,7 @@ export function parseCliFlags(env: CliEnv): CliFlags {
   const sliderSweepMs = parseSliderSweepMs(env.argv)
   const castBounceMs = parseCastBounceMs(env.argv)
   const castRevealMs = parseCastRevealMs(env.argv)
+  const manualRevealMs = parseManualRevealMs(env.argv)
   return {
     outputMode,
     inputMode,
@@ -215,6 +250,7 @@ export function parseCliFlags(env: CliEnv): CliFlags {
     sliderSweepMs,
     castBounceMs,
     castRevealMs,
+    manualRevealMs,
   }
 }
 
@@ -255,6 +291,10 @@ export function resolveCastBounceMs(): number {
 
 export function resolveCastRevealMs(): number {
   return resolveCliFlags().castRevealMs
+}
+
+export function resolveManualRevealMs(): number {
+  return resolveCliFlags().manualRevealMs
 }
 
 /**

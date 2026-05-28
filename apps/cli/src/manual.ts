@@ -3,6 +3,7 @@
 import process from 'node:process'
 
 import {
+  resolveManualRevealMs,
   resolveWrapWidth,
   runManualConsultationViewer,
 } from '@hexagram/casting-ui'
@@ -22,6 +23,7 @@ async function main(): Promise<void> {
     }
     await runManualConsultationViewer({
       maxWrapWidth: resolveWrapWidth(),
+      manualRevealMs: resolveManualRevealMs(),
     })
     process.exit(0)
   } catch (error) {
