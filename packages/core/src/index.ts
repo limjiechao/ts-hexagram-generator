@@ -264,7 +264,17 @@ export function performCast<P extends AdvanceableLineState['phase']>(
   }
 }
 
-// Pipe three rounds for a complete line
+// Pipe three rounds for a complete line. Now a thin generator wrapper
+// around `performCast`. The classic API stays — args come in as
+// `{ unpartedStalks, suspendedFromNextRound, partStalksAtIndex }` with
+// the first pick passed in the args object — but the algorithm of record
+// lives in `performCast` above. The wrapper just translates: build the
+// 0th-cast state from the args, perform three casts, yielding the
+// most-recent round's `FourOperationsResult` between picks, and return
+// the resolved Line. Existing consumers (random-casting, interactive-flow,
+// legacy-converter, use-line-generator) see the same generator interface
+// and `assertIsFourOperationsResult` continues to typecheck each yielded
+// payload.
 export const makeLineGenerator = function* (roundOneArguments: {
   unpartedStalks: number[]
   suspendedFromNextRound: number[]
@@ -274,22 +284,17 @@ export const makeLineGenerator = function* (roundOneArguments: {
   /* Return */ Line,
   /* Next */ number
 > {
-  const rounds = Array.from({ length: 3 }, () => fourOperations)
-
-  let nextRoundArguments = roundOneArguments
-
-  for (const round of rounds) {
-    const results = round(nextRoundArguments)
-    const partStalksAtIndex = yield results
-    nextRoundArguments = {
-      ...results,
-      partStalksAtIndex,
-    }
+  const s0: Extract<LineState, { phase: '0th-cast' }> = {
+    phase: '0th-cast',
+    unparted: roundOneArguments.unpartedStalks,
+    suspended: roundOneArguments.suspendedFromNextRound,
+    rounds: [],
   }
-
-  const maybeLine = nextRoundArguments.unpartedStalks.length / 4
-
-  assertIsLine(maybeLine)
-
-  return maybeLine
+  const s1 = performCast(s0, roundOneArguments.partStalksAtIndex)
+  const pick2 = yield s1.rounds[0]
+  const s2 = performCast(s1, pick2)
+  const pick3 = yield s2.rounds[1]
+  const s3 = performCast(s2, pick3)
+  yield s3.rounds[2]
+  return s3.line
 }
