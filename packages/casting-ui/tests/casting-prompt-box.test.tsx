@@ -1,9 +1,11 @@
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
+import stringWidth from 'string-width'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
 import {
+  bottomStripRow,
   CastingPromptBox,
   focusedInputBoxRows,
   getCastingPromptHeight,
@@ -307,6 +309,94 @@ describe('focusedInputBoxRows', () => {
     const rows = focusedInputBoxRows({ value: '3', focused: false })
     expect(rows[1]).toContain('3')
     expect(rows[1]).not.toMatch(/\x1b\[7m/)
+  })
+})
+
+describe('bottomStripRow', () => {
+  it('editing branch — totals on the left, commit hint on the right', () => {
+    const row = bottomStripRow({
+      branch: 'editing',
+      liveLeftTotal: 21,
+      liveRightTotal: 0,
+      unpartedStalks: 49,
+      renderWidth: 78,
+    })
+    expect(row).toContain('· 1 suspended · total 21 of 49')
+    expect(row).toContain('Enter: next · Shift+Tab: back')
+    expect(stringWidth(row)).toBe(78)
+  })
+
+  it('error branch — BOLD_RED conservation arithmetic + back-to-fix', () => {
+    const row = bottomStripRow({
+      branch: 'error',
+      errorKind: 'conservation',
+      leftHeapTotal: 21,
+      rightHeapTotal: 26,
+      total: 48,
+      unpartedStalks: 49,
+      renderWidth: 78,
+    })
+    expect(row).toContain('21 + 26 + 1 = 48, expected 49')
+    expect(row).toContain('Shift+Tab: back to fix')
+    expect(row).toContain('\x1b[1;91m')
+  })
+
+  it('error branch — suspended-sum message', () => {
+    const row = bottomStripRow({
+      branch: 'error',
+      errorKind: 'suspended-sum',
+      remL: 1,
+      remR: 4,
+      sum: 6,
+      expectedLabel: '4 or 8',
+      renderWidth: 78,
+    })
+    expect(row).toContain('Suspended sum (1 + 1 + 4) = 6, expected 4 or 8')
+    expect(row).toContain('Shift+Tab: back to fix')
+  })
+
+  it('error branch — zero-remainder identifies the side', () => {
+    const rightOnly = bottomStripRow({
+      branch: 'error',
+      errorKind: 'zero-remainder',
+      remL: 2,
+      remR: 0,
+      renderWidth: 78,
+    })
+    expect(rightOnly).toContain('Right remainder = 0')
+    expect(rightOnly).toContain('not 0')
+    const leftOnly = bottomStripRow({
+      branch: 'error',
+      errorKind: 'zero-remainder',
+      remL: 0,
+      remR: 3,
+      renderWidth: 78,
+    })
+    expect(leftOnly).toContain('Left remainder = 0')
+    const both = bottomStripRow({
+      branch: 'error',
+      errorKind: 'zero-remainder',
+      remL: 0,
+      remR: 0,
+      renderWidth: 78,
+    })
+    expect(both).toContain('Left and right remainder = 0')
+  })
+
+  it('resolved branch — BOLD_GREEN totals + next-cast; no right hint', () => {
+    const row = bottomStripRow({
+      branch: 'resolved',
+      leftHeapTotal: 24,
+      rightHeapTotal: 24,
+      unpartedStalks: 49,
+      next: 40,
+      renderWidth: 78,
+    })
+    expect(row).toContain('· 1 suspended · 48 of 49 · → next cast: 40 unparted')
+    expect(row).not.toContain('Enter: next')
+    expect(row).not.toContain('Shift+Tab: back')
+    expect(row).toContain('\x1b[1;92m')
+    expect(stringWidth(row)).toBe(78)
   })
 })
 

@@ -1120,6 +1120,104 @@ export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
   return [top, middle, bottom]
 }
 
+// Bottom-strip error-branch discriminant. The strip's `error` branch wraps
+// these args; they are flat-extended into BottomStripArgs below.
+type BottomStripErrorArgs =
+  | {
+      errorKind: 'conservation'
+      leftHeapTotal: number
+      rightHeapTotal: number
+      total: number
+      unpartedStalks: number
+    }
+  | {
+      errorKind: 'suspended-sum'
+      remL: number
+      remR: number
+      sum: number
+      expectedLabel: string
+    }
+  | {
+      errorKind: 'zero-remainder'
+      remL: number
+      remR: number
+    }
+
+export type BottomStripArgs =
+  | {
+      branch: 'editing'
+      liveLeftTotal: number
+      liveRightTotal: number
+      unpartedStalks: number
+      renderWidth: number
+    }
+  | ({ branch: 'error'; renderWidth: number } & BottomStripErrorArgs)
+  | {
+      branch: 'resolved'
+      leftHeapTotal: number
+      rightHeapTotal: number
+      unpartedStalks: number
+      next: number
+      renderWidth: number
+    }
+
+function zeroRemainderSide(remL: number, remR: number): string {
+  if (remL === 0 && remR === 0) return 'Left and right'
+  if (remL === 0) return 'Left'
+  return 'Right'
+}
+
+function errorMessageText(args: BottomStripErrorArgs): string {
+  switch (args.errorKind) {
+    case 'conservation':
+      return `${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
+    case 'suspended-sum':
+      return `Suspended sum (1 + ${args.remL} + ${args.remR}) = ${args.sum}, expected ${args.expectedLabel}`
+    case 'zero-remainder':
+      return `${zeroRemainderSide(args.remL, args.remR)} remainder = 0 — divisible heaps yield rem 4, not 0`
+  }
+}
+
+// Build a row of exactly `renderWidth` display cols with `left` left-aligned
+// and `right` right-aligned. ANSI in the segments doesn't count toward width.
+function leftRightRow(left: string, right: string, renderWidth: number): string {
+  const leftW = stringWidth(left)
+  const rightW = stringWidth(right)
+  const gap = Math.max(1, renderWidth - leftW - rightW)
+  return `${left}${' '.repeat(gap)}${right}`
+}
+
+/**
+ * One-row bottom strip below the manual prompt's body. Three branches:
+ *
+ *  - **editing** — live totals on the left, commit/back hint on the right.
+ *  - **error** — BOLD_RED validator-derived message on the left, "Shift+Tab:
+ *    back to fix" on the right.
+ *  - **resolved** — BOLD_GREEN totals + "→ next cast: W unparted", full-width
+ *    (the right pane's `Resolved.` / `Enter to advance` already covers the
+ *    advance prompt).
+ *
+ * Output is exactly `renderWidth` display cols wide.
+ */
+export function bottomStripRow(args: BottomStripArgs): string {
+  if (args.branch === 'editing') {
+    const left = `· 1 suspended · total ${args.liveLeftTotal + args.liveRightTotal} of ${args.unpartedStalks}`
+    const right = 'Enter: next · Shift+Tab: back'
+    return leftRightRow(left, right, args.renderWidth)
+  }
+  if (args.branch === 'resolved') {
+    const total = args.leftHeapTotal + args.rightHeapTotal
+    const message = `· 1 suspended · ${total} of ${args.unpartedStalks} · → next cast: ${args.next} unparted`
+    const colored = `${BOLD_GREEN}${message}${NORMAL}`
+    const trailing = Math.max(0, args.renderWidth - stringWidth(colored))
+    return `${colored}${' '.repeat(trailing)}`
+  }
+  const message = errorMessageText(args)
+  const left = `${BOLD_RED}${message}${NORMAL}`
+  const right = 'Shift+Tab: back to fix'
+  return leftRightRow(left, right, args.renderWidth)
+}
+
 interface ManualCastingPromptProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
