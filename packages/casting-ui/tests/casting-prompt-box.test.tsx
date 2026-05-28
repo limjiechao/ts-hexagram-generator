@@ -152,31 +152,32 @@ describe('manualTitleRow', () => {
 })
 
 describe('twoHeapDiagramRows', () => {
-  it('returns 5 rows; cells render ? for null, value for typed, inverse for active', () => {
+  it('builds 6 paired rows with full-word labels and an explicit suspended row on RIGHT', () => {
     const rows = twoHeapDiagramRows({
-      pilesL: 5,
-      remL: 1,
-      pilesR: null,
-      remR: null,
-      focusedField: 'remL',
+      pilesL: 4,
+      remL: 3,
+      pilesR: 5,
+      remR: 1,
+      focusedField: 'remR',
       state: 'editing',
     })
-    expect(rows).toHaveLength(5)
-    // Header row mentions both heaps.
-    expect(rows[0]).toContain('LEFT HEAP')
-    expect(rows[0]).toContain('RIGHT HEAP')
-    // Piles row: 5 (LEFT) and ? (RIGHT).
-    expect(rows[1]).toMatch(/piles\s+5/)
-    expect(rows[1]).toMatch(/piles\s+\?/)
-    // Rem row: active LEFT cell wears inverse-video ANSI; RIGHT is ?.
-    // oxlint-disable-next-line no-control-regex
-    expect(rows[2]).toMatch(/rem\.\s+\u001B\[7m1\u001B\[27m/)
-    expect(rows[2]).toMatch(/rem\.\s+\?/)
-    // Totals: LEFT = 4·5 + 1 = 21; RIGHT = ?.
-    expect(rows[3]).toContain('= 21 stalks')
-    expect(rows[3]).toContain('= ? stalks')
-    // Footer.
-    expect(rows[4]).toContain('└')
+    expect(rows).toHaveLength(6)
+    // Header row: both card headers + 4-col gap.
+    expect(rows[0]).toContain('┌── LEFT HEAP ────┐')
+    expect(rows[0]).toContain('┌── RIGHT HEAP ───┐')
+    // Piles row.
+    expect(rows[1]).toContain('piles')
+    // Remainder row uses the full word.
+    expect(rows[2]).toContain('remainder')
+    // Suspended row: RIGHT shows `suspended   1`; LEFT shows a card row whose
+    // interior is all spaces (so the card edge is still drawn).
+    expect(rows[3]).toContain('suspended')
+    expect(rows[3]).toMatch(/suspended\s+1/)
+    // Totals: LEFT = 4·4 + 3 = 19; RIGHT = 4·5 + 1 + 1 (suspended) = 22.
+    expect(rows[4]).toContain('= 19 stalks')
+    expect(rows[4]).toContain('= 22 stalks')
+    // Footer row: both card footers.
+    expect(rows[5]).toContain('└')
   })
 
   it('wraps every row in BOLD_GREEN ... NORMAL when state === resolved', () => {
@@ -212,16 +213,17 @@ describe('twoHeapDiagramRows', () => {
     expect(rows[1]).toMatch(/piles\s+\u001B\[7m \u001B\[27m/)
   })
 
-  it('totals row uses ? when any component is null', () => {
+  it('renders `?` totals when any source cell is null', () => {
     const rows = twoHeapDiagramRows({
-      pilesL: 3,
-      remL: null,
-      pilesR: null,
-      remR: 4,
-      focusedField: 'pilesR',
+      pilesL: null,
+      remL: 3,
+      pilesR: 4,
+      remR: null,
+      focusedField: 'pilesL',
       state: 'editing',
     })
-    expect(rows[3]).toContain('= ? stalks')
+    // Totals row is row 4 now (was row 3 in the 5-row layout).
+    expect(rows[4]).toContain('= ? stalks')
   })
 
   it('shows inverse styling on focused cell when state === error', () => {
@@ -256,6 +258,20 @@ describe('twoHeapDiagramRows', () => {
     // Inverse-video ANSI: ESC[7m...ESC[27m — the focused cell wraps its value.
     // oxlint-disable-next-line no-control-regex
     expect(rows[1]).toMatch(/\u001B\[7m4\u001B\[27m/)
+  })
+
+  it('renders the suspended row as static `1` (never inverse-video, no field maps to it)', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 4,
+      remL: 3,
+      pilesR: 4,
+      remR: 3,
+      focusedField: 'pilesL',
+      state: 'editing',
+    })
+    // Suspended row's `1` is plain text — no field corresponds to it.
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[3]).not.toMatch(/\u001B\[7m1\u001B\[27m/)
   })
 })
 
@@ -1493,7 +1509,10 @@ describe('CastingPromptBox (manual flow)', () => {
     min: 1,
     max: 39,
     unpartedStalks: 40,
-    width: 80,
+    // 100 cols: natural body width 95 + 2 borders = 97; 100 gives the
+    // bottom strip room to land both `… 40 stalks accounted` and the
+    // `Shift+Tab: back to fix` hint without horizontal pan.
+    width: 100,
     inputMode: 'number' as const,
     flowKind: 'manual' as const,
     manualRevealMs: 0,

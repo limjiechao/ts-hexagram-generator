@@ -968,10 +968,15 @@ interface TwoHeapDiagramRowsArgs {
   state: ManualDiagramState
 }
 
-// Card interior width (between the two vertical pipes). 13 cols accommodates
-// `LEFT HEAP` / `RIGHT HEAP` headers, `= XX stalks` totals (max 2 digits), and
-// the field rows.
-const HEAP_CARD_INTERIOR = 13
+// Card interior width (between the two vertical pipes). 17 cols accommodates
+// `LEFT HEAP` / `RIGHT HEAP` headers, `= XX stalks` totals (up to 3 digits),
+// and the full-word `remainder` / `suspended` labels.
+const HEAP_CARD_INTERIOR = 17
+
+// Reserved width of the leading label column inside a content row: 2-col
+// pad + longest label `remainder` (9 cols) = 11. Values are right-aligned
+// within the remaining `interior - 11 - 2 (right margin)` cols.
+const HEAP_LABEL_COL_WIDTH = 11
 
 // One ANSI inverse-video cell. Empty value renders a single inverse space
 // so an active cell never collapses (the cursor is always visible).
@@ -1000,31 +1005,48 @@ function cellText(
   return plainCell(value)
 }
 
-// Build a single card's 5 rows (header / piles / rem / totals / footer).
-// Each text-content row has a leading `│` + interior + trailing `│`.
+// Build a single card's 6 rows (header / piles / remainder / suspended-or-blank
+// / totals / footer). Each text-content row has a leading `│` + interior +
+// trailing `│`. The 4th content row carries `suspended   1` on RIGHT, an
+// all-spaces blank on LEFT — controlled by `suspendedCell` (null for LEFT,
+// `'1'` for RIGHT).
 function buildCardRows(
   header: string,
   pilesCell: string,
   remCell: string,
+  suspendedCell: string | null,
   totalLabel: string,
 ): readonly string[] {
-  // Header: `┌─ HEADER ─...─┐` — fills interior with dashes around the header.
+  // Header: `┌── HEADER ─...─┐` — fills interior with dashes around the header.
   const headerInner = ` ${header} `
-  const dashCount = Math.max(0, HEAP_CARD_INTERIOR - headerInner.length)
-  // Centre-ish: leading 2 dashes + ` HEADER ` + trailing dashes.
   const leadingDashes = '─'.repeat(2)
-  const trailingDashes = '─'.repeat(Math.max(0, dashCount - 2))
+  const trailingDashes = '─'.repeat(
+    Math.max(0, HEAP_CARD_INTERIOR - headerInner.length - 2),
+  )
   const headerRow = `┌${leadingDashes}${headerInner}${trailingDashes}┐`
 
-  // Field row: `│  LABEL    {cell}   │`. The pre-cell padding (`  LABEL    `)
-  // is 11 chars (label is e.g. `piles` or `rem.`, padded to 5 + trailing 4
-  // spaces). The trailing space count is `interior - 11 - displayWidth(cell)`.
+  // Field row: `│  LABEL    {cell}  │`. The pre-cell column is
+  // HEAP_LABEL_COL_WIDTH chars wide (2-col pad + label padded to 9). The
+  // remaining interior is `interior - labelCol - rightMargin` cols; the
+  // cell value is right-aligned within that space (gap goes BEFORE the
+  // value so it visually anchors to the right edge of the card).
   const buildField = (label: string, cell: string): string => {
-    const labelPadded = `  ${label}`.padEnd(11, ' ')
+    const labelPadded = `  ${label}`.padEnd(HEAP_LABEL_COL_WIDTH, ' ')
     const cellWidth = stringWidth(cell)
-    const trailing = Math.max(0, HEAP_CARD_INTERIOR - 11 - cellWidth)
-    return `│${labelPadded}${cell}${' '.repeat(trailing)}│`
+    const rightMargin = 2
+    const innerGap = Math.max(
+      0,
+      HEAP_CARD_INTERIOR - HEAP_LABEL_COL_WIDTH - cellWidth - rightMargin,
+    )
+    return `│${labelPadded}${' '.repeat(innerGap)}${cell}${' '.repeat(rightMargin)}│`
   }
+
+  const pilesRow = buildField('piles', pilesCell)
+  const remRow = buildField('remainder', remCell)
+  const suspendedRow =
+    suspendedCell === null
+      ? `│${' '.repeat(HEAP_CARD_INTERIOR)}│`
+      : buildField('suspended', suspendedCell)
 
   // Totals row: `│  = X stalks  │` — pad to interior width.
   const totalContent = `  = ${totalLabel} stalks`
@@ -1033,17 +1055,11 @@ function buildCardRows(
 
   const footerRow = `└${'─'.repeat(HEAP_CARD_INTERIOR)}┘`
 
-  return [
-    headerRow,
-    buildField('piles', pilesCell),
-    buildField('rem.', remCell),
-    totalsRow,
-    footerRow,
-  ]
+  return [headerRow, pilesRow, remRow, suspendedRow, totalsRow, footerRow]
 }
 
 /**
- * Build the 5-row LEFT + RIGHT heap card pair as pre-rendered text rows.
+ * Build the 6-row LEFT + RIGHT heap card pair as pre-rendered text rows.
  * Each returned row contains both cards joined by a 4-col gap. Active cells
  * render inverse-video; resolved state wraps each row in BOLD_GREEN ... NORMAL.
  * Pure function — no Ink involvement.
@@ -1056,18 +1072,24 @@ export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
   const remRCell = cellText(remR, 'remR', focusedField, state)
   const leftTotalLabel =
     pilesL === null || remL === null ? '?' : String(4 * pilesL + remL)
+  // RIGHT total includes the +1 always-suspended stalk (surfaced inline as
+  // the `suspended   1` row in the RIGHT card), so the card's `= N stalks`
+  // total sums vertically (piles·4 + remainder + suspended) the same way
+  // LEFT's total sums (piles·4 + remainder + 0 since LEFT has no suspended).
   const rightTotalLabel =
-    pilesR === null || remR === null ? '?' : String(4 * pilesR + remR)
+    pilesR === null || remR === null ? '?' : String(4 * pilesR + remR + 1)
   const leftRows = buildCardRows(
     'LEFT HEAP',
     pilesLCell,
     remLCell,
+    null, // LEFT has no suspended stalk — blank slot for visual alignment
     leftTotalLabel,
   )
   const rightRows = buildCardRows(
     'RIGHT HEAP',
     pilesRCell,
     remRCell,
+    '1', // RIGHT always has the +1 suspended stalk
     rightTotalLabel,
   )
   const gap = '    '
@@ -1698,10 +1720,11 @@ function ManualCastingPrompt({
   // ── Render: row-builder composition + sliceAnsi pan ───────────────────
 
   const innerContentWidth = Math.max(1, width - 2)
-  // Natural body width: LEFT card (17) + 4-col gap + RIGHT card (17) +
-  // 4-col gap + right-pane (33-ish). Use 75 — the prompt's body is sliced
-  // against innerContentWidth so the exact figure matters only as a floor.
-  const naturalBodyWidth = 17 + 4 + 17 + 4 + 33
+  // Natural body width: diagramWidth (42) + 8-col gap + right-pane (45 —
+  // widest question: "How many piles of 4 stalks in the RIGHT heap?" = 45
+  // cols). Sliced against innerContentWidth so the exact figure matters
+  // only as a floor on narrow terminals.
+  const naturalBodyWidth = (HEAP_CARD_INTERIOR + 2) * 2 + 4 + 8 + 45
   const renderWidth = Math.max(innerContentWidth, naturalBodyWidth)
 
   // Diagram state drives editing / error / resolved colouring. Validator
@@ -1731,12 +1754,12 @@ function ManualCastingPrompt({
     focusedField,
     state: diagramState,
   })
-  // Natural diagram width: `17 (LEFT card) + 4 (gap) + 18 (RIGHT card)`.
-  // The RIGHT card is 18 cols because the `RIGHT HEAP` header is 1 col
-  // wider than `LEFT HEAP`. Pad with a 6th blank row so the diagram half
-  // is always 6 rows tall, matching the right pane.
-  const diagramWidth = 39
-  const diagramPaddedRows = [...diagramRows, ' '.repeat(diagramWidth)]
+  // Natural diagram width: 19 (LEFT card outer) + 4-col gap + 19 (RIGHT
+  // card outer) = 42. Both cards are 19 cols wide (HEAP_CARD_INTERIOR=17
+  // + 2 borders). `twoHeapDiagramRows` already returns 6 paired rows — no
+  // padding row needed.
+  const diagramWidth = (HEAP_CARD_INTERIOR + 2) * 2 + 4
+  const diagramPaddedRows = diagramRows
 
   // Right pane: 3 question rows + 3 input box rows. During the resolved
   // dwell the input box collapses to blanks (the Resolved. / Enter to
@@ -1768,7 +1791,7 @@ function ManualCastingPrompt({
     const leftWidth = stringWidth(leftRow)
     const rightWidth = stringWidth(rightRow)
     const leftPadTrail = Math.max(0, diagramWidth - leftWidth)
-    const middleGap = 4
+    const middleGap = 8
     const totalSoFar = diagramWidth + middleGap + rightWidth
     const trailingPad = Math.max(0, renderWidth - totalSoFar)
     return `${leftRow}${' '.repeat(leftPadTrail)}${' '.repeat(middleGap)}${rightRow}${' '.repeat(trailingPad)}`
