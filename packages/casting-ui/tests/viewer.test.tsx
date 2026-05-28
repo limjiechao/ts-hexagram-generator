@@ -1559,8 +1559,7 @@ describe('ConsultationViewer (manual flow)', () => {
     expect(frame).toContain('RIGHT HEAP')
     expect(frame).toContain('How many piles of 4 stalks')
     expect(frame).toContain('in the LEFT heap?')
-    expect(frame).toContain('1 suspended')
-    expect(frame).toContain('total 0 of 49')
+    expect(frame).toContain('0 of 49 stalks accounted')
     unmount()
   })
 
@@ -1624,8 +1623,8 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
     })
-    // The bottom-strip totals revert to the round-1 49 (live total 0 of 49).
-    expect(lastFrame() ?? '').toContain('total 0 of 49')
+    // The bottom-strip totals revert to the round-1 49 (0 of 49 stalks accounted).
+    expect(lastFrame() ?? '').toContain('0 of 49 stalks accounted')
     unmount()
   })
 
@@ -1770,8 +1769,8 @@ describe('ConsultationViewer (manual flow)', () => {
     stdin.write(fields.remR)
     await waitFor(() => {
       // After all four fields commit (cast 1, M=49, pL=5, rL=4, pR=5, rR=4),
-      // the validator passes and the live editing strip reads total 48 of 49.
-      expect(lastFrame() ?? '').toContain('total 48 of 49')
+      // the validator passes and the live editing strip reads 48 of 49 stalks accounted.
+      expect(lastFrame() ?? '').toContain('48 of 49 stalks accounted')
     })
     unmount()
   })

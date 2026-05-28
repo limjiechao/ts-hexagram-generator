@@ -1235,7 +1235,8 @@ function leftRightRow(
  */
 export function bottomStripRow(args: BottomStripArgs): string {
   if (args.branch === 'editing') {
-    const left = `· 1 suspended · total ${args.liveLeftTotal + args.liveRightTotal} of ${args.unpartedStalks}`
+    const accounted = args.liveLeftTotal + args.liveRightTotal
+    const left = `${accounted} of ${args.unpartedStalks} stalks accounted`
     const right = 'Enter: next · Shift+Tab: back'
     return leftRightRow(left, right, args.renderWidth)
   }

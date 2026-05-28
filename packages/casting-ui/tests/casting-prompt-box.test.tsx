@@ -357,8 +357,8 @@ describe('bottomStripRow', () => {
       unpartedStalks: 49,
       renderWidth: 78,
     })
-    expect(row).toContain('· 1 suspended · total 21 of 49')
-    expect(row).toContain('Enter: next · Shift+Tab: back')
+    expect(row.startsWith('21 of 49 stalks accounted')).toBe(true)
+    expect(row.endsWith('Enter: next · Shift+Tab: back')).toBe(true)
     expect(stringWidth(row)).toBe(78)
   })
 
@@ -1564,7 +1564,7 @@ describe('CastingPromptBox (manual flow)', () => {
     expect(frame).toContain('How many piles of 4 stalks')
     expect(frame).toContain('in the LEFT heap?')
     expect(frame).toContain('valid 0 to 10')
-    expect(frame).toContain('· 1 suspended · total 0 of 40')
+    expect(frame).toContain('0 of 40 stalks accounted')
     expect(frame).toContain('Enter: next · Shift+Tab: back')
     unmount()
   })
@@ -1669,7 +1669,7 @@ describe('CastingPromptBox (manual flow)', () => {
     await waitForReady(onReady)
     await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
     await waitFor(() => {
-      expect(lastFrame() ?? '').toContain('· 1 suspended · total 39 of 40')
+      expect(lastFrame() ?? '').toContain('39 of 40 stalks accounted')
     })
     unmount()
   })
@@ -2089,13 +2089,13 @@ describe('CastingPromptBox (manual flow)', () => {
     stdin.write(BACKSPACE)
     await yieldMacrotask()
     // After backspace pilesL is empty; the live editing strip is back to
-    // `total 0 of 40`, and the diagram no longer shows the typed `5` in the
+    // `0 of 40 stalks accounted`, and the diagram no longer shows the typed `5` in the
     // pilesL cell. (Focused empty cell renders as an inverse space — invisible
     // after ANSI strip — so we assert via the live total and the absence of
     // the digit instead.)
     // oxlint-disable-next-line no-control-regex
     const stripped1 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
-    expect(stripped1).toContain('· 1 suspended · total 0 of 40')
+    expect(stripped1).toContain('0 of 40 stalks accounted')
     expect(stripped1).not.toMatch(/piles\s+5/)
     unmount()
   })
