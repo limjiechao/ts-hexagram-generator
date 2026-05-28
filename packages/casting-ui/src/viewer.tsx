@@ -126,6 +126,13 @@ interface ConsultationViewerProps {
   // tests can gate cross-cast Tab/Enter on this signal instead of timing
   // races. Production callers omit it.
   onManualPromptReady?: () => void
+  // Manual-flow focus witness — forwarded to the manual `<CastingPromptBox
+  // onFocusedFieldChange>`. Fires whenever the focused field cycles between
+  // `pilesL`, `remL`, `pilesR`, `remR`. Tests use it to gate Tab→digit pairs
+  // across the four-field manual layout; production callers omit it.
+  onManualFocusedFieldChange?: (
+    field: 'pilesL' | 'remL' | 'pilesR' | 'remR',
+  ) => void
 }
 
 // Which exit path a pending discard confirmation belongs to. `back` is the
@@ -156,6 +163,7 @@ export function ConsultationViewer({
   onSliderReady,
   manualRevealMs = MANUAL_REVEAL_MS,
   onManualPromptReady,
+  onManualFocusedFieldChange,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   // The soft-back destination — the injected `onExit`, or Ink's program exit
@@ -561,6 +569,9 @@ export function ConsultationViewer({
       onError={(message) => dispatch({ type: 'castingError', message })}
       onReady={
         state.flowKind === 'manual' ? onManualPromptReady : onSliderReady
+      }
+      onFocusedFieldChange={
+        state.flowKind === 'manual' ? onManualFocusedFieldChange : undefined
       }
     />
   )

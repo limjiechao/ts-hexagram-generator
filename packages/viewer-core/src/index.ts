@@ -44,6 +44,7 @@ export {
 
 // ANSI palette constants used by the formatted output.
 export {
+  BOLD_GREEN,
   BOLD_GREY,
   BOLD_RED,
   BOLD_WHITE,

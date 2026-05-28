@@ -1468,29 +1468,72 @@ describe('ConsultationViewer (slider mode)', () => {
   })
 })
 
+// Decompose a pick into the (pilesL, remL, pilesR, remR) tuple the manual
+// prompt expects. Yarrow convention: divisible-by-4 → remainder 4 (never 0).
+// Right side: rightCount = (unparted - pick) - 1 (the 1-from-right is
+// suspended on every round under the corrected fourOperations pipeline).
+function decomposeManualPick(
+  pick: number,
+  unparted: number,
+): { pilesL: string; remL: string; pilesR: string; remR: string } {
+  const remL = ((pick - 1) % 4) + 1
+  const pilesL = (pick - remL) / 4
+  const rightCount = unparted - pick - 1
+  const remR = ((rightCount - 1) % 4) + 1
+  const pilesR = (rightCount - remR) / 4
+  return {
+    pilesL: String(pilesL),
+    remL: String(remL),
+    pilesR: String(pilesR),
+    remR: String(remR),
+  }
+}
+
 describe('ConsultationViewer (manual flow)', () => {
   beforeEach(() => {
     consultationFileOutputMock.mockClear()
   })
 
-  // Helper: drive one manual cast through the prompt. Uses `onManualPromptReady`
-  // as the witness signal so cross-cast Tab/Enter never lands during the bind
-  // race.
+  // Helper: drive one manual cast through the prompt's four fields. Uses
+  // `onManualPromptReady` as the mount witness and `onFocusedFieldChange` as
+  // the per-field focus witness so cross-cast Tab/digit pairs never land
+  // during Ink's `useInput` bind race.
   async function commitManualCast(
     stdin: { write: (data: string) => unknown },
-    piles: string,
-    remainder: string,
+    fields: { pilesL: string; remL: string; pilesR: string; remR: string },
     onReady: ReturnType<typeof vi.fn>,
     expectedReadyCount: number,
+    onFocusedFieldChange: ReturnType<typeof vi.fn>,
   ): Promise<void> {
     await waitFor(() =>
       expect(onReady).toHaveBeenCalledTimes(expectedReadyCount),
     )
-    stdin.write(piles)
+    const baseFocusCalls = onFocusedFieldChange.mock.calls.length
+    stdin.write(fields.pilesL)
     await yieldMacrotask()
     stdin.write(TAB)
+    await waitFor(() => {
+      const calls = onFocusedFieldChange.mock.calls
+      const recent = calls.slice(baseFocusCalls).map((args) => args[0])
+      expect(recent).toContain('remL')
+    })
+    stdin.write(fields.remL)
     await yieldMacrotask()
-    stdin.write(remainder)
+    stdin.write(TAB)
+    await waitFor(() => {
+      const calls = onFocusedFieldChange.mock.calls
+      const recent = calls.slice(baseFocusCalls).map((args) => args[0])
+      expect(recent).toContain('pilesR')
+    })
+    stdin.write(fields.pilesR)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() => {
+      const calls = onFocusedFieldChange.mock.calls
+      const recent = calls.slice(baseFocusCalls).map((args) => args[0])
+      expect(recent).toContain('remR')
+    })
+    stdin.write(fields.remR)
     await yieldMacrotask()
     stdin.write(ENTER)
   }
@@ -1512,28 +1555,38 @@ describe('ConsultationViewer (manual flow)', () => {
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
     expect(frame).toContain('Unparted stalks: 49')
-    expect(frame).toContain('Left heap:')
-    expect(frame).toContain('piles × 4 +')
+    expect(frame).toContain('Left heap :')
+    expect(frame).toContain('Right heap:')
+    expect(frame).toContain('piles × 4 stalks +')
     expect(frame).toContain('remainder')
-    expect(frame).toMatch(/range 1 to 48/)
+    expect(frame).toContain('1 suspended')
+    expect(frame).toMatch(/SPLIT = \?.*range 1 to 48/)
     unmount()
   })
 
   it('advances cast-by-cast as the user transcribes piles + remainder', async () => {
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="manual"
         inputMode="number"
         manualRevealMs={0}
         onManualPromptReady={onReady}
+        onManualFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     stdin.write('Q')
     await yieldMacrotask()
     stdin.write(ENTER)
-    // First cast: pick = 24 (piles=5, remainder=4 → 24)
-    await commitManualCast(stdin, '5', '4', onReady, 1)
+    // First cast: pick = 24, unparted = 49 → pL=5, rL=4, pR=5, rR=4
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(24, 49),
+      onReady,
+      1,
+      onFocusedFieldChange,
+    )
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
     })
@@ -1542,19 +1595,27 @@ describe('ConsultationViewer (manual flow)', () => {
 
   it('Ctrl+R mid-line clears the current line back to cast 1', async () => {
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="manual"
         inputMode="number"
         manualRevealMs={0}
         onManualPromptReady={onReady}
+        onManualFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     stdin.write('Q')
     await yieldMacrotask()
     stdin.write(ENTER)
     // Commit cast 1, arrive at cast 2.
-    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(24, 49),
+      onReady,
+      1,
+      onFocusedFieldChange,
+    )
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
     })
@@ -1570,23 +1631,42 @@ describe('ConsultationViewer (manual flow)', () => {
 
   it('Ctrl+R after a line completes rewinds to the previous line', async () => {
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="manual"
         inputMode="number"
         manualRevealMs={0}
         onManualPromptReady={onReady}
+        onManualFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     stdin.write('Q')
     await yieldMacrotask()
     stdin.write(ENTER)
-    // Complete line 1 with three valid casts. The exact picks don't matter
-    // for this test as long as the generator advances cleanly through them.
-    // (5, 4) → 24; (5, 3) → 23-ish for round 2; (4, 1) for round 3 of line 1.
-    await commitManualCast(stdin, '5', '4', onReady, 1)
-    await commitManualCast(stdin, '5', '3', onReady, 2)
-    await commitManualCast(stdin, '4', '1', onReady, 3)
+    // Complete line 1 with three valid casts: (24, 49), (20, 40), (16, 32).
+    // Each produces line value 6 → moving yin.
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(24, 49),
+      onReady,
+      1,
+      onFocusedFieldChange,
+    )
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(20, 40),
+      onReady,
+      2,
+      onFocusedFieldChange,
+    )
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(16, 32),
+      onReady,
+      3,
+      onFocusedFieldChange,
+    )
     // Line 2 cast 1 should now be on screen.
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 2/6 · Cast 1/3')
@@ -1623,25 +1703,31 @@ describe('ConsultationViewer (manual flow)', () => {
     unmount()
   })
 
-  it('after a Ctrl+R rewind, the first digit lands in the piles field', async () => {
+  it('after a Ctrl+R rewind, the first digit lands in the pilesL field', async () => {
     // Focus regression — Ctrl+R must remount the prompt with focusedField =
-    // 'piles' so the next keystroke writes into piles. Verifiable via the
-    // derived row: after rewind, type '5' → derived row shows piles=5 (the
-    // range hint still shows piles missing remainder, but the buffer hit
-    // piles, not remainder).
+    // 'pilesL' so the next keystroke writes into pilesL. Verifiable via the
+    // SPLIT row: after rewind, type pL=5, rL=4, pR=5, rR=4 → SPLIT = 24.
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="manual"
         inputMode="number"
         manualRevealMs={0}
         onManualPromptReady={onReady}
+        onManualFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     stdin.write('Q')
     await yieldMacrotask()
     stdin.write(ENTER)
-    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(24, 49),
+      onReady,
+      1,
+      onFocusedFieldChange,
+    )
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 2/3')
     })
@@ -1649,16 +1735,40 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
     })
-    // After rewind, the prompt remounts → piles is focused. '7' lands in
-    // piles. Tab → remainder; '2' lands in remainder. The derived row reads
-    // split = 4*7+2 = 30.
-    stdin.write('7')
+    // After rewind, the prompt remounts → pilesL is focused. Type a valid
+    // four-field round-1 input (24/49) and verify SPLIT lands on 24.
+    const baseFocusCalls = onFocusedFieldChange.mock.calls.length
+    const fields = decomposeManualPick(24, 49)
+    stdin.write(fields.pilesL)
     await yieldMacrotask()
     stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('2')
     await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(/→ split = 30 \(range 1 to 48\)/)
+      const recent = onFocusedFieldChange.mock.calls
+        .slice(baseFocusCalls)
+        .map((args) => args[0])
+      expect(recent).toContain('remL')
+    })
+    stdin.write(fields.remL)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() => {
+      const recent = onFocusedFieldChange.mock.calls
+        .slice(baseFocusCalls)
+        .map((args) => args[0])
+      expect(recent).toContain('pilesR')
+    })
+    stdin.write(fields.pilesR)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() => {
+      const recent = onFocusedFieldChange.mock.calls
+        .slice(baseFocusCalls)
+        .map((args) => args[0])
+      expect(recent).toContain('remR')
+    })
+    stdin.write(fields.remR)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/SPLIT = 24 \(range 1 to 48\)/)
     })
     unmount()
   })
@@ -1672,24 +1782,15 @@ describe('ConsultationViewer (manual flow)', () => {
   // If this assertion ever fails, audit Phases 1–4 — a provenance leak has
   // slipped in. Do NOT relax the comparison.
   it('manual flow saves byte-identical to interactive for the same casting record', async () => {
-    // Yarrow convention: a heap divisible by 4 yields a remainder of 4
-    // (never 0). Decomposes a `pick` into the (piles, remainder) the
-    // manual prompt expects.
-    const decomposePick = (
-      pick: number,
-    ): { piles: number; remainder: number } => {
-      const remainder = ((pick - 1) % 4) + 1
-      const piles = (pick - remainder) / 4
-      return { piles, remainder }
-    }
-
     // Picks (24, 20, 16) are valid for rounds 1/2/3 across all six lines
     // and produce Line 6 (moving yin) every time → hexagram [6,6,6,6,6,6].
     // 18 picks in a single flat array, line-major: cast 0 of line 0, cast 1
-    // of line 0, …, cast 2 of line 5.
+    // of line 0, …, cast 2 of line 5. Unparted counts cycle 49 → 40 → 32.
     const picks: number[] = []
+    const unpartedByCast: number[] = []
     for (let line = 0; line < 6; line += 1) {
       picks.push(24, 20, 16)
+      unpartedByCast.push(49, 40, 32)
     }
 
     // Drive interactive (number-input) flow to capture saveConsultationFile's
@@ -1728,12 +1829,18 @@ describe('ConsultationViewer (manual flow)', () => {
       >
     )[0]?.[0]
 
-    // Drive manual flow with the same 18 picks decomposed into (piles,
-    // remainder). manualRevealMs=0 to skip the reveal dwell; the
-    // onManualPromptReady spy gates each cast's keystrokes on the new
-    // prompt mount.
+    // Drive manual flow with the same 18 picks decomposed into the 4-field
+    // tuple `(pilesL, remL, pilesR, remR)` per cast. manualRevealMs=0 skips
+    // the reveal dwell; `onManualPromptReady` is the per-cast mount witness
+    // and `onManualFocusedFieldChange` is the per-field focus witness — the
+    // two together let us write digits and Tabs without ever racing the
+    // bind-race window. Decomposition pinned by `computeManualRoundResult`:
+    //   (24, 49) → (5, 4, 5, 4)
+    //   (20, 40) → (4, 4, 4, 3)
+    //   (16, 32) → (3, 4, 3, 3)
     consultationFileOutputMock.mockClear()
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     {
       const { stdin, unmount } = render(
         <ConsultationViewer
@@ -1741,23 +1848,22 @@ describe('ConsultationViewer (manual flow)', () => {
           inputMode="number"
           manualRevealMs={0}
           onManualPromptReady={onReady}
+          onManualFocusedFieldChange={onFocusedFieldChange}
         />,
       )
       stdin.write('A grounded query')
       await yieldMacrotask()
       stdin.write(ENTER)
       for (const [i, pick] of picks.entries()) {
-        const { piles, remainder } = decomposePick(pick!)
-        await waitFor(() => {
-          expect(onReady).toHaveBeenCalledTimes(i + 1)
-        })
-        stdin.write(String(piles))
-        await yieldMacrotask()
-        stdin.write(TAB)
-        await yieldMacrotask()
-        stdin.write(String(remainder))
-        await yieldMacrotask()
-        stdin.write(ENTER)
+        const unparted = unpartedByCast[i]!
+        const fields = decomposeManualPick(pick!, unparted)
+        await commitManualCast(
+          stdin,
+          fields,
+          onReady,
+          i + 1,
+          onFocusedFieldChange,
+        )
       }
       await waitFor(() => {
         expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
@@ -1782,13 +1888,19 @@ describe('ConsultationViewer (manual flow)', () => {
   }, 30_000)
 
   it('the casting footer carries the Tab field + Ctrl+R rewind line hints', async () => {
+    // Wide terminal so the manual-flow hint string ("Enter: commit · …Tab
+    // field · Ctrl+R rewind line · …") fits without truncation. The default
+    // 100-col viewport elides the rewind suffix mid-token.
+    windowSize.current = { columns: 160, rows: 30 }
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
         flowKind="manual"
         inputMode="number"
         manualRevealMs={0}
         onManualPromptReady={onReady}
+        onManualFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     stdin.write('Q')
@@ -1800,7 +1912,13 @@ describe('ConsultationViewer (manual flow)', () => {
     expect(initialFrame).toContain('Tab field')
     expect(initialFrame).not.toContain('Ctrl+R rewind line')
     // After committing one cast, Ctrl+R is meaningful → hint appears.
-    await commitManualCast(stdin, '5', '4', onReady, 1)
+    await commitManualCast(
+      stdin,
+      decomposeManualPick(24, 49),
+      onReady,
+      1,
+      onFocusedFieldChange,
+    )
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Ctrl+R rewind line')
     })

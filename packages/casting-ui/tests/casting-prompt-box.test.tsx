@@ -7,6 +7,7 @@ import {
   CastingPromptBox,
   getCastingPromptHeight,
   SliderInput,
+  validateManualInput,
 } from '../src/casting-prompt-box'
 import { CTRL_C, CTRL_R, ENTER, ESCAPE, SPACE, TAB } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
@@ -968,10 +969,10 @@ describe('CastingPromptBox (slider mode)', () => {
 // ── getCastingPromptHeight (manual arm) ─────────────────────────────────────
 
 describe('getCastingPromptHeight', () => {
-  it('returns 7 for manual flow regardless of inputMode/error', () => {
-    expect(getCastingPromptHeight('number', false, 'manual')).toBe(7)
-    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(7)
-    expect(getCastingPromptHeight('number', true, 'manual')).toBe(7)
+  it('returns 11 for manual flow regardless of inputMode/error', () => {
+    expect(getCastingPromptHeight('number', false, 'manual')).toBe(11)
+    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(11)
+    expect(getCastingPromptHeight('number', true, 'manual')).toBe(11)
   })
 
   it('preserves the existing slider/number heights for interactive', () => {
@@ -983,6 +984,114 @@ describe('getCastingPromptHeight', () => {
   it("defaults flowKind to 'interactive' so existing callers stay source-compatible", () => {
     expect(getCastingPromptHeight('number', false)).toBe(5)
     expect(getCastingPromptHeight('slider', false)).toBe(7)
+  })
+})
+
+// ── validateManualInput (pure) ───────────────────────────────────────────────
+
+describe('validateManualInput', () => {
+  // The validator is the source of truth for the manual prompt's SPLIT row.
+  // It runs incomplete → conservation → suspended-sum → ok in strict priority
+  // order. We unit-test the failure-mode branches here because two of them
+  // (suspended-sum, conservation+suspended both failing) require non-canonical
+  // M values to be reachable — the canonical M = 49/40/32 sequence
+  // mathematically rules out a suspended-sum failure when conservation passes.
+
+  it('returns incomplete when any field is null', () => {
+    expect(
+      validateManualInput({
+        pilesL: 5,
+        remL: null,
+        pilesR: 5,
+        remR: 4,
+        unparted: 49,
+        castIndex: 0,
+      }),
+    ).toEqual({ kind: 'incomplete' })
+  })
+
+  it('reports conservation failure with the actual total vs unparted', () => {
+    // 4·5 + 4 + 4·4 + 4 + 1 = 45, but unparted = 49.
+    const result = validateManualInput({
+      pilesL: 5,
+      remL: 4,
+      pilesR: 4,
+      remR: 4,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result).toEqual({ kind: 'conservation', total: 45, unparted: 49 })
+  })
+
+  it('reports suspended-sum failure when conservation passes but the suspended sum is off', () => {
+    // Non-canonical M to force a reachable suspended-sum failure:
+    // M=10, castIndex=1 (cast 2, expected sums {4, 8}).
+    //   4·1 + 1 + 4·0 + 4 + 1 = 10 ✓ conservation
+    //   suspended sum = 1 + 1 + 4 = 6 (not in {4, 8}).
+    const result = validateManualInput({
+      pilesL: 1,
+      remL: 1,
+      pilesR: 0,
+      remR: 4,
+      unparted: 10,
+      castIndex: 1,
+    })
+    expect(result).toEqual({
+      kind: 'suspended-sum',
+      sum: 6,
+      expectedLabel: '4 or 8',
+    })
+  })
+
+  it('conservation fires before suspended-sum when both fail', () => {
+    // Cast 1, M=49: pL=5, rL=4, pR=4, rR=2 → total 43 (not 49), suspended 7
+    // (not in {5, 9}). Conservation must win the priority race.
+    const result = validateManualInput({
+      pilesL: 5,
+      remL: 4,
+      pilesR: 4,
+      remR: 2,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result.kind).toBe('conservation')
+  })
+
+  it('returns ok with leftHeapTotal and rightHeapTotal for a valid commit', () => {
+    // Cast 2 of an M=40 round: pL=4, rL=3, pR=4, rR=4 → total 40 ✓,
+    // suspended 1+3+4 = 8 ✓. Derived pick = leftHeapTotal = 19.
+    const result = validateManualInput({
+      pilesL: 4,
+      remL: 3,
+      pilesR: 4,
+      remR: 4,
+      unparted: 40,
+      castIndex: 1,
+    })
+    expect(result).toEqual({
+      kind: 'ok',
+      pick: 19,
+      leftHeapTotal: 19,
+      rightHeapTotal: 20,
+    })
+  })
+
+  it('round-1 ok validates a canonical 24/49 split', () => {
+    // Cast 1 of M=49: pL=5, rL=4, pR=5, rR=4 → total 49 ✓, suspended 1+4+4 = 9 ✓.
+    const result = validateManualInput({
+      pilesL: 5,
+      remL: 4,
+      pilesR: 5,
+      remR: 4,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result).toEqual({
+      kind: 'ok',
+      pick: 24,
+      leftHeapTotal: 24,
+      rightHeapTotal: 24,
+    })
   })
 })
 
@@ -999,13 +1108,63 @@ describe('CastingPromptBox (manual flow)', () => {
     min: 1,
     max: 39,
     unpartedStalks: 40,
-    width: 60,
+    width: 80,
     inputMode: 'number' as const,
     flowKind: 'manual' as const,
     manualRevealMs: 0,
   }
 
-  it('renders title, unparted, two-field input, and the live derived row', async () => {
+  // Conservation-passing, suspended-sum-passing 4-field commit for baseProps
+  // (cast 2, M=40): pL=4, rL=3, pR=4, rR=4 → split = 19, suspended = 8,
+  // next = 32. Used by several tests as a stable valid commit.
+  const validBasePropsInput = {
+    pilesL: '4',
+    remL: '3',
+    pilesR: '4',
+    remR: '4',
+    expectedPick: 19,
+    expectedLeftHeapTotal: 19,
+    expectedRightHeapTotal: 20,
+    expectedSuspended: 8,
+    expectedNext: 32,
+  }
+
+  // Drive the four fields in sequence, gating Tab→digit transitions on the
+  // focus witness so we never write a digit before the next field's
+  // `useInput` has registered with Ink's stdin dispatcher.
+  async function typeFourFields(
+    stdin: { write: (data: string) => unknown },
+    onFocusedFieldChange: ReturnType<typeof vi.fn>,
+    {
+      pilesL,
+      remL,
+      pilesR,
+      remR,
+    }: { pilesL: string; remL: string; pilesR: string; remR: string },
+  ): Promise<void> {
+    stdin.write(pilesL)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remL'),
+    )
+    stdin.write(remL)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('pilesR'),
+    )
+    stdin.write(pilesR)
+    await yieldMacrotask()
+    stdin.write(TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remR'),
+    )
+    stdin.write(remR)
+    await yieldMacrotask()
+  }
+
+  it('renders title, unparted, four-field input, and the live SPLIT row', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
       <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
@@ -1014,81 +1173,218 @@ describe('CastingPromptBox (manual flow)', () => {
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 3/6 · Cast 2/3')
     expect(frame).toContain('Unparted stalks: 40')
-    // The two-field input row. The numeric buffers start empty so the
-    // bracket cells render only their cursor / blank — assert on the
-    // textual scaffold around them.
-    expect(frame).toContain('Left heap:')
-    expect(frame).toContain('piles × 4 +')
+    // Both heap input rows render their textual scaffold.
+    expect(frame).toContain('Left heap :')
+    expect(frame).toContain('Right heap:')
+    expect(frame).toContain('piles × 4 stalks +')
     expect(frame).toContain('remainder')
-    // Derived row with empty buffers — the prompt shows the range hint.
-    expect(frame).toMatch(/split = \?.*range 1 to 39/)
+    expect(frame).toContain('1 suspended')
+    // SPLIT row with empty buffers — the prompt shows the range hint.
+    expect(frame).toMatch(/SPLIT = \?.*range 1 to 39/)
+    // Live bottom row reflects zeroed totals before anything is typed.
+    expect(frame).toContain('LEFT HEAP: 0 stalks')
+    expect(frame).toContain('RIGHT HEAP: 0 stalks')
     unmount()
   })
 
-  it('updates the derived row live as digits are typed into either field', async () => {
+  it('renders three unfocused fields with `_` placeholder; brackets never collapse', async () => {
     const onReady = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
+    const { lastFrame, unmount } = render(
       <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
-    // Piles is the default focused field.
-    stdin.write('6')
-    await waitFor(() => expect(lastFrame() ?? '').toMatch(/split = \?/))
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('3')
-    await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(/→ split = 27 \(range 1 to 39\)/)
-    })
+    const frame = lastFrame() ?? ''
+    // Strip ANSI before counting placeholders — the cyan SGR around the
+    // underscore (ESC[36m _ ESC[39m) would otherwise hide the literal `[_]`.
+    const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
+    const placeholderMatches = stripped.match(/\[_\]/g)
+    expect(placeholderMatches?.length ?? 0).toBeGreaterThanOrEqual(3)
     unmount()
   })
 
-  it('Tab cycles focus between piles and remainder; digits land in the focused field', async () => {
-    // Observe focus indirectly via the derived row — piles=5, remainder=2
-    // yields split=22; tabbing back to piles and appending '7' makes
-    // piles='57', split=4*57+2=230 → out of range. Each step uniquely
-    // identifies the focused field.
+  it('Tab cycles forward through pilesL → remL → pilesR → remR → pilesL', async () => {
     const onReady = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
     )
     await waitForReady(onReady)
-    stdin.write('5')
-    await yieldMacrotask()
+    // The initial mount fires `pilesL` once via the focus-witness effect.
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('pilesL'),
+    )
     stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('2')
-    await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(/→ split = 22 \(range 1 to 39\)/)
-    })
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remL'),
+    )
     stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('7')
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('pilesR'),
+    )
+    stdin.write(TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remR'),
+    )
+    stdin.write(TAB)
+    // Wrap back to pilesL — the last call should now be `pilesL` again.
     await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(
-        /→ split = 230 \(out of range, must be 1 to 39\)/,
-      )
+      const lastCall = onFocusedFieldChange.mock.calls.at(-1)?.[0]
+      expect(lastCall).toBe('pilesL')
     })
     unmount()
   })
 
-  it('Enter is a no-op when the derived split is out of range', async () => {
+  it('Shift+Tab cycles focus backward through the same order', async () => {
+    // xterm's Shift+Tab is `ESC [ Z` (CSI Z) — Ink's input.js parses this
+    // as `{ tab: true, shift: true }`.
+    const SHIFT_TAB = '[Z'
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('pilesL'),
+    )
+    // Shift+Tab from pilesL → remR (last in cycle).
+    stdin.write(SHIFT_TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remR'),
+    )
+    // Shift+Tab again → pilesR.
+    stdin.write(SHIFT_TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('pilesR'),
+    )
+    // Shift+Tab again → remL.
+    stdin.write(SHIFT_TAB)
+    await waitFor(() =>
+      expect(onFocusedFieldChange).toHaveBeenCalledWith('remL'),
+    )
+    unmount()
+  })
+
+  it('updates the SPLIT row live to the derived pick when conservation + suspended-sum pass', async () => {
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toMatch(/SPLIT = 19 \(range 1 to 39\)/)
+    })
+    unmount()
+  })
+
+  it('suspended-sum failure renders the actual remainders (no literal "null" leak)', async () => {
+    // Regression guard: the message template formerly interpolated
+    // closure-scoped `remL`/`remR` (typed `number | null`); a future
+    // refactor that reordered validator priority could let it render as
+    // `(1 + null + null)`. The message now reads from the (narrowed)
+    // validator return type — so even at the type level the values are
+    // `number`, and at runtime they must be the same digits the user
+    // typed. Uses an unreachable-in-production M=10 prop to force a
+    // reachable suspended-sum failure (conservation+suspended both fire
+    // only for non-canonical unparted totals).
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        unpartedStalks={10}
+        max={9}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    // pilesL=1, remL=1, pilesR=0, remR=4 → conservation total = 10 ✓,
+    // suspended sum = 1 + 1 + 4 = 6 ∉ {4, 8} for cast 2 (castIndex=1).
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '1',
+      remL: '1',
+      pilesR: '0',
+      remR: '4',
+    })
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      // The actual rendered message must include the typed remainders.
+      expect(frame).toMatch(/Suspended sum \(1 \+ 1 \+ 4\) = 6/)
+      expect(frame).toContain('expected 4 or 8')
+      // Strip ANSI before scanning for the literal `null` — colour codes
+      // can't leak the string, but defence in depth.
+      const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
+      expect(stripped).not.toMatch(/null/)
+    })
+    unmount()
+  })
+
+  it('conservation failure shows the red message + never-zero hint in the SPLIT row', async () => {
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    // pilesL=5, remL=2, pilesR=4, remR=3 → total 4·5+2+4·4+3+1 = 42 (≠ 40).
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '5',
+      remL: '2',
+      pilesR: '4',
+      remR: '3',
+    })
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toMatch(/Stalks total 42 ≠ 40 unparted/)
+      expect(frame).toContain('recount heaps')
+      expect(frame).toContain('remainder 4, not 0')
+    })
+    unmount()
+  })
+
+  it('Enter is a no-op when the validator does not return ok', async () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
     )
     await waitForReady(onReady)
-    // piles upper bound = floor((39-1)/4) = 9. Pick 9 + 4 = 40 (out of range).
-    stdin.write('9')
-    await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('4')
-    await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(
-        /→ split = 40 \(out of range, must be 1 to 39\)/,
-      )
+    // Conservation failure: pL=5, rL=2, pR=4, rR=3 → total 42 ≠ 40.
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '5',
+      remL: '2',
+      pilesR: '4',
+      remR: '3',
     })
     stdin.write(ENTER)
     await yieldMacrotask()
@@ -1096,150 +1392,128 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('Enter commits with onSubmit(4 × piles + remainder) when in range', async () => {
+  it('Enter on a valid input commits onSubmit(pick) after manualRevealMs={0}', async () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { stdin, unmount } = render(
-      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
     )
     await waitForReady(onReady)
-    stdin.write('6') // piles
-    await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('3') // remainder
-    await yieldMacrotask()
+    await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
     stdin.write(ENTER)
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledTimes(1)
-      expect(onSubmit).toHaveBeenCalledWith(27)
+      expect(onSubmit).toHaveBeenCalledWith(validBasePropsInput.expectedPick)
     })
     unmount()
   })
 
-  it('boundary commit: piles=0, remainder=1 calls onSubmit(1)', async () => {
+  it('boundary commit: minimum-piles input commits the smallest valid pick', async () => {
+    // Smallest pL that yields conservation+suspended for cast 2/M=40 with
+    // rL=4, rR=3: 4·pL + 4 + 4·pR + 3 + 1 = 40 → pL + pR = 8. suspended = 1+4+3 = 8 ✓.
+    // Take pL=0, pR=8 → pick = 4·0+4 = 4.
     const onSubmit = vi.fn()
     const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
     const { stdin, unmount } = render(
-      <CastingPromptBox {...baseProps} onSubmit={onSubmit} onReady={onReady} />,
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
     )
     await waitForReady(onReady)
-    stdin.write('0') // piles
-    await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('1') // remainder
-    await yieldMacrotask()
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '0',
+      remL: '4',
+      pilesR: '8',
+      remR: '3',
+    })
     stdin.write(ENTER)
     await waitFor(() => {
       expect(onSubmit).toHaveBeenCalledTimes(1)
-      expect(onSubmit).toHaveBeenCalledWith(1)
+      expect(onSubmit).toHaveBeenCalledWith(4)
     })
     unmount()
   })
 
-  it('post-commit reveal swaps the derived row to "Round resolved" for manualRevealMs', async () => {
+  it('post-commit reveal swaps the bottom row to the green resolved string', async () => {
     const onSubmit = vi.fn()
     const onReady = vi.fn()
-    // Non-zero dwell so we can observe the reveal frame before onSubmit fires.
+    const onFocusedFieldChange = vi.fn()
     const { stdin, lastFrame, unmount } = render(
       <CastingPromptBox
         {...baseProps}
         manualRevealMs={150}
         onSubmit={onSubmit}
         onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     await waitForReady(onReady)
-    stdin.write('6')
-    await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('3')
-    await yieldMacrotask()
+    await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
     stdin.write(ENTER)
-    // Reveal text appears immediately; onSubmit hasn't fired yet.
+    // Reveal appears immediately; onSubmit hasn't fired yet.
     await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(
-        /→ Round resolved: suspended \d+ · next: \d+ unparted/,
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain(
+        `LEFT HEAP: ${validBasePropsInput.expectedLeftHeapTotal}`,
+      )
+      expect(frame).toContain(
+        `RIGHT HEAP: ${validBasePropsInput.expectedRightHeapTotal}`,
+      )
+      expect(frame).toContain(
+        `SUSPENDED: ${validBasePropsInput.expectedSuspended}`,
+      )
+      expect(frame).toContain(
+        `NEXT CAST: ${validBasePropsInput.expectedNext} unparted`,
       )
     })
     expect(onSubmit).not.toHaveBeenCalled()
-    await waitFor(() => expect(onSubmit).toHaveBeenCalledWith(27), {
-      timeoutMs: 1000,
-    })
+    await waitFor(
+      () =>
+        expect(onSubmit).toHaveBeenCalledWith(validBasePropsInput.expectedPick),
+      { timeoutMs: 1000 },
+    )
     unmount()
   })
 
-  it('reveal computes next/suspended for a round-2 commit (no suspended-from-right)', async () => {
-    // Round 2: castIndex = 1, no "1 from right" suspension.
-    //   pick = 27, unparted = 40
-    //   leftRem  = ((27 - 1) % 4) + 1 = 3
-    //   right    = 40 - 27 = 13 stalks
-    //   rightRem = ((13 - 1) % 4) + 1 = 1
-    //   suspended = leftRem + rightRem = 4
-    //   next      = 40 - 4 = 36
+  it('Enter during the reveal dwell skips to advance (fires onSubmit immediately)', async () => {
+    // Long dwell so the test sits inside it; the second Enter should
+    // short-circuit and fire onSubmit well before the timer would.
     const onSubmit = vi.fn()
     const onReady = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, unmount } = render(
       <CastingPromptBox
         {...baseProps}
-        manualRevealMs={150}
+        manualRevealMs={2500}
         onSubmit={onSubmit}
         onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
       />,
     )
     await waitForReady(onReady)
-    stdin.write('6')
+    await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
+    stdin.write(ENTER)
+    // First Enter starts the dwell; onSubmit must not have fired yet.
     await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('3')
-    await yieldMacrotask()
+    expect(onSubmit).not.toHaveBeenCalled()
+    // Second Enter during the dwell fires onSubmit immediately.
     stdin.write(ENTER)
     await waitFor(() => {
-      const frame = lastFrame() ?? ''
-      expect(frame).toContain('suspended 4')
-      expect(frame).toContain('next: 36')
+      expect(onSubmit).toHaveBeenCalledTimes(1)
     })
+    expect(onSubmit).toHaveBeenCalledWith(validBasePropsInput.expectedPick)
     unmount()
-  })
-
-  it('reveal computes next/suspended for a round-1 commit (1 suspended from right)', async () => {
-    // Round 1: castIndex = 0, max = 48, unparted = 49.
-    //   pick = 24, leftRem = ((24-1)%4)+1 = 4
-    //   right after suspension = 49 - 24 - 1 = 24 stalks
-    //   rightRem = ((24-1)%4)+1 = 4
-    //   suspended = 1 (the from-right) + leftRem + rightRem = 9
-    //   next       = 49 - 9 = 40
-    const onSubmit = vi.fn()
-    const onReady = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        castIndex={0}
-        max={48}
-        unpartedStalks={49}
-        manualRevealMs={150}
-        onSubmit={onSubmit}
-        onReady={onReady}
-      />,
-    )
-    await waitForReady(onReady)
-    stdin.write('6')
-    await yieldMacrotask()
-    stdin.write(TAB)
-    await yieldMacrotask()
-    stdin.write('4')
-    await yieldMacrotask()
-    stdin.write(ENTER)
-    await waitFor(() => {
-      const frame = lastFrame() ?? ''
-      expect(frame).toContain('suspended 9')
-      expect(frame).toContain('next: 40')
-    })
-    unmount()
-  })
+  }, 5000)
 
   it('Ctrl+R is NOT consumed by the prompt (no state change, no onSubmit)', async () => {
     const onSubmit = vi.fn()
@@ -1254,6 +1528,48 @@ describe('CastingPromptBox (manual flow)', () => {
     expect(onSubmit).not.toHaveBeenCalled()
     // The frame should be unchanged — Ctrl+R is owned by the viewer, not us.
     expect(lastFrame()).toBe(before)
+    unmount()
+  })
+
+  it('reveal uses byte-identity arithmetic (round-1 commit pinned to 24/49 → suspended 9, next 40)', async () => {
+    // Anchor the closed-form helper against the canonical first-round split.
+    //   pick = 24, unparted = 49
+    //   leftRem  = ((24 - 1) % 4) + 1 = 4
+    //   rightAfterPart = 49 - 24 = 25
+    //   rightCount     = 25 - 1 = 24
+    //   rightRem       = ((24 - 1) % 4) + 1 = 4
+    //   next           = 24 - 4 + (24 - 4) = 40
+    //   suspended      = 49 - 40 = 9
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        castIndex={0}
+        max={48}
+        unpartedStalks={49}
+        manualRevealMs={150}
+        onSubmit={onSubmit}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    // Conservation + suspended (cast 1 expects {5, 9}) passing input for pick=24:
+    //   pilesL=5, remL=4, pilesR=5, remR=4 → total 49 ✓, suspended 9 ✓.
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '5',
+      remL: '4',
+      pilesR: '5',
+      remR: '4',
+    })
+    stdin.write(ENTER)
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain('SUSPENDED: 9')
+      expect(frame).toContain('NEXT CAST: 40 unparted')
+    })
     unmount()
   })
 })

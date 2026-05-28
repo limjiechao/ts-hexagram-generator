@@ -1,4 +1,9 @@
-import { BOLD_RED, isGlobalExitKey, NORMAL } from '@hexagram/viewer-core'
+import {
+  BOLD_GREEN,
+  BOLD_RED,
+  isGlobalExitKey,
+  NORMAL,
+} from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
   useCallback,
@@ -36,11 +41,14 @@ export interface SliderAutoLand {
 // single cast.
 export const SLIDER_COMMIT_REVEAL_MS = 500
 
-// How long the manual-mode prompt holds its `→ Round resolved: …` reveal after
-// Enter before forwarding `onSubmit` upstream. Longer than the slider's 500 ms
-// because there's text to read; the spec's "Reveal dwell" target. Tests opt
-// out via `manualRevealMs={0}` to keep multi-cast assertions snappy.
-export const MANUAL_REVEAL_MS = 1000
+// How long the manual-mode prompt holds its green `∴ LEFT HEAP … SUSPENDED …
+// NEXT CAST …` reveal after Enter before forwarding `onSubmit` upstream.
+// 2500 ms gives the user time to read the four-field resolved row (heaps,
+// suspended count, next-cast unparted) without the eighteen-cast flow
+// dragging. Tests opt out via `manualRevealMs={0}` to keep multi-cast
+// assertions snappy; the skip-to-advance Enter shortcut lets the user cut
+// the dwell short mid-reveal.
+export const MANUAL_REVEAL_MS = 2500
 
 // Slider-mode prompt title. The interactive flow instructs the user to press
 // SPACE; the random flow auto-drives the slider, so its title just narrates.
@@ -506,17 +514,18 @@ export type CastingInputMode = 'slider' | 'number'
  *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
  *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
- *   manual flow → always 7 — covers the title / unparted / two-field input /
- *                 derived (or post-commit reveal) rows; matches slider so
- *                 the manual prompt slots into the same vertical reservation
- *                 the viewer already makes for slider mode.
+ *   manual flow → always 11 — title / blank / unparted / dim separator / left
+ *                 heap field row / right heap field row / SPLIT row /
+ *                 dim separator / resolved-heaps row → 9 content rows + 2
+ *                 border. Bigger than slider/number because the 4-field
+ *                 layout exposes both heaps and a tiered validator row.
  */
 export function getCastingPromptHeight(
   inputMode: CastingInputMode,
   hasError: boolean,
   flowKind: FlowKind = 'interactive',
 ): number {
-  if (flowKind === 'manual') return 7
+  if (flowKind === 'manual') return 11
   if (inputMode === 'slider') return 7
   return hasError ? 6 : 5
 }
@@ -611,6 +620,14 @@ interface CastingPromptBoxProps {
    * Required when `flowKind === 'manual'`; ignored otherwise.
    */
   unpartedStalks?: number
+  /**
+   * Test-only manual-flow focus witness — fires whenever the focused field
+   * cycles between `pilesL`, `remL`, `pilesR`, `remR`. Production callers
+   * omit it; tests gate Tab→digit pairs on the callback to bypass Ink's
+   * `useInput` bind race (see `superpowers:ink-useinput-bind`). Ignored
+   * outside `flowKind === 'manual'`.
+   */
+  onFocusedFieldChange?: (field: ManualFocusedField) => void
 }
 
 /**
@@ -663,6 +680,7 @@ export function CastingPromptBox({
   flowKind = 'interactive',
   manualRevealMs = MANUAL_REVEAL_MS,
   unpartedStalks,
+  onFocusedFieldChange,
 }: CastingPromptBoxProps): ReactElement {
   if (flowKind === 'manual') {
     // Defensive default — the viewer threads `unpartedStalks` explicitly, but
@@ -674,12 +692,12 @@ export function CastingPromptBox({
       <ManualCastingPrompt
         lineNumber={lineNumber}
         castIndex={castIndex}
-        max={max}
         width={width}
         unpartedStalks={unparted}
         manualRevealMs={manualRevealMs}
         onSubmit={onSubmit}
         onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
       />
     )
   }
@@ -894,157 +912,342 @@ function SliderCastingPrompt({
 
 // ── Manual flow ─────────────────────────────────────────────────────────────
 
+/**
+ * The four input fields owned by `<ManualCastingPrompt>`, in forward Tab
+ * order. Production callers don't see this — it's exposed for the
+ * `onFocusedFieldChange` test witness only.
+ */
+export type ManualFocusedField = 'pilesL' | 'remL' | 'pilesR' | 'remR'
+
 interface ManualCastingPromptProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
-  max: number
   width: number
   unpartedStalks: number
   manualRevealMs: number
   onSubmit: (parsed: number) => void
   onReady?: () => void
+  onFocusedFieldChange?: (field: ManualFocusedField) => void
 }
 
 interface ManualCommit {
   pick: number
   suspended: number
   next: number
+  leftHeapTotal: number
+  rightHeapTotal: number
 }
 
 /**
  * Closed-form "next unparted" and "set-aside this round" from the user's
- * pick. Mirrors `@hexagram/core`'s `partTheStalks → suspendOneFromTheRight (R1
- * only) → sortInto4s → setAside` pipeline so the manual prompt can fill the
- * reveal row before the line generator is actually advanced upstream.
+ * pick. Mirrors `@hexagram/core`'s `fourOperations` pipeline — `partTheStalks
+ * → suspendOneFromTheRight → sortInto4s → setAside` — which suspends one
+ * stalk from the right heap on EVERY round (see `packages/core/src/index.ts`
+ * lines 156–167), not only the first.
  *
- * Round 1 (castIndex 0) bears the ceremonial "1 from right" suspension; rounds
- * 2 and 3 do not. The set-aside count is the round's full yarrow remainder
- * (left-remainder + right-remainder, plus the 1-from-right on round 1), which
- * for the I-Ching convention is 5 or 9 on round 1 and 4 or 8 on rounds 2/3.
+ * Historical note: an earlier version of this helper conditionally skipped
+ * the suspension on rounds 2/3. That was a transcription bug — the core
+ * pipeline pipes `suspendOneFromTheRight` unconditionally, and the
+ * `byte-identity` test downstream depends on these numbers matching the
+ * interactive flow. The `castIndex` parameter is retained for signature
+ * stability (other callers / tests may pass it) but is no longer consulted.
  */
 function computeManualRoundResult(
   pick: number,
-  castIndex: 0 | 1 | 2,
+  _castIndex: 0 | 1 | 2,
   unparted: number,
 ): { suspended: number; next: number } {
   // I Ching convention: a heap that's a multiple of 4 yields remainder 4,
   // never 0 — modelled as ((count - 1) % 4) + 1.
   const leftRem = ((pick - 1) % 4) + 1
-  const isFirstRound = castIndex === 0
   const rightAfterPart = unparted - pick
-  const rightCount = isFirstRound ? rightAfterPart - 1 : rightAfterPart
+  const rightCount = rightAfterPart - 1
   const rightRem = ((rightCount - 1) % 4) + 1
   const next = pick - leftRem + (rightCount - rightRem)
   return { suspended: unparted - next, next }
 }
 
 /**
- * Manual-mode body of `<CastingPromptBox>` — the two-field piles+remainder
- * prompt used by the `hexagram-manual` flow. Users physically casting yarrow
- * stalks observe the post-sort piles and remainder of the left heap, then
- * transcribe those two numbers here; we derive the canonical split index
- * (`4 × piles + remainder`) and hand it upstream as if it were a typed cast.
+ * Manual-mode validator. Runs four checks in strict priority order — the
+ * first failing check wins, so the SPLIT row only shows one message at a
+ * time. Conservation always fires before gathered-sum so an off-by-one
+ * heap count never surfaces as a 掛扐 complaint; and once both pass, the
+ * derived pick is mathematically in `[1, M-1]` (a 4·(pL+pR)+rL+rR+1 = M
+ * sum that lands every count-1..M-1 split is a contradiction), so no
+ * `range` variant is needed.
  *
- * Layout (4 content rows + border):
+ * Pure — depends only on its inputs. The single source of truth for what
+ * the prompt's input state means; the textual rendering + commit path both
+ * consume this result.
+ */
+export type ManualValidationResult =
+  | { kind: 'incomplete' }
+  | { kind: 'conservation'; total: number; unparted: number }
+  | { kind: 'gathered-sum'; sum: number; expectedLabel: string }
+  | {
+      kind: 'ok'
+      pick: number
+      leftHeapTotal: number
+      rightHeapTotal: number
+    }
+
+export function validateManualInput(args: {
+  pilesL: number | null
+  remL: number | null
+  pilesR: number | null
+  remR: number | null
+  unparted: number
+  castIndex: 0 | 1 | 2
+}): ManualValidationResult {
+  const { pilesL, remL, pilesR, remR, unparted, castIndex } = args
+  if (pilesL === null || remL === null || pilesR === null || remR === null) {
+    return { kind: 'incomplete' }
+  }
+  const leftHeapTotal = 4 * pilesL + remL
+  const rightHeapTotal = 4 * pilesR + remR
+  // Conservation: the four user-typed counts plus the 1 always-suspended
+  // stalk must sum to the round's unparted count.
+  const total = leftHeapTotal + rightHeapTotal + 1
+  if (total !== unparted) {
+    return { kind: 'conservation', total, unparted }
+  }
+  // Gathered sum (掛扐): the I-Ching invariant. Round 1 expects {5, 9};
+  // rounds 2/3 expect {4, 8}. (The 1-from-right is folded in via the +1
+  // term; rL + rR + 1 == 4·(pL+pR) ⊕ unparted lands at exactly these
+  // residues for the canonical M = 49/40/32 sequence.)
+  const sum = 1 + remL + remR
+  const expectedSums = castIndex === 0 ? [5, 9] : [4, 8]
+  if (!expectedSums.includes(sum)) {
+    const expectedLabel = castIndex === 0 ? '5 or 9' : '4 or 8'
+    return { kind: 'gathered-sum', sum, expectedLabel }
+  }
+  // Conservation + gathered-sum both pass → derived pick is in
+  // `[1, unparted - 1]`. No standalone `range` failure mode.
+  return {
+    kind: 'ok',
+    pick: leftHeapTotal,
+    leftHeapTotal,
+    rightHeapTotal,
+  }
+}
+
+// Parse a digit-buffer into an integer, or `null` if the buffer is empty or
+// fails the integer check. Lifted to module scope so React doesn't recreate
+// it on every render — closure-less, so it captures nothing.
+function parseManualBuffer(buffer: string): number | null {
+  if (buffer.length === 0) return null
+  const parsed = Number.parseInt(buffer, 10)
+  return Number.isInteger(parsed) ? parsed : null
+}
+
+// Render a `<NumberInput>` slot with the manual-prompt's bracket scaffolding
+// and the field-state styling rules: focused fields use inverse video on the
+// numeric value, unfocused fields render in cyan, and empty unfocused
+// buffers show an `_` placeholder so the brackets never collapse to `[]`.
+// The `<NumberInput>` is always mounted (so its `useInput` is wired up); we
+// only swap how the value text is styled around it. A focused empty buffer
+// still surfaces the cursor (rendered by `<NumberInput>` when `focused`).
+function ManualNumberField({
+  value,
+  focused,
+  min,
+  max,
+  onChange,
+}: {
+  value: string
+  focused: boolean
+  min: number
+  max: number
+  onChange: (next: string) => void
+}): ReactElement {
+  // Focused — the numeric value wears inverse video; `<NumberInput>` also
+  // renders a trailing `<Cursor />` (an inverse space) on top of that. The
+  // value text and the cursor are siblings in `<NumberInput>`'s fragment,
+  // so wrapping it in `<Text inverse>` styles both as a single inverse
+  // block. (Ink propagates `<Text>`'s SGR to nested `<Text>` children
+  // unless they override.)
+  if (focused) {
+    return (
+      <Text inverse>
+        <NumberInput
+          value={value}
+          focused
+          min={min}
+          max={max}
+          onChange={onChange}
+          onSubmit={() => {}}
+          onError={() => {}}
+        />
+      </Text>
+    )
+  }
+  // Unfocused — render an `_` placeholder for empty buffers or the typed
+  // value in cyan. `<NumberInput>` still needs to be in the tree so its
+  // `useInput` is registered with Ink (it self-gates on `focused`); render
+  // it with a `value` we are about to ignore visually, and overlay the cyan
+  // text in a hidden way. Simpler: skip the input entirely when unfocused
+  // — `useInput({ isActive: focused })` already disabled it, and the
+  // styling is the only reason to render here.
+  if (value.length === 0) {
+    return <Text color="cyan">_</Text>
+  }
+  return <Text color="cyan">{value}</Text>
+}
+
+/**
+ * Manual-mode body of `<CastingPromptBox>` — the four-field
+ * `[pilesL] piles × 4 + [remL] remainder` / `[pilesR] piles × 4 + [remR]
+ * remainder + 1 suspended` prompt used by the `hexagram-manual` flow. Users
+ * physically casting yarrow stalks observe the post-sort heaps and remainders
+ * on both sides of the table, then transcribe all four numbers here; we
+ * derive the canonical split index (`4 × pilesL + remL`) and hand it
+ * upstream as if it were a typed cast.
  *
- *   ╭───────────────────────────────────────────────────╮
- *   │ Line N/6 · Cast C/3                               │
- *   │ Unparted stalks: M                                │
- *   │ Left heap: [piles] piles × 4 + [remainder] remainder │
- *   │ → split = N (range 1 to M-1)   ← swaps to reveal  │
- *   ╰───────────────────────────────────────────────────╯
+ * Layout (9 content rows + 2 border = 11 rows total):
  *
- * Tab cycles focus between the two `<NumberInput>` fields (wrapping). Enter
- * is parent-owned: each field's `<NumberInput>` is wired with no-op
- * `onSubmit` / `onError` callbacks, so the parent's `useInput` is the sole
- * authority on cross-field validation and the gated commit.
+ *   ╭─────────────────────────────────────────────────────╮
+ *   │ Line N/6 · Cast C/3                                 │
+ *   │                                                     │
+ *   │ Unparted stalks: M                                  │
+ *   │ ---                                                 │
+ *   │ Left heap : [pilesL] piles × 4 stalks + [remL] rem  │
+ *   │ Right heap: [pilesR] piles × 4 stalks + [remR] rem  │
+ *   │                                          + 1 susp.  │
+ *   │ → SPLIT = N (range 1 to M-1)   ← swaps to reveal    │
+ *   │ ---                                                 │
+ *   │ ∴ LEFT HEAP: X | RIGHT HEAP: Y                      │
+ *   ╰─────────────────────────────────────────────────────╯
+ *
+ * Tab cycles focus forward through `pilesL → remL → pilesR → remR → pilesL`;
+ * Shift+Tab cycles backward. Enter is parent-owned: each field's
+ * `<NumberInput>` is wired with no-op `onSubmit` / `onError` callbacks, so
+ * the parent's `useInput` is the sole authority on cross-field validation
+ * and the gated commit.
+ *
+ * Validator priority (first failing check wins): incomplete → conservation →
+ * gathered-sum → ok. The SPLIT row renders the validator's textual output;
+ * conservation and gathered-sum failures highlight in red, with the
+ * never-zero hint inlined in the conservation message only.
  *
  * On a valid Enter:
- *   - local `committed = { pick, suspended, next }` captures the resolved
- *     pick plus the closed-form round numbers,
- *   - the derived row swaps in place to
- *     `→ Round resolved: suspended X · next: Y unparted`,
+ *   - local `committed = { pick, suspended, next, leftHeapTotal,
+ *     rightHeapTotal }` captures the resolved pick plus the closed-form
+ *     round numbers and both heap totals,
+ *   - the bottom row swaps in place to a green
+ *     `∴ LEFT HEAP: X | RIGHT HEAP: Y | SUSPENDED: Z | NEXT CAST: W
+ *     unparted`,
  *   - a `manualRevealMs`-delayed `setTimeout` fires `onSubmit(pick)`
  *     upstream (tests opt out with `manualRevealMs={0}`, which short-circuits
- *     to a synchronous dispatch).
+ *     to a synchronous dispatch),
+ *   - pressing Enter again during the dwell fires `onSubmit` immediately
+ *     (skip-to-advance), so a confident caster doesn't have to wait out the
+ *     full reveal.
  *
- * No separate error row — out-of-range derived splits surface in the derived
- * row itself and Enter is a silent no-op. This keeps the rendered height
- * stable at the `getCastingPromptHeight(_, _, 'manual') = 7` reservation.
+ * No separate error row — out-of-range derived splits surface in the SPLIT
+ * row itself and Enter is a silent no-op. The rendered height is locked at
+ * `getCastingPromptHeight(_, _, 'manual') = 11`.
  */
 function ManualCastingPrompt({
   lineNumber,
   castIndex,
-  max,
   width,
   unpartedStalks,
   manualRevealMs,
   onSubmit,
   onReady,
+  onFocusedFieldChange,
 }: ManualCastingPromptProps): ReactElement {
-  const [pilesBuffer, setPilesBuffer] = useState('')
-  const [remainderBuffer, setRemainderBuffer] = useState('')
-  const [focusedField, setFocusedField] = useState<'piles' | 'remainder'>(
-    'piles',
-  )
+  const [pilesLBuffer, setPilesLBuffer] = useState('')
+  const [remLBuffer, setRemLBuffer] = useState('')
+  const [pilesRBuffer, setPilesRBuffer] = useState('')
+  const [remRBuffer, setRemRBuffer] = useState('')
+  const [focusedField, setFocusedField] = useState<ManualFocusedField>('pilesL')
   const [committed, setCommitted] = useState<ManualCommit | null>(null)
 
-  // Per-field bounds. piles ∈ [0, floor((unparted-1)/4)] (the largest count
-  // whose split can reach `max` with a remainder of 1..4); equivalent to
-  // floor(max / 4) given the hook's invariant `unparted = max + 1`.
-  // remainder ∈ [1, 4] — the I Ching convention treats a heap divisible by
-  // 4 as a remainder of 4 (never 0).
-  const pilesMax = Math.floor(max / 4)
-  const remainderMin = 1
-  const remainderMax = 4
+  // Per-field bounds. Piles ∈ [0, floor(unparted/4)] — a UX guard; the
+  // validator's conservation check is the source of truth for the
+  // cross-field invariant, so per-field bounds can be lenient without
+  // letting an invalid commit through. Remainders ∈ [1, 4] (I Ching: a
+  // heap divisible by 4 yields remainder 4, never 0).
+  const pilesMax = Math.max(0, Math.floor(unpartedStalks / 4))
+  const remMin = 1
+  const remMax = 4
 
-  // Live derivation. Both buffers must hold a parseable integer for the
-  // pick to be defined; otherwise the derived row shows the placeholder.
-  const pilesParsed =
-    pilesBuffer.length > 0 ? Number.parseInt(pilesBuffer, 10) : null
-  const remainderParsed =
-    remainderBuffer.length > 0 ? Number.parseInt(remainderBuffer, 10) : null
-  const derivedPick =
-    pilesParsed !== null &&
-    remainderParsed !== null &&
-    Number.isInteger(pilesParsed) &&
-    Number.isInteger(remainderParsed)
-      ? 4 * pilesParsed + remainderParsed
-      : null
-  // Cross-field range check. `max` IS the largest valid pick (the existing
-  // hook invariant `currentMax = unparted - 1`), so the bound is closed.
-  const isInRange =
-    derivedPick !== null && derivedPick >= 1 && derivedPick <= max
-
-  // Tab + Enter handler — the parent owns both. Each `<NumberInput>` is
-  // wired with no-op submit/error so its own Enter handling is inert.
-  useInput((_input, key) => {
-    if (committed !== null) return // ignore during reveal
-    if (key.tab) {
-      setFocusedField((previous) =>
-        previous === 'piles' ? 'remainder' : 'piles',
-      )
-      return
-    }
-    if (key.return) {
-      if (!isInRange || derivedPick === null) return
-      const result = computeManualRoundResult(
-        derivedPick,
-        castIndex,
-        unpartedStalks,
-      )
-      setCommitted({ pick: derivedPick, ...result })
-    }
+  // Live-parse each buffer.
+  const pilesL = parseManualBuffer(pilesLBuffer)
+  const remL = parseManualBuffer(remLBuffer)
+  const pilesR = parseManualBuffer(pilesRBuffer)
+  const remR = parseManualBuffer(remRBuffer)
+  const validation = validateManualInput({
+    pilesL,
+    remL,
+    pilesR,
+    remR,
+    unparted: unpartedStalks,
+    castIndex,
   })
 
-  // Latest-`onSubmit` ref so the reveal timer fires the freshest closure
-  // without retriggering the effect on every parent re-render (same pattern
-  // as `<SliderCastingPrompt>`).
+  // Live heap totals — used by the bottom row to mirror the user's typing
+  // even before all four fields are populated. Treat a null parse as 0 so
+  // the row never disappears; an absent field is a partial total, not an
+  // error.
+  const liveLeftTotal = 4 * (pilesL ?? 0) + (remL ?? 0)
+  const liveRightTotal = 4 * (pilesR ?? 0) + (remR ?? 0)
+
+  // Latest-`onSubmit` and -`onFocusedFieldChange` refs so the related
+  // effects don't re-run on every parent re-render with a fresh closure.
   const onSubmitRef = useRef(onSubmit)
   useEffect(() => {
     onSubmitRef.current = onSubmit
   })
+  const onFocusedFieldChangeRef = useRef(onFocusedFieldChange)
+  useEffect(() => {
+    onFocusedFieldChangeRef.current = onFocusedFieldChange
+  })
 
+  // Tab + Shift+Tab + Enter handler. The parent owns both the focus cycle
+  // and the gated commit; each `<NumberInput>` is wired with no-op
+  // submit/error so its own Enter handling is inert.
+  useInput((_input, key) => {
+    if (key.tab) {
+      // Tab order: pilesL → remL → pilesR → remR → pilesL.
+      // Shift+Tab reverses it.
+      const order: ManualFocusedField[] = ['pilesL', 'remL', 'pilesR', 'remR']
+      const current = order.indexOf(focusedField)
+      const step = key.shift ? -1 : 1
+      const next = order[(current + step + order.length) % order.length]!
+      setFocusedField(next)
+      return
+    }
+    if (key.return) {
+      // Skip-to-advance: if a commit is already in flight (the reveal dwell
+      // is running), Enter fires onSubmit immediately and lets the dwell
+      // timer's cleanup tear down naturally. `committed.pick` is stable.
+      if (committed !== null) {
+        onSubmitRef.current(committed.pick)
+        return
+      }
+      // First Enter: commit only when the validator passes.
+      if (validation.kind !== 'ok') return
+      const result = computeManualRoundResult(
+        validation.pick,
+        castIndex,
+        unpartedStalks,
+      )
+      setCommitted({
+        pick: validation.pick,
+        suspended: result.suspended,
+        next: result.next,
+        leftHeapTotal: validation.leftHeapTotal,
+        rightHeapTotal: validation.rightHeapTotal,
+      })
+    }
+  })
+
+  // Reveal-dwell timer. Fires `onSubmit(pick)` after `manualRevealMs`
+  // milliseconds — or synchronously when the caller opts out with
+  // `manualRevealMs={0}`. The skip-to-advance Enter path above fires
+  // `onSubmit` directly and lets this cleanup run on unmount.
   useEffect(() => {
     if (committed === null) return
     if (manualRevealMs === 0) {
@@ -1069,17 +1272,35 @@ function ManualCastingPrompt({
     onReady?.()
   }, [onReady])
 
-  const derivedRow = ((): string => {
+  // Focus witness — fires whenever the focused field changes, including
+  // the initial mount. Tests gate Tab→digit pairs on this signal to bypass
+  // Ink's `useInput` bind race; production callers omit
+  // `onFocusedFieldChange` and the ref-call is a no-op.
+  useEffect(() => {
+    onFocusedFieldChangeRef.current?.(focusedField)
+  }, [focusedField])
+
+  // SPLIT row text — fed verbatim by the validator. Conservation and
+  // gathered-sum failures wrap in BOLD_RED; ok/incomplete are neutral.
+  const splitRow = ((): string => {
+    switch (validation.kind) {
+      case 'incomplete':
+        return `→ SPLIT = ? (range 1 to ${unpartedStalks - 1})`
+      case 'conservation':
+        return `${BOLD_RED}Stalks total ${validation.total} ≠ ${validation.unparted} unparted — recount heaps (a heap divisible by 4 yields remainder 4, not 0)${NORMAL}`
+      case 'gathered-sum':
+        return `${BOLD_RED}掛扐 sum (1 + ${remL} + ${remR}) = ${validation.sum}, expected ${validation.expectedLabel} — check if you removed the last group of 4 from a divisible heap${NORMAL}`
+      case 'ok':
+        return `→ SPLIT = ${validation.pick} (range 1 to ${unpartedStalks - 1})`
+    }
+  })()
+
+  // Bottom row — either the live heap totals or the green resolved row.
+  const bottomRow = ((): string => {
     if (committed !== null) {
-      return `→ Round resolved: suspended ${committed.suspended} · next: ${committed.next} unparted`
+      return `${BOLD_GREEN}∴ LEFT HEAP: ${committed.leftHeapTotal} | RIGHT HEAP: ${committed.rightHeapTotal} | SUSPENDED: ${committed.suspended} | NEXT CAST: ${committed.next} unparted${NORMAL}`
     }
-    if (derivedPick === null) {
-      return `→ split = ? (range 1 to ${max})`
-    }
-    if (isInRange) {
-      return `→ split = ${derivedPick} (range 1 to ${max})`
-    }
-    return `→ split = ${derivedPick} (out of range, must be 1 to ${max})`
+    return `∴ LEFT HEAP: ${liveLeftTotal} stalks | RIGHT HEAP: ${liveRightTotal} stalks`
   })()
 
   return (
@@ -1091,31 +1312,50 @@ function ManualCastingPrompt({
       flexDirection="column"
     >
       <Text dimColor>{`Line ${lineNumber}/6 · Cast ${castIndex + 1}/3`}</Text>
+      <Text> </Text>
       <Text>{`Unparted stalks: ${unpartedStalks}`}</Text>
+      <Text dimColor>---</Text>
       <Box flexDirection="row">
-        <Text>Left heap: [</Text>
-        <NumberInput
-          value={pilesBuffer}
-          focused={focusedField === 'piles' && committed === null}
+        <Text>{'Left heap : ['}</Text>
+        <ManualNumberField
+          value={pilesLBuffer}
+          focused={focusedField === 'pilesL' && committed === null}
           min={0}
           max={pilesMax}
-          onChange={setPilesBuffer}
-          onSubmit={() => {}}
-          onError={() => {}}
+          onChange={setPilesLBuffer}
         />
-        <Text>] piles × 4 + [</Text>
-        <NumberInput
-          value={remainderBuffer}
-          focused={focusedField === 'remainder' && committed === null}
-          min={remainderMin}
-          max={remainderMax}
-          onChange={setRemainderBuffer}
-          onSubmit={() => {}}
-          onError={() => {}}
+        <Text>{'] piles × 4 stalks + ['}</Text>
+        <ManualNumberField
+          value={remLBuffer}
+          focused={focusedField === 'remL' && committed === null}
+          min={remMin}
+          max={remMax}
+          onChange={setRemLBuffer}
         />
-        <Text>] remainder</Text>
+        <Text>{'] remainder'}</Text>
       </Box>
-      <Text>{derivedRow}</Text>
+      <Box flexDirection="row">
+        <Text>{'Right heap: ['}</Text>
+        <ManualNumberField
+          value={pilesRBuffer}
+          focused={focusedField === 'pilesR' && committed === null}
+          min={0}
+          max={pilesMax}
+          onChange={setPilesRBuffer}
+        />
+        <Text>{'] piles × 4 stalks + ['}</Text>
+        <ManualNumberField
+          value={remRBuffer}
+          focused={focusedField === 'remR' && committed === null}
+          min={remMin}
+          max={remMax}
+          onChange={setRemRBuffer}
+        />
+        <Text>{'] remainder + 1 suspended'}</Text>
+      </Box>
+      <Text>{splitRow}</Text>
+      <Text dimColor>---</Text>
+      <Text>{bottomRow}</Text>
     </Box>
   )
 }
