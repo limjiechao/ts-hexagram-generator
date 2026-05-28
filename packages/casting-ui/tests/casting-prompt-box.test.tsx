@@ -6,6 +6,7 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
+  manualTitleRow,
   SliderInput,
   validateManualInput,
 } from '../src/casting-prompt-box'
@@ -117,6 +118,23 @@ describe('CastingPromptBox', () => {
     )
     await waitFor(() => expect(onReady).toHaveBeenCalledTimes(1))
     unmount()
+  })
+})
+
+describe('manualTitleRow', () => {
+  it('renders line / cast / dots / step for each focused field', () => {
+    expect(manualTitleRow(3, 1, 'pilesL')).toBe(
+      'Line 3/6 · Cast 2/3   ●○○○   step 1 of 4',
+    )
+    expect(manualTitleRow(3, 1, 'remL')).toBe(
+      'Line 3/6 · Cast 2/3   ●●○○   step 2 of 4',
+    )
+    expect(manualTitleRow(3, 1, 'pilesR')).toBe(
+      'Line 3/6 · Cast 2/3   ●●●○   step 3 of 4',
+    )
+    expect(manualTitleRow(3, 1, 'remR')).toBe(
+      'Line 3/6 · Cast 2/3   ●●●●   step 4 of 4',
+    )
   })
 })
 

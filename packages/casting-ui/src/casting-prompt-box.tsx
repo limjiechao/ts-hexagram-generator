@@ -514,11 +514,18 @@ export type CastingInputMode = 'slider' | 'number'
  *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
  *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
- *   manual flow → always 11 — title / blank / unparted / dim separator / left
- *                 heap field row / right heap field row / SPLIT row /
- *                 dim separator / resolved-heaps row → 9 content rows + 2
- *                 border. Bigger than slider/number because the 4-field
- *                 layout exposes both heaps and a tiered validator row.
+ *   manual flow → always 11 — title row (with inline ●●○○ progress dots) /
+ *                 blank / 6-row side-by-side body (LEFT card + RIGHT card
+ *                 on the left half; question + dim range hint + 3-row
+ *                 drawn-box input on the right half) / bottom strip
+ *                 → 9 content rows + 2 border. The bottom strip renders
+ *                 one of three branches: editing (live totals + commit
+ *                 hint), error (BOLD_RED validator message + back-to-fix
+ *                 hint), or resolved (BOLD_GREEN totals + next-cast
+ *                 unparted, no right hint). All rows are pre-built ANSI
+ *                 text and sliced by `horizontalOffset` for the viewer's
+ *                 narrow-terminal `<` / `>` pan, exactly like the slider
+ *                 prompt.
  */
 export function getCastingPromptHeight(
   inputMode: CastingInputMode,
@@ -919,6 +926,31 @@ function SliderCastingPrompt({
  */
 export type ManualFocusedField = 'pilesL' | 'remL' | 'pilesR' | 'remR'
 
+// Forward Tab order for the four manual fields. Used by `manualTitleRow`,
+// the forthcoming row-builder helpers, and the `useInput` Tab handler in
+// `<ManualCastingPrompt>`. Module-scope so all consumers stay in lockstep.
+const MANUAL_FIELD_ORDER: readonly ManualFocusedField[] = [
+  'pilesL',
+  'remL',
+  'pilesR',
+  'remR',
+] as const
+
+/**
+ * One-line manual-flow title: `Line N/6 · Cast C/3   ●●○○   step P of 4`.
+ * Dots: positions ≤ focusedField's index are `●`, the rest `○`. The 4-char
+ * dots strip doubles as a step-progress indicator.
+ */
+export function manualTitleRow(
+  lineNumber: number,
+  castIndex: number,
+  focusedField: ManualFocusedField,
+): string {
+  const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
+  const dots = MANUAL_FIELD_ORDER.map((_, i) => (i <= stepIndex ? '●' : '○')).join('')
+  return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   step ${stepIndex + 1} of 4`
+}
+
 interface ManualCastingPromptProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
@@ -1234,10 +1266,9 @@ function ManualCastingPrompt({
     if (key.tab) {
       // Tab order: pilesL → remL → pilesR → remR → pilesL.
       // Shift+Tab reverses it.
-      const order: ManualFocusedField[] = ['pilesL', 'remL', 'pilesR', 'remR']
-      const current = order.indexOf(focusedField)
+      const current = MANUAL_FIELD_ORDER.indexOf(focusedField)
       const step = key.shift ? -1 : 1
-      const next = order[(current + step + order.length) % order.length]!
+      const next = MANUAL_FIELD_ORDER[(current + step + MANUAL_FIELD_ORDER.length) % MANUAL_FIELD_ORDER.length]!
       setFocusedField(next)
       return
     }
