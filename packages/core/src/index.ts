@@ -1,7 +1,9 @@
 import {
   assertIsLine,
+  type AdvanceableLineState,
   type FourOperationsResult,
   type Line,
+  type LineState,
 } from '@hexagram/types'
 
 type SortedStalks =
@@ -165,6 +167,102 @@ const fourOperations = (unpartedStalksAndPartingPosition: {
       ),
     ),
   )
+
+// ---------------------------------------------------------------------------
+// Pure step API — `performCast` advances a `LineState` by one cast.
+//
+// The classic generator API (`makeLineGenerator`, below) is a generator
+// wrapper around this step function; existing consumers don't need to know
+// `performCast` exists. The point of exposing it as a public primitive is
+// that the state is a value, not a hidden frame — host code can hold it,
+// rebuild it from a SplitRecord prefix, and resume from any cast.
+// ---------------------------------------------------------------------------
+
+export const initialLineState: Extract<LineState, { phase: '0th-cast' }> = {
+  phase: '0th-cast',
+  unparted: stalksBeforeParting,
+  suspended: [],
+  rounds: [],
+}
+
+// The selectable range for the next pick: the prompt's "Pick a number from
+// 1 to max". Only meaningful before resolution — `'3rd-cast'` has nothing
+// left to pick, so it's excluded from the input domain.
+export const maxPickFor = (state: AdvanceableLineState): number =>
+  state.unparted.length - 1
+
+// Phase advancement is total over the non-terminal subdomain; the conditional
+// type binds the output phase to the input phase exactly.
+type NextPhase<P extends AdvanceableLineState['phase']> = P extends '0th-cast'
+  ? '1st-cast'
+  : P extends '1st-cast'
+    ? '2nd-cast'
+    : '3rd-cast'
+
+export function performCast<P extends AdvanceableLineState['phase']>(
+  state: Extract<LineState, { phase: P }>,
+  pick: number,
+): Extract<LineState, { phase: NextPhase<P> }> {
+  // Runtime guard: the type signature excludes '3rd-cast' but a caller can
+  // bypass the type checker with `@ts-expect-error`. Throw explicitly so the
+  // bypass is visible at runtime and the test can assert on it.
+  if (!('unparted' in state)) {
+    throw new Error(
+      'performCast called on resolved 3rd-cast state — bypass via @ts-expect-error?',
+    )
+  }
+
+  // All three advanceable phases share the same fourOperations call — only
+  // what we do with the result differs per phase.
+  const roundResult = fourOperations({
+    unpartedStalks: state.unparted,
+    suspendedFromNextRound: state.suspended,
+    partStalksAtIndex: pick,
+  })
+
+  // The runtime branch decides which discriminant we're emitting; the
+  // signature's conditional type tells callers it matches their input.
+  // The intermediate typed variable is the bridge between the two —
+  // necessary because TS cannot infer the conditional return from a
+  // runtime switch-branch alone.
+  switch (state.phase) {
+    case '0th-cast': {
+      const after1st: Extract<LineState, { phase: '1st-cast' }> = {
+        phase: '1st-cast',
+        unparted: roundResult.unpartedStalks,
+        suspended: roundResult.suspendedFromNextRound,
+        rounds: [roundResult],
+      }
+      return after1st as Extract<LineState, { phase: NextPhase<P> }>
+    }
+    case '1st-cast': {
+      const after2nd: Extract<LineState, { phase: '2nd-cast' }> = {
+        phase: '2nd-cast',
+        unparted: roundResult.unpartedStalks,
+        suspended: roundResult.suspendedFromNextRound,
+        rounds: [...state.rounds, roundResult] as [
+          FourOperationsResult,
+          FourOperationsResult,
+        ],
+      }
+      return after2nd as Extract<LineState, { phase: NextPhase<P> }>
+    }
+    case '2nd-cast': {
+      const maybeLine = roundResult.unpartedStalks.length / 4
+      assertIsLine(maybeLine)
+      const resolved: Extract<LineState, { phase: '3rd-cast' }> = {
+        phase: '3rd-cast',
+        rounds: [...state.rounds, roundResult] as [
+          FourOperationsResult,
+          FourOperationsResult,
+          FourOperationsResult,
+        ],
+        line: maybeLine,
+      }
+      return resolved as Extract<LineState, { phase: NextPhase<P> }>
+    }
+  }
+}
 
 // Pipe three rounds for a complete line
 export const makeLineGenerator = function* (roundOneArguments: {

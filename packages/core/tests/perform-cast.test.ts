@@ -1,0 +1,126 @@
+import type { AdvanceableLineState, LineState } from '@hexagram/types'
+import { describe, expect, test } from 'vitest'
+
+import {
+  initialLineState,
+  maxPickFor,
+  performCast,
+  stalksBeforeParting,
+} from '../src/index'
+
+describe('initialLineState', () => {
+  test('is in 0th-cast phase with all 49 stalks unparted', () => {
+    expect(initialLineState.phase).toBe('0th-cast')
+    expect(initialLineState.unparted).toEqual(stalksBeforeParting)
+    expect(initialLineState.unparted).toHaveLength(49)
+    expect(initialLineState.suspended).toEqual([])
+    expect(initialLineState.rounds).toEqual([])
+  })
+})
+
+describe('maxPickFor', () => {
+  test('reports unparted.length - 1 in 0th-cast (=48)', () => {
+    expect(maxPickFor(initialLineState)).toBe(48)
+  })
+
+  test('reports the smaller selectable range after one cast', () => {
+    const next = performCast(initialLineState, 24)
+    expect(maxPickFor(next)).toBe(next.unparted.length - 1)
+    expect(maxPickFor(next)).toBeLessThan(48)
+  })
+})
+
+describe('performCast', () => {
+  test('0th-cast → 1st-cast adds round[0] and updates unparted/suspended', () => {
+    const next = performCast(initialLineState, 24)
+    expect(next.phase).toBe('1st-cast')
+    expect(next.rounds).toHaveLength(1)
+    expect(next.unparted).toEqual(next.rounds[0].unpartedStalks)
+    expect(next.suspended).toEqual(next.rounds[0].suspendedFromNextRound)
+  })
+
+  test('three sequential casts produce a 3rd-cast state with a valid Line', () => {
+    const s1 = performCast(initialLineState, 24)
+    const s2 = performCast(s1, Math.max(1, s1.unparted.length - 2))
+    const s3 = performCast(s2, Math.max(1, s2.unparted.length - 2))
+    expect(s3.phase).toBe('3rd-cast')
+    if (s3.phase !== '3rd-cast') throw new Error('phase narrowing failed')
+    expect(s3.rounds).toHaveLength(3)
+    expect([6, 7, 8, 9]).toContain(s3.line)
+  })
+
+  test('is deterministic: same picks → same Line', () => {
+    const cast = (picks: [number, number, number]) => {
+      const s1 = performCast(initialLineState, picks[0])
+      const s2 = performCast(s1, picks[1])
+      const s3 = performCast(s2, picks[2])
+      if (s3.phase !== '3rd-cast') throw new Error('phase narrowing failed')
+      return s3.line
+    }
+    const a = cast([24, 17, 9])
+    const b = cast([24, 17, 9])
+    expect(a).toBe(b)
+  })
+
+  test('immutability: the input state is not mutated', () => {
+    const before = initialLineState
+    const beforeUnpartedSnapshot = [...before.unparted]
+    performCast(before, 24)
+    expect(before.unparted).toEqual(beforeUnpartedSnapshot)
+    expect(before.rounds).toEqual([])
+    expect(before.phase).toBe('0th-cast')
+  })
+
+  test('rewind-by-replay reproduces the same state from a SplitRecord prefix', () => {
+    // The casting record (SplitRecord[]) is the natural input to rewind:
+    // throw away picks past the rewind point, replay the survivors through
+    // performCast, and you land on the exact state you had before.
+    const picks: [number, number, number] = [24, 17, 9]
+    let fullState: AdvanceableLineState | LineState =
+      initialLineState as LineState
+    for (const pick of picks) {
+      if (fullState.phase === '3rd-cast') throw new Error('over-stepped')
+      fullState = performCast(fullState, pick)
+    }
+    const full = fullState
+    if (full.phase !== '3rd-cast') throw new Error('did not resolve')
+
+    // Now simulate rewinding to after-cast-1 by replaying only the first pick.
+    const rewound = performCast(initialLineState, picks[0])
+    // Re-extending it with the same remaining picks should produce the same
+    // line as the full play-through.
+    const s2 = performCast(rewound, picks[1])
+    const s3 = performCast(s2, picks[2])
+    if (s3.phase !== '3rd-cast') throw new Error('replay did not resolve')
+    expect(s3.line).toBe(full.line)
+  })
+})
+
+describe('performCast — type-level invariants', () => {
+  test('performCast on a 3rd-cast state is a compile error', () => {
+    const s1 = performCast(initialLineState, 24)
+    const s2 = performCast(s1, Math.max(1, s1.unparted.length - 2))
+    const s3 = performCast(s2, Math.max(1, s2.unparted.length - 2))
+    if (s3.phase !== '3rd-cast') throw new Error('phase narrowing failed')
+    expect(() =>
+      // @ts-expect-error — '3rd-cast' is not in the input domain of performCast.
+      // If this directive ever becomes "unused", the conditional type has
+      // weakened — investigate before deleting.
+      performCast(s3, 1),
+    ).toThrow()
+  })
+
+  test('the return phase narrows correctly: 0th-cast → 1st-cast', () => {
+    // The conditional NextPhase type binds the output phase to the input
+    // phase. We test it dynamically here (the runtime tag matches), and the
+    // surrounding compile-time discriminant narrowing in performCast's
+    // signature ensures the type matches statically too.
+    const after = performCast(initialLineState, 24)
+    expect(after.phase).toBe('1st-cast')
+    // This branch must compile (after is narrowed to '1st-cast'). If
+    // performCast ever loses its phase-binding behavior, this assignment
+    // becomes a type error.
+    const typedAfter: Extract<LineState, { phase: '1st-cast' }> = after
+    expect(typedAfter.rounds).toHaveLength(1)
+  })
+})
