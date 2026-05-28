@@ -63,6 +63,14 @@ export function keyHintsForCasting(
   flowKind: CastingFlowKind = 'interactive',
 ): string {
   const exitHints = `Esc: ${exitLabel}   Ctrl+C: quit`
+  // The manual flow is its own input branch (two `<NumberInput>` fields +
+  // Enter commits the derived pick); `inputMode` is moot here. It does not
+  // support pan per locked decision #9, so no `</>: pan` token. The
+  // `Ctrl+R rewind line` hint is appended by the viewer's `showRewind`
+  // guard, not here.
+  if (flowKind === 'manual') {
+    return `Enter: commit   Tab/Shift+Tab: field   ${exitHints}`
+  }
   if (inputMode !== 'slider') {
     // The random flow's number-mode reveal is driven by the per-cast timer;
     // there is nothing to commit and SPACE skips the rest. The interactive

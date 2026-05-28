@@ -47,4 +47,29 @@ describe('keyHintsForCasting', () => {
     expect(hint).toContain('Esc: home')
     expect(hint).toContain('Ctrl+C: quit')
   })
+
+  // The manual flow is its own input branch — Enter commits the derived
+  // pick, Tab cycles the two number fields. `inputMode` is moot here, and
+  // pan is not supported (locked decision #9). `Ctrl+R` is appended by the
+  // viewer's `showRewind` guard, not by `keyHintsForCasting`.
+  it('manual slider returns Enter + Tab/Shift+Tab and no SPACE / pan / Ctrl+R', () => {
+    const hint = keyHintsForCasting('slider', 'quit', 'manual')
+    expect(hint).toContain('Enter: commit')
+    expect(hint).toContain('Tab/Shift+Tab: field')
+    expect(hint).not.toContain('SPACE:')
+    expect(hint).not.toContain('</>: pan')
+    expect(hint).not.toContain('Ctrl+R')
+  })
+
+  it('manual number returns the same hint as manual slider (inputMode is moot)', () => {
+    const slider = keyHintsForCasting('slider', 'quit', 'manual')
+    const number = keyHintsForCasting('number', 'quit', 'manual')
+    expect(number).toBe(slider)
+  })
+
+  it('manual flow forwards exitLabel through the exit hints', () => {
+    const hint = keyHintsForCasting('slider', 'home', 'manual')
+    expect(hint).toContain('Esc: home')
+    expect(hint).toContain('Ctrl+C: quit')
+  })
 })
