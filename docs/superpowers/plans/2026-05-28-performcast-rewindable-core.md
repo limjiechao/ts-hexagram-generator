@@ -16,17 +16,17 @@
 
 ## File structure
 
-| File | Role | Action |
-|---|---|---|
-| `packages/types/src/index.ts` | Add `LineState` union | **Modify** (append) |
-| `packages/core/src/index.ts` | Add `initialLineState`, `maxPickFor`, `performCast`; wrap `makeLineGenerator` | **Modify** |
-| `packages/core/tests/perform-cast.test.ts` | Unit + type-narrowing tests for the new primitive | **Create** |
-| `packages/casting-ui/src/use-line-generator.ts` | Replace `Generator` ref with `LineState` ref | **Modify** |
-| `packages/core/tests/random-casting.test.ts` | Unchanged — re-run to prove wrapper preserves behavior | (verify only) |
-| `packages/consultation-file/tests/legacy-converter.test.ts` | Unchanged — re-run to prove wrapper preserves behavior | (verify only) |
-| `packages/casting-ui/tests/use-line-generator.test.tsx` | Unchanged — re-run to prove hook migration preserves behavior | (verify only) |
-| `packages/casting-ui/tests/viewer-flow.test.ts` | Unchanged | (verify only) |
-| `packages/casting-ui/tests/viewer.test.tsx` | Unchanged | (verify only) |
+| File                                                        | Role                                                                          | Action              |
+| ----------------------------------------------------------- | ----------------------------------------------------------------------------- | ------------------- |
+| `packages/types/src/index.ts`                               | Add `LineState` union                                                         | **Modify** (append) |
+| `packages/core/src/index.ts`                                | Add `initialLineState`, `maxPickFor`, `performCast`; wrap `makeLineGenerator` | **Modify**          |
+| `packages/core/tests/perform-cast.test.ts`                  | Unit + type-narrowing tests for the new primitive                             | **Create**          |
+| `packages/casting-ui/src/use-line-generator.ts`             | Replace `Generator` ref with `LineState` ref                                  | **Modify**          |
+| `packages/core/tests/random-casting.test.ts`                | Unchanged — re-run to prove wrapper preserves behavior                        | (verify only)       |
+| `packages/consultation-file/tests/legacy-converter.test.ts` | Unchanged — re-run to prove wrapper preserves behavior                        | (verify only)       |
+| `packages/casting-ui/tests/use-line-generator.test.tsx`     | Unchanged — re-run to prove hook migration preserves behavior                 | (verify only)       |
+| `packages/casting-ui/tests/viewer-flow.test.ts`             | Unchanged                                                                     | (verify only)       |
+| `packages/casting-ui/tests/viewer.test.tsx`                 | Unchanged                                                                     | (verify only)       |
 
 Note on placement of `LineState`: matches the existing convention. `@hexagram/types` already houses `Line`, `Hexagram`, `FourOperationsResult`, `LineGeneratorResult`, `CastingRecord`, `PartialCastingRecord`, etc. `LineState` is part of the same family.
 
@@ -37,6 +37,7 @@ Note on the absence of a runtime assertion (`assertIsLineState`): the other type
 ## Task 1: Add `LineState` discriminated union to `@hexagram/types`
 
 **Files:**
+
 - Modify: `packages/types/src/index.ts` (append after `LineGeneratorResult` block at line 141)
 
 - [ ] **Step 1: Write the type-check assertion as a structural test**
@@ -116,6 +117,7 @@ will accept as input."
 ## Task 2: Add `initialLineState`, `maxPickFor`, and `performCast` to `@hexagram/core`
 
 **Files:**
+
 - Modify: `packages/core/src/index.ts` (add new exports above `makeLineGenerator` at line 170)
 - Create: `packages/core/tests/perform-cast.test.ts`
 
@@ -387,6 +389,7 @@ the next commit."
 ## Task 3: Re-express `makeLineGenerator` as a thin wrapper around `performCast`
 
 **Files:**
+
 - Modify: `packages/core/src/index.ts` (replace the body of `makeLineGenerator` at lines 170-197)
 
 - [ ] **Step 1: Run the existing core + consultation-file tests to establish a green baseline**
@@ -499,6 +502,7 @@ identical yielded payloads and resolved Line."
 ## Task 4: Migrate `use-line-generator.ts` from `Generator` ref to `LineState` ref
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/use-line-generator.ts` (full rewrite of the hook body; external API unchanged)
 
 - [ ] **Step 1: Run the existing casting-ui tests to establish a green baseline**
@@ -511,11 +515,7 @@ Expected: PASS. This is the baseline the migration protects — `use-line-genera
 Replace the entire file contents with:
 
 ```ts
-import {
-  initialLineState,
-  maxPickFor,
-  performCast,
-} from '@hexagram/core'
+import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
 import type { LineState } from '@hexagram/types'
 import { useRef, type Dispatch } from 'react'
 
@@ -602,6 +602,7 @@ export function useLineGenerator(
 
 Run: `pnpm --filter @hexagram/casting-ui test`
 Expected: PASS — `use-line-generator.test.tsx`, `viewer-flow.test.ts`, `viewer.test.tsx` all green without edits. In particular:
+
 - `useLineGenerator — rewindCurrentLine` (use-line-generator.test.tsx line 73): "clears the generator ref and resets currentMax to 48" — still passes because the migrated hook resets `lineStateRef` to `initialLineState`, which has `maxPickFor === 48`.
 - `useLineGenerator — rewindCurrentLine` (line 92): "after rewind, a castIndex=0 submitSplit builds a fresh generator" — still passes because `performCast(initialLineState, 20)` is deterministic and yields the same round-2 max as the previous generator-based implementation.
 
@@ -642,16 +643,16 @@ extension) is a follow-up plan."
 
 After Task 4 completes, the following invariants should hold. Run them as a final sanity check before opening the PR.
 
-| Invariant | Verification command | Expected |
-|---|---|---|
-| Algorithm preserved | `pnpm --filter @hexagram/core test` | All pass, incl. `rng distribution (slow)` |
-| Legacy replay preserved | `pnpm --filter @hexagram/consultation-file test` | All pass |
-| Manual flow preserved | `pnpm --filter @hexagram/casting-ui test` | All pass, incl. `lineRewound` reducer tests + manual byte-identity test |
-| Type system clean | `pnpm type:check` | No errors anywhere in the monorepo |
-| Lint + format clean | `pnpm lint:check && pnpm format:check` | No errors |
-| Full suite | `pnpm test` | All packages green |
-| New primitive surface | `grep -n 'performCast\|initialLineState\|maxPickFor\|LineState\|AdvanceableLineState' packages/types/src/index.ts packages/core/src/index.ts` | Each name appears in the expected file |
-| Generator wrapper signature unchanged | `grep -A3 'export const makeLineGenerator' packages/core/src/index.ts` | Same `Generator<FourOperationsResult, Line, number>` return type as before |
+| Invariant                             | Verification command                                                                                                                          | Expected                                                                   |
+| ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| Algorithm preserved                   | `pnpm --filter @hexagram/core test`                                                                                                           | All pass, incl. `rng distribution (slow)`                                  |
+| Legacy replay preserved               | `pnpm --filter @hexagram/consultation-file test`                                                                                              | All pass                                                                   |
+| Manual flow preserved                 | `pnpm --filter @hexagram/casting-ui test`                                                                                                     | All pass, incl. `lineRewound` reducer tests + manual byte-identity test    |
+| Type system clean                     | `pnpm type:check`                                                                                                                             | No errors anywhere in the monorepo                                         |
+| Lint + format clean                   | `pnpm lint:check && pnpm format:check`                                                                                                        | No errors                                                                  |
+| Full suite                            | `pnpm test`                                                                                                                                   | All packages green                                                         |
+| New primitive surface                 | `grep -n 'performCast\|initialLineState\|maxPickFor\|LineState\|AdvanceableLineState' packages/types/src/index.ts packages/core/src/index.ts` | Each name appears in the expected file                                     |
+| Generator wrapper signature unchanged | `grep -A3 'export const makeLineGenerator' packages/core/src/index.ts`                                                                        | Same `Generator<FourOperationsResult, Line, number>` return type as before |
 
 ---
 
