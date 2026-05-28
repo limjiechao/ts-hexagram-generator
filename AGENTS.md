@@ -55,7 +55,7 @@ pnpm format:fix         # oxfmt --write at root
 # Run the CLIs directly (no build needed — tsx + the `source` exports condition)
 pnpm hexagram-random        # tsx apps/cli/src/random.ts
 pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
-pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 2-field piles + remainder prompt for physical yarrow casters)
+pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
 pnpm hexagram-playground    # tsx apps/cli/src/playground.ts (Ink-only 4-state line explorer)
 pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
 pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
@@ -73,9 +73,12 @@ pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → 
 # stuck watching a moving cursor (non-TTY stdout already routes to plain).
 # hexagram-history does NOT have a --plain mode — it is Ink-only and exits
 # with an error message and code 1 in non-TTY contexts. hexagram-manual is
-# also Ink-only and shares the same non-TTY guard; it only honours
-# `--wrap-width <n>` (no `--plain`, no `--numeric-input`, no slider knobs —
-# the manual prompt is its own input branch).
+# also Ink-only and shares the same non-TTY guard; it honours
+# `--wrap-width <n>` and `--manual-reveal-ms <n>` — the latter sets the
+# post-Enter "Round resolved" green-row dwell (in ms, default 2500; tests
+# can opt out via `manualRevealMs={0}` on the viewer). No `--plain`, no
+# `--numeric-input`, no slider knobs — the manual prompt is its own input
+# branch.
 
 # Per-package operations (use --filter for a single package)
 pnpm --filter @hexagram/core test
@@ -145,7 +148,7 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
   - **`flowKind: 'random'`** — the viewer transitions straight to `computing`; `generateRandomConsultation()` runs inside the compute effect to produce the hexagram + casting, no in-tab prompts are ever shown (so `inputMode` is moot for random).
 
-  - **`flowKind: 'manual'`** — a sibling `<CastingPromptBox>` branch (`ManualCastingPrompt` in `casting-prompt-box.tsx`) for users who cast with physical yarrow stalks. Per cast the user observes the post-sort left-heap on their desk and transcribes two numbers: the count of 4-piles and the leftover remainder (1–4 stalks). The component derives `pick = 4 × piles + remainder`, advances the same `makeLineGenerator` the interactive flow uses, and saves identically (Spec § "No provenance field" — there is a Phase 7 byte-identity test in `packages/casting-ui/tests/viewer.test.tsx` that drives the same 18-pick sequence through both flows and asserts the captured `saveConsultationFile` args are equal). The prompt's layout is title / `Unparted stalks: M` / `Left heap: [piles] piles × 4 + [remainder] remainder` / derived split. Tab cycles focus between the two `<NumberInput>` fields; Enter commits the derived pick when in range; the derived row swaps in place to `→ Round resolved: suspended X · next: Y unparted` for `MANUAL_REVEAL_MS` (=1000 ms, set in `casting-prompt-box.tsx`; tests opt out via `manualRevealMs={0}` on the viewer). `Ctrl+R` rewinds the most-recent completed line (mid-line: wipes the current line; post-line-completion: drops back to the just-completed line). This is a two-line lookback window — the spec's `lineRewound` reducer + the hook's `rewindCurrentLine()` op are the single source of truth. The manual flow is Ink-only: the standalone `hexagram-manual` bin refuses non-TTY (NO_COLOR=1 / CI=true / piped stdout) with the same stderr-and-exit-1 guard as `hexagram-history`. No `--plain`, no `--numeric-input`, no slider knobs.
+  - **`flowKind: 'manual'`** — a sibling `<CastingPromptBox>` branch (`ManualCastingPrompt` in `casting-prompt-box.tsx`) for users who cast with physical yarrow stalks. Per cast the user transcribes FOUR numbers — both heaps' piles-of-4 and remainders (`pilesL`, `remL`, `pilesR`, `remR`) — and the split is derived from the LEFT heap (`pick = 4·pilesL + remL`) with the right side as a cross-check. The validator runs three invariants in priority order: **incomplete** (any field empty → neutral SPLIT placeholder); **conservation** (`4·pilesL + remL + 4·pilesR + remR + 1 ≠ unpartedStalks` → RED with the never-zero hint, since a heap divisible by 4 yields remainder 4, not 0); **suspended sum** (`1 + remL + remR` must be in `{5, 9}` for cast 1 or `{4, 8}` for casts 2/3 → RED with hint about removing the last group of 4). The bottom row reads `∴ LEFT HEAP: X stalks | RIGHT HEAP: Y stalks` while editing and swaps to BOLD_GREEN `∴ LEFT HEAP: X | RIGHT HEAP: Y | SUSPENDED: S | NEXT CAST: N unparted` on commit. Tab cycles forward (`pilesL → remL → pilesR → remR → pilesL`); Shift+Tab cycles backward; Enter commits when valid, and a second Enter during the green dwell skips immediately to the next cast. The resolved-row dwell is `MANUAL_REVEAL_MS` (=2500 ms, set in `casting-prompt-box.tsx`; tunable via `--manual-reveal-ms <n>` or `manualRevealMs={0}` in tests). The component advances the same `makeLineGenerator` the interactive flow uses and saves identically (Spec § "No provenance field" — there is a Phase 7 byte-identity test in `packages/casting-ui/tests/viewer.test.tsx` that drives the same 18-pick sequence through both flows and asserts the captured `saveConsultationFile` args are equal). `Ctrl+R` rewinds the most-recent completed line (mid-line: wipes the current line; post-line-completion: drops back to the just-completed line). This is a two-line lookback window — the spec's `lineRewound` reducer + the hook's `rewindCurrentLine()` op are the single source of truth. The manual flow is Ink-only: the standalone `hexagram-manual` bin refuses non-TTY (NO_COLOR=1 / CI=true / piped stdout) with the same stderr-and-exit-1 guard as `hexagram-history`. No `--plain`, no `--numeric-input`, no slider knobs.
 
   The footer's progress hint during casting reads `"Casting in progress ·  ■■■□□□□□□□□□□□□□□□  N/18"` (`renderProgressBar()` in `packages/casting-ui/src/viewer-layout.ts`), where `N` is the number of committed splits.
 
