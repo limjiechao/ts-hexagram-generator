@@ -1149,10 +1149,10 @@ interface FocusedInputBoxRowsArgs {
 }
 
 /**
- * The manual prompt's current-value display — a 3-row drawn box. 8-col
- * interior; the value sits left-of-centre with the cursor (an inverse
- * space) right after when `focused`. Pure text — no `<NumberInput>` here;
- * digit handling lives in the parent `useInput` after the Phase 7 rewrite.
+ * The manual prompt's current-value display — a 3-row drawn box. 13-col
+ * interior with a 1-col left margin; the value sits left-of-centre with
+ * the cursor (an inverse space) right after when `focused`. Pure text —
+ * no `<NumberInput>` here; digit handling lives in the parent `useInput`.
  */
 export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
   const interior = 13
