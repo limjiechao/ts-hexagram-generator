@@ -1,7 +1,7 @@
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
-import stringWidth from 'string-width'
 import { useState, type ReactElement } from 'react'
+import stringWidth from 'string-width'
 import { describe, expect, it, vi } from 'vitest'
 
 import {

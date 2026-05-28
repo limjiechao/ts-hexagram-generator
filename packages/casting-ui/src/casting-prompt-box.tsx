@@ -948,7 +948,9 @@ export function manualTitleRow(
   focusedField: ManualFocusedField,
 ): string {
   const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
-  const dots = MANUAL_FIELD_ORDER.map((_, i) => (i <= stepIndex ? '●' : '○')).join('')
+  const dots = MANUAL_FIELD_ORDER.map((_, i) =>
+    i <= stepIndex ? '●' : '○',
+  ).join('')
   return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   step ${stepIndex + 1} of 4`
 }
 
@@ -1026,7 +1028,13 @@ function buildCardRows(
 
   const footerRow = `└${'─'.repeat(HEAP_CARD_INTERIOR)}┘`
 
-  return [headerRow, buildField('piles', pilesCell), buildField('rem.', remCell), totalsRow, footerRow]
+  return [
+    headerRow,
+    buildField('piles', pilesCell),
+    buildField('rem.', remCell),
+    totalsRow,
+    footerRow,
+  ]
 }
 
 /**
@@ -1045,8 +1053,18 @@ export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
     pilesL === null || remL === null ? '?' : String(4 * pilesL + remL)
   const rightTotalLabel =
     pilesR === null || remR === null ? '?' : String(4 * pilesR + remR)
-  const leftRows = buildCardRows('LEFT HEAP', pilesLCell, remLCell, leftTotalLabel)
-  const rightRows = buildCardRows('RIGHT HEAP', pilesRCell, remRCell, rightTotalLabel)
+  const leftRows = buildCardRows(
+    'LEFT HEAP',
+    pilesLCell,
+    remLCell,
+    leftTotalLabel,
+  )
+  const rightRows = buildCardRows(
+    'RIGHT HEAP',
+    pilesRCell,
+    remRCell,
+    rightTotalLabel,
+  )
   const gap = '    '
   const combined = leftRows.map((row, i) => `${row}${gap}${rightRows[i]!}`)
   if (state === 'resolved') {
@@ -1064,12 +1082,18 @@ interface QuestionPanelRowsArgs {
 // Each question is pre-wrapped to two lines so the right pane fits within
 // ~28 display cols (per spec — see the rendered-state mockup, where the
 // question reads "How many leftover stalks" / "in the LEFT heap?" stacked).
-function questionLinesForField(field: ManualFocusedField): readonly [string, string] {
+function questionLinesForField(
+  field: ManualFocusedField,
+): readonly [string, string] {
   switch (field) {
-    case 'pilesL': return ['How many piles of 4 stalks', 'in the LEFT heap?']
-    case 'remL':   return ['How many leftover stalks',   'in the LEFT heap?']
-    case 'pilesR': return ['How many piles of 4 stalks', 'in the RIGHT heap?']
-    case 'remR':   return ['How many leftover stalks',   'in the RIGHT heap?']
+    case 'pilesL':
+      return ['How many piles of 4 stalks', 'in the LEFT heap?']
+    case 'remL':
+      return ['How many leftover stalks', 'in the LEFT heap?']
+    case 'pilesR':
+      return ['How many piles of 4 stalks', 'in the RIGHT heap?']
+    case 'remR':
+      return ['How many leftover stalks', 'in the RIGHT heap?']
   }
 }
 
@@ -1181,7 +1205,11 @@ function errorMessageText(args: BottomStripErrorArgs): string {
 
 // Build a row of exactly `renderWidth` display cols with `left` left-aligned
 // and `right` right-aligned. ANSI in the segments doesn't count toward width.
-function leftRightRow(left: string, right: string, renderWidth: number): string {
+function leftRightRow(
+  left: string,
+  right: string,
+  renderWidth: number,
+): string {
   const leftW = stringWidth(left)
   const rightW = stringWidth(right)
   const gap = Math.max(1, renderWidth - leftW - rightW)
@@ -1337,7 +1365,13 @@ export function validateManualInput(args: {
   // stalk must sum to the round's unparted count.
   const total = leftHeapTotal + rightHeapTotal + 1
   if (total !== unparted) {
-    return { kind: 'conservation', total, unparted, leftHeapTotal, rightHeapTotal }
+    return {
+      kind: 'conservation',
+      total,
+      unparted,
+      leftHeapTotal,
+      rightHeapTotal,
+    }
   }
   // Suspended sum: the I-Ching invariant. Round 1 expects {5, 9};
   // rounds 2/3 expect {4, 8}. (The 1-from-right is folded in via the +1
@@ -1533,7 +1567,11 @@ function ManualCastingPrompt({
       // Shift+Tab reverses it.
       const current = MANUAL_FIELD_ORDER.indexOf(focusedField)
       const step = key.shift ? -1 : 1
-      const next = MANUAL_FIELD_ORDER[(current + step + MANUAL_FIELD_ORDER.length) % MANUAL_FIELD_ORDER.length]!
+      const next =
+        MANUAL_FIELD_ORDER[
+          (current + step + MANUAL_FIELD_ORDER.length) %
+            MANUAL_FIELD_ORDER.length
+        ]!
       setFocusedField(next)
       return
     }
@@ -1793,7 +1831,11 @@ function ManualCastingPrompt({
   const allRows = [titleRow, '', ...bodyRows, stripRow]
   const slicedRows = allRows.map((row) => {
     const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
-    return sliceAnsi(padded, horizontalOffset, horizontalOffset + innerContentWidth)
+    return sliceAnsi(
+      padded,
+      horizontalOffset,
+      horizontalOffset + innerContentWidth,
+    )
   })
 
   return (

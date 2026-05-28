@@ -33,12 +33,12 @@ Dots: positions 0..idx are `●`, idx+1..3 are `○`, where `idx = MANUAL_FIELD_
 
 ### Question copy (per focusedField; from spec decision 3)
 
-| focusedField | Question                                              | Range hint                |
-| ------------ | ----------------------------------------------------- | ------------------------- |
-| `pilesL`     | `How many piles of 4 stalks in the LEFT heap?`        | `valid 0 to ${pilesMax}`  |
-| `remL`       | `How many leftover stalks in the LEFT heap?`          | `valid 1 to 4`            |
-| `pilesR`     | `How many piles of 4 stalks in the RIGHT heap?`       | `valid 0 to ${pilesMax}`  |
-| `remR`       | `How many leftover stalks in the RIGHT heap?`         | `valid 1 to 4`            |
+| focusedField | Question                                        | Range hint               |
+| ------------ | ----------------------------------------------- | ------------------------ |
+| `pilesL`     | `How many piles of 4 stalks in the LEFT heap?`  | `valid 0 to ${pilesMax}` |
+| `remL`       | `How many leftover stalks in the LEFT heap?`    | `valid 1 to 4`           |
+| `pilesR`     | `How many piles of 4 stalks in the RIGHT heap?` | `valid 0 to ${pilesMax}` |
+| `remR`       | `How many leftover stalks in the RIGHT heap?`   | `valid 1 to 4`           |
 
 `pilesMax = Math.max(0, Math.floor(unpartedStalks / 4))`. The hint row uses inline dim ANSI.
 
@@ -80,11 +80,11 @@ Enter to advance (or wait 2.5 s)
 
 ### Bottom strip (one row; three branches)
 
-| Branch     | Left segment                                                                                                              | Right segment                   |
-| ---------- | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
-| Editing    | `· 1 suspended · total ${liveLeftTotal + liveRightTotal} of ${unpartedStalks}`                                            | `Enter: next · Shift+Tab: back` |
-| Error      | `BOLD_RED <validator-derived> NORMAL`                                                                                     | `Shift+Tab: back to fix`        |
-| Resolved   | `BOLD_GREEN · 1 suspended · ${leftHeapTotal + rightHeapTotal} of ${unpartedStalks} · → next cast: ${next} unparted NORMAL` | (suppressed — empty)            |
+| Branch   | Left segment                                                                                                               | Right segment                   |
+| -------- | -------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |
+| Editing  | `· 1 suspended · total ${liveLeftTotal + liveRightTotal} of ${unpartedStalks}`                                             | `Enter: next · Shift+Tab: back` |
+| Error    | `BOLD_RED <validator-derived> NORMAL`                                                                                      | `Shift+Tab: back to fix`        |
+| Resolved | `BOLD_GREEN · 1 suspended · ${leftHeapTotal + rightHeapTotal} of ${unpartedStalks} · → next cast: ${next} unparted NORMAL` | (suppressed — empty)            |
 
 **Error left-segment text by validator kind:**
 
@@ -99,13 +99,13 @@ The strip is built as one string: `padEnd(left, leftWidth) + right`, where `left
 
 The 9 content rows of the manual prompt:
 
-| # | Source                          | Width (natural)                       |
-|---|----------------------------------|---------------------------------------|
-| 1 | `manualTitleRow(...)`           | ~42 cols                              |
-| 2 | empty row                       | 0                                     |
-| 3-7 | diagram (5 rows) `+` right pane (3 q-panel rows + 3 input-box rows = 6 rows) | combined via per-row horizontal concat (left + gap + right) |
-| 8 | (filler — 6th body row, left half is blank, right half is input-box bottom border) | combined |
-| 9 | `bottomStripRow(...)`           | ~70 cols                              |
+| #   | Source                                                                             | Width (natural)                                             |
+| --- | ---------------------------------------------------------------------------------- | ----------------------------------------------------------- |
+| 1   | `manualTitleRow(...)`                                                              | ~42 cols                                                    |
+| 2   | empty row                                                                          | 0                                                           |
+| 3-7 | diagram (5 rows) `+` right pane (3 q-panel rows + 3 input-box rows = 6 rows)       | combined via per-row horizontal concat (left + gap + right) |
+| 8   | (filler — 6th body row, left half is blank, right half is input-box bottom border) | combined                                                    |
+| 9   | `bottomStripRow(...)`                                                              | ~70 cols                                                    |
 
 The body is 6 rows tall. The diagram contributes rows 0-4 on the left; row 5 on the left is blank padding. The right pane contributes question (rows 0-1), hint (row 2), input box (rows 3-5).
 
@@ -149,6 +149,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 1.1: extend `validateManualInput` `conservation` result with heap totals
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (`ManualValidationResult` union and the `conservation` return statement).
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx` (new unit test in the `validateManualInput` describe block).
 
@@ -192,7 +193,13 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
   ```
 
   ```ts
-  return { kind: 'conservation', total, unparted, leftHeapTotal, rightHeapTotal }
+  return {
+    kind: 'conservation',
+    total,
+    unparted,
+    leftHeapTotal,
+    rightHeapTotal,
+  }
   ```
 
 - [ ] **Step 4: Run + confirm PASS**
@@ -226,6 +233,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 2.1: rewrite `getCastingPromptHeight` JSDoc
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (JSDoc above `getCastingPromptHeight`).
 
 - [ ] **Step 1: Replace the stale manual-layout bullet**
@@ -269,6 +277,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 2.2: add `MANUAL_FIELD_ORDER` + `manualTitleRow`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (just below `export type ManualFocusedField = ...`).
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx` (new top-level describe).
 
@@ -323,7 +332,9 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
     focusedField: ManualFocusedField,
   ): string {
     const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
-    const dots = MANUAL_FIELD_ORDER.map((_, i) => (i <= stepIndex ? '●' : '○')).join('')
+    const dots = MANUAL_FIELD_ORDER.map((_, i) =>
+      i <= stepIndex ? '●' : '○',
+    ).join('')
     return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   step ${stepIndex + 1} of 4`
   }
   ```
@@ -334,7 +345,10 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
   if (key.tab) {
     const current = MANUAL_FIELD_ORDER.indexOf(focusedField)
     const step = key.shift ? -1 : 1
-    const next = MANUAL_FIELD_ORDER[(current + step + MANUAL_FIELD_ORDER.length) % MANUAL_FIELD_ORDER.length]!
+    const next =
+      MANUAL_FIELD_ORDER[
+        (current + step + MANUAL_FIELD_ORDER.length) % MANUAL_FIELD_ORDER.length
+      ]!
     setFocusedField(next)
     return
   }
@@ -368,6 +382,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 3.1: implement + test `twoHeapDiagramRows`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx`.
 
@@ -497,7 +512,8 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
       const trailing = interior - 11 - cellDisplayWidth(cell)
       return `│${leadingPad}${cell}${' '.repeat(Math.max(0, trailing))}│`
     }
-    const totalsRow = `│  = ${totalLabel} stalks`.padEnd(interior + 1, ' ') + '│'
+    const totalsRow =
+      `│  = ${totalLabel} stalks`.padEnd(interior + 1, ' ') + '│'
     const footerRow = `└${'─'.repeat(interior)}┘`
     return [
       headerRow.padEnd(interior + 2, ' '),
@@ -525,7 +541,12 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
     const rightTotal =
       pilesR === null || remR === null ? '?' : String(4 * pilesR + remR)
     const leftRows = buildCardRows('LEFT HEAP', pilesLCell, remLCell, leftTotal)
-    const rightRows = buildCardRows('RIGHT HEAP', pilesRCell, remRCell, rightTotal)
+    const rightRows = buildCardRows(
+      'RIGHT HEAP',
+      pilesRCell,
+      remRCell,
+      rightTotal,
+    )
     const gap = '    '
     const combined = leftRows.map((row, i) => `${row}${gap}${rightRows[i]!}`)
     if (state === 'resolved') {
@@ -565,6 +586,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 4.1: implement + test `questionPanelRows`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx`.
 
@@ -626,10 +648,14 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 
   function questionForField(field: ManualFocusedField): string {
     switch (field) {
-      case 'pilesL': return 'How many piles of 4 stalks in the LEFT heap?'
-      case 'remL':   return 'How many leftover stalks in the LEFT heap?'
-      case 'pilesR': return 'How many piles of 4 stalks in the RIGHT heap?'
-      case 'remR':   return 'How many leftover stalks in the RIGHT heap?'
+      case 'pilesL':
+        return 'How many piles of 4 stalks in the LEFT heap?'
+      case 'remL':
+        return 'How many leftover stalks in the LEFT heap?'
+      case 'pilesR':
+        return 'How many piles of 4 stalks in the RIGHT heap?'
+      case 'remR':
+        return 'How many leftover stalks in the RIGHT heap?'
     }
   }
 
@@ -647,11 +673,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
       focusedField === 'pilesL' || focusedField === 'pilesR'
         ? `valid 0 to ${pilesMax}`
         : 'valid 1 to 4'
-    return [
-      questionForField(focusedField),
-      '',
-      `\x1b[2m${hint}\x1b[22m`,
-    ]
+    return [questionForField(focusedField), '', `\x1b[2m${hint}\x1b[22m`]
   }
   ```
 
@@ -679,6 +701,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 5.1: implement + test `focusedInputBoxRows`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx`.
 
@@ -733,9 +756,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
    * No `<NumberInput>` inside — digit-handling lives in the parent
    * `useInput`, which keeps this builder pure.
    */
-  export function focusedInputBoxRows(
-    args: FocusedInputBoxRowsArgs,
-  ): string[] {
+  export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
     const interior = 8
     const top = `┌${'─'.repeat(interior)}┐`
     const bottom = `└${'─'.repeat(interior)}┘`
@@ -776,6 +797,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 6.1: implement + test `bottomStripRow`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx`.
 
@@ -847,7 +869,9 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
         next: 40,
         renderWidth: 78,
       })
-      expect(row).toContain('· 1 suspended · 48 of 49 · → next cast: 40 unparted')
+      expect(row).toContain(
+        '· 1 suspended · 48 of 49 · → next cast: 40 unparted',
+      )
       expect(row).not.toContain('Enter: next')
       expect(row).not.toContain('Shift+Tab: back')
       expect(row).toContain('\x1b[1;92m')
@@ -921,7 +945,11 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
   // Build a row of `renderWidth` columns with `left` left-aligned and
   // `right` right-aligned. ANSI escape sequences in `left`/`right` don't
   // count toward display width.
-  function leftRightRow(left: string, right: string, renderWidth: number): string {
+  function leftRightRow(
+    left: string,
+    right: string,
+    renderWidth: number,
+  ): string {
     const leftW = stringWidth(left)
     const rightW = stringWidth(right)
     const gap = Math.max(1, renderWidth - leftW - rightW)
@@ -981,6 +1009,7 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 7.0: thread `horizontalOffset` to `<ManualCastingPrompt>`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 
 - [ ] **Step 1: Add `horizontalOffset: number` to `ManualCastingPromptProps`**
@@ -1029,10 +1058,12 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
 ### Task 7.1: add digit + backspace input handling to the parent `useInput`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (`<ManualCastingPrompt>`'s `useInput` callback).
 - Test: `packages/casting-ui/tests/casting-prompt-box.test.tsx` — add new tests for digit handling at the parent level.
 
 The new useInput logic accepts a digit `0-9` if the resulting buffer parses to ≤ the field's max, and accepts backspace/delete to remove the last char of the buffer. Bounds:
+
 - `pilesL`, `pilesR`: max = `Math.max(0, Math.floor(unpartedStalks / 4))`
 - `remL`, `remR`: max = 4 (lenient: per-field bounds are the UX guard; the validator catches cross-field invariants).
 
@@ -1104,7 +1135,11 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
     if (key.tab) {
       const current = MANUAL_FIELD_ORDER.indexOf(focusedField)
       const step = key.shift ? -1 : 1
-      const next = MANUAL_FIELD_ORDER[(current + step + MANUAL_FIELD_ORDER.length) % MANUAL_FIELD_ORDER.length]!
+      const next =
+        MANUAL_FIELD_ORDER[
+          (current + step + MANUAL_FIELD_ORDER.length) %
+            MANUAL_FIELD_ORDER.length
+        ]!
       setFocusedField(next)
       return
     }
@@ -1188,10 +1223,14 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
     },
   ): (s: string) => void {
     switch (field) {
-      case 'pilesL': return setters.setPilesLBuffer
-      case 'remL':   return setters.setRemLBuffer
-      case 'pilesR': return setters.setPilesRBuffer
-      case 'remR':   return setters.setRemRBuffer
+      case 'pilesL':
+        return setters.setPilesLBuffer
+      case 'remL':
+        return setters.setRemLBuffer
+      case 'pilesR':
+        return setters.setPilesRBuffer
+      case 'remR':
+        return setters.setRemRBuffer
     }
   }
 
@@ -1205,10 +1244,14 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
     },
   ): string {
     switch (field) {
-      case 'pilesL': return buffers.pilesLBuffer
-      case 'remL':   return buffers.remLBuffer
-      case 'pilesR': return buffers.pilesRBuffer
-      case 'remR':   return buffers.remRBuffer
+      case 'pilesL':
+        return buffers.pilesLBuffer
+      case 'remL':
+        return buffers.remLBuffer
+      case 'pilesR':
+        return buffers.pilesRBuffer
+      case 'remR':
+        return buffers.remRBuffer
     }
   }
   ```
@@ -1218,6 +1261,7 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
 ### Task 7.2: rewrite `<ManualCastingPrompt>`'s JSX to use the row builders + sliceAnsi
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx`.
 
 - [ ] **Step 1: Replace the render-return block**
@@ -1254,10 +1298,7 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
   })
   // The diagram's natural width is `17 (LEFT) + 4 (gap) + 18 (RIGHT) = 39`.
   const diagramWidth = 39
-  const diagramPaddedRows = [
-    ...diagramRows,
-    ' '.repeat(diagramWidth),
-  ]
+  const diagramPaddedRows = [...diagramRows, ' '.repeat(diagramWidth)]
 
   // Build the right pane: 3 question rows + 3 input box rows.
   const qRows = questionPanelRows({
@@ -1265,14 +1306,18 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
     unpartedStalks,
     state: diagramState === 'resolved' ? 'resolved' : 'editing',
   })
-  const inputRows = committed === null
-    ? focusedInputBoxRows({
-        value: manualBufferForField(focusedField, {
-          pilesLBuffer, remLBuffer, pilesRBuffer, remRBuffer,
-        }),
-        focused: true,
-      })
-    : ['', '', '']
+  const inputRows =
+    committed === null
+      ? focusedInputBoxRows({
+          value: manualBufferForField(focusedField, {
+            pilesLBuffer,
+            remLBuffer,
+            pilesRBuffer,
+            remRBuffer,
+          }),
+          focused: true,
+        })
+      : ['', '', '']
   const rightRows = [...qRows, ...inputRows]
   const rightWidth = 35
 
@@ -1283,7 +1328,8 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
     const rightDisplayWidth = stringWidth(rightRow)
     const leftPadTrail = Math.max(0, diagramWidth - leftWidth)
     const middleGap = 4
-    const totalSoFar = diagramWidth + leftPadTrail + middleGap + rightDisplayWidth
+    const totalSoFar =
+      diagramWidth + leftPadTrail + middleGap + rightDisplayWidth
     const trailingPad = Math.max(0, renderWidth - totalSoFar)
     return `${leftRow}${' '.repeat(leftPadTrail)}${' '.repeat(middleGap)}${rightRow}${' '.repeat(trailingPad)}`
   })
@@ -1342,16 +1388,15 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
   const stripRow = bottomStripRow(bottomStripBranchArgs)
 
   // Assemble all 9 content rows + slice each by horizontalOffset.
-  const allRows = [
-    titleRow,
-    '',
-    ...bodyRows,
-    stripRow,
-  ]
+  const allRows = [titleRow, '', ...bodyRows, stripRow]
   // Pad each row to renderWidth and slice.
   const slicedRows = allRows.map((row) => {
     const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
-    return sliceAnsi(padded, horizontalOffset, horizontalOffset + innerContentWidth)
+    return sliceAnsi(
+      padded,
+      horizontalOffset,
+      horizontalOffset + innerContentWidth,
+    )
   })
 
   return (
@@ -1389,6 +1434,7 @@ The new useInput logic accepts a digit `0-9` if the resulting buffer parses to �
 ### Task 7.3: rewrite the obsolete manual-flow test assertions
 
 **Files:**
+
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx` (the `CastingPromptBox (manual flow)` describe block).
 
 Walk each manual-flow test that asserts old rendered text. Tests that assert behaviour (Tab cycle, Enter, reveal-dwell, Ctrl+R) need NO change. Tests that assert specific rendered substrings get their assertions updated.
@@ -1597,6 +1643,7 @@ Walk each manual-flow test that asserts old rendered text. Tests that assert beh
   pnpm --filter @hexagram/casting-ui type:check
   pnpm lint:check
   ```
+
   Expected: no errors.
 
 - [ ] **Step 13: Commit**
@@ -1639,6 +1686,7 @@ Walk each manual-flow test that asserts old rendered text. Tests that assert beh
   pnpm --filter @hexagram/casting-ui type:check
   pnpm lint:check
   ```
+
   → all green.
 
 - [ ] **Step 4: Smoke test the bin in a TTY**

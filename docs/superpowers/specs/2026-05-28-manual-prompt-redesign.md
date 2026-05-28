@@ -68,7 +68,6 @@ constraints without re-litigating.
    appears as a dim line directly under the question. Range hint
    phrasing follows the form `valid X to Y` (no `(valid range: …)`
    parens).
-
    - Step 1 (`pilesL`): `How many piles of 4 stalks in the LEFT heap?`
      → dim: `valid 0 to ⌊M/4⌋`
    - Step 2 (`remL`): `How many leftover stalks in the LEFT heap?`
@@ -87,7 +86,6 @@ constraints without re-litigating.
    segment is replaced by a `BOLD_RED` error message, and the
    `Enter: next · Shift+Tab: back` hint is replaced by
    `Shift+Tab: back to fix`.
-
    - Conservation: `BOLD_RED 21 + 27 + 1 = 49, expected 48 — recount (a heap divisible by 4 yields rem 4, not 0) NORMAL`
    - Suspended sum: `BOLD_RED Suspended sum (1 + remL + remR) = S, expected {4 or 8 | 5 or 9} — check if you removed the last group of 4 NORMAL`
 
@@ -111,15 +109,14 @@ constraints without re-litigating.
 
 7. **Resolved dwell — greenify diagram + extend bottom strip.** During
    the 2.5 s `manualRevealMs` window after a valid Enter on step 4:
-
    - The two `LEFT HEAP` / `RIGHT HEAP` cards and their `= X stalks`
      totals all render in `BOLD_GREEN`.
    - The bottom strip turns `BOLD_GREEN` and gains a `→ next cast: W
-     unparted` segment: `· 1 suspended · 48 of 49 · → next cast: 40
-     unparted`.
+unparted` segment: `· 1 suspended · 48 of 49 · → next cast: 40
+unparted`.
    - The right side (question + input box) is replaced by a calm
      three-line `Resolved.` / blank / `Enter to advance (or wait
-     2.5 s)`. The skip-to-advance Enter remains hot during the dwell.
+2.5 s)`. The skip-to-advance Enter remains hot during the dwell.
 
 8. **Key bindings — Enter = advance/commit, Shift+Tab = back, Tab =
    alias for Enter.** Each Enter validates the current field's per-field
@@ -203,7 +200,6 @@ e.g. `manualRevealMs={1234}`.
 
 - **Rendered height:** 11 rows total — 9 content + 2 border. **Unchanged
   from the current implementation.** Breakdown:
-
   - 1 row · title with inline progress strip
   - 1 row · blank spacer
   - 6 rows · side-by-side body (LEFT: 5-row diagram + 1 implicit blank
@@ -253,13 +249,12 @@ is a concrete change in code; none of them are negotiable design points.
    `pilesL`, `remL`, `pilesR`, `remR` (all `number | null`),
    `focusedField`, `state: 'editing' | 'error' | 'resolved'`. Renders
    the 5-row LEFT/RIGHT heap cards. Cells:
-
    - `piles`, `rem.` value: `?` if the corresponding buffer is null,
      else the number.
    - Active cell (matches `focusedField`) wraps the value in `<Text
-     inverse>`.
+inverse>`.
    - `state === 'resolved'`: whole subtree wraps in `<Text color="green"
-     bold>` (or per-row equivalent if Ink propagation gets in the way).
+bold>` (or per-row equivalent if Ink propagation gets in the way).
    - `state === 'error'`: no special colouring on the diagram — the
      error message in the bottom strip carries the cue.
 
@@ -275,35 +270,34 @@ is a concrete change in code; none of them are negotiable design points.
    `unpartedStalks`. Renders the 4-case `switch` on `focusedField` with
    the question copy from decision 3. The range-hint string is also
    derived from `focusedField` (`'pilesL'|'pilesR'` → `valid 0 to
-   ${Math.floor(unpartedStalks / 4)}`; `'remL'|'remR'` → `valid 1 to
-   4`). Resolved state replaces this entire panel with the
+${Math.floor(unpartedStalks / 4)}`; `'remL'|'remR'` → `valid 1 to
+4`). Resolved state replaces this entire panel with the
    `Resolved.` / blank / `Enter to advance (or wait 2.5 s)` three-line
    block.
 
 6. **New `<BottomStrip>` sub-component** — the one-line strip below the
    side-by-side body. Three branches:
-
    - **Editing:** `· 1 suspended · total ${liveLeftTotal +
-     liveRightTotal} of ${unpartedStalks}` on the left,
+liveRightTotal} of ${unpartedStalks}` on the left,
      `Enter: next · Shift+Tab: back` right-aligned.
    - **Error:** `BOLD_RED` validator-derived message on the left,
      `Shift+Tab: back to fix` right-aligned.
    - **Resolved:** `BOLD_GREEN · 1 suspended · ${leftHeapTotal +
-     rightHeapTotal} of ${unpartedStalks} · → next cast: ${next}
-     unparted`, full-width (right-side hint suppressed because the
+rightHeapTotal} of ${unpartedStalks} · → next cast: ${next}
+unparted`, full-width (right-side hint suppressed because the
      right panel already says `Enter to advance`).
 
 7. **Horizontal pan plumbing.** `<CastingPromptBox>` already receives
    `horizontalOffset`. Currently the manual branch ignores it; after
    the redesign, `<ManualCastingPrompt>` builds each row as a fixed
    `renderWidth`-wide string and pipes it through `sliceAnsi(row,
-   horizontalOffset, horizontalOffset + innerContentWidth)` exactly as
+horizontalOffset, horizontalOffset + innerContentWidth)` exactly as
    `<SliderCastingPrompt>` does. The pan keys themselves are owned by
    the viewer's chrome — no change there.
 
 8. **Title row collapses to one line.** Replace today's two-line
    `Line N/6 · Cast C/3` + blank with `Line N/6 · Cast C/3   ●●○○
-   step ${castIndex + 1} of 4`. The dots strip is a 4-char literal of
+step ${castIndex + 1} of 4`. The dots strip is a 4-char literal of
    `●` (active) and `○` (pending) derived from `focusedField`'s position
    in `['pilesL','remL','pilesR','remR']`. Step counter is `1`-indexed.
 
