@@ -1554,7 +1554,7 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
-    expect(frame).toContain('step 1 of 4')
+    expect(frame).toContain('Step 1 of 4')
     expect(frame).toContain('LEFT HEAP')
     expect(frame).toContain('RIGHT HEAP')
     expect(frame).toContain('How many piles of 4 stalks')

@@ -137,16 +137,16 @@ describe('CastingPromptBox', () => {
 describe('manualTitleRow', () => {
   it('renders line / cast / dots / step for each focused field', () => {
     expect(manualTitleRow(3, 1, 'pilesL')).toBe(
-      'Line 3/6 · Cast 2/3   ●○○○   step 1 of 4',
+      'Line 3/6 · Cast 2/3   ● ○ ○ ○   Step 1 of 4',
     )
     expect(manualTitleRow(3, 1, 'remL')).toBe(
-      'Line 3/6 · Cast 2/3   ●●○○   step 2 of 4',
+      'Line 3/6 · Cast 2/3   ● ● ○ ○   Step 2 of 4',
     )
     expect(manualTitleRow(3, 1, 'pilesR')).toBe(
-      'Line 3/6 · Cast 2/3   ●●●○   step 3 of 4',
+      'Line 3/6 · Cast 2/3   ● ● ● ○   Step 3 of 4',
     )
     expect(manualTitleRow(3, 1, 'remR')).toBe(
-      'Line 3/6 · Cast 2/3   ●●●●   step 4 of 4',
+      'Line 3/6 · Cast 2/3   ● ● ● ●   Step 4 of 4',
     )
   })
 })
@@ -1557,7 +1557,7 @@ describe('CastingPromptBox (manual flow)', () => {
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 3/6 · Cast 2/3')
-    expect(frame).toContain('step 1 of 4')
+    expect(frame).toContain('Step 1 of 4')
     expect(frame).toContain('LEFT HEAP')
     expect(frame).toContain('RIGHT HEAP')
     // Question is pre-wrapped to 2 lines in the right pane.

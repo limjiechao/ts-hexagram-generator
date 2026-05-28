@@ -938,8 +938,8 @@ const MANUAL_FIELD_ORDER: readonly ManualFocusedField[] = [
 ] as const
 
 /**
- * One-line manual-flow title: `Line N/6 · Cast C/3   ●●○○   step P of 4`.
- * Dots: positions ≤ focusedField's index are `●`, the rest `○`. The 4-char
+ * One-line manual-flow title: `Line N/6 · Cast C/3   ● ● ○ ○   Step P of 4`.
+ * Dots: positions ≤ focusedField's index are `●`, the rest `○`. The 7-char
  * dots strip doubles as a step-progress indicator.
  */
 export function manualTitleRow(
@@ -950,8 +950,8 @@ export function manualTitleRow(
   const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
   const dots = MANUAL_FIELD_ORDER.map((_, i) =>
     i <= stepIndex ? '●' : '○',
-  ).join('')
-  return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   step ${stepIndex + 1} of 4`
+  ).join(' ')
+  return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   Step ${stepIndex + 1} of 4`
 }
 
 // State discriminant shared between the diagram, question panel, and bottom
