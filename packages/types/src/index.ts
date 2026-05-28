@@ -139,3 +139,44 @@ export const assertIsLineGeneratorResult: (
     throw new TypeError('Line generator should yield a LineGeneratorResult')
   }
 }
+
+// Per-line algorithmic state, indexed by the number of casts committed so
+// far. Each cast advances the phase by one; `'3rd-cast'` is the resolved
+// terminal phase carrying the emerged Line. Designed to let `performCast`
+// in `@hexagram/core` be a pure forward-step function — the phase
+// discriminant lets the static type system narrow `rounds` to the exact
+// tuple length per phase and exclude resolved states from the input domain
+// of the step function (so stepping a resolved line is a compile error,
+// not a runtime throw).
+export type LineState =
+  | {
+      phase: '0th-cast'
+      unparted: number[]
+      suspended: number[]
+      rounds: []
+    }
+  | {
+      phase: '1st-cast'
+      unparted: number[]
+      suspended: number[]
+      rounds: [FourOperationsResult]
+    }
+  | {
+      phase: '2nd-cast'
+      unparted: number[]
+      suspended: number[]
+      rounds: [FourOperationsResult, FourOperationsResult]
+    }
+  | {
+      phase: '3rd-cast'
+      rounds: [FourOperationsResult, FourOperationsResult, FourOperationsResult]
+      line: Line
+    }
+
+// The non-terminal phases — the input domain of `performCast`. A line in
+// the `'3rd-cast'` phase is fully resolved; calling `performCast` on it
+// would be a programming error and is rejected at the type level.
+export type AdvanceableLineState = Extract<
+  LineState,
+  { phase: '0th-cast' | '1st-cast' | '2nd-cast' }
+>
