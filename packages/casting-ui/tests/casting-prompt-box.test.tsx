@@ -338,29 +338,23 @@ describe('questionPanelRows', () => {
 })
 
 describe('focusedInputBoxRows', () => {
-  it('returns 3 rows: top border, value + cursor, bottom border', () => {
-    const rows = focusedInputBoxRows({ value: '1', focused: true })
-    expect(rows).toHaveLength(3)
-    expect(rows[0]).toMatch(/┌─+┐/)
-    expect(rows[2]).toMatch(/└─+┘/)
-    expect(rows[1]).toContain('│')
-    expect(rows[1]).toContain('1')
-    // oxlint-disable-next-line no-control-regex
-    expect(rows[1]).toMatch(/\u001B\[7m \u001B\[27m/)
-  })
-
-  it('renders an empty value with cursor-only middle row', () => {
+  it('renders a 3-row drawn box with a 13-col interior', () => {
     const rows = focusedInputBoxRows({ value: '', focused: true })
     expect(rows).toHaveLength(3)
-    expect(rows[0]).toMatch(/┌─+┐/)
-    expect(rows[1]).toContain('│')
-    // oxlint-disable-next-line no-control-regex
-    expect(rows[1]).toMatch(/\u001B\[7m \u001B\[27m/)
+    expect(rows[0]).toBe('┌─────────────┐') // 13 dashes between corners
+    expect(rows[2]).toBe('└─────────────┘')
+    // Middle row is 15 cols including borders.
+    expect(stringWidth(rows[1]!)).toBe(15)
   })
 
-  it('omits cursor when focused = false', () => {
-    const rows = focusedInputBoxRows({ value: '3', focused: false })
-    expect(rows[1]).toContain('3')
+  it('inverse-video cursor follows the value when focused', () => {
+    const rows = focusedInputBoxRows({ value: '42', focused: true })
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/42\u001B\[7m \u001B\[27m/)
+  })
+
+  it('renders no cursor (plain space) when not focused', () => {
+    const rows = focusedInputBoxRows({ value: '42', focused: false })
     // oxlint-disable-next-line no-control-regex
     expect(rows[1]).not.toMatch(/\u001B\[7m/)
   })

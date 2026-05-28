@@ -1155,15 +1155,15 @@ interface FocusedInputBoxRowsArgs {
  * digit handling lives in the parent `useInput` after the Phase 7 rewrite.
  */
 export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
-  const interior = 8
+  const interior = 13
   const top = `┌${'─'.repeat(interior)}┐`
   const bottom = `└${'─'.repeat(interior)}┘`
   const cursor = args.focused ? '\u001B[7m \u001B[27m' : ' '
   // value + cursor sits inside `interior` cols; cursor is 1 display col.
   const valueCols = args.value.length
   const cursorCols = 1
-  // 3-col left margin; trailing pad fills the remainder.
-  const leading = 3
+  // 1-col left margin; trailing pad fills the remainder.
+  const leading = 1
   const trailingPad = Math.max(0, interior - leading - valueCols - cursorCols)
   const middle = `│${' '.repeat(leading)}${args.value}${cursor}${' '.repeat(trailingPad)}│`
   return [top, middle, bottom]
