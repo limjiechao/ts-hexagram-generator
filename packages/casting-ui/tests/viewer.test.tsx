@@ -1887,10 +1887,11 @@ describe('ConsultationViewer (manual flow)', () => {
     expect(manualArgs?.casting).toEqual(interactiveArgs?.casting)
   }, 30_000)
 
-  it('the casting footer carries the Tab field + Ctrl+R rewind line hints', async () => {
-    // Wide terminal so the manual-flow hint string ("Enter: commit · …Tab
-    // field · Ctrl+R rewind line · …") fits without truncation. The default
-    // 100-col viewport elides the rewind suffix mid-token.
+  it('the casting footer carries the Tab/Shift+Tab field + Ctrl+R rewind line hints', async () => {
+    // Wide terminal so the manual-flow hint string ("Enter: commit ·
+    // Tab/Shift+Tab: field · Esc: home · Ctrl+C: quit · Ctrl+R rewind line")
+    // fits without truncation. The default 100-col viewport elides the
+    // rewind suffix mid-token.
     windowSize.current = { columns: 160, rows: 30 }
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
@@ -1909,7 +1910,13 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitForReady(onReady)
     // At line 1 cast 1 the rewind hint is suppressed (nothing to rewind).
     const initialFrame = lastFrame() ?? ''
-    expect(initialFrame).toContain('Tab field')
+    // The canonical field-cycling hint comes from `keyHintsForCasting`.
+    expect(initialFrame).toContain('Tab/Shift+Tab: field')
+    // The dropped duplicate (viewer-side `· Tab field` append) must not
+    // resurface. The leading `· ` separator distinguishes it from the
+    // canonical hint above (which also contains the substring "Tab field"
+    // but only as part of "Tab/Shift+Tab: field").
+    expect(initialFrame).not.toContain('· Tab field')
     expect(initialFrame).not.toContain('Ctrl+R rewind line')
     // After committing one cast, Ctrl+R is meaningful → hint appears.
     await commitManualCast(

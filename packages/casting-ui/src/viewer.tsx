@@ -641,12 +641,11 @@ export function ConsultationViewer({
       flowHint={flowHint}
       flowKeyHints={
         state.mode === 'casting'
-          ? // The random flow auto-drives the slider — its footer SPACE hint
-            // reads "skip" (abandon the rest of the animation); the
-            // interactive flow's reads "part". The manual flow appends
-            // `· Tab field` always (so the user knows how to switch between
-            // the piles/remainder fields) and `· Ctrl+R rewind line` once
-            // there is something to rewind (any cast committed so far).
+          ? // `keyHintsForCasting` already advertises Enter + Tab/Shift+Tab +
+            // Esc + Ctrl+C for the manual flow (and the random/interactive
+            // equivalents for those flows). The viewer only appends
+            // `· Ctrl+R rewind line` once there's a completed cast to rewind,
+            // since that gate depends on viewer state the hint helper can't see.
             (() => {
               const base = keyHintsForCasting(
                 inputMode,
@@ -655,9 +654,7 @@ export function ConsultationViewer({
               )
               if (state.flowKind !== 'manual') return base
               const showRewind = state.lineIndex > 0 || state.castIndex > 0
-              return showRewind
-                ? `${base}   · Tab field   · Ctrl+R rewind line`
-                : `${base}   · Tab field`
+              return showRewind ? `${base}   · Ctrl+R rewind line` : base
             })()
           : keyHintsFlowDefault(exitLabel)
       }
