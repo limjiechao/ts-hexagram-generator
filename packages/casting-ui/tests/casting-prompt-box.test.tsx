@@ -1045,6 +1045,48 @@ describe('validateManualInput', () => {
     })
   })
 
+  it('rejects rR=0 even when conservation and suspended-sum would otherwise pass', () => {
+    // Screenshot scenario: cast 1, M=49, pL=6, rL=4, pR=5, rR=0.
+    // Conservation: 4·6+4+4·5+0+1 = 49 ✓ (the +0 sneaks past because the
+    // missing 4 was shifted into pR=5). Suspended sum: 1+4+0 = 5 ∈ {5, 9} ✓.
+    // Without the zero-remainder guard, the validator returned `ok` with
+    // pick=28 — but rR=0 violates the I-Ching never-zero rule.
+    const result = validateManualInput({
+      pilesL: 6,
+      remL: 4,
+      pilesR: 5,
+      remR: 0,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result).toEqual({ kind: 'zero-remainder', remL: 4, remR: 0 })
+  })
+
+  it('rejects rL=0 with the same priority as rR=0', () => {
+    const result = validateManualInput({
+      pilesL: 5,
+      remL: 0,
+      pilesR: 6,
+      remR: 4,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result).toEqual({ kind: 'zero-remainder', remL: 0, remR: 4 })
+  })
+
+  it('zero-remainder fires before conservation when both fail', () => {
+    // pL=0, rL=0, pR=0, rR=0 → total 1 (≠ 49). Zero-remainder must win.
+    const result = validateManualInput({
+      pilesL: 0,
+      remL: 0,
+      pilesR: 0,
+      remR: 0,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result.kind).toBe('zero-remainder')
+  })
+
   it('conservation fires before suspended-sum when both fail', () => {
     // Cast 1, M=49: pL=5, rL=4, pR=4, rR=2 → total 43 (not 49), suspended 7
     // (not in {5, 9}). Conservation must win the priority race.
@@ -1337,6 +1379,62 @@ describe('CastingPromptBox (manual flow)', () => {
       const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
       expect(stripped).not.toMatch(/null/)
     })
+    unmount()
+  })
+
+  it('zero-remainder failure shows a red message identifying which side is 0', async () => {
+    // Cast 2, M=40: pL=4, rL=3, pR=5, rR=0 → conservation passes
+    // (4·4+3+4·5+0+1 = 40 ✓) and suspended sum 1+3+0 = 4 ∈ {4, 8} ✓, but
+    // rR=0 violates the never-zero rule. Without the guard, the validator
+    // would return `ok` — instead the SPLIT row should show the red
+    // "Right remainder is 0" message.
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '4',
+      remL: '3',
+      pilesR: '5',
+      remR: '0',
+    })
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain('Right remainder is 0')
+      expect(frame).toContain('a heap divisible by 4 yields remainder 4, not 0')
+    })
+    unmount()
+  })
+
+  it('Enter is a no-op when the validator returns zero-remainder', async () => {
+    const onSubmit = vi.fn()
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={onSubmit}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: '4',
+      remL: '3',
+      pilesR: '5',
+      remR: '0',
+    })
+    stdin.write(ENTER)
+    await yieldMacrotask()
+    expect(onSubmit).not.toHaveBeenCalled()
     unmount()
   })
 

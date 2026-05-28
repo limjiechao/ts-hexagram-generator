@@ -968,13 +968,16 @@ function computeManualRoundResult(
 }
 
 /**
- * Manual-mode validator. Runs four checks in strict priority order — the
+ * Manual-mode validator. Runs checks in strict priority order — the
  * first failing check wins, so the SPLIT row only shows one message at a
- * time. Conservation always fires before suspended sum so an off-by-one
- * heap count never surfaces as a suspended sum complaint; and once both pass, the
- * derived pick is mathematically in `[1, M-1]` (a 4·(pL+pR)+rL+rR+1 = M
- * sum that lands every count-1..M-1 split is a contradiction), so no
- * `range` variant is needed.
+ * time. `zero-remainder` fires before conservation because a 0 remainder
+ * can sneak past conservation when the user shifts the missing 4 into the
+ * pile count on the same side (e.g. `pR=5, rR=0` is conservation-equivalent
+ * to `pR=4, rR=4` at M=49). The I-Ching never-zero convention says a heap
+ * divisible by 4 yields remainder 4, not 0, so we reject the 0 form
+ * explicitly. Conservation then catches off-by-one heap totals before
+ * suspended sum; once all three pass, the derived pick is mathematically
+ * in `[1, M-1]`, so no `range` variant is needed.
  *
  * Pure — depends only on its inputs. The single source of truth for what
  * the prompt's input state means; the textual rendering + commit path both
@@ -982,6 +985,7 @@ function computeManualRoundResult(
  */
 export type ManualValidationResult =
   | { kind: 'incomplete' }
+  | { kind: 'zero-remainder'; remL: number; remR: number }
   | { kind: 'conservation'; total: number; unparted: number }
   | {
       kind: 'suspended-sum'
@@ -1012,6 +1016,13 @@ export function validateManualInput(args: {
   const { pilesL, remL, pilesR, remR, unparted, castIndex } = args
   if (pilesL === null || remL === null || pilesR === null || remR === null) {
     return { kind: 'incomplete' }
+  }
+  // I-Ching never-zero convention: a heap divisible by 4 yields remainder 4,
+  // never 0. Rejected here (before conservation) because pR=N+1, rR=0 is
+  // conservation-equivalent to pR=N, rR=4 — a 0 in the remainder slot would
+  // otherwise pass conservation undetected.
+  if (remL === 0 || remR === 0) {
+    return { kind: 'zero-remainder', remL, remR }
   }
   const leftHeapTotal = 4 * pilesL + remL
   const rightHeapTotal = 4 * pilesR + remR
@@ -1285,12 +1296,24 @@ function ManualCastingPrompt({
     onFocusedFieldChangeRef.current?.(focusedField)
   }, [focusedField])
 
-  // SPLIT row text — fed verbatim by the validator. Conservation and
-  // suspended-sum failures wrap in BOLD_RED; ok/incomplete are neutral.
+  // SPLIT row text — fed verbatim by the validator. Zero-remainder,
+  // conservation, and suspended-sum failures wrap in BOLD_RED; ok/incomplete
+  // are neutral.
   const splitRow = ((): string => {
     switch (validation.kind) {
       case 'incomplete':
         return `→ SPLIT = ? (range 1 to ${unpartedStalks - 1})`
+      case 'zero-remainder': {
+        let which: string
+        if (validation.remL === 0 && validation.remR === 0) {
+          which = 'Left and right remainders are'
+        } else if (validation.remL === 0) {
+          which = 'Left remainder is'
+        } else {
+          which = 'Right remainder is'
+        }
+        return `${BOLD_RED}${which} 0 — a heap divisible by 4 yields remainder 4, not 0${NORMAL}`
+      }
       case 'conservation':
         return `${BOLD_RED}Stalks total ${validation.total} ≠ ${validation.unparted} unparted — recount heaps (a heap divisible by 4 yields remainder 4, not 0)${NORMAL}`
       case 'suspended-sum':
