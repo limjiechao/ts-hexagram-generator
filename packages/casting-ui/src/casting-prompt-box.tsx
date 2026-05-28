@@ -991,7 +991,12 @@ function cellText(
   focusedField: ManualFocusedField,
   state: ManualDiagramState,
 ): string {
-  if (focusedField === field && state === 'editing') return inverseCell(value)
+  // Focus indicator (inverse-video) stays visible while the user can still
+  // edit — i.e. anything except the post-commit resolved state. Previously
+  // it was restricted to `editing` only, which caused the indicator to
+  // vanish when the user Shift+Tabbed back into a form whose validator was
+  // surfacing a conservation/suspended-sum/zero-remainder error.
+  if (focusedField === field && state !== 'resolved') return inverseCell(value)
   return plainCell(value)
 }
 

@@ -224,7 +224,7 @@ describe('twoHeapDiagramRows', () => {
     expect(rows[3]).toContain('= ? stalks')
   })
 
-  it('no inverse styling when state === error (the bottom strip carries the cue)', () => {
+  it('shows inverse styling on focused cell when state === error', () => {
     const rows = twoHeapDiagramRows({
       pilesL: 5,
       remL: 2,
@@ -233,10 +233,29 @@ describe('twoHeapDiagramRows', () => {
       focusedField: 'remR',
       state: 'error',
     })
-    for (const row of rows) {
-      // oxlint-disable-next-line no-control-regex
-      expect(row).not.toMatch(/\u001B\[7m/)
-    }
+    // The focused cell (remR = 3) must show inverse-video even in error state.
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[2]).toMatch(/\u001B\[7m3\u001B\[27m/)
+    // Non-focused cells must NOT show inverse-video.
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).not.toMatch(/\u001B\[7m/)
+  })
+
+  it('shows the focus indicator on the focused cell when state is error (Shift+Tab back into a conservation-failing form)', () => {
+    // All 4 fields filled with conservation-failing values; user has
+    // Shift+Tabbed back to pilesL. The focus indicator must remain visible
+    // on the LEFT-piles cell even though the diagram state is 'error'.
+    const rows = twoHeapDiagramRows({
+      pilesL: 4,
+      remL: 3,
+      pilesR: 4,
+      remR: 3,
+      focusedField: 'pilesL',
+      state: 'error',
+    })
+    // Inverse-video ANSI: ESC[7m...ESC[27m — the focused cell wraps its value.
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/\u001B\[7m4\u001B\[27m/)
   })
 })
 
