@@ -970,8 +970,8 @@ function computeManualRoundResult(
 /**
  * Manual-mode validator. Runs four checks in strict priority order — the
  * first failing check wins, so the SPLIT row only shows one message at a
- * time. Conservation always fires before gathered-sum so an off-by-one
- * heap count never surfaces as a 掛扐 complaint; and once both pass, the
+ * time. Conservation always fires before suspended sum so an off-by-one
+ * heap count never surfaces as a suspended sum complaint; and once both pass, the
  * derived pick is mathematically in `[1, M-1]` (a 4·(pL+pR)+rL+rR+1 = M
  * sum that lands every count-1..M-1 split is a contradiction), so no
  * `range` variant is needed.
@@ -983,7 +983,17 @@ function computeManualRoundResult(
 export type ManualValidationResult =
   | { kind: 'incomplete' }
   | { kind: 'conservation'; total: number; unparted: number }
-  | { kind: 'gathered-sum'; sum: number; expectedLabel: string }
+  | {
+      kind: 'suspended-sum'
+      sum: number
+      // `remL`/`remR` are already non-null because the `incomplete` branch
+      // (above) fires first when any field is null. Carrying them through
+      // here lets the message render from the narrowed validator result
+      // rather than the closure-scoped (possibly-null) inputs.
+      remL: number
+      remR: number
+      expectedLabel: string
+    }
   | {
       kind: 'ok'
       pick: number
@@ -1011,7 +1021,7 @@ export function validateManualInput(args: {
   if (total !== unparted) {
     return { kind: 'conservation', total, unparted }
   }
-  // Gathered sum (掛扐): the I-Ching invariant. Round 1 expects {5, 9};
+  // Suspended sum: the I-Ching invariant. Round 1 expects {5, 9};
   // rounds 2/3 expect {4, 8}. (The 1-from-right is folded in via the +1
   // term; rL + rR + 1 == 4·(pL+pR) ⊕ unparted lands at exactly these
   // residues for the canonical M = 49/40/32 sequence.)
@@ -1019,9 +1029,9 @@ export function validateManualInput(args: {
   const expectedSums = castIndex === 0 ? [5, 9] : [4, 8]
   if (!expectedSums.includes(sum)) {
     const expectedLabel = castIndex === 0 ? '5 or 9' : '4 or 8'
-    return { kind: 'gathered-sum', sum, expectedLabel }
+    return { kind: 'suspended-sum', sum, remL, remR, expectedLabel }
   }
-  // Conservation + gathered-sum both pass → derived pick is in
+  // Conservation + suspended-sum both pass → derived pick is in
   // `[1, unparted - 1]`. No standalone `range` failure mode.
   return {
     kind: 'ok',
@@ -1044,9 +1054,8 @@ function parseManualBuffer(buffer: string): number | null {
 // and the field-state styling rules: focused fields use inverse video on the
 // numeric value, unfocused fields render in cyan, and empty unfocused
 // buffers show an `_` placeholder so the brackets never collapse to `[]`.
-// The `<NumberInput>` is always mounted (so its `useInput` is wired up); we
-// only swap how the value text is styled around it. A focused empty buffer
-// still surfaces the cursor (rendered by `<NumberInput>` when `focused`).
+// A focused empty buffer still surfaces the cursor (rendered by
+// `<NumberInput>` when `focused`).
 function ManualNumberField({
   value,
   focused,
@@ -1081,13 +1090,9 @@ function ManualNumberField({
       </Text>
     )
   }
-  // Unfocused — render an `_` placeholder for empty buffers or the typed
-  // value in cyan. `<NumberInput>` still needs to be in the tree so its
-  // `useInput` is registered with Ink (it self-gates on `focused`); render
-  // it with a `value` we are about to ignore visually, and overlay the cyan
-  // text in a hidden way. Simpler: skip the input entirely when unfocused
-  // — `useInput({ isActive: focused })` already disabled it, and the
-  // styling is the only reason to render here.
+  // Unfocused renders the styled value-or-placeholder; the parent useInput
+  // owns Tab/Enter, so we don't need NumberInput's own input handler here.
+  // Empty buffers show an `_` so the brackets never collapse to `[]`.
   if (value.length === 0) {
     return <Text color="cyan">_</Text>
   }
@@ -1125,8 +1130,8 @@ function ManualNumberField({
  * and the gated commit.
  *
  * Validator priority (first failing check wins): incomplete → conservation →
- * gathered-sum → ok. The SPLIT row renders the validator's textual output;
- * conservation and gathered-sum failures highlight in red, with the
+ * suspended-sum → ok. The SPLIT row renders the validator's textual output;
+ * conservation and suspended-sum failures highlight in red, with the
  * never-zero hint inlined in the conservation message only.
  *
  * On a valid Enter:
@@ -1281,15 +1286,15 @@ function ManualCastingPrompt({
   }, [focusedField])
 
   // SPLIT row text — fed verbatim by the validator. Conservation and
-  // gathered-sum failures wrap in BOLD_RED; ok/incomplete are neutral.
+  // suspended-sum failures wrap in BOLD_RED; ok/incomplete are neutral.
   const splitRow = ((): string => {
     switch (validation.kind) {
       case 'incomplete':
         return `→ SPLIT = ? (range 1 to ${unpartedStalks - 1})`
       case 'conservation':
         return `${BOLD_RED}Stalks total ${validation.total} ≠ ${validation.unparted} unparted — recount heaps (a heap divisible by 4 yields remainder 4, not 0)${NORMAL}`
-      case 'gathered-sum':
-        return `${BOLD_RED}掛扐 sum (1 + ${remL} + ${remR}) = ${validation.sum}, expected ${validation.expectedLabel} — check if you removed the last group of 4 from a divisible heap${NORMAL}`
+      case 'suspended-sum':
+        return `${BOLD_RED}Suspended sum (1 + ${validation.remL} + ${validation.remR}) = ${validation.sum}, expected ${validation.expectedLabel} — check if you removed the last group of 4 from a divisible heap${NORMAL}`
       case 'ok':
         return `→ SPLIT = ${validation.pick} (range 1 to ${unpartedStalks - 1})`
     }

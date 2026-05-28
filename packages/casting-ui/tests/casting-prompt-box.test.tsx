@@ -1039,6 +1039,8 @@ describe('validateManualInput', () => {
     expect(result).toEqual({
       kind: 'suspended-sum',
       sum: 6,
+      remL: 1,
+      remR: 4,
       expectedLabel: '4 or 8',
     })
   })
