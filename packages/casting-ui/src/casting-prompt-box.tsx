@@ -702,6 +702,7 @@ export function CastingPromptBox({
         width={width}
         unpartedStalks={unparted}
         manualRevealMs={manualRevealMs}
+        horizontalOffset={horizontalOffset}
         onSubmit={onSubmit}
         onReady={onReady}
         onFocusedFieldChange={onFocusedFieldChange}
@@ -974,7 +975,7 @@ const HEAP_CARD_INTERIOR = 13
 // so an active cell never collapses (the cursor is always visible).
 function inverseCell(value: number | null): string {
   const inner = value === null ? ' ' : String(value)
-  return `\x1b[7m${inner}\x1b[27m`
+  return `\u001B[7m${inner}\u001B[27m`
 }
 
 // Plain (no styling) representation: integer for non-null, `?` for null.
@@ -1060,22 +1061,25 @@ interface QuestionPanelRowsArgs {
   state: ManualDiagramState
 }
 
-function questionForField(field: ManualFocusedField): string {
+// Each question is pre-wrapped to two lines so the right pane fits within
+// ~28 display cols (per spec — see the rendered-state mockup, where the
+// question reads "How many leftover stalks" / "in the LEFT heap?" stacked).
+function questionLinesForField(field: ManualFocusedField): readonly [string, string] {
   switch (field) {
-    case 'pilesL': return 'How many piles of 4 stalks in the LEFT heap?'
-    case 'remL':   return 'How many leftover stalks in the LEFT heap?'
-    case 'pilesR': return 'How many piles of 4 stalks in the RIGHT heap?'
-    case 'remR':   return 'How many leftover stalks in the RIGHT heap?'
+    case 'pilesL': return ['How many piles of 4 stalks', 'in the LEFT heap?']
+    case 'remL':   return ['How many leftover stalks',   'in the LEFT heap?']
+    case 'pilesR': return ['How many piles of 4 stalks', 'in the RIGHT heap?']
+    case 'remR':   return ['How many leftover stalks',   'in the RIGHT heap?']
   }
 }
 
 /**
- * Right-half question + dim range hint (editing) or the calm `Resolved.` /
- * blank / `Enter to advance (or wait 2.5 s)` triple (resolved). Always
- * returns exactly 3 rows so the row builder slots into the prompt's 6-row
- * body alongside the 3-row `focusedInputBoxRows`.
+ * Right-half question (pre-wrapped to 2 lines) + dim range hint (editing) or
+ * the calm `Resolved.` / blank / `Enter to advance (or wait 2.5 s)` triple
+ * (resolved). Always returns exactly 3 rows so the row builder slots into the
+ * prompt's 6-row body alongside the 3-row `focusedInputBoxRows`.
  *
- * Dim ANSI is `\x1b[2m...\x1b[22m` (matches Ink's `<Text dimColor>` output).
+ * Dim ANSI is `\u001B[2m...\u001B[22m` (matches Ink's `<Text dimColor>` output).
  */
 export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
   const { focusedField, unpartedStalks, state } = args
@@ -1087,11 +1091,8 @@ export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
     focusedField === 'pilesL' || focusedField === 'pilesR'
       ? `valid 0 to ${pilesMax}`
       : 'valid 1 to 4'
-  return [
-    questionForField(focusedField),
-    '',
-    `\x1b[2m${hint}\x1b[22m`,
-  ]
+  const [line1, line2] = questionLinesForField(focusedField)
+  return [line1, line2, `\u001B[2m${hint}\u001B[22m`]
 }
 
 interface FocusedInputBoxRowsArgs {
@@ -1109,7 +1110,7 @@ export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
   const interior = 8
   const top = `┌${'─'.repeat(interior)}┐`
   const bottom = `└${'─'.repeat(interior)}┘`
-  const cursor = args.focused ? '\x1b[7m \x1b[27m' : ' '
+  const cursor = args.focused ? '\u001B[7m \u001B[27m' : ' '
   // value + cursor sits inside `interior` cols; cursor is 1 display col.
   const valueCols = args.value.length
   const cursorCols = 1
@@ -1224,6 +1225,7 @@ interface ManualCastingPromptProps {
   width: number
   unpartedStalks: number
   manualRevealMs: number
+  horizontalOffset: number
   onSubmit: (parsed: number) => void
   onReady?: () => void
   onFocusedFieldChange?: (field: ManualFocusedField) => void
@@ -1366,97 +1368,89 @@ function parseManualBuffer(buffer: string): number | null {
   return Number.isInteger(parsed) ? parsed : null
 }
 
-// Render a `<NumberInput>` slot with the manual-prompt's bracket scaffolding
-// and the field-state styling rules: focused fields use inverse video on the
-// numeric value, unfocused fields render in cyan, and empty unfocused
-// buffers show an `_` placeholder so the brackets never collapse to `[]`.
-// A focused empty buffer still surfaces the cursor (rendered by
-// `<NumberInput>` when `focused`).
-function ManualNumberField({
-  value,
-  focused,
-  min,
-  max,
-  onChange,
-}: {
-  value: string
-  focused: boolean
-  min: number
-  max: number
-  onChange: (next: string) => void
-}): ReactElement {
-  // Focused — the numeric value wears inverse video; `<NumberInput>` also
-  // renders a trailing `<Cursor />` (an inverse space) on top of that. The
-  // value text and the cursor are siblings in `<NumberInput>`'s fragment,
-  // so wrapping it in `<Text inverse>` styles both as a single inverse
-  // block. (Ink propagates `<Text>`'s SGR to nested `<Text>` children
-  // unless they override.)
-  if (focused) {
-    return (
-      <Text inverse>
-        <NumberInput
-          value={value}
-          focused
-          min={min}
-          max={max}
-          onChange={onChange}
-          onSubmit={() => {}}
-          onError={() => {}}
-        />
-      </Text>
-    )
+// Field-router helpers — used by the parent `useInput` digit/backspace
+// branches to dispatch the appropriate state setter (and read the current
+// buffer) for the currently-focused field without a nested switch in the
+// handler body.
+function manualSetterForField(
+  field: ManualFocusedField,
+  setters: {
+    setPilesLBuffer: (s: string) => void
+    setRemLBuffer: (s: string) => void
+    setPilesRBuffer: (s: string) => void
+    setRemRBuffer: (s: string) => void
+  },
+): (s: string) => void {
+  switch (field) {
+    case 'pilesL':
+      return setters.setPilesLBuffer
+    case 'remL':
+      return setters.setRemLBuffer
+    case 'pilesR':
+      return setters.setPilesRBuffer
+    case 'remR':
+      return setters.setRemRBuffer
   }
-  // Unfocused renders the styled value-or-placeholder; the parent useInput
-  // owns Tab/Enter, so we don't need NumberInput's own input handler here.
-  // Empty buffers show an `_` so the brackets never collapse to `[]`.
-  if (value.length === 0) {
-    return <Text color="cyan">_</Text>
+}
+
+function manualBufferForField(
+  field: ManualFocusedField,
+  buffers: {
+    pilesLBuffer: string
+    remLBuffer: string
+    pilesRBuffer: string
+    remRBuffer: string
+  },
+): string {
+  switch (field) {
+    case 'pilesL':
+      return buffers.pilesLBuffer
+    case 'remL':
+      return buffers.remLBuffer
+    case 'pilesR':
+      return buffers.pilesRBuffer
+    case 'remR':
+      return buffers.remRBuffer
   }
-  return <Text color="cyan">{value}</Text>
 }
 
 /**
  * Manual-mode body of `<CastingPromptBox>` — the four-field
- * `[pilesL] piles × 4 + [remL] remainder` / `[pilesR] piles × 4 + [remR]
- * remainder + 1 suspended` prompt used by the `hexagram-manual` flow. Users
- * physically casting yarrow stalks observe the post-sort heaps and remainders
- * on both sides of the table, then transcribe all four numbers here; we
- * derive the canonical split index (`4 × pilesL + remL`) and hand it
- * upstream as if it were a typed cast.
+ * piles+remainder prompt used by the `hexagram-manual` flow. Users physically
+ * casting yarrow stalks observe the post-sort heaps and remainders on both
+ * sides of the table, then transcribe all four numbers here; we derive the
+ * canonical split index (`4 × pilesL + remL`) and hand it upstream as if it
+ * were a typed cast.
  *
- * Layout (9 content rows + 2 border = 11 rows total):
- *
- *   ╭─────────────────────────────────────────────────────╮
- *   │ Line N/6 · Cast C/3                                 │
- *   │                                                     │
- *   │ Unparted stalks: M                                  │
- *   │ ---                                                 │
- *   │ Left heap : [pilesL] piles × 4 stalks + [remL] rem  │
- *   │ Right heap: [pilesR] piles × 4 stalks + [remR] rem  │
- *   │                                          + 1 susp.  │
- *   │ → SPLIT = N (range 1 to M-1)   ← swaps to reveal    │
- *   │ ---                                                 │
- *   │ ∴ LEFT HEAP: X | RIGHT HEAP: Y                      │
- *   ╰─────────────────────────────────────────────────────╯
+ * Layout (9 content rows + 2 border = 11 rows total): a one-line title with
+ * inline `●●○○` step-progress dots / blank spacer / 6-row side-by-side body
+ * — LEFT and RIGHT heap cards on the left half (each card: header / piles /
+ * rem / `= N stalks` / footer), question + dim range hint + 3-row drawn-box
+ * input on the right half — / one-row bottom strip (live totals or a
+ * BOLD_RED validator-derived error message, swapped to a BOLD_GREEN
+ * `· 1 suspended · ${total} of ${unparted} · → next cast: ${next} unparted`
+ * during the post-Enter reveal). Each row is pre-built ANSI text and sliced
+ * by `horizontalOffset` for the viewer's narrow-terminal `<` / `>` pan,
+ * mirroring `<SliderCastingPrompt>`.
  *
  * Tab cycles focus forward through `pilesL → remL → pilesR → remR → pilesL`;
- * Shift+Tab cycles backward. Enter is parent-owned: each field's
- * `<NumberInput>` is wired with no-op `onSubmit` / `onError` callbacks, so
- * the parent's `useInput` is the sole authority on cross-field validation
- * and the gated commit.
+ * Shift+Tab cycles backward. Digit/backspace input is owned by this
+ * component's `useInput` (the focused input box is plain text, not a
+ * `<NumberInput>` child); the validator + commit path are likewise local.
  *
- * Validator priority (first failing check wins): incomplete → conservation →
- * suspended-sum → ok. The SPLIT row renders the validator's textual output;
- * conservation and suspended-sum failures highlight in red, with the
- * never-zero hint inlined in the conservation message only.
+ * Validator priority (first failing check wins): incomplete → zero-remainder
+ * → conservation → suspended-sum → ok. The bottom strip's error branch
+ * renders the validator's textual output verbatim; the diagram's active
+ * cells switch from inverse-video to plain `?`/value cells when in error.
  *
  * On a valid Enter:
  *   - local `committed = { pick, suspended, next, leftHeapTotal,
  *     rightHeapTotal }` captures the resolved pick plus the closed-form
  *     round numbers and both heap totals,
- *   - the bottom row swaps in place to a green
- *     `∴ LEFT HEAP: X | RIGHT HEAP: Y | SUSPENDED: Z | NEXT CAST: W
- *     unparted`,
+ *   - both heap cards switch to BOLD_GREEN and the right pane swaps to
+ *     `Resolved. / blank / Enter to advance (or wait 2.5 s)`,
+ *   - the bottom strip swaps to a green
+ *     `· 1 suspended · X of M · → next cast: N unparted`,
  *   - a `manualRevealMs`-delayed `setTimeout` fires `onSubmit(pick)`
  *     upstream (tests opt out with `manualRevealMs={0}`, which short-circuits
  *     to a synchronous dispatch),
@@ -1464,8 +1458,7 @@ function ManualNumberField({
  *     (skip-to-advance), so a confident caster doesn't have to wait out the
  *     full reveal.
  *
- * No separate error row — out-of-range derived splits surface in the SPLIT
- * row itself and Enter is a silent no-op. The rendered height is locked at
+ * The rendered height is locked at
  * `getCastingPromptHeight(_, _, 'manual') = 11`.
  */
 function ManualCastingPrompt({
@@ -1474,6 +1467,7 @@ function ManualCastingPrompt({
   width,
   unpartedStalks,
   manualRevealMs,
+  horizontalOffset,
   onSubmit,
   onReady,
   onFocusedFieldChange,
@@ -1489,9 +1483,12 @@ function ManualCastingPrompt({
   // validator's conservation check is the source of truth for the
   // cross-field invariant, so per-field bounds can be lenient without
   // letting an invalid commit through. Remainders ∈ [1, 4] (I Ching: a
-  // heap divisible by 4 yields remainder 4, never 0).
+  // heap divisible by 4 yields remainder 4, never 0). The digit-input
+  // branch in `useInput` below treats `remMax = 4` as an inclusive cap on
+  // the typed buffer parse — a leniently-typed `0` reaches the validator
+  // and surfaces as `zero-remainder`, matching the same error path the
+  // user got with the legacy NumberInput.
   const pilesMax = Math.max(0, Math.floor(unpartedStalks / 4))
-  const remMin = 1
   const remMax = 4
 
   // Live-parse each buffer.
@@ -1508,7 +1505,7 @@ function ManualCastingPrompt({
     castIndex,
   })
 
-  // Live heap totals — used by the bottom row to mirror the user's typing
+  // Live heap totals — used by the bottom strip to mirror the user's typing
   // even before all four fields are populated. Treat a null parse as 0 so
   // the row never disappears; an absent field is a partial total, not an
   // error.
@@ -1526,10 +1523,11 @@ function ManualCastingPrompt({
     onFocusedFieldChangeRef.current = onFocusedFieldChange
   })
 
-  // Tab + Shift+Tab + Enter handler. The parent owns both the focus cycle
-  // and the gated commit; each `<NumberInput>` is wired with no-op
-  // submit/error so its own Enter handling is inert.
-  useInput((_input, key) => {
+  // Tab / Shift+Tab / Enter / digit / backspace handler. The parent owns
+  // both the focus cycle and the gated commit; digit + backspace handling
+  // moved here in the Phase 7 redesign (the focused input box is plain
+  // text, no `<NumberInput>` child intercepting keystrokes).
+  useInput((input, key) => {
     if (key.tab) {
       // Tab order: pilesL → remL → pilesR → remR → pilesL.
       // Shift+Tab reverses it.
@@ -1561,6 +1559,59 @@ function ManualCastingPrompt({
         leftHeapTotal: validation.leftHeapTotal,
         rightHeapTotal: validation.rightHeapTotal,
       })
+      return
+    }
+    // While the reveal-dwell is showing the resolved view, freeze the
+    // buffers — neither digits nor backspace mutate them. Only the
+    // skip-to-advance Enter (above) is honoured.
+    if (committed !== null) return
+    // Backspace / DEL — remove the last char from the focused buffer.
+    if (key.backspace || key.delete) {
+      const setter = manualSetterForField(focusedField, {
+        setPilesLBuffer,
+        setRemLBuffer,
+        setPilesRBuffer,
+        setRemRBuffer,
+      })
+      const currentBuffer = manualBufferForField(focusedField, {
+        pilesLBuffer,
+        remLBuffer,
+        pilesRBuffer,
+        remRBuffer,
+      })
+      setter(currentBuffer.slice(0, -1))
+      return
+    }
+    // Digit input — append if the resulting parse fits the field's per-field
+    // max. Piles cap at `floor(unparted/4)`; remainders cap at 4. A leading
+    // `0` in a remainder field is allowed through to the validator (which
+    // surfaces it as `zero-remainder`). Ink can batch multiple digits into
+    // one `input` chunk (`stdin.write('24')` arrives whole); accept any
+    // all-digit run for parity with `<NumberInput>`. Control sequences
+    // (arrow keys, etc.) contain non-digit bytes and fail the regex.
+    if (input.length > 0 && /^\d+$/.test(input)) {
+      const setter = manualSetterForField(focusedField, {
+        setPilesLBuffer,
+        setRemLBuffer,
+        setPilesRBuffer,
+        setRemRBuffer,
+      })
+      const currentBuffer = manualBufferForField(focusedField, {
+        pilesLBuffer,
+        remLBuffer,
+        pilesRBuffer,
+        remRBuffer,
+      })
+      const nextBuffer = currentBuffer + input
+      const parsed = Number.parseInt(nextBuffer, 10)
+      const max =
+        focusedField === 'pilesL' || focusedField === 'pilesR'
+          ? pilesMax
+          : remMax
+      if (Number.isInteger(parsed) && parsed <= max) {
+        setter(nextBuffer)
+      }
+      return
     }
   })
 
@@ -1600,40 +1651,150 @@ function ManualCastingPrompt({
     onFocusedFieldChangeRef.current?.(focusedField)
   }, [focusedField])
 
-  // SPLIT row text — fed verbatim by the validator. Zero-remainder,
-  // conservation, and suspended-sum failures wrap in BOLD_RED; ok/incomplete
-  // are neutral.
-  const splitRow = ((): string => {
-    switch (validation.kind) {
-      case 'incomplete':
-        return `→ SPLIT = ? (range 1 to ${unpartedStalks - 1})`
-      case 'zero-remainder': {
-        let which: string
-        if (validation.remL === 0 && validation.remR === 0) {
-          which = 'Left and right remainders are'
-        } else if (validation.remL === 0) {
-          which = 'Left remainder is'
-        } else {
-          which = 'Right remainder is'
-        }
-        return `${BOLD_RED}${which} 0 — a heap divisible by 4 yields remainder 4, not 0${NORMAL}`
-      }
-      case 'conservation':
-        return `${BOLD_RED}Stalks total ${validation.total} ≠ ${validation.unparted} unparted — recount heaps (a heap divisible by 4 yields remainder 4, not 0)${NORMAL}`
-      case 'suspended-sum':
-        return `${BOLD_RED}Suspended sum (1 + ${validation.remL} + ${validation.remR}) = ${validation.sum}, expected ${validation.expectedLabel} — check if you removed the last group of 4 from a divisible heap${NORMAL}`
-      case 'ok':
-        return `→ SPLIT = ${validation.pick} (range 1 to ${unpartedStalks - 1})`
-    }
-  })()
+  // ── Render: row-builder composition + sliceAnsi pan ───────────────────
 
-  // Bottom row — either the live heap totals or the green resolved row.
-  const bottomRow = ((): string => {
+  const innerContentWidth = Math.max(1, width - 2)
+  // Natural body width: LEFT card (17) + 4-col gap + RIGHT card (17) +
+  // 4-col gap + right-pane (33-ish). Use 75 — the prompt's body is sliced
+  // against innerContentWidth so the exact figure matters only as a floor.
+  const naturalBodyWidth = 17 + 4 + 17 + 4 + 33
+  const renderWidth = Math.max(innerContentWidth, naturalBodyWidth)
+
+  // Diagram state drives editing / error / resolved colouring. Validator
+  // `incomplete` and `ok` are both "editing" — the user is mid-flow and
+  // hasn't surfaced an actionable error yet.
+  const isEditingValidation =
+    validation.kind === 'incomplete' || validation.kind === 'ok'
+  let diagramState: ManualDiagramState
+  if (committed !== null) {
+    diagramState = 'resolved'
+  } else if (isEditingValidation) {
+    diagramState = 'editing'
+  } else {
+    diagramState = 'error'
+  }
+
+  // Row 1: title.
+  const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
+
+  // Rows 3-7: the 5-row LEFT/RIGHT diagram on the left half, padded to a
+  // 6th blank row so it aligns with the right pane's 6 rows.
+  const diagramRows = twoHeapDiagramRows({
+    pilesL,
+    remL,
+    pilesR,
+    remR,
+    focusedField,
+    state: diagramState,
+  })
+  // Natural diagram width: `17 (LEFT card) + 4 (gap) + 18 (RIGHT card)`.
+  // The RIGHT card is 18 cols because the `RIGHT HEAP` header is 1 col
+  // wider than `LEFT HEAP`. Pad with a 6th blank row so the diagram half
+  // is always 6 rows tall, matching the right pane.
+  const diagramWidth = 39
+  const diagramPaddedRows = [...diagramRows, ' '.repeat(diagramWidth)]
+
+  // Right pane: 3 question rows + 3 input box rows. During the resolved
+  // dwell the input box collapses to blanks (the Resolved. / Enter to
+  // advance question panel already occupies the visual focus).
+  const qRows = questionPanelRows({
+    focusedField,
+    unpartedStalks,
+    state: diagramState === 'resolved' ? 'resolved' : 'editing',
+  })
+  const inputRows =
+    committed === null
+      ? focusedInputBoxRows({
+          value: manualBufferForField(focusedField, {
+            pilesLBuffer,
+            remLBuffer,
+            pilesRBuffer,
+            remRBuffer,
+          }),
+          focused: true,
+        })
+      : ['', '', '']
+  const rightRows = [...qRows, ...inputRows]
+
+  // Compose each body row from a left half (diagram, display width
+  // `diagramWidth`) and a right half (question/input), gap = 4. Pad the
+  // whole row out to `renderWidth` so successive slices land at predictable
+  // offsets.
+  const composeBodyRow = (leftRow: string, rightRow: string): string => {
+    const leftWidth = stringWidth(leftRow)
+    const rightWidth = stringWidth(rightRow)
+    const leftPadTrail = Math.max(0, diagramWidth - leftWidth)
+    const middleGap = 4
+    const totalSoFar = diagramWidth + middleGap + rightWidth
+    const trailingPad = Math.max(0, renderWidth - totalSoFar)
+    return `${leftRow}${' '.repeat(leftPadTrail)}${' '.repeat(middleGap)}${rightRow}${' '.repeat(trailingPad)}`
+  }
+  const bodyRows = diagramPaddedRows.map((leftRow, i) =>
+    composeBodyRow(leftRow, rightRows[i] ?? ''),
+  )
+
+  // Row 9: the one-row bottom strip — editing / error / resolved branch
+  // selected from the validator + committed state.
+  const bottomStripBranchArgs = ((): BottomStripArgs => {
     if (committed !== null) {
-      return `${BOLD_GREEN}∴ LEFT HEAP: ${committed.leftHeapTotal} | RIGHT HEAP: ${committed.rightHeapTotal} | SUSPENDED: ${committed.suspended} | NEXT CAST: ${committed.next} unparted${NORMAL}`
+      return {
+        branch: 'resolved',
+        leftHeapTotal: committed.leftHeapTotal,
+        rightHeapTotal: committed.rightHeapTotal,
+        unpartedStalks,
+        next: committed.next,
+        renderWidth,
+      }
     }
-    return `∴ LEFT HEAP: ${liveLeftTotal} stalks | RIGHT HEAP: ${liveRightTotal} stalks`
+    if (validation.kind === 'conservation') {
+      return {
+        branch: 'error',
+        errorKind: 'conservation',
+        leftHeapTotal: validation.leftHeapTotal,
+        rightHeapTotal: validation.rightHeapTotal,
+        total: validation.total,
+        unpartedStalks: validation.unparted,
+        renderWidth,
+      }
+    }
+    if (validation.kind === 'suspended-sum') {
+      return {
+        branch: 'error',
+        errorKind: 'suspended-sum',
+        remL: validation.remL,
+        remR: validation.remR,
+        sum: validation.sum,
+        expectedLabel: validation.expectedLabel,
+        renderWidth,
+      }
+    }
+    if (validation.kind === 'zero-remainder') {
+      return {
+        branch: 'error',
+        errorKind: 'zero-remainder',
+        remL: validation.remL,
+        remR: validation.remR,
+        renderWidth,
+      }
+    }
+    return {
+      branch: 'editing',
+      liveLeftTotal,
+      liveRightTotal,
+      unpartedStalks,
+      renderWidth,
+    }
   })()
+  const stripRow = bottomStripRow(bottomStripBranchArgs)
+
+  // Stack the 9 content rows (title / blank / 6 body rows / strip), pad
+  // each to renderWidth, then slice by horizontalOffset for the viewer's
+  // `<` / `>` narrow-terminal pan — same shape as `<SliderCastingPrompt>`.
+  const allRows = [titleRow, '', ...bodyRows, stripRow]
+  const slicedRows = allRows.map((row) => {
+    const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
+    return sliceAnsi(padded, horizontalOffset, horizontalOffset + innerContentWidth)
+  })
 
   return (
     <Box
@@ -1643,51 +1804,10 @@ function ManualCastingPrompt({
       flexShrink={0}
       flexDirection="column"
     >
-      <Text dimColor>{`Line ${lineNumber}/6 · Cast ${castIndex + 1}/3`}</Text>
-      <Text> </Text>
-      <Text>{`Unparted stalks: ${unpartedStalks}`}</Text>
-      <Text dimColor>---</Text>
-      <Box flexDirection="row">
-        <Text>{'Left heap : ['}</Text>
-        <ManualNumberField
-          value={pilesLBuffer}
-          focused={focusedField === 'pilesL' && committed === null}
-          min={0}
-          max={pilesMax}
-          onChange={setPilesLBuffer}
-        />
-        <Text>{'] piles × 4 stalks + ['}</Text>
-        <ManualNumberField
-          value={remLBuffer}
-          focused={focusedField === 'remL' && committed === null}
-          min={remMin}
-          max={remMax}
-          onChange={setRemLBuffer}
-        />
-        <Text>{'] remainder'}</Text>
-      </Box>
-      <Box flexDirection="row">
-        <Text>{'Right heap: ['}</Text>
-        <ManualNumberField
-          value={pilesRBuffer}
-          focused={focusedField === 'pilesR' && committed === null}
-          min={0}
-          max={pilesMax}
-          onChange={setPilesRBuffer}
-        />
-        <Text>{'] piles × 4 stalks + ['}</Text>
-        <ManualNumberField
-          value={remRBuffer}
-          focused={focusedField === 'remR' && committed === null}
-          min={remMin}
-          max={remMax}
-          onChange={setRemRBuffer}
-        />
-        <Text>{'] remainder + 1 suspended'}</Text>
-      </Box>
-      <Text>{splitRow}</Text>
-      <Text dimColor>---</Text>
-      <Text>{bottomRow}</Text>
+      <Text dimColor>{slicedRows[0]!}</Text>
+      {slicedRows.slice(1).map((row, i) => (
+        <Text key={`row-${i}`}>{row}</Text>
+      ))}
     </Box>
   )
 }

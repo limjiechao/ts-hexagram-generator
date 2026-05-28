@@ -1554,13 +1554,13 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
-    expect(frame).toContain('Unparted stalks: 49')
-    expect(frame).toContain('Left heap :')
-    expect(frame).toContain('Right heap:')
-    expect(frame).toContain('piles × 4 stalks +')
-    expect(frame).toContain('remainder')
+    expect(frame).toContain('step 1 of 4')
+    expect(frame).toContain('LEFT HEAP')
+    expect(frame).toContain('RIGHT HEAP')
+    expect(frame).toContain('How many piles of 4 stalks')
+    expect(frame).toContain('in the LEFT heap?')
     expect(frame).toContain('1 suspended')
-    expect(frame).toMatch(/SPLIT = \?.*range 1 to 48/)
+    expect(frame).toContain('total 0 of 49')
     unmount()
   })
 
@@ -1624,8 +1624,8 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
     })
-    // The unparted-stalks readout is back to the round-1 49.
-    expect(lastFrame() ?? '').toContain('Unparted stalks: 49')
+    // The bottom-strip totals revert to the round-1 49 (live total 0 of 49).
+    expect(lastFrame() ?? '').toContain('total 0 of 49')
     unmount()
   })
 
@@ -1706,7 +1706,8 @@ describe('ConsultationViewer (manual flow)', () => {
   it('after a Ctrl+R rewind, the first digit lands in the pilesL field', async () => {
     // Focus regression — Ctrl+R must remount the prompt with focusedField =
     // 'pilesL' so the next keystroke writes into pilesL. Verifiable via the
-    // SPLIT row: after rewind, type pL=5, rL=4, pR=5, rR=4 → SPLIT = 24.
+    // resolved-state numbers: after rewind, type pL=5, rL=4, pR=5, rR=4 →
+    // a valid commit with `total 48 of 49` (LEFT=24, RIGHT=24, split=24).
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
@@ -1768,7 +1769,9 @@ describe('ConsultationViewer (manual flow)', () => {
     })
     stdin.write(fields.remR)
     await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(/SPLIT = 24 \(range 1 to 48\)/)
+      // After all four fields commit (cast 1, M=49, pL=5, rL=4, pR=5, rR=4),
+      // the validator passes and the live editing strip reads total 48 of 49.
+      expect(lastFrame() ?? '').toContain('total 48 of 49')
     })
     unmount()
   })

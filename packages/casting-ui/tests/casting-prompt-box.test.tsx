@@ -15,7 +15,15 @@ import {
   twoHeapDiagramRows,
   validateManualInput,
 } from '../src/casting-prompt-box'
-import { CTRL_C, CTRL_R, ENTER, ESCAPE, SPACE, TAB } from './helpers/keystrokes'
+import {
+  BACKSPACE,
+  CTRL_C,
+  CTRL_R,
+  ENTER,
+  ESCAPE,
+  SPACE,
+  TAB,
+} from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
 function CastingPromptBoxHost({
@@ -161,7 +169,8 @@ describe('twoHeapDiagramRows', () => {
     expect(rows[1]).toMatch(/piles\s+5/)
     expect(rows[1]).toMatch(/piles\s+\?/)
     // Rem row: active LEFT cell wears inverse-video ANSI; RIGHT is ?.
-    expect(rows[2]).toMatch(/rem\.\s+\x1b\[7m1\x1b\[27m/)
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[2]).toMatch(/rem\.\s+\u001B\[7m1\u001B\[27m/)
     expect(rows[2]).toMatch(/rem\.\s+\?/)
     // Totals: LEFT = 4·5 + 1 = 21; RIGHT = ?.
     expect(rows[3]).toContain('= 21 stalks')
@@ -180,12 +189,13 @@ describe('twoHeapDiagramRows', () => {
       state: 'resolved',
     })
     for (const row of rows) {
-      expect(row).toContain('\x1b[1;92m')
-      expect(row).toContain('\x1b[0m')
+      expect(row).toContain('\u001B[1;92m')
+      expect(row).toContain('\u001B[0m')
     }
     // No inverse video in resolved state.
     for (const row of rows) {
-      expect(row).not.toMatch(/\x1b\[7m/)
+      // oxlint-disable-next-line no-control-regex
+      expect(row).not.toMatch(/\u001B\[7m/)
     }
   })
 
@@ -198,7 +208,8 @@ describe('twoHeapDiagramRows', () => {
       focusedField: 'pilesL',
       state: 'editing',
     })
-    expect(rows[1]).toMatch(/piles\s+\x1b\[7m \x1b\[27m/)
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/piles\s+\u001B\[7m \u001B\[27m/)
   })
 
   it('totals row uses ? when any component is null', () => {
@@ -223,24 +234,27 @@ describe('twoHeapDiagramRows', () => {
       state: 'error',
     })
     for (const row of rows) {
-      expect(row).not.toMatch(/\x1b\[7m/)
+      // oxlint-disable-next-line no-control-regex
+      expect(row).not.toMatch(/\u001B\[7m/)
     }
   })
 })
 
 describe('questionPanelRows', () => {
-  it('returns 3 rows: question / blank / dim hint for each field', () => {
+  it('returns 3 rows: question line 1 / question line 2 / dim hint', () => {
     const rows = questionPanelRows({
       focusedField: 'pilesL',
       unpartedStalks: 49,
       state: 'editing',
     })
     expect(rows).toHaveLength(3)
-    expect(rows[0]).toContain('How many piles of 4 stalks in the LEFT heap?')
+    // Question pre-wrapped to two lines so the right pane fits ~28 cols.
+    expect(rows[0]).toContain('How many piles of 4 stalks')
+    expect(rows[1]).toContain('in the LEFT heap?')
     // Dim ANSI on the range hint row.
-    expect(rows[2]).toContain('\x1b[2m')
+    expect(rows[2]).toContain('\u001B[2m')
     expect(rows[2]).toContain('valid 0 to 12')
-    expect(rows[2]).toContain('\x1b[22m')
+    expect(rows[2]).toContain('\u001B[22m')
   })
 
   it('emits valid 1 to 4 for remainder fields', () => {
@@ -271,8 +285,8 @@ describe('questionPanelRows', () => {
       unpartedStalks: 49,
       state: 'editing',
     })
-    expect(rows[0]).toContain('LEFT heap')
     expect(rows[0]).toContain('piles')
+    expect(rows[1]).toContain('LEFT heap')
   })
 
   it('renders the RIGHT heap leftover question for remR', () => {
@@ -281,8 +295,8 @@ describe('questionPanelRows', () => {
       unpartedStalks: 49,
       state: 'editing',
     })
-    expect(rows[0]).toContain('RIGHT heap')
     expect(rows[0]).toContain('leftover')
+    expect(rows[1]).toContain('RIGHT heap')
   })
 })
 
@@ -294,7 +308,8 @@ describe('focusedInputBoxRows', () => {
     expect(rows[2]).toMatch(/└─+┘/)
     expect(rows[1]).toContain('│')
     expect(rows[1]).toContain('1')
-    expect(rows[1]).toMatch(/\x1b\[7m \x1b\[27m/)
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/\u001B\[7m \u001B\[27m/)
   })
 
   it('renders an empty value with cursor-only middle row', () => {
@@ -302,13 +317,15 @@ describe('focusedInputBoxRows', () => {
     expect(rows).toHaveLength(3)
     expect(rows[0]).toMatch(/┌─+┐/)
     expect(rows[1]).toContain('│')
-    expect(rows[1]).toMatch(/\x1b\[7m \x1b\[27m/)
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/\u001B\[7m \u001B\[27m/)
   })
 
   it('omits cursor when focused = false', () => {
     const rows = focusedInputBoxRows({ value: '3', focused: false })
     expect(rows[1]).toContain('3')
-    expect(rows[1]).not.toMatch(/\x1b\[7m/)
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).not.toMatch(/\u001B\[7m/)
   })
 })
 
@@ -338,7 +355,7 @@ describe('bottomStripRow', () => {
     })
     expect(row).toContain('21 + 26 + 1 = 48, expected 49')
     expect(row).toContain('Shift+Tab: back to fix')
-    expect(row).toContain('\x1b[1;91m')
+    expect(row).toContain('\u001B[1;91m')
   })
 
   it('error branch — suspended-sum message', () => {
@@ -395,7 +412,7 @@ describe('bottomStripRow', () => {
     expect(row).toContain('· 1 suspended · 48 of 49 · → next cast: 40 unparted')
     expect(row).not.toContain('Enter: next')
     expect(row).not.toContain('Shift+Tab: back')
-    expect(row).toContain('\x1b[1;92m')
+    expect(row).toContain('\u001B[1;92m')
     expect(stringWidth(row)).toBe(78)
   })
 })
@@ -1513,7 +1530,7 @@ describe('CastingPromptBox (manual flow)', () => {
     await yieldMacrotask()
   }
 
-  it('renders title, unparted, four-field input, and the live SPLIT row', async () => {
+  it('renders title with dots, both heap cards, question panel, and the live editing strip', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
       <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
@@ -1521,33 +1538,28 @@ describe('CastingPromptBox (manual flow)', () => {
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 3/6 · Cast 2/3')
-    expect(frame).toContain('Unparted stalks: 40')
-    // Both heap input rows render their textual scaffold.
-    expect(frame).toContain('Left heap :')
-    expect(frame).toContain('Right heap:')
-    expect(frame).toContain('piles × 4 stalks +')
-    expect(frame).toContain('remainder')
-    expect(frame).toContain('1 suspended')
-    // SPLIT row with empty buffers — the prompt shows the range hint.
-    expect(frame).toMatch(/SPLIT = \?.*range 1 to 39/)
-    // Live bottom row reflects zeroed totals before anything is typed.
-    expect(frame).toContain('LEFT HEAP: 0 stalks')
-    expect(frame).toContain('RIGHT HEAP: 0 stalks')
+    expect(frame).toContain('step 1 of 4')
+    expect(frame).toContain('LEFT HEAP')
+    expect(frame).toContain('RIGHT HEAP')
+    // Question is pre-wrapped to 2 lines in the right pane.
+    expect(frame).toContain('How many piles of 4 stalks')
+    expect(frame).toContain('in the LEFT heap?')
+    expect(frame).toContain('valid 0 to 10')
+    expect(frame).toContain('· 1 suspended · total 0 of 40')
+    expect(frame).toContain('Enter: next · Shift+Tab: back')
     unmount()
   })
 
-  it('renders three unfocused fields with `_` placeholder; brackets never collapse', async () => {
+  it('renders ? in unfilled diagram cells (no [_] brackets)', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
       <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
-    const frame = lastFrame() ?? ''
-    // Strip ANSI before counting placeholders — the cyan SGR around the
-    // underscore (ESC[36m _ ESC[39m) would otherwise hide the literal `[_]`.
-    const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
-    const placeholderMatches = stripped.match(/\[_\]/g)
-    expect(placeholderMatches?.length ?? 0).toBeGreaterThanOrEqual(3)
+    const stripped = (lastFrame() ?? '').replaceAll(/\[[0-9;]*m/g, '')
+    expect(stripped).not.toMatch(/\[_\]/)
+    const questionMarks = stripped.match(/\?/g) ?? []
+    expect(questionMarks.length).toBeGreaterThanOrEqual(3)
     unmount()
   })
 
@@ -1624,7 +1636,7 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('updates the SPLIT row live to the derived pick when conservation + suspended-sum pass', async () => {
+  it('updates the editing bottom strip live as the user types', async () => {
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { stdin, lastFrame, unmount } = render(
@@ -1638,7 +1650,7 @@ describe('CastingPromptBox (manual flow)', () => {
     await waitForReady(onReady)
     await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
     await waitFor(() => {
-      expect(lastFrame() ?? '').toMatch(/SPLIT = 19 \(range 1 to 39\)/)
+      expect(lastFrame() ?? '').toContain('· 1 suspended · total 39 of 40')
     })
     unmount()
   })
@@ -1679,8 +1691,6 @@ describe('CastingPromptBox (manual flow)', () => {
       // The actual rendered message must include the typed remainders.
       expect(frame).toMatch(/Suspended sum \(1 \+ 1 \+ 4\) = 6/)
       expect(frame).toContain('expected 4 or 8')
-      // Strip ANSI before scanning for the literal `null` — colour codes
-      // can't leak the string, but defence in depth.
       const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
       expect(stripped).not.toMatch(/null/)
     })
@@ -1712,8 +1722,8 @@ describe('CastingPromptBox (manual flow)', () => {
     })
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toContain('Right remainder is 0')
-      expect(frame).toContain('a heap divisible by 4 yields remainder 4, not 0')
+      expect(frame).toContain('Right remainder = 0')
+      expect(frame).toContain('not 0')
     })
     unmount()
   })
@@ -1743,7 +1753,7 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('conservation failure shows the red message + never-zero hint in the SPLIT row', async () => {
+  it('conservation failure shows the red arithmetic message in the bottom strip', async () => {
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { stdin, lastFrame, unmount } = render(
@@ -1755,7 +1765,6 @@ describe('CastingPromptBox (manual flow)', () => {
       />,
     )
     await waitForReady(onReady)
-    // pilesL=5, remL=2, pilesR=4, remR=3 → total 4·5+2+4·4+3+1 = 42 (≠ 40).
     await typeFourFields(stdin, onFocusedFieldChange, {
       pilesL: '5',
       remL: '2',
@@ -1764,9 +1773,8 @@ describe('CastingPromptBox (manual flow)', () => {
     })
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toMatch(/Stalks total 42 ≠ 40 unparted/)
-      expect(frame).toContain('recount heaps')
-      expect(frame).toContain('remainder 4, not 0')
+      expect(frame).toContain('22 + 19 + 1 = 42, expected 40')
+      expect(frame).toContain('Shift+Tab: back to fix')
     })
     unmount()
   })
@@ -1868,18 +1876,14 @@ describe('CastingPromptBox (manual flow)', () => {
     // Reveal appears immediately; onSubmit hasn't fired yet.
     await waitFor(() => {
       const frame = lastFrame() ?? ''
+      const total =
+        validBasePropsInput.expectedLeftHeapTotal +
+        validBasePropsInput.expectedRightHeapTotal
       expect(frame).toContain(
-        `LEFT HEAP: ${validBasePropsInput.expectedLeftHeapTotal}`,
+        `· 1 suspended · ${total} of ${baseProps.unpartedStalks} · → next cast: ${validBasePropsInput.expectedNext} unparted`,
       )
-      expect(frame).toContain(
-        `RIGHT HEAP: ${validBasePropsInput.expectedRightHeapTotal}`,
-      )
-      expect(frame).toContain(
-        `SUSPENDED: ${validBasePropsInput.expectedSuspended}`,
-      )
-      expect(frame).toContain(
-        `NEXT CAST: ${validBasePropsInput.expectedNext} unparted`,
-      )
+      expect(frame).toContain('Resolved.')
+      expect(frame).toContain('Enter to advance')
     })
     expect(onSubmit).not.toHaveBeenCalled()
     await waitFor(
@@ -1972,9 +1976,108 @@ describe('CastingPromptBox (manual flow)', () => {
     stdin.write(ENTER)
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toContain('SUSPENDED: 9')
-      expect(frame).toContain('NEXT CAST: 40 unparted')
+      expect(frame).toContain('48 of 49 · → next cast: 40 unparted')
     })
+    unmount()
+  })
+
+  it('honours horizontalOffset by slicing each row of the prompt', async () => {
+    const onReady = vi.fn()
+    const { lastFrame: f0, unmount: u0 } = render(
+      <CastingPromptBox
+        {...baseProps}
+        width={40}
+        horizontalOffset={0}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    const at0 = f0() ?? ''
+    u0()
+    // A pan of 20 cols should hide the leading `Line 3/6` chars and reveal
+    // text from later in the title row.
+    const onReady2 = vi.fn()
+    const { lastFrame: f1, unmount: u1 } = render(
+      <CastingPromptBox
+        {...baseProps}
+        width={40}
+        horizontalOffset={20}
+        onSubmit={() => {}}
+        onReady={onReady2}
+      />,
+    )
+    await waitForReady(onReady2)
+    const at20 = f1() ?? ''
+    u1()
+    // The two frames must differ — the pan is observable.
+    expect(at20).not.toBe(at0)
+    // The 0-offset frame contains the title's leading prefix; the 20-offset
+    // frame does not.
+    expect(at0).toContain('Line 3/6')
+    expect(at20).not.toContain('Line 3/6')
+  })
+
+  it('typing a digit appends to the focused buffer; resulting value > max is rejected', async () => {
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    // Initially focused on pilesL; max for cast 2 M=40 is floor(40/4) = 10.
+    // Type "1" — accepted (1 ≤ 10).
+    stdin.write('1')
+    await yieldMacrotask()
+    // Type "0" — accepted (10 ≤ 10).
+    stdin.write('0')
+    await yieldMacrotask()
+    // Type "0" — would yield 100, rejected.
+    stdin.write('0')
+    await yieldMacrotask()
+    // The diagram should show pilesL = 10 (not 100). Strip ANSI first so the
+    // inverse-video escape around the focused cell does not split the match.
+    // oxlint-disable-next-line no-control-regex
+    const stripped = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+    expect(stripped).toMatch(/piles\s+10/)
+    expect(stripped).not.toMatch(/piles\s+100/)
+    unmount()
+  })
+
+  it('backspace removes the last digit of the focused buffer', async () => {
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    stdin.write('5')
+    await yieldMacrotask()
+    // Frame before backspace shows the typed 5 in the pilesL cell.
+    // oxlint-disable-next-line no-control-regex
+    const stripped0 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+    expect(stripped0).toMatch(/piles\s+5/)
+    stdin.write(BACKSPACE)
+    await yieldMacrotask()
+    // After backspace pilesL is empty; the live editing strip is back to
+    // `total 0 of 40`, and the diagram no longer shows the typed `5` in the
+    // pilesL cell. (Focused empty cell renders as an inverse space — invisible
+    // after ANSI strip — so we assert via the live total and the absence of
+    // the digit instead.)
+    // oxlint-disable-next-line no-control-regex
+    const stripped1 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+    expect(stripped1).toContain('· 1 suspended · total 0 of 40')
+    expect(stripped1).not.toMatch(/piles\s+5/)
     unmount()
   })
 })
