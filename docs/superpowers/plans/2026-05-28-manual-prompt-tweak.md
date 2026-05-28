@@ -29,14 +29,14 @@
 
 Body row alignment (6 body rows = 9 content rows total, **height stays at 11**):
 
-| Body row | Left half (diagram, 42 cols) | Right half (right pane) |
-|---|---|---|
-| 1 | LEFT header `┌── LEFT HEAP ────┐` + 4-gap + RIGHT header | `How many piles of 4 stalks in the RIGHT heap?` |
-| 2 | piles row | `(valid 0 to N)` dim hint |
-| 3 | remainder row | `┌─────────────┐` (input top) |
-| 4 | suspended row (RIGHT only; LEFT shows blank) | `│ <value><cursor>           │` (input mid) |
-| 5 | `= N stalks` row | `└─────────────┘` (input bottom) |
-| 6 | LEFT footer `└─────────────────┘` + 4-gap + RIGHT footer | blank |
+| Body row | Left half (diagram, 42 cols)                             | Right half (right pane)                         |
+| -------- | -------------------------------------------------------- | ----------------------------------------------- |
+| 1        | LEFT header `┌── LEFT HEAP ────┐` + 4-gap + RIGHT header | `How many piles of 4 stalks in the RIGHT heap?` |
+| 2        | piles row                                                | `(valid 0 to N)` dim hint                       |
+| 3        | remainder row                                            | `┌─────────────┐` (input top)                   |
+| 4        | suspended row (RIGHT only; LEFT shows blank)             | `│ <value><cursor>           │` (input mid)     |
+| 5        | `= N stalks` row                                         | `└─────────────┘` (input bottom)                |
+| 6        | LEFT footer `└─────────────────┘` + 4-gap + RIGHT footer | blank                                           |
 
 Key changes vs current:
 
@@ -79,11 +79,11 @@ All edits land in two files:
 
 ```ts
 // In packages/casting-ui/src/casting-prompt-box.tsx
-const HEAP_CARD_INTERIOR = 17        // was 13 — fits "remainder" + value
-const FOCUSED_INPUT_INTERIOR = 13    // was 8 — wider input box
-const DIAGRAM_WIDTH = 42             // was 39 — 19 + 4-gap + 19
-const NATURAL_BODY_WIDTH = 95        // was 75 — DIAGRAM_WIDTH + 8-gap + 45 (widest question)
-const HEAP_LABEL_COL_WIDTH = 9       // longest label "remainder"/"suspended"
+const HEAP_CARD_INTERIOR = 17 // was 13 — fits "remainder" + value
+const FOCUSED_INPUT_INTERIOR = 13 // was 8 — wider input box
+const DIAGRAM_WIDTH = 42 // was 39 — 19 + 4-gap + 19
+const NATURAL_BODY_WIDTH = 95 // was 75 — DIAGRAM_WIDTH + 8-gap + 45 (widest question)
+const HEAP_LABEL_COL_WIDTH = 9 // longest label "remainder"/"suspended"
 ```
 
 ---
@@ -91,6 +91,7 @@ const HEAP_LABEL_COL_WIDTH = 9       // longest label "remainder"/"suspended"
 ## Phase 1: Bug fix — focus indicator visible in error state
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (function `cellText` around line 988)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 
@@ -181,6 +182,7 @@ EOF
 ## Phase 2: Title row — dot spacing + capitalisation
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (function `manualTitleRow` around line 945)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 
@@ -277,6 +279,7 @@ EOF
 ## Phase 3: Bottom strip — `N of M stalks accounted`
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (function `bottomStripRow`, editing branch around line 1232)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 
@@ -316,22 +319,22 @@ Expected: editing-branch tests FAIL — current output starts with `· 1 suspend
 Find this block in `bottomStripRow`:
 
 ```ts
-  if (args.branch === 'editing') {
-    const left = `· 1 suspended · total ${args.liveLeftTotal + args.liveRightTotal} of ${args.unpartedStalks}`
-    const right = 'Enter: next · Shift+Tab: back'
-    return leftRightRow(left, right, args.renderWidth)
-  }
+if (args.branch === 'editing') {
+  const left = `· 1 suspended · total ${args.liveLeftTotal + args.liveRightTotal} of ${args.unpartedStalks}`
+  const right = 'Enter: next · Shift+Tab: back'
+  return leftRightRow(left, right, args.renderWidth)
+}
 ```
 
 Replace with:
 
 ```ts
-  if (args.branch === 'editing') {
-    const accounted = args.liveLeftTotal + args.liveRightTotal
-    const left = `${accounted} of ${args.unpartedStalks} stalks accounted`
-    const right = 'Enter: next · Shift+Tab: back'
-    return leftRightRow(left, right, args.renderWidth)
-  }
+if (args.branch === 'editing') {
+  const accounted = args.liveLeftTotal + args.liveRightTotal
+  const left = `${accounted} of ${args.unpartedStalks} stalks accounted`
+  const right = 'Enter: next · Shift+Tab: back'
+  return leftRightRow(left, right, args.renderWidth)
+}
 ```
 
 - [ ] **Step 4: Run the updated tests, confirm pass**
@@ -374,6 +377,7 @@ EOF
 ## Phase 4: Heap card — 6 rows, interior 17, full-word labels, suspended row, RIGHT total includes +1
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (`HEAP_CARD_INTERIOR`, `buildCardRows`, `twoHeapDiagramRows`, and the diagramWidth in `<ManualCastingPrompt>`)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 - Modify: `packages/casting-ui/tests/viewer.test.tsx`
@@ -576,54 +580,54 @@ Expected: PASS.
 In `<ManualCastingPrompt>`, find the diagram section (around line 1718). Replace:
 
 ```ts
-  // Natural diagram width: `17 (LEFT card) + 4 (gap) + 18 (RIGHT card)`.
-  // The RIGHT card is 18 cols because the `RIGHT HEAP` header is 1 col
-  // wider than `LEFT HEAP`. Pad with a 6th blank row so the diagram half
-  // is always 6 rows tall, matching the right pane.
-  const diagramWidth = 39
-  const diagramPaddedRows = [...diagramRows, ' '.repeat(diagramWidth)]
+// Natural diagram width: `17 (LEFT card) + 4 (gap) + 18 (RIGHT card)`.
+// The RIGHT card is 18 cols because the `RIGHT HEAP` header is 1 col
+// wider than `LEFT HEAP`. Pad with a 6th blank row so the diagram half
+// is always 6 rows tall, matching the right pane.
+const diagramWidth = 39
+const diagramPaddedRows = [...diagramRows, ' '.repeat(diagramWidth)]
 ```
 
 With:
 
 ```ts
-  // Natural diagram width: 19 (LEFT card outer) + 4 (gap) + 19 (RIGHT card
-  // outer) = 42. Both cards are 19 cols wide (HEAP_CARD_INTERIOR=17 + 2
-  // borders). `twoHeapDiagramRows` already returns 6 paired rows — no
-  // padding row needed.
-  const diagramWidth = HEAP_CARD_INTERIOR + 2 + 4 + HEAP_CARD_INTERIOR + 2
-  const diagramPaddedRows = diagramRows
+// Natural diagram width: 19 (LEFT card outer) + 4 (gap) + 19 (RIGHT card
+// outer) = 42. Both cards are 19 cols wide (HEAP_CARD_INTERIOR=17 + 2
+// borders). `twoHeapDiagramRows` already returns 6 paired rows — no
+// padding row needed.
+const diagramWidth = HEAP_CARD_INTERIOR + 2 + 4 + HEAP_CARD_INTERIOR + 2
+const diagramPaddedRows = diagramRows
 ```
 
 Find this nearby block:
 
 ```ts
-  // Natural body width: LEFT card (17) + 4-col gap + RIGHT card (17) +
-  // 4-col gap + right-pane (33-ish). Use 75 — the prompt's body is sliced
-  // against innerContentWidth so the exact figure matters only as a floor.
-  const naturalBodyWidth = 17 + 4 + 17 + 4 + 33
+// Natural body width: LEFT card (17) + 4-col gap + RIGHT card (17) +
+// 4-col gap + right-pane (33-ish). Use 75 — the prompt's body is sliced
+// against innerContentWidth so the exact figure matters only as a floor.
+const naturalBodyWidth = 17 + 4 + 17 + 4 + 33
 ```
 
 Replace with:
 
 ```ts
-  // Natural body width: diagramWidth (42) + 8-col gap + right-pane (45 —
-  // widest question: "How many piles of 4 stalks in the RIGHT heap?" = 45
-  // cols). Sliced against innerContentWidth so the exact figure matters
-  // only as a floor on narrow terminals.
-  const naturalBodyWidth = diagramWidth + 8 + 45
+// Natural body width: diagramWidth (42) + 8-col gap + right-pane (45 —
+// widest question: "How many piles of 4 stalks in the RIGHT heap?" = 45
+// cols). Sliced against innerContentWidth so the exact figure matters
+// only as a floor on narrow terminals.
+const naturalBodyWidth = diagramWidth + 8 + 45
 ```
 
 Update the body composition to use the new 8-col middle gap. Find:
 
 ```ts
-    const middleGap = 4
+const middleGap = 4
 ```
 
 Replace with:
 
 ```ts
-    const middleGap = 8
+const middleGap = 8
 ```
 
 (All other references to `4` in `composeBodyRow` are unaffected — only the middle gap changes.)
@@ -631,6 +635,7 @@ Replace with:
 - [ ] **Step 7: Update `viewer.test.tsx` assertions that pattern-match heap card contents**
 
 Search `packages/casting-ui/tests/viewer.test.tsx` for:
+
 - `'rem.'` (the old short label)
 - `'rem\\.'` in regex form
 - `'Left heap'` or `'Right heap'` — case variants
@@ -677,20 +682,21 @@ EOF
 ## Phase 5: Question panel — single-line question + parenthesised hint
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (`questionLinesForField`, `questionPanelRows`, and the right-pane composition in `<ManualCastingPrompt>`)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 - Modify: `packages/casting-ui/tests/viewer.test.tsx`
 
 New right-pane layout (6 rows):
 
-| Row | Content |
-|---|---|
-| 1 | `How many piles of 4 stalks in the RIGHT heap?` (single line) |
-| 2 | `(valid 0 to 12)` — dim ANSI |
-| 3 | input box top |
-| 4 | input box middle |
-| 5 | input box bottom |
-| 6 | blank |
+| Row | Content                                                       |
+| --- | ------------------------------------------------------------- |
+| 1   | `How many piles of 4 stalks in the RIGHT heap?` (single line) |
+| 2   | `(valid 0 to 12)` — dim ANSI                                  |
+| 3   | input box top                                                 |
+| 4   | input box middle                                              |
+| 5   | input box bottom                                              |
+| 6   | blank                                                         |
 
 `questionPanelRows` returns just rows 1–2 (2 rows). `focusedInputBoxRows` returns rows 3–5 (3 rows). The trailing blank (row 6) is added by `<ManualCastingPrompt>`. In resolved state, the panel returns 2 rows (`'Resolved.'`, `'Enter to advance (or wait 2.5 s)'`) and the input rows collapse to 3 blanks — total 5 rows of content + 1 blank padded to 6.
 
@@ -828,10 +834,7 @@ export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
     focusedField === 'pilesL' || focusedField === 'pilesR'
       ? `(valid 0 to ${pilesMax})`
       : '(valid 1 to 4)'
-  return [
-    questionLineForField(focusedField),
-    `[2m${hintText}[22m`,
-  ]
+  return [questionLineForField(focusedField), `[2m${hintText}[22m`]
 }
 ```
 
@@ -842,49 +845,49 @@ The current code builds the right pane as `[...qRows, ...inputRows]` where qRows
 Find this block in `<ManualCastingPrompt>`:
 
 ```ts
-  const qRows = questionPanelRows({
-    focusedField,
-    unpartedStalks,
-    state: diagramState === 'resolved' ? 'resolved' : 'editing',
-  })
-  const inputRows =
-    committed === null
-      ? focusedInputBoxRows({
-          value: manualBufferForField(focusedField, {
-            pilesLBuffer,
-            remLBuffer,
-            pilesRBuffer,
-            remRBuffer,
-          }),
-          focused: true,
-        })
-      : ['', '', '']
-  const rightRows = [...qRows, ...inputRows]
+const qRows = questionPanelRows({
+  focusedField,
+  unpartedStalks,
+  state: diagramState === 'resolved' ? 'resolved' : 'editing',
+})
+const inputRows =
+  committed === null
+    ? focusedInputBoxRows({
+        value: manualBufferForField(focusedField, {
+          pilesLBuffer,
+          remLBuffer,
+          pilesRBuffer,
+          remRBuffer,
+        }),
+        focused: true,
+      })
+    : ['', '', '']
+const rightRows = [...qRows, ...inputRows]
 ```
 
 Replace with:
 
 ```ts
-  const qRows = questionPanelRows({
-    focusedField,
-    unpartedStalks,
-    state: diagramState === 'resolved' ? 'resolved' : 'editing',
-  })
-  const inputRows =
-    committed === null
-      ? focusedInputBoxRows({
-          value: manualBufferForField(focusedField, {
-            pilesLBuffer,
-            remLBuffer,
-            pilesRBuffer,
-            remRBuffer,
-          }),
-          focused: true,
-        })
-      : ['', '', '']
-  // Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
-  // rows, aligned with the 6 diagram rows on the left half.
-  const rightRows = [...qRows, ...inputRows, '']
+const qRows = questionPanelRows({
+  focusedField,
+  unpartedStalks,
+  state: diagramState === 'resolved' ? 'resolved' : 'editing',
+})
+const inputRows =
+  committed === null
+    ? focusedInputBoxRows({
+        value: manualBufferForField(focusedField, {
+          pilesLBuffer,
+          remLBuffer,
+          pilesRBuffer,
+          remRBuffer,
+        }),
+        focused: true,
+      })
+    : ['', '', '']
+// Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
+// rows, aligned with the 6 diagram rows on the left half.
+const rightRows = [...qRows, ...inputRows, '']
 ```
 
 - [ ] **Step 5: Run unit + integration tests**
@@ -895,6 +898,7 @@ Expected: PASS.
 Run: `pnpm --filter @hexagram/casting-ui test -- viewer.test.tsx 2>&1 | grep -E '(FAIL|✗|Error)' | head -30`
 
 For each viewer-test failure, locate the broken assertion. Common patterns to update:
+
 - `toContain('in the LEFT heap?')` → keep (still present)
 - Tests that assert `How many leftover stalks` and `in the LEFT heap?` appear on **separate** rows must be changed to assert they appear together on one row.
 - Tests asserting `valid 0 to 12` need parens added: `(valid 0 to 12)`.
@@ -929,6 +933,7 @@ EOF
 ## Phase 6: Input box — wider interior (8 → 13)
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/casting-prompt-box.tsx` (`focusedInputBoxRows`)
 - Modify: `packages/casting-ui/tests/casting-prompt-box.test.tsx`
 
@@ -1047,6 +1052,7 @@ Expected: all green. This catches load-induced races that don't show on a quiet 
 - [ ] **Step 6: Manual smoke test in a real terminal**
 
 Run: `pnpm hexagram-manual` (in a TTY shell, not piped) and walk through one full cast (18 splits). Specifically verify:
+
 - Title reads `Line 1/6 · Cast 1/3   ● ○ ○ ○   Step 1 of 4` on entry.
 - Heap cards have 6 rows including a visible `suspended   1` on RIGHT and an empty 4th row on LEFT.
 - Single-line question with `(valid 0 to 12)` parens hint below it.
@@ -1135,6 +1141,7 @@ Save the output — these are the SHAs the user will be told are on main.
 - [ ] **Step 7: Report back; do NOT push to origin**
 
 Per CLAUDE.md ("DO NOT push to the remote repository unless the user explicitly asks"), leave the push to the user. Surface in the final report:
+
 - new SHAs on main
 - the Phase 7 byte-identity test passed
 - the bug-fix manual verification result
@@ -1149,6 +1156,7 @@ The controller (not a subagent) will call `ExitWorktree({ action: "keep" })` onc
 ## Self-Review checklist (pre-execution)
 
 **Spec coverage:**
+
 - [x] Bug fix: focus indicator in error state — Phase 1
 - [x] Title dots `● ● ● ○` + capitalised `Step` — Phase 2
 - [x] Heap card 6 rows, interior 17, `remainder` + `suspended` labels — Phase 4
@@ -1162,6 +1170,7 @@ The controller (not a subagent) will call `ExitWorktree({ action: "keep" })` onc
 - [x] Land via cherry-pick + linear history — Phase 8
 
 **Type consistency:**
+
 - `HEAP_CARD_INTERIOR` (17) used in `buildCardRows` AND `<ManualCastingPrompt>`'s `diagramWidth` formula.
 - `buildCardRows` signature changes (adds `suspendedCell` parameter) — its single caller `twoHeapDiagramRows` updates in the same step.
 - `questionLinesForField` → `questionLineForField` (rename + signature change from `[string, string]` → `string`); single caller is `questionPanelRows`, updated in the same step.

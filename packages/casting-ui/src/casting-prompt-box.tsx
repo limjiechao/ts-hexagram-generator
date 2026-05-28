@@ -1137,10 +1137,7 @@ export function questionPanelRows(args: QuestionPanelRowsArgs): string[] {
     focusedField === 'pilesL' || focusedField === 'pilesR'
       ? `(valid 0 to ${pilesMax})`
       : '(valid 1 to 4)'
-  return [
-    questionLineForField(focusedField),
-    `\u001B[2m${hintText}\u001B[22m`,
-  ]
+  return [questionLineForField(focusedField), `\u001B[2m${hintText}\u001B[22m`]
 }
 
 interface FocusedInputBoxRowsArgs {
