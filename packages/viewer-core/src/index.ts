@@ -1,7 +1,9 @@
 // @hexagram/viewer-core — generic terminal-UI building blocks shared by the
 // consultation viewer flows. Chrome (TabBar / FooterBar / QueryBox /
 // scrolling), layout maths, the data-driven keymap, the ANSI palette, and the
-// section/composer renderers that turn a consultation into per-tab strings.
+// shared line-glyph / validator primitives. The Consultation Readout itself —
+// the tabbed readout component and the per-section string builders — lives in
+// @hexagram/readout, which depends on this package for its chrome.
 
 // Pure render derivation for an animated hexagram line — the glyph + role
 // vocabulary shared by the home banner, the casting readout, and the hexagram
@@ -23,24 +25,8 @@ export {
   type ConfirmModalProps,
 } from './confirm-modal.js'
 
-// Tabbed scrollable consultation readout shell — generic chrome engine that
-// serves both the casting-flow view and standalone readouts via slots.
-export {
-  ConsultationReadout,
-  type CastingPromptPan,
-  type ConsultationReadoutProps,
-} from './consultation-readout.js'
-
 // Editor primitives shared by every in-Ink single-line text editor.
 export { Cursor, isGlobalExitKey } from './editor-primitives.js'
-
-// Output composers — assemble the per-tab section strings consumed by the
-// viewer and the plain console renderer.
-export {
-  buildConsultationSections,
-  buildPartialCastingSections,
-  type ConsultationSections,
-} from './output-composers.js'
 
 // ANSI palette constants used by the formatted output.
 export {
@@ -58,22 +44,6 @@ export {
   VALUE_WHITE,
   WHITE,
 } from './output-palette.js'
-
-// Section builders — the per-section ANSI string renderers, plus the shared
-// geometry constants (position labels, inter-column connector / gap) that
-// downstream renderers like the playground reuse for byte-identical layout.
-export {
-  castingSection,
-  emergingHexagramSection,
-  hexagramTextSection,
-  linesBlock,
-  MOVING_ARROW,
-  POSITION_LABELS,
-  querySection,
-  standingHexagramSection,
-  STATIC_GAP,
-  transformationSection,
-} from './output-sections.js'
 
 // TTY-and-environment guard shared by every Ink-only bin's run entry.
 export { isInteractiveEnv } from './run-utils.js'

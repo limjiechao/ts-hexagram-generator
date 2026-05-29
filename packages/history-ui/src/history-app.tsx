@@ -10,8 +10,8 @@ import {
 import {
   buildConsultationSections,
   ConsultationReadout,
-  QueryBox,
-} from '@hexagram/viewer-core'
+} from '@hexagram/readout'
+import { QueryBox } from '@hexagram/viewer-core'
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import { useEffect, useState, type ReactElement } from 'react'
 

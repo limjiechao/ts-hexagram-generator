@@ -98,6 +98,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
+      '@hexagram/readout':
+        specifier: workspace:*
+        version: link:../readout
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
@@ -169,6 +172,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
+      '@hexagram/readout':
+        specifier: workspace:*
+        version: link:../readout
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
@@ -200,6 +206,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
+      '@hexagram/readout':
+        specifier: workspace:*
+        version: link:../readout
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types
@@ -215,6 +224,40 @@ importers:
       slice-ansi:
         specifier: ^9.0.0
         version: 9.0.0
+    devDependencies:
+      '@hexagram/test-utils':
+        specifier: workspace:*
+        version: link:../test-utils
+      '@types/react':
+        specifier: ^19.2.14
+        version: 19.2.14
+      ink-testing-library:
+        specifier: ^4.0.0
+        version: 4.0.0(@types/react@19.2.14)
+
+  packages/readout:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hexagram/types':
+        specifier: workspace:*
+        version: link:../types
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
+      ink:
+        specifier: ^7.0.3
+        version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
+      react:
+        specifier: ^19.2.6
+        version: 19.2.6
+      slice-ansi:
+        specifier: ^9.0.0
+        version: 9.0.0
+      string-width:
+        specifier: ^8.2.1
+        version: 8.2.1
     devDependencies:
       '@hexagram/test-utils':
         specifier: workspace:*
@@ -269,9 +312,6 @@ importers:
 
   packages/viewer-core:
     dependencies:
-      '@hexagram/core':
-        specifier: workspace:*
-        version: link:../core
       '@hexagram/types':
         specifier: workspace:*
         version: link:../types

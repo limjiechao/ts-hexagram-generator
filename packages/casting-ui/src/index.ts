@@ -10,7 +10,7 @@ export { logAndSaveConsultationOutput } from './log-and-save.js'
 
 // Output composers — assemble per-tab strings for the viewer or the plain
 // console renderer. The pure section builders + `ConsultationSections` live
-// in `@hexagram/viewer-core`; `consultationConsoleOutput` is the plain-mode
+// in `@hexagram/readout`; `consultationConsoleOutput` is the plain-mode
 // save composer kept local to this package.
 export { consultationConsoleOutput } from './output-composers.js'
 

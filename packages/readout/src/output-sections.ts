@@ -9,21 +9,18 @@ import type {
   PartialCastingRecord,
   PartialSplitRecord,
 } from '@hexagram/types'
-
 import {
+  assertLine1ToLine6,
   BOLD_GREY,
   BOLD_RED,
   BOLD_WHITE,
   HEADING_GREY,
+  isLineIndex,
+  isMovingLine,
   NORMAL,
   NORMAL_GREY,
   PLACEHOLDER_GREY,
-} from './output-palette.js'
-import {
-  assertLine1ToLine6,
-  isLineIndex,
-  isMovingLine,
-} from './utils-validators.js'
+} from '@hexagram/viewer-core'
 
 // `✕` U+2715 — matches the home banner's moving-yin glyph so every render
 // surface (banner, casting readout, history readout, playground) speaks one

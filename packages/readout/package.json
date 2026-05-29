@@ -1,8 +1,8 @@
 {
-  "name": "@hexagram/viewer-core",
+  "name": "@hexagram/readout",
   "type": "module",
   "version": "0.0.0",
-  "description": "Generic terminal-UI building blocks for the Yijing hexagram oracle: Ink chrome, layout maths, keymap, ANSI palette, and shared line primitives",
+  "description": "Consultation Readout renderer for the Yijing hexagram oracle: the tabbed readout component plus the per-section ANSI string builders",
   "license": "MIT",
   "exports": {
     ".": {
@@ -24,12 +24,13 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hexagram/core": "workspace:*",
     "@hexagram/types": "workspace:*",
+    "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6",
     "slice-ansi": "^9.0.0",
-    "string-width": "^8.2.1",
-    "wrap-ansi": "^10.0.0"
+    "string-width": "^8.2.1"
   },
   "devDependencies": {
     "@hexagram/test-utils": "workspace:*",

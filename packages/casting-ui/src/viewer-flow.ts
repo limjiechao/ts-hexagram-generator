@@ -1,3 +1,4 @@
+import type { ConsultationSections } from '@hexagram/readout'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
@@ -6,7 +7,6 @@ import {
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/types'
-import type { ConsultationSections } from '@hexagram/viewer-core'
 
 /**
  * The predetermined casting plan for a random flow — the hexagram and the

@@ -2,12 +2,12 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { emptyPartialCastingRecord } from '@hexagram/types'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
   castingSection,
-} from '@hexagram/viewer-core'
+} from '@hexagram/readout'
+import { emptyPartialCastingRecord } from '@hexagram/types'
 import { describe, expect, it } from 'vitest'
 
 import { consultationConsoleOutput } from '../src/output-composers'

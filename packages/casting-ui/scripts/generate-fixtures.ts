@@ -3,7 +3,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { buildConsultationSections } from '@hexagram/viewer-core'
+import { buildConsultationSections } from '@hexagram/readout'
 
 import { consultationConsoleOutput } from '../src/output-composers'
 import { cases } from '../tests/fixtures/cases'

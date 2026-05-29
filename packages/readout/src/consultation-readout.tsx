@@ -1,3 +1,31 @@
+import {
+  BOLD_GREY,
+  clamp,
+  computeInnerCols,
+  computeWrapWidth,
+  dispatchKey,
+  FOOTER_HEIGHT,
+  FooterBar,
+  HEADER_HEIGHT,
+  KEY_HINTS_FLOW_DEFAULT,
+  MARGIN_CONTENT_TO_NEXT,
+  MARGIN_HEADER_TO_QUERY,
+  MARGIN_QUERY_TO_TABS,
+  NORMAL,
+  QUERY_ACCENT_PREFIX_WIDTH,
+  QUERY_BORDER_HEIGHT,
+  ScreenShell,
+  ScrollableSection,
+  ScrollbarTrack,
+  stripAnsi,
+  TAB_BAR_HEIGHT,
+  TabBar,
+  wrapToWidth,
+  type InputMode,
+  type KeyContext,
+  type NonEmpty,
+  type TabDescriptor,
+} from '@hexagram/viewer-core'
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import {
   useEffect,
@@ -11,36 +39,6 @@ import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
 import type { ConsultationSections } from './output-composers.js'
-import { BOLD_GREY, NORMAL } from './output-palette.js'
-import { computeInnerCols, ScreenShell } from './screen-shell.js'
-import {
-  FooterBar,
-  KEY_HINTS_FLOW_DEFAULT,
-  QUERY_ACCENT_PREFIX_WIDTH,
-  ScrollableSection,
-  ScrollbarTrack,
-  TabBar,
-  type NonEmpty,
-  type TabDescriptor,
-} from './viewer-chrome.js'
-import {
-  dispatchKey,
-  type InputMode,
-  type KeyContext,
-} from './viewer-keymap.js'
-import {
-  clamp,
-  computeWrapWidth,
-  FOOTER_HEIGHT,
-  HEADER_HEIGHT,
-  MARGIN_CONTENT_TO_NEXT,
-  MARGIN_HEADER_TO_QUERY,
-  MARGIN_QUERY_TO_TABS,
-  QUERY_BORDER_HEIGHT,
-  stripAnsi,
-  TAB_BAR_HEIGHT,
-  wrapToWidth,
-} from './viewer-layout.js'
 
 // `<ConsultationReadout>` — the generic tabbed, scrollable consultation
 // readout shell. It owns the chrome (tab bar, scroll/pan state, footer) and

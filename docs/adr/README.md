@@ -28,6 +28,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0013 | Test execution & CI posture                         | Accepted |
 | 0014 | Product identity                                    | Accepted |
 | 0015 | Data hygiene                                        | Accepted |
+| 0016 | Readout renderer extracted from viewer-core         | Accepted |
 
 ## Template
 

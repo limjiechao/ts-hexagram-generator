@@ -58,7 +58,7 @@ export function castingMarkdownSection(casting: CastingRecord | null): string {
     // `Stalks` (max + 1) and `Right` (max - pick + 1) fold the one stalk
     // suspended from the right heap back in — it was part of the unparted
     // stalks and part of the right heap before sorting — so Left + Right ==
-    // Stalks. Mirrors `castingSection` in @hexagram/viewer-core.
+    // Stalks. Mirrors `castingSection` in @hexagram/readout.
     return `${castRight(String(split.max + 1), 8)}│${castRight(String(split.pick), 7)}│${castRight(String(split.max - split.pick + 1), 7)}`
   }
 

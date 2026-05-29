@@ -4,6 +4,7 @@ import type {
   Hexagram,
   PartialCastingRecord,
 } from '@hexagram/types'
+import { isMovingLine } from '@hexagram/viewer-core'
 
 import {
   castingSection,
@@ -14,7 +15,6 @@ import {
   standingHexagramSection,
   transformationSection,
 } from './output-sections.js'
-import { isMovingLine } from './utils-validators.js'
 
 /**
  * The consultation broken into its presentational sections, each a

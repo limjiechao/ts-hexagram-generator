@@ -1,22 +1,24 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
+  buildConsultationSections,
+  buildPartialCastingSections,
+  ConsultationReadout,
+  type CastingPromptPan,
+  type ConsultationSections,
+} from '@hexagram/readout'
+import {
   assertIsCastingRecord,
   assertIsHexagram,
   type CastingRecord,
   type Hexagram,
 } from '@hexagram/types'
 import {
-  buildConsultationSections,
-  buildPartialCastingSections,
   ConfirmModal,
-  ConsultationReadout,
   keyHintsFlowDefault,
   keyHintsForCasting,
   QueryBox,
   renderProgressBar,
-  type CastingPromptPan,
-  type ConsultationSections,
 } from '@hexagram/viewer-core'
 import { render, useApp, useInput, type Instance } from 'ink'
 import {

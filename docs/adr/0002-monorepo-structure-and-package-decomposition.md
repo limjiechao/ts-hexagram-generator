@@ -5,11 +5,11 @@ Date: 2026-05-29
 
 The project is a Turborepo + pnpm-workspaces monorepo. Published libraries live
 under `packages/*`; the CLI lives under `apps/*` as the private `@hexagram/bin`.
-The work is split into nine packages along a strict dependency DAG:
+The work is split into ten packages along a strict dependency DAG:
 
 ```
-types → core → consultation-file → viewer-core → {casting-ui, history-ui, playground-ui} → shell → bin
-                                                  (test-utils is a dev-only leaf, consumed by every UI package)
+types → core → consultation-file → viewer-core → readout → {casting-ui, history-ui, playground-ui} → shell → bin
+                                                            (test-utils is a dev-only leaf, consumed by every UI package)
 ```
 
 The decomposition follows two rules: **a package owns one concern**, and **a
@@ -28,8 +28,14 @@ package depends only on layers strictly below it**. Concretely:
   Ink dependency, so the format can be read and written headlessly. See
   [ADR-0008](0008-consultation-file-format.md).
 - `viewer-core` — generic terminal-UI building blocks (the `ScreenShell`,
-  palette, section builders) shared by the casting and history UIs. Extracting it
-  is the subject of [ADR-0001](0001-shared-screen-shell.md).
+  palette, chrome, keymap, layout maths, shared line-glyph primitives) that carry
+  no divination meaning, shared by the casting and history UIs. Extracting it is
+  the subject of [ADR-0001](0001-shared-screen-shell.md).
+- `readout` — the Consultation Readout renderer: the `ConsultationReadout`
+  component plus the per-section ANSI string builders that turn a consultation
+  into per-tab strings. Split out of `viewer-core` so the generic chrome carries
+  no hexagram knowledge and all consultation rendering has one home. See
+  [ADR-0016](0016-readout-renderer-extraction.md).
 - `casting-ui` / `history-ui` / `playground-ui` — the three interactive
   experiences, each a sibling leaf so a change to one cannot bleed into another.
 - `shell` — the Home hub that aggregates the three UIs into one app; it is the
