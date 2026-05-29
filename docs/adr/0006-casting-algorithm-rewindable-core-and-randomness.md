@@ -1,0 +1,60 @@
+# Casting algorithm, rewindable core & randomness
+
+Status: Accepted
+Date: 2026-05-28
+
+The yarrow-stalk procedure (四營, the four operations, run three times per line —
+三變成爻) is modelled as a **pure step function over an immutable state value**,
+with a generator kept as a thin compatibility wrapper.
+
+- **`performCast(state, pick) → state`** is the algorithm of record. `LineState`
+  is a phase-discriminated union (`0th-cast` → `1st-cast` → `2nd-cast` →
+  `3rd-cast`), and a conditional `NextPhase` type binds the output phase to the
+  input phase exactly. `AdvanceableLineState` excludes the resolved `3rd-cast`
+  phase, so calling `performCast` on a finished line is a **compile error**, not a
+  runtime throw.
+- **`makeLineGenerator`** is re-expressed as a wrapper that drives `performCast`.
+  Existing callers keep the generator interface; the pure step is what new code
+  builds on.
+
+The pure-value design is what makes the casting UI **rewindable**: state is just
+data, so a line can be reset or replayed from a `SplitRecord` prefix without any
+suspended generator frame to unwind. The manual flow's undo is built directly on
+this — see [ADR-0011](0011-manual-casting-flow-design.md).
+
+**Randomness uses `node:crypto`, never `Math.random`.** Random casting splits are
+drawn with `node:crypto.randomInt`, and `cryptoRandom()` (`@hexagram/core/crypto-random`)
+provides a `[0, 1)` float for the few places that need one (e.g. the Home banner
+animation). Its default `MAX` is `2^48 − 1` — `randomInt`'s safe upper bound and
+the largest value that divides evenly into a JS double without low-bit precision
+loss. The result: no flow in the app depends on V8's pseudorandom generator. (The
+file is named `random-casting.ts`, not `random.ts`, to reserve the generic name —
+it is yarrow casting, not a general RNG utility.)
+
+## Considered options
+
+- **Keep state inside the generator** (no pure step). Rejected: a suspended
+  generator can't be rewound or rebuilt from a prefix; resumable/undoable casting
+  would have needed an external history stack bolted on.
+- **Runtime guard against over-stepping** a finished line. Rejected: the
+  `AdvanceableLineState` type makes it a compile error — strictly better than a
+  throw.
+- **`Math.random`.** Rejected: for a divination tool the quality and
+  non-dependence on V8's PRNG is worth the `node:crypto` call; the cost is
+  negligible at 18 splits per consultation.
+
+## Consequences
+
+- The generator stays for back-compat but is not where the logic lives; change the
+  algorithm in `performCast`.
+- `LineState` currently never leaves the pure core (no serialise/deserialise path);
+  adding persistence later is a deliberate follow-up, not assumed.
+- The injected-RNG test override contract is preserved across the rename.
+
+## Where it's enforced
+
+- `packages/core/src/index.ts` — `performCast`, `initialLineState`, `maxPickFor`,
+  `makeLineGenerator` wrapper.
+- `packages/types/src/index.ts` — `LineState` / `AdvanceableLineState` unions.
+- `packages/core/src/crypto-random.ts` — `cryptoRandom` + the `2^48 − 1` bound.
+- `packages/core/src/random-casting.ts` — `randomInt`-driven splits.

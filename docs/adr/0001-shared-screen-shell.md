@@ -1,5 +1,8 @@
 # Shared screen shell for the Readout and the history list
 
+Status: Accepted
+Date: 2026-05-20
+
 `hexagram-history` is one experience the user moves through — list → Readout →
 list — so the history list and the Consultation Readout share a thin
 `ScreenShell` (borderless frame, title bar, scrollbar gutter, two-line footer),
