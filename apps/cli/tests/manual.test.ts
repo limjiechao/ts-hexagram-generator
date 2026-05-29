@@ -27,28 +27,27 @@ interface RunResult {
 
 function runManual(env: Record<string, string>): Promise<RunResult> {
   return new Promise((resolve, reject) => {
-    // `tsx --tsconfig …` would also work, but the bare `tsx` binary in the
-    // workspace's node_modules/.bin already does the right thing — tsx auto-
-    // discovers the nearest tsconfig and resolves the workspace's `source`
-    // export condition via the same vitest/Vite plumbing used elsewhere.
-    const tsxBin = path.resolve(
-      here,
-      '..',
-      '..',
-      '..',
-      'node_modules',
-      '.bin',
-      'tsx',
-    )
-    const child = spawn(tsxBin, [manualEntry], {
+    // Run the bin as ONE node process via the tsx ESM loader
+    // (`node --import tsx <entry>`), not through the `node_modules/.bin/tsx`
+    // launcher. The launcher shim re-spawns its own grandchild node process;
+    // on Windows that grandchild's stdio pipes never close back to this test,
+    // so `child.on('close')` never fires and the case times out at 15 s (the
+    // failure that kept the windows-latest matrix leg red). `process.execPath`
+    // is the absolute node binary, so there is no `.cmd`/shell indirection and
+    // the spawn is identical on POSIX and Windows. tsx still auto-discovers
+    // the nearest tsconfig and honours the workspace `source` export
+    // condition, same as the launcher did.
+    // Start from the real parent environment so OS-critical vars survive
+    // (Windows needs SystemRoot / ComSpec / PATHEXT just to start node), then
+    // scrub the interactivity signals so each case tests exactly one
+    // condition, then layer the per-case overrides on top.
+    const childEnv: NodeJS.ProcessEnv = { ...process.env }
+    delete childEnv.NO_COLOR
+    delete childEnv.FORCE_COLOR
+    delete childEnv.CI
+    const child = spawn(process.execPath, ['--import', 'tsx', manualEntry], {
       cwd: cliCwd,
-      // Strip every parent env var that would normally enable colour /
-      // interactivity. We override one at a time below.
-      env: {
-        PATH: process.env.PATH ?? '',
-        HOME: process.env.HOME ?? '',
-        ...env,
-      },
+      env: { ...childEnv, ...env },
       stdio: ['pipe', 'pipe', 'pipe'],
     })
     let stdout = ''
@@ -70,17 +69,23 @@ function runManual(env: Record<string, string>): Promise<RunResult> {
 }
 
 describe('hexagram-manual bin', () => {
+  // No inline timeout: each case spawns a full `node --import tsx` child, the
+  // heaviest work in the suite. The first spawn additionally pays Node cold
+  // start + tsx loader registration + first-time TS transpile of the import
+  // graph; on a contended 2-CPU Windows GHA runner that cold case blew the
+  // old 15s inline cap (warm cases #2/#3 passed). These inherit the base 30s
+  // testTimeout, which ADR-0013 set precisely to contain slow Windows work.
   it('refuses NO_COLOR=1 with the expected stderr and exit 1', async () => {
     const { stderr, code } = await runManual({ NO_COLOR: '1' })
     expect(stderr).toContain('hexagram-manual requires an interactive terminal')
     expect(code).toBe(1)
-  }, 15_000)
+  })
 
   it('refuses CI=true with the expected stderr and exit 1', async () => {
     const { stderr, code } = await runManual({ CI: 'true' })
     expect(stderr).toContain('hexagram-manual requires an interactive terminal')
     expect(code).toBe(1)
-  }, 15_000)
+  })
 
   it('refuses a non-TTY stdout (default for spawned children) with exit 1', async () => {
     // Neither NO_COLOR nor CI set — but spawned children have non-TTY
@@ -88,5 +93,5 @@ describe('hexagram-manual bin', () => {
     const { stderr, code } = await runManual({})
     expect(stderr).toContain('hexagram-manual requires an interactive terminal')
     expect(code).toBe(1)
-  }, 15_000)
+  })
 })
