@@ -1208,19 +1208,19 @@ export type BottomStripArgs =
     }
 
 function zeroRemainderSide(remL: number, remR: number): string {
-  if (remL === 0 && remR === 0) return 'Left and right'
-  if (remL === 0) return 'Left'
-  return 'Right'
+  if (remL === 0 && remR === 0) return 'Left and right heaps have no remainder'
+  if (remL === 0) return 'Left heap has no remainder'
+  return 'Right heap has no remainder'
 }
 
 function errorMessageText(args: BottomStripErrorArgs): string {
   switch (args.errorKind) {
     case 'conservation':
-      return `${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
+      return `Total counted ${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
     case 'suspended-sum':
       return `Suspended sum (1 + ${args.remL} + ${args.remR}) = ${args.sum}, expected ${args.expectedLabel}`
     case 'zero-remainder':
-      return `${zeroRemainderSide(args.remL, args.remR)} remainder = 0 — divisible heaps yield rem 4, not 0`
+      return `${zeroRemainderSide(args.remL, args.remR)} — fully divisible heaps yield remainder 4, not 0`
   }
 }
 

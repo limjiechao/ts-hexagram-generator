@@ -384,7 +384,7 @@ describe('bottomStripRow', () => {
       unpartedStalks: 49,
       renderWidth: 78,
     })
-    expect(row).toContain('21 + 26 + 1 = 48, expected 49')
+    expect(row).toContain('Total counted 21 + 26 + 1 = 48, expected 49')
     expect(row).toContain('Shift+Tab: back to fix')
     expect(row).toContain('\u001B[1;91m')
   })
@@ -411,8 +411,10 @@ describe('bottomStripRow', () => {
       remR: 0,
       renderWidth: 78,
     })
-    expect(rightOnly).toContain('Right remainder = 0')
-    expect(rightOnly).toContain('not 0')
+    expect(rightOnly).toContain('Right heap has no remainder')
+    expect(rightOnly).toContain(
+      'fully divisible heaps yield remainder 4, not 0',
+    )
     const leftOnly = bottomStripRow({
       branch: 'error',
       errorKind: 'zero-remainder',
@@ -420,7 +422,8 @@ describe('bottomStripRow', () => {
       remR: 3,
       renderWidth: 78,
     })
-    expect(leftOnly).toContain('Left remainder = 0')
+    expect(leftOnly).toContain('Left heap has no remainder')
+    expect(leftOnly).toContain('fully divisible heaps yield remainder 4, not 0')
     const both = bottomStripRow({
       branch: 'error',
       errorKind: 'zero-remainder',
@@ -428,7 +431,7 @@ describe('bottomStripRow', () => {
       remR: 0,
       renderWidth: 78,
     })
-    expect(both).toContain('Left and right remainder = 0')
+    expect(both).toContain('Left and right heaps have no remainder')
   })
 
   it('resolved branch — BOLD_GREEN totals + next-cast; no right hint', () => {
@@ -1756,8 +1759,8 @@ describe('CastingPromptBox (manual flow)', () => {
     })
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toContain('Right remainder = 0')
-      expect(frame).toContain('not 0')
+      expect(frame).toContain('Right heap has no remainder')
+      expect(frame).toContain('fully divisible heaps yield remainder 4, not 0')
     })
     unmount()
   })

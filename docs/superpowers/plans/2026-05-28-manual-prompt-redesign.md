@@ -88,9 +88,9 @@ Enter to advance (or wait 2.5 s)
 
 **Error left-segment text by validator kind:**
 
-- `conservation`: `${leftHeapTotal} + ${rightHeapTotal} + 1 = ${total}, expected ${unparted}`
+- `conservation`: `${leftHeapTotal} + ${rightHeapTotal} + 1 = ${total} counted, expected ${unparted}`
 - `suspended-sum`: `Suspended sum (1 + ${remL} + ${remR}) = ${sum}, expected ${expectedLabel}`
-- `zero-remainder`: `${side} remainder = 0 — divisible heaps yield rem 4, not 0`
+- `zero-remainder`: `${side} heap has no remainder — fully divisible heaps yield remainder 4, not 0`
   Where `side` is `'Left'`, `'Right'`, or `'Left and right'`.
 
 The strip is built as one string: `padEnd(left, leftWidth) + right`, where `leftWidth = renderWidth - stringWidth(right)`. Right segment is suppressed (empty string) on the resolved branch.
@@ -856,8 +856,8 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
         remR: 0,
         renderWidth: 78,
       })
-      expect(row).toContain('Right remainder = 0')
-      expect(row).toContain('not 0')
+      expect(row).toContain('Right heap has no remainder')
+      expect(row).toContain('fully divisible heaps yield remainder 4, not 0')
     })
 
     it('resolved branch — BOLD_GREEN totals + next-cast; no right hint', () => {
@@ -926,19 +926,20 @@ Each row is `sliceAnsi(row, horizontalOffset, horizontalOffset + innerContentWid
       }
 
   function zeroRemainderSide(remL: number, remR: number): string {
-    if (remL === 0 && remR === 0) return 'Left and right'
-    if (remL === 0) return 'Left'
-    return 'Right'
+    if (remL === 0 && remR === 0)
+      return 'Left and right heaps have no remainder'
+    if (remL === 0) return 'Left heap has no remainder'
+    return 'Right heap has no remainder'
   }
 
   function errorMessageText(args: BottomStripErrorArgs): string {
     switch (args.errorKind) {
       case 'conservation':
-        return `${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
+        return `Total counted ${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
       case 'suspended-sum':
         return `Suspended sum (1 + ${args.remL} + ${args.remR}) = ${args.sum}, expected ${args.expectedLabel}`
       case 'zero-remainder':
-        return `${zeroRemainderSide(args.remL, args.remR)} remainder = 0 — divisible heaps yield rem 4, not 0`
+        return `${zeroRemainderSide(args.remL, args.remR)} — fully divisible heaps yield remainder 4, not 0`
     }
   }
 
@@ -1528,8 +1529,8 @@ Walk each manual-flow test that asserts old rendered text. Tests that assert beh
   ```tsx
   await waitFor(() => {
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Right remainder = 0')
-    expect(frame).toContain('not 0')
+    expect(frame).toContain('Right heap has no remainder')
+    expect(frame).toContain('fully divisible heaps yield remainder 4, not 0')
   })
   ```
 
