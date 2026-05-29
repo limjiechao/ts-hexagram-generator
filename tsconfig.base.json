@@ -1,4 +1,5 @@
 {
+  // Compiler posture rationale: docs/adr/0004-typescript-compiler-posture.md
   "compilerOptions": {
     "target": "esnext",
     "jsx": "react-jsx",

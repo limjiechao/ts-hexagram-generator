@@ -18,6 +18,7 @@ export default sxzz().append(
     },
   },
   {
+    // See docs/adr/0012-terminal-test-reliability.md for the full rationale.
     // Forbid `await tick(...)` in test files. The May 2026 9-round CI
     // stabilisation (commits 4eae942 → 800d3fc) showed that the
     // `stdin.write(...) → await tick() → expect(lastFrame())` pattern races

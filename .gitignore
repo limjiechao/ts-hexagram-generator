@@ -8,6 +8,7 @@ dist
 
 .claude/worktrees
 
+# Saved readings are private — never commit. See docs/adr/0015-data-hygiene.md
 consultations
 
 # vitest temp dirs (history-ui app tests mkdtemp under cwd for short paths)

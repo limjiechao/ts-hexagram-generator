@@ -1,6 +1,7 @@
 import { defineConfig, mergeConfig, type UserConfig } from 'vitest/config'
 
 // Shared vitest base config for every package in the workspace.
+// See docs/adr/0013-test-execution-and-ci-posture.md for the rationale below.
 //
 // Why 30 s, not vitest's 5 s default: round 6 of the May 2026 CI
 // stabilisation (commit 8ba4867) proved the 5 s default kills history-ui

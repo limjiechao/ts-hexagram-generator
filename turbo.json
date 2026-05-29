@@ -1,5 +1,7 @@
 {
   "$schema": "https://turbo.build/schema.json",
+  // Topological build/type:check order: docs/adr/0002-monorepo-structure-and-package-decomposition.md
+  // test env (FORCE_COLOR) + cache posture: docs/adr/0013-test-execution-and-ci-posture.md
   "tasks": {
     "//#check:affected": {},
     "//#format:check": {},
