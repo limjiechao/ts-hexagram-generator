@@ -77,8 +77,8 @@ export function sliderPromptTitle(
 // ` ⠋`/` ⠏` (leading space + 1-column glyph) so each cell is 2 columns
 // wide, matching the post-commit padded number. After SPACE,
 // `<SliderCastingPrompt>` swaps the glyphs for the concrete
-// `Left Heap:  <pick> | Right Heap: <max − pick>` numbers (each pick
-// padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
+// `Left Heap:  <pick> | Right Heap: <max − pick> + 1 suspended` numbers
+// (each pick padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
 // advancing. `<SliderInput>` has no reveal — it keeps the padded spinner
 // readout for its whole lifetime.
 const BRAILLE_SPINNER = [
@@ -446,9 +446,15 @@ interface SliderInputProps {
  * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
  *
  * Renders two centred rows via Ink flexbox: the bar, and a
- * `Stalks: <max> | Left Heap:  <glyph> | Right Heap:  <glyph>` readout
- * where both glyphs are Braille spinners advanced one frame per tick —
+ * `Stalks: <max + 1> | Left Heap:  <glyph> | Right Heap:  <glyph> + 1 suspended`
+ * readout where both glyphs are Braille spinners advanced one frame per tick —
  * the left walks the cycle clockwise, the right walks it anticlockwise.
+ * `Stalks` is `max + 1`, not `max`: `max` is only the left-heap pick
+ * ceiling, held one short of the true stalk count so the right heap always
+ * retains a stalk to suspend (掛一以象三). That suspended stalk — taken from
+ * the right heap (see `suspendOneFromTheRight` in `@hexagram/core`) — is the
+ * trailing `+ 1 suspended` on the right readout, so the row conserves:
+ * left (pick) + right (max − pick) + 1 suspended = max + 1 stalks.
  * Each heap cell is pre-padded with a leading space so its rendered width
  * (2 columns) matches the post-commit numeric form in
  * `<SliderCastingPrompt>` — no lateral shift between modes. The spinners
@@ -496,7 +502,7 @@ export function SliderInput({
         <Text>{bar}</Text>
       </Box>
       <Box justifyContent="center">
-        <Text>{`Stalks: ${max} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph}`}</Text>
+        <Text>{`Stalks: ${max + 1} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph} + 1 suspended`}</Text>
       </Box>
     </Box>
   )
@@ -647,15 +653,18 @@ interface CastingPromptBoxProps {
  * Two visual modes:
  *  - **slider** (default): five-row layout — verbatim title, blank spacer,
  *    centred bouncing-slider bar, blank spacer, centred
- *    `Stalks: <max> | Left Heap:  <spinner> | Right Heap:  <spinner>`
+ *    `Stalks: <max + 1> | Left Heap:  <spinner> | Right Heap:  <spinner> + 1 suspended`
  *    readout (both Braille glyphs advanced one frame per tick — the left
  *    walks the cycle clockwise, the right anticlockwise; the live cursor
- *    value stays hidden). Each heap cell — both glyph and pick — is
- *    rendered at a stable 2-column width so the readout never shifts
- *    laterally across the ticking → reveal transition or across
+ *    value stays hidden). `Stalks` is `max + 1` — the true stalk count —
+ *    because `max` is only the left-heap pick ceiling, held one short so the
+ *    right heap keeps a stalk to suspend (掛一); that suspended stalk is the
+ *    trailing `+ 1 suspended` on the right. Each heap cell — both glyph and
+ *    pick — is rendered at a stable 2-column width so the readout never
+ *    shifts laterally across the ticking → reveal transition or across
  *    (pick, max − pick) splits of differing digit counts. On SPACE, the
  *    cursor freezes and the readout swaps the glyphs for the concrete
- *    `Left Heap: <pick> | Right Heap: <max − pick>` (each value
+ *    `Left Heap: <pick> | Right Heap: <max − pick> + 1 suspended` (each value
  *    padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
  *    `onSubmit` fires upstream — see the state list on
  *    `<SliderCastingPrompt>`. Rows are pre-built strings padded to at
@@ -791,8 +800,8 @@ interface SliderCastingPromptProps {
  *  2. **Reveal** — SPACE captures the picked value into local `committed`
  *     state; the cursor freezes (`BouncingSliderStore.commit()` sets the
  *     internal flag) and the readout swaps the glyphs for the concrete
- *     `Left Heap: <pick> | Right Heap: <max − pick>` numbers, each
- *     padStart'd to 2 columns so the row width matches the ticking state.
+ *     `Left Heap: <pick> | Right Heap: <max − pick> + 1 suspended` numbers,
+ *     each padStart'd to 2 columns so the row width matches the ticking state.
  *  3. **Advance** — after `SLIDER_COMMIT_REVEAL_MS`, the parent's `onSubmit`
  *     fires and the viewer advances to the next cast (which remounts a
  *     fresh `<SliderCastingPrompt>` via the keyed `<CastingPromptBox>` in
@@ -884,7 +893,7 @@ function SliderCastingPrompt({
     committed === null
       ? ` ${reverseBrailleGlyph(tickCount)}`
       : String(max - committed).padStart(2, ' ')
-  const readout = `Stalks: ${max} | Left Heap: ${leftCell} | Right Heap: ${rightCell}`
+  const readout = `Stalks: ${max + 1} | Left Heap: ${leftCell} | Right Heap: ${rightCell} + 1 suspended`
 
   const titleWidth = stringWidth(title)
   const barWidth = stringWidth(bar)

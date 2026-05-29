@@ -485,12 +485,17 @@ export function ConsultationViewer({
           ),
           currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
           // Readout below the bar is
-          // `Stalks: <max> | Left Heap: <cell> | Right Heap: <cell>`, where
-          // each heap cell renders at a stable 2-column width — leading-space
-          // + glyph during ticking, padStart(2) on the numeric pick after
-          // commit. Width is therefore a pure function of `currentMax`; two
-          // 2-digit placeholders model the post-commit form exactly.
-          stringWidth(`Stalks: ${currentMax} | Left Heap: 99 | Right Heap: 99`),
+          // `Stalks: <max + 1> | Left Heap: <cell> | Right Heap: <cell> + 1 suspended`,
+          // where each heap cell renders at a stable 2-column width —
+          // leading-space + glyph during ticking, padStart(2) on the numeric
+          // pick after commit. `Stalks` shows `max + 1` (the true stalk count —
+          // `max` is one short to reserve the suspended stalk), and the right
+          // heap carries the trailing `+ 1 suspended`. Width is therefore a
+          // pure function of `currentMax`; two 2-digit placeholders model the
+          // post-commit form exactly.
+          stringWidth(
+            `Stalks: ${currentMax + 1} | Left Heap: 99 | Right Heap: 99 + 1 suspended`,
+          ),
         )
       : 0
 

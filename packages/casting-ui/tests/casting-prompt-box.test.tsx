@@ -603,7 +603,12 @@ describe('SliderInput', () => {
     // at `⠋` on mount. Each heap cell is padded to 2 cols (leading space
     // before the 1-col glyph) so the row width matches the post-commit
     // numeric form in `<SliderCastingPrompt>`.
-    expect(frame).toContain('Stalks: 10 | Left Heap:  ⠋ | Right Heap:  ⠋')
+    // `Stalks` is `max + 1` (= 11), the true stalk count: `max` is held one
+    // short of it so the right heap keeps a stalk to suspend, shown as the
+    // trailing `+ 1 suspended`.
+    expect(frame).toContain(
+      'Stalks: 11 | Left Heap:  ⠋ | Right Heap:  ⠋ + 1 suspended',
+    )
     // Bar should be present: 1 cursor cell (█) + 9 empty cells (░), bordered.
     expect(frame).toContain('█')
     expect(frame).toContain('░')
@@ -827,7 +832,9 @@ describe('SliderInput', () => {
       )
       const reset = lastFrame() ?? ''
       expect(pickFromFrame(reset)).toBe(1)
-      expect(reset).toContain('Stalks: 5 | Left Heap:  ⠋ | Right Heap:  ⠋')
+      expect(reset).toContain(
+        'Stalks: 6 | Left Heap:  ⠋ | Right Heap:  ⠋ + 1 suspended',
+      )
       // And direction should be +1: next tick goes to 2.
       vi.advanceTimersByTime(50)
       rerender(
@@ -1055,7 +1062,11 @@ describe('CastingPromptBox (slider mode)', () => {
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
     )
     expect(pickFromFrame(frame)).toBe(1)
-    expect(frame).toContain('Stalks: 48 | Left Heap:  ⠋ | Right Heap:  ⠋')
+    // First cast: max 48 → 49 stalks in use (其用四十有九), one held back to
+    // suspend from the right heap (the trailing `+ 1 suspended`).
+    expect(frame).toContain(
+      'Stalks: 49 | Left Heap:  ⠋ | Right Heap:  ⠋ + 1 suspended',
+    )
     // Bar should be rendered as well.
     expect(frame).toContain('█')
     unmount()
@@ -1063,7 +1074,8 @@ describe('CastingPromptBox (slider mode)', () => {
 
   it('reveals the numeric Left/Right Heap on SPACE, then defers onSubmit by commitRevealMs', async () => {
     // SPACE freezes the cursor and swaps the rotating Braille glyphs for the
-    // concrete `Left Heap: <pick> | Right Heap: <max − pick>` numbers. The
+    // concrete `Left Heap: <pick> | Right Heap: <max − pick> + 1 suspended`
+    // numbers (left 5, right 35, suspended 1 → 41 = max + 1 conserved). The
     // parent's `onSubmit` only fires after the reveal window so the user has
     // time to see the cast they just made. Use a custom `commitRevealMs` so
     // the test's fake-time math is decoupled from the prod constant.
@@ -1105,7 +1117,7 @@ describe('CastingPromptBox (slider mode)', () => {
       // yet notified.
       await waitFor(() => {
         expect(lastFrame() ?? '').toContain(
-          'Stalks: 40 | Left Heap:  5 | Right Heap: 35',
+          'Stalks: 41 | Left Heap:  5 | Right Heap: 35 + 1 suspended',
         )
       })
       const revealFrame = lastFrame() ?? ''
