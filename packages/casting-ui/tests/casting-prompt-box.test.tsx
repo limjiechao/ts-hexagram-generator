@@ -7,11 +7,14 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   bottomStripRow,
   CastingPromptBox,
+  flowFooterRows,
+  flowHeaderRows,
   focusedInputBoxRows,
   getCastingPromptHeight,
   manualTitleRow,
   questionPanelRows,
   SliderInput,
+  stepDotsRow,
   twoHeapDiagramRows,
   validateManualInput,
 } from '../src/casting-prompt-box'
@@ -135,49 +138,83 @@ describe('CastingPromptBox', () => {
 })
 
 describe('manualTitleRow', () => {
-  it('renders line / cast / dots / step for each focused field', () => {
+  it('renders a slim line / cast / step title with no inline dots', () => {
     expect(manualTitleRow(3, 1, 'pilesL')).toBe(
-      'Line 3/6 · Cast 2/3   ● ○ ○ ○   Step 1 of 4',
+      'Line 3/6 · Cast 2/3 · Step 1/4',
     )
-    expect(manualTitleRow(3, 1, 'remL')).toBe(
-      'Line 3/6 · Cast 2/3   ● ● ○ ○   Step 2 of 4',
-    )
+    expect(manualTitleRow(3, 1, 'remL')).toBe('Line 3/6 · Cast 2/3 · Step 2/4')
     expect(manualTitleRow(3, 1, 'pilesR')).toBe(
-      'Line 3/6 · Cast 2/3   ● ● ● ○   Step 3 of 4',
+      'Line 3/6 · Cast 2/3 · Step 3/4',
     )
-    expect(manualTitleRow(3, 1, 'remR')).toBe(
-      'Line 3/6 · Cast 2/3   ● ● ● ●   Step 4 of 4',
-    )
+    expect(manualTitleRow(3, 1, 'remR')).toBe('Line 3/6 · Cast 2/3 · Step 4/4')
+  })
+})
+
+describe('stepDotsRow', () => {
+  it('renders cumulative fill dots up to the focused field', () => {
+    expect(stepDotsRow('pilesL')).toBe('● ○ ○ ○')
+    expect(stepDotsRow('remL')).toBe('● ● ○ ○')
+    expect(stepDotsRow('pilesR')).toBe('● ● ● ○')
+    expect(stepDotsRow('remR')).toBe('● ● ● ●')
   })
 })
 
 describe('twoHeapDiagramRows', () => {
-  it('builds 6 paired rows with full-word labels and an explicit suspended row on RIGHT', () => {
+  // Row layout (10 rows): 0 header / 1 Piles / 2 Fours ×4 / 3 separator /
+  // 4 Subtotal / 5 Remainder / 6 Suspended-or-blank / 7 separator / 8 Total /
+  // 9 footer.
+  it('builds 10 paired rows with the full arithmetic breakdown', () => {
     const rows = twoHeapDiagramRows({
       pilesL: 4,
       remL: 3,
       pilesR: 5,
       remR: 1,
-      focusedField: 'remR',
+      focusedField: 'pilesL',
       state: 'editing',
     })
-    expect(rows).toHaveLength(6)
-    // Header row: both card headers + 4-col gap.
+    expect(rows).toHaveLength(10)
     expect(rows[0]).toContain('┌── LEFT HEAP ────┐')
     expect(rows[0]).toContain('┌── RIGHT HEAP ───┐')
-    // Piles row.
-    expect(rows[1]).toContain('piles')
-    // Remainder row uses the full word.
-    expect(rows[2]).toContain('remainder')
-    // Suspended row: RIGHT shows `suspended   1`; LEFT shows a card row whose
-    // interior is all spaces (so the card edge is still drawn).
-    expect(rows[3]).toContain('suspended')
-    expect(rows[3]).toMatch(/suspended\s+1/)
-    // Totals: LEFT = 4·4 + 3 = 19; RIGHT = 4·5 + 1 + 1 (suspended) = 22.
-    expect(rows[4]).toContain('= 19 stalks')
-    expect(rows[4]).toContain('= 22 stalks')
-    // Footer row: both card footers.
-    expect(rows[5]).toContain('└')
+    expect(rows[1]).toContain('Piles')
+    // Fours: static `× 4` multiplier row.
+    expect(rows[2]).toContain('Fours')
+    expect(rows[2]).toContain('× 4')
+    // Separator rows 3 and 7.
+    expect(rows[3]).toContain('─────────────')
+    expect(rows[7]).toContain('─────────────')
+    // Subtotal = piles · 4: LEFT 16, RIGHT 20.
+    expect(rows[4]).toMatch(/Subtotal\s+16/)
+    expect(rows[4]).toMatch(/Subtotal\s+20/)
+    // Remainder carries a `+` prefix.
+    expect(rows[5]).toMatch(/Remainder \+ 3/)
+    expect(rows[5]).toMatch(/Remainder \+ 1/)
+    // Suspended: RIGHT shows `Suspended + 1`; LEFT interior is blank.
+    expect(rows[6]).toMatch(/Suspended \+ 1/)
+    // Total: LEFT = 16 + 3 = 19; RIGHT = 20 + 1 + 1 (suspended) = 22.
+    expect(rows[8]).toMatch(/Total\s+19/)
+    expect(rows[8]).toMatch(/Total\s+22/)
+    // Footer carries a `┬` tee for the convergence connector.
+    expect(rows[9]).toContain('┬')
+  })
+
+  it('renders derived Subtotal/Total live with untyped fields as 0 (no `?`)', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: null,
+      remL: 3,
+      pilesR: 4,
+      remR: null,
+      focusedField: 'pilesL',
+      state: 'editing',
+    })
+    // LEFT: pilesL untyped → Subtotal 0, Total = 0 + 3 = 3.
+    expect(rows[4]).toMatch(/Subtotal\s+0/)
+    expect(rows[8]).toMatch(/Total\s+3/)
+    // RIGHT: pilesR 4 → Subtotal 16; remR untyped → Total = 16 + 0 + 1 = 17.
+    expect(rows[4]).toMatch(/Subtotal\s+16/)
+    expect(rows[8]).toMatch(/Total\s+17/)
+    // Derived rows never show `?`.
+    expect(rows[4]).not.toContain('?')
+    expect(rows[8]).not.toContain('?')
   })
 
   it('wraps every row in BOLD_GREEN ... NORMAL when state === resolved', () => {
@@ -210,20 +247,7 @@ describe('twoHeapDiagramRows', () => {
       state: 'editing',
     })
     // oxlint-disable-next-line no-control-regex
-    expect(rows[1]).toMatch(/piles\s+\u001B\[7m \u001B\[27m/)
-  })
-
-  it('renders `?` totals when any source cell is null', () => {
-    const rows = twoHeapDiagramRows({
-      pilesL: null,
-      remL: 3,
-      pilesR: 4,
-      remR: null,
-      focusedField: 'pilesL',
-      state: 'editing',
-    })
-    // Totals row is row 4 now (was row 3 in the 5-row layout).
-    expect(rows[4]).toContain('= ? stalks')
+    expect(rows[1]).toMatch(/Piles\s+\u001B\[7m \u001B\[27m/)
   })
 
   it('shows inverse styling on focused cell when state === error', () => {
@@ -237,7 +261,7 @@ describe('twoHeapDiagramRows', () => {
     })
     // The focused cell (remR = 3) must show inverse-video even in error state.
     // oxlint-disable-next-line no-control-regex
-    expect(rows[2]).toMatch(/\u001B\[7m3\u001B\[27m/)
+    expect(rows[5]).toMatch(/\u001B\[7m3\u001B\[27m/)
     // Non-focused cells must NOT show inverse-video.
     // oxlint-disable-next-line no-control-regex
     expect(rows[1]).not.toMatch(/\u001B\[7m/)
@@ -271,7 +295,66 @@ describe('twoHeapDiagramRows', () => {
     })
     // Suspended row's `1` is plain text — no field corresponds to it.
     // oxlint-disable-next-line no-control-regex
-    expect(rows[3]).not.toMatch(/\u001B\[7m1\u001B\[27m/)
+    expect(rows[6]).not.toMatch(/\u001B\[7m1\u001B\[27m/)
+  })
+})
+
+describe('flowHeaderRows', () => {
+  it('renders the UNPARTED readout, a drop, and an upward branch', () => {
+    const rows = flowHeaderRows(49)
+    expect(rows).toHaveLength(3)
+    expect(rows[0]).toMatch(/UNPARTED STALKS:\s+49/)
+    // Drop connector.
+    expect(rows[1]).toContain('│')
+    // Branch: down-facing corners with an upward `┴` stub.
+    expect(rows[2]).toContain('┌')
+    expect(rows[2]).toContain('┴')
+    expect(rows[2]).toContain('┐')
+  })
+})
+
+describe('flowFooterRows', () => {
+  const ESC = String.fromCodePoint(27)
+  it('renders the join, drop, COUNTED, rule, and MISSING ledger', () => {
+    const rows = flowFooterRows({
+      counted: 36,
+      missing: 13,
+      missingColor: 'neutral',
+    })
+    expect(rows).toHaveLength(5)
+    // Join: up-facing corners with a downward `┬` stub.
+    expect(rows[0]).toContain('└')
+    expect(rows[0]).toContain('┬')
+    expect(rows[0]).toContain('┘')
+    // Drop connector.
+    expect(rows[1]).toContain('│')
+    // COUNTED carries a `- ` subtraction prefix.
+    expect(rows[2]).toMatch(/COUNTED STALKS:\s+- 36/)
+    // Ledger rule.
+    expect(rows[3]).toMatch(/─{4,}/)
+    // MISSING result.
+    expect(rows[4]).toMatch(/MISSING STALKS\s+13/)
+    // Neutral colour: no ANSI wrap on the value.
+    expect(rows[4]).not.toContain(`${ESC}[1;92m`)
+    expect(rows[4]).not.toContain(`${ESC}[1;91m`)
+  })
+
+  it('wraps the MISSING value in BOLD_GREEN when commit-ready (missing 0)', () => {
+    const rows = flowFooterRows({
+      counted: 49,
+      missing: 0,
+      missingColor: 'green',
+    })
+    expect(rows[4]).toContain(`${ESC}[1;92m`)
+  })
+
+  it('wraps the MISSING value in BOLD_RED on a conservation violation', () => {
+    const rows = flowFooterRows({
+      counted: 36,
+      missing: 13,
+      missingColor: 'red',
+    })
+    expect(rows[4]).toContain(`${ESC}[1;91m`)
   })
 })
 
@@ -361,35 +444,34 @@ describe('focusedInputBoxRows', () => {
 })
 
 describe('bottomStripRow', () => {
-  it('editing branch — totals on the left, commit hint on the right', () => {
+  const ESC = String.fromCodePoint(27)
+
+  it('editing + not commit-ready — blank left, back hint right', () => {
     const row = bottomStripRow({
       branch: 'editing',
-      liveLeftTotal: 21,
-      liveRightTotal: 0,
-      unpartedStalks: 49,
+      commitReady: false,
       renderWidth: 78,
     })
-    expect(row.startsWith('22 of 49 stalks accounted')).toBe(true)
-    expect(row.endsWith('Enter: next · Shift+Tab: back')).toBe(true)
+    expect(row.startsWith(' ')).toBe(true)
+    // MISSING owns the count now — the strip carries no "accounted" total.
+    expect(row).not.toContain('accounted')
+    expect(row).not.toContain('Press Enter')
+    expect(row.endsWith('Shift+Tab: go back')).toBe(true)
     expect(stringWidth(row)).toBe(78)
   })
 
-  it('error branch — BOLD_RED conservation arithmetic + back-to-fix', () => {
+  it('editing + commit-ready — "Press Enter to commit" left, back hint right', () => {
     const row = bottomStripRow({
-      branch: 'error',
-      errorKind: 'conservation',
-      leftHeapTotal: 21,
-      rightHeapTotal: 26,
-      total: 48,
-      unpartedStalks: 49,
+      branch: 'editing',
+      commitReady: true,
       renderWidth: 78,
     })
-    expect(row).toContain('Total counted 21 + 26 + 1 = 48, expected 49')
-    expect(row).toContain('Shift+Tab: back to fix')
-    expect(row).toContain('\u001B[1;91m')
+    expect(row.startsWith('Press Enter to commit')).toBe(true)
+    expect(row.endsWith('Shift+Tab: go back')).toBe(true)
+    expect(stringWidth(row)).toBe(78)
   })
 
-  it('error branch — suspended-sum message', () => {
+  it('error branch — suspended-sum message + back hint (BOLD_RED)', () => {
     const row = bottomStripRow({
       branch: 'error',
       errorKind: 'suspended-sum',
@@ -400,7 +482,8 @@ describe('bottomStripRow', () => {
       renderWidth: 78,
     })
     expect(row).toContain('Suspended sum (1 + 1 + 4) = 6, expected 4 or 8')
-    expect(row).toContain('Shift+Tab: back to fix')
+    expect(row).toContain('Shift+Tab: go back')
+    expect(row).toContain(`${ESC}[1;91m`)
   })
 
   it('error branch — zero-remainder identifies the side', () => {
@@ -423,7 +506,6 @@ describe('bottomStripRow', () => {
       renderWidth: 78,
     })
     expect(leftOnly).toContain('Left heap has no remainder')
-    expect(leftOnly).toContain('fully divisible heaps yield remainder 4, not 0')
     const both = bottomStripRow({
       branch: 'error',
       errorKind: 'zero-remainder',
@@ -434,18 +516,15 @@ describe('bottomStripRow', () => {
     expect(both).toContain('Left and right heaps have no remainder')
   })
 
-  it('resolved branch — BOLD_GREEN "→ next cast: N unparted"; no right hint', () => {
+  it('resolved branch — BOLD_GREEN "→ next cast: N unparted"', () => {
     const row = bottomStripRow({
       branch: 'resolved',
       next: 40,
       renderWidth: 78,
     })
     expect(row).toContain('→ next cast: 40 unparted')
-    expect(row).not.toContain('1 suspended')
-    expect(row).not.toContain('of 49')
-    expect(row).not.toContain('Enter: next')
-    expect(row).not.toContain('Shift+Tab: back')
-    expect(row).toContain('\u001B[1;92m')
+    expect(row).not.toContain('accounted')
+    expect(row).toContain(`${ESC}[1;92m`)
     expect(stringWidth(row)).toBe(78)
   })
 })
@@ -1299,10 +1378,12 @@ describe('CastingPromptBox (slider mode)', () => {
 // ── getCastingPromptHeight (manual arm) ─────────────────────────────────────
 
 describe('getCastingPromptHeight', () => {
-  it('returns 11 for manual flow regardless of inputMode/error', () => {
-    expect(getCastingPromptHeight('number', false, 'manual')).toBe(11)
-    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(11)
-    expect(getCastingPromptHeight('number', true, 'manual')).toBe(11)
+  it('returns 24 for manual flow regardless of inputMode/error', () => {
+    // 2 border + 22 content (title / blank / 3 flow-header / 10 card-band /
+    // 5 flow-footer / blank / feedback strip).
+    expect(getCastingPromptHeight('number', false, 'manual')).toBe(24)
+    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(24)
+    expect(getCastingPromptHeight('number', true, 'manual')).toBe(24)
   })
 
   it('preserves the existing slider/number heights for interactive', () => {
@@ -1566,23 +1647,29 @@ describe('CastingPromptBox (manual flow)', () => {
     await yieldMacrotask()
   }
 
-  it('renders title with dots, both heap cards, question panel, and the live editing strip', async () => {
+  it('renders the title, flow diagram (UNPARTED → heaps → COUNTED/MISSING), question panel, and feedback strip', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
       <CastingPromptBox {...baseProps} onSubmit={() => {}} onReady={onReady} />,
     )
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Line 3/6 · Cast 2/3')
-    expect(frame).toContain('Step 1 of 4')
+    expect(frame).toContain('Line 3/6 · Cast 2/3 · Step 1/4')
+    // Flow diagram: UNPARTED source at top, the two heap cards, and the
+    // COUNTED/MISSING ledger at the bottom. Nothing typed → COUNTED 1 (just
+    // the suspended stalk), MISSING 39 (40 − 1).
+    expect(frame).toContain('UNPARTED STALKS:')
     expect(frame).toContain('LEFT HEAP')
     expect(frame).toContain('RIGHT HEAP')
-    // Question is pre-wrapped to 2 lines in the right pane.
+    expect(frame).toContain('COUNTED STALKS:')
+    expect(frame).toContain('MISSING STALKS')
+    expect(frame).toContain('39')
     expect(frame).toContain('How many piles of 4 stalks')
     expect(frame).toContain('in the LEFT heap?')
     expect(frame).toContain('valid 0 to 10')
-    expect(frame).toContain('1 of 40 stalks accounted')
-    expect(frame).toContain('Enter: next · Shift+Tab: back')
+    // MISSING owns the count now — the strip carries no "accounted" total.
+    expect(frame).not.toContain('accounted')
+    expect(frame).toContain('Shift+Tab: go back')
     unmount()
   })
 
@@ -1672,7 +1759,7 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('updates the editing bottom strip live as the user types', async () => {
+  it('counts the MISSING gauge down to 0 as the user types a valid cast', async () => {
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { stdin, lastFrame, unmount } = render(
@@ -1685,8 +1772,14 @@ describe('CastingPromptBox (manual flow)', () => {
     )
     await waitForReady(onReady)
     await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
+    // Valid cast (pL4 rL3 pR4 rR4, M=40): COUNTED 19 + 20 + 1 = 40, MISSING 0.
     await waitFor(() => {
-      expect(lastFrame() ?? '').toContain('40 of 40 stalks accounted')
+      // oxlint-disable-next-line no-control-regex
+      const stripped = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+      expect(stripped).toMatch(/COUNTED STALKS:\s+- 40/)
+      expect(stripped).toMatch(/MISSING STALKS\s+0/)
+      // Fully valid → strip nudges to commit.
+      expect(stripped).toContain('Press Enter to commit')
     })
     unmount()
   })
@@ -1727,7 +1820,8 @@ describe('CastingPromptBox (manual flow)', () => {
       // The actual rendered message must include the typed remainders.
       expect(frame).toMatch(/Suspended sum \(1 \+ 1 \+ 4\) = 6/)
       expect(frame).toContain('expected 4 or 8')
-      const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
+      // oxlint-disable-next-line no-control-regex
+      const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
       expect(stripped).not.toMatch(/null/)
     })
     unmount()
@@ -1789,7 +1883,7 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('conservation failure shows the red arithmetic message in the bottom strip', async () => {
+  it('conservation failure turns the MISSING gauge red (no worded strip message)', async () => {
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { stdin, lastFrame, unmount } = render(
@@ -1801,6 +1895,7 @@ describe('CastingPromptBox (manual flow)', () => {
       />,
     )
     await waitForReady(onReady)
+    // pL5 rL2 pR4 rR3, M=40: COUNTED 22 + 19 + 1 = 42 → over by 2, MISSING -2.
     await typeFourFields(stdin, onFocusedFieldChange, {
       pilesL: '5',
       remL: '2',
@@ -1809,8 +1904,17 @@ describe('CastingPromptBox (manual flow)', () => {
     })
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toContain('22 + 19 + 1 = 42, expected 40')
-      expect(frame).toContain('Shift+Tab: back to fix')
+      // oxlint-disable-next-line no-control-regex
+      const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
+      // MISSING shows the (negative) shortfall, in BOLD_RED. Ink may split
+      // the `1;91m` SGR into `1m` + `91m`, so assert on the red `91m` code,
+      // which is present in either encoding (and nowhere else in the frame).
+      expect(stripped).toMatch(/MISSING STALKS\s+-2/)
+      expect(frame).toContain('91m')
+      // Conservation is owned by MISSING — no worded arithmetic in the strip.
+      expect(stripped).not.toContain('22 + 19')
+      expect(stripped).not.toContain('expected 40')
+      expect(stripped).toContain('Shift+Tab: go back')
     })
     unmount()
   })
@@ -2076,8 +2180,8 @@ describe('CastingPromptBox (manual flow)', () => {
     // inverse-video escape around the focused cell does not split the match.
     // oxlint-disable-next-line no-control-regex
     const stripped = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
-    expect(stripped).toMatch(/piles\s+10/)
-    expect(stripped).not.toMatch(/piles\s+100/)
+    expect(stripped).toMatch(/Piles\s+10/)
+    expect(stripped).not.toMatch(/Piles\s+100/)
     unmount()
   })
 
@@ -2098,18 +2202,19 @@ describe('CastingPromptBox (manual flow)', () => {
     // Frame before backspace shows the typed 5 in the pilesL cell.
     // oxlint-disable-next-line no-control-regex
     const stripped0 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
-    expect(stripped0).toMatch(/piles\s+5/)
+    expect(stripped0).toMatch(/Piles\s+5/)
     stdin.write(BACKSPACE)
     await yieldMacrotask()
-    // After backspace pilesL is empty; the live editing strip is back to
-    // `1 of 40 stalks accounted` (1 for the always-suspended stalk), and the diagram no longer shows the typed `5` in the
-    // pilesL cell. (Focused empty cell renders as an inverse space — invisible
-    // after ANSI strip — so we assert via the live total and the absence of
-    // the digit instead.)
+    // After backspace pilesL is empty; the MISSING gauge returns to its
+    // nothing-typed reading — COUNTED 1 (just the suspended stalk), MISSING
+    // 39 — and the diagram no longer shows the typed `5`. (A focused empty
+    // cell renders as an inverse space — invisible after ANSI strip — so we
+    // assert via the gauge and the absence of the digit.)
     // oxlint-disable-next-line no-control-regex
     const stripped1 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
-    expect(stripped1).toContain('1 of 40 stalks accounted')
-    expect(stripped1).not.toMatch(/piles\s+5/)
+    expect(stripped1).toMatch(/COUNTED STALKS:\s+- 1/)
+    expect(stripped1).toMatch(/MISSING STALKS\s+39/)
+    expect(stripped1).not.toMatch(/Piles\s+5/)
     unmount()
   })
 })

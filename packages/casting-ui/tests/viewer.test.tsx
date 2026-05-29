@@ -1539,6 +1539,9 @@ describe('ConsultationViewer (manual flow)', () => {
   }
 
   it('reveals the manual prompt once the query is submitted', async () => {
+    // The 24-row manual prompt needs a tall terminal so the COUNTED/MISSING
+    // gauge at its foot isn't clipped (default test height is 24).
+    windowSize.current = { columns: 100, rows: 40 }
     const onReady = vi.fn()
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer
@@ -1553,12 +1556,13 @@ describe('ConsultationViewer (manual flow)', () => {
     stdin.write(ENTER)
     await waitForReady(onReady)
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Line 1/6 · Cast 1/3')
-    expect(frame).toContain('Step 1 of 4')
+    expect(frame).toContain('Line 1/6 · Cast 1/3 · Step 1/4')
     expect(frame).toContain('LEFT HEAP')
     expect(frame).toContain('RIGHT HEAP')
     expect(frame).toContain('How many piles of 4 stalks in the LEFT heap?')
-    expect(frame).toContain('1 of 49 stalks accounted')
+    // Nothing typed → COUNTED 1 (suspended stalk), MISSING 48 (49 − 1).
+    expect(frame).toContain('MISSING STALKS')
+    expect(frame).toContain('48')
     unmount()
   })
 
@@ -1592,6 +1596,9 @@ describe('ConsultationViewer (manual flow)', () => {
   })
 
   it('Ctrl+R mid-line clears the current line back to cast 1', async () => {
+    // The 24-row manual prompt needs a tall terminal so the COUNTED/MISSING
+    // gauge at its foot isn't clipped (default test height is 24).
+    windowSize.current = { columns: 100, rows: 40 }
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
     const { lastFrame, stdin, unmount } = render(
@@ -1622,9 +1629,13 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Line 1/6 · Cast 1/3')
     })
-    // The bottom-strip totals revert to the round-1 49 (1 of 49 stalks accounted —
-    // just the always-suspended stalk, since no piles or remainders are filled yet).
-    expect(lastFrame() ?? '').toContain('1 of 49 stalks accounted')
+    // The MISSING gauge reverts to the round-1 reading: COUNTED 1 (just the
+    // always-suspended stalk), MISSING 48, since no piles/remainders are
+    // filled yet.
+    // oxlint-disable-next-line no-control-regex
+    const reverted = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+    expect(reverted).toMatch(/COUNTED STALKS:\s+- 1/)
+    expect(reverted).toMatch(/MISSING STALKS\s+48/)
     unmount()
   })
 
@@ -1703,6 +1714,9 @@ describe('ConsultationViewer (manual flow)', () => {
   })
 
   it('after a Ctrl+R rewind, the first digit lands in the pilesL field', async () => {
+    // The 24-row manual prompt needs a tall terminal so the COUNTED/MISSING
+    // gauge at its foot isn't clipped (default test height is 24).
+    windowSize.current = { columns: 100, rows: 40 }
     // Focus regression — Ctrl+R must remount the prompt with focusedField =
     // 'pilesL' so the next keystroke writes into pilesL. Verifiable via the
     // resolved-state numbers: after rewind, type pL=5, rL=4, pR=5, rR=4 →
@@ -1768,10 +1782,13 @@ describe('ConsultationViewer (manual flow)', () => {
     })
     stdin.write(fields.remR)
     await waitFor(() => {
-      // After all four fields commit (cast 1, M=49, pL=5, rL=4, pR=5, rR=4),
-      // the validator passes and the live editing strip reads 49 of 49 stalks accounted
-      // (20 + 4 + 20 + 4 + 1 suspended = 49).
-      expect(lastFrame() ?? '').toContain('49 of 49 stalks accounted')
+      // After all four fields are typed (cast 1, M=49, pL=5, rL=4, pR=5, rR=4),
+      // the validator passes: COUNTED 24 + 24 + 1 = 49, MISSING 0 — proving
+      // the digits landed in the right fields starting from pilesL.
+      // oxlint-disable-next-line no-control-regex
+      const stripped = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
+      expect(stripped).toMatch(/COUNTED STALKS:\s+- 49/)
+      expect(stripped).toMatch(/MISSING STALKS\s+0/)
     })
     unmount()
   })

@@ -514,25 +514,28 @@ export type CastingInputMode = 'slider' | 'number'
  *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
  *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
- *   manual flow → always 11 — title row (with inline ●●○○ progress dots) /
- *                 blank / 6-row side-by-side body (LEFT card + RIGHT card
- *                 on the left half; question + dim range hint + 3-row
- *                 drawn-box input on the right half) / bottom strip
- *                 → 9 content rows + 2 border. The bottom strip renders
- *                 one of three branches: editing (live totals + commit
- *                 hint), error (BOLD_RED validator message + back-to-fix
- *                 hint), or resolved (BOLD_GREEN totals + next-cast
- *                 unparted, no right hint). All rows are pre-built ANSI
- *                 text and sliced by `horizontalOffset` for the viewer's
- *                 narrow-terminal `<` / `>` pan, exactly like the slider
- *                 prompt.
+ *   manual flow → always 24 — the vertical flow diagram: slim title / blank /
+ *                 3-row UNPARTED header (readout + drop + branch) / 10-row
+ *                 heap-card band (LEFT + RIGHT, with the question + dim range
+ *                 hint + 3-row drawn-box input + step dots mapped onto the
+ *                 right of the band) / 5-row COUNTED/MISSING footer (join +
+ *                 drop + COUNTED + rule + MISSING) / blank / feedback strip
+ *                 → 22 content rows + 2 border. The feedback strip renders
+ *                 one of three branches: editing (blank, or "Press Enter to
+ *                 commit" once valid), error (BOLD_RED suspended-sum /
+ *                 zero-remainder message), or resolved (BOLD_GREEN next-cast
+ *                 unparted) — all with a `Shift+Tab: go back` hint. The
+ *                 MISSING gauge owns conservation feedback (red on a wrong
+ *                 completed total, green when commit-ready). All rows are
+ *                 pre-built ANSI text and sliced by `horizontalOffset` for the
+ *                 viewer's narrow-terminal `<` / `>` pan, like the slider.
  */
 export function getCastingPromptHeight(
   inputMode: CastingInputMode,
   hasError: boolean,
   flowKind: FlowKind = 'interactive',
 ): number {
-  if (flowKind === 'manual') return 11
+  if (flowKind === 'manual') return 24
   if (inputMode === 'slider') return 7
   return hasError ? 6 : 5
 }
@@ -938,9 +941,10 @@ const MANUAL_FIELD_ORDER: readonly ManualFocusedField[] = [
 ] as const
 
 /**
- * One-line manual-flow title: `Line N/6 · Cast C/3   ● ● ○ ○   Step P of 4`.
- * Dots: positions ≤ focusedField's index are `●`, the rest `○`. The 7-char
- * dots strip doubles as a step-progress indicator.
+ * Slim one-line manual-flow title: `Line N/6 · Cast C/3 · Step P/4`. The
+ * step ordinal is the focused field's 1-based index in `MANUAL_FIELD_ORDER`
+ * (cosmetic — navigation stays free Tab-cycling). The step-progress dots
+ * relocated out of the title into the right pane; see `stepDotsRow`.
  */
 export function manualTitleRow(
   lineNumber: number,
@@ -948,10 +952,19 @@ export function manualTitleRow(
   focusedField: ManualFocusedField,
 ): string {
   const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
-  const dots = MANUAL_FIELD_ORDER.map((_, i) =>
-    i <= stepIndex ? '●' : '○',
-  ).join(' ')
-  return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3   ${dots}   Step ${stepIndex + 1} of 4`
+  return `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3 · Step ${stepIndex + 1}/4`
+}
+
+/**
+ * The 7-col step-progress dots strip — `● ● ● ○` — shown in the right pane
+ * beside the `Total` row. Positions ≤ the focused field's index are `●`, the
+ * rest `○`. Cosmetic focus indicator; mirrors the title's `Step P/4` ordinal.
+ */
+export function stepDotsRow(focusedField: ManualFocusedField): string {
+  const stepIndex = MANUAL_FIELD_ORDER.indexOf(focusedField)
+  return MANUAL_FIELD_ORDER.map((_, i) => (i <= stepIndex ? '●' : '○')).join(
+    ' ',
+  )
 }
 
 // State discriminant shared between the diagram, question panel, and bottom
@@ -1005,18 +1018,40 @@ function cellText(
   return plainCell(value)
 }
 
-// Build a single card's 6 rows (header / piles / remainder / suspended-or-blank
-// / totals / footer). Each text-content row has a leading `│` + interior +
-// trailing `│`. The 4th content row carries `suspended   1` on RIGHT, an
-// all-spaces blank on LEFT — controlled by `suspendedCell` (null for LEFT,
-// `'1'` for RIGHT).
-function buildCardRows(
-  header: string,
-  pilesCell: string,
-  remCell: string,
-  suspendedCell: string | null,
-  totalLabel: string,
-): readonly string[] {
+// Pre-built cell strings for a single heap card. `pilesCell` / `remCell` are
+// the styled (?/value/inverse) raw inputs; `subtotalLabel` / `totalLabel` are
+// the live derived numerics (untyped → 0); `suspendedCell` is `'1'` on RIGHT,
+// `null` on LEFT (renders a blank slot for vertical alignment).
+interface CardCellArgs {
+  header: string
+  pilesCell: string
+  subtotalLabel: string
+  remCell: string
+  suspendedCell: string | null
+  totalLabel: string
+}
+
+// One full-width interior separator rule: `│  ─────────────  │`.
+function cardSeparatorRow(): string {
+  const margin = 2
+  const rule = '─'.repeat(Math.max(0, HEAP_CARD_INTERIOR - margin * 2))
+  return `│${' '.repeat(margin)}${rule}${' '.repeat(margin)}│`
+}
+
+// Build a single card's 10 rows: header / Piles / Fours ×4 / separator /
+// Subtotal / Remainder / Suspended-or-blank / separator / Total / footer.
+// `Remainder` and `Suspended` carry a `+ ` prefix; `Fours` is the static
+// `× 4` multiplier. The footer carries a centred `┬` tee feeding the
+// convergence connector below the card band.
+function buildCardRows(args: CardCellArgs): readonly string[] {
+  const {
+    header,
+    pilesCell,
+    subtotalLabel,
+    remCell,
+    suspendedCell,
+    totalLabel,
+  } = args
   // Header: `┌── HEADER ─...─┐` — fills interior with dashes around the header.
   const headerInner = ` ${header} `
   const leadingDashes = '─'.repeat(2)
@@ -1029,7 +1064,8 @@ function buildCardRows(
   // HEAP_LABEL_COL_WIDTH chars wide (2-col pad + label padded to 9). The
   // remaining interior is `interior - labelCol - rightMargin` cols; the
   // cell value is right-aligned within that space (gap goes BEFORE the
-  // value so it visually anchors to the right edge of the card).
+  // value so it visually anchors to the right edge of the card). ANSI in
+  // `cell` (inverse-video) is width-discounted via `stringWidth`.
   const buildField = (label: string, cell: string): string => {
     const labelPadded = `  ${label}`.padEnd(HEAP_LABEL_COL_WIDTH, ' ')
     const cellWidth = stringWidth(cell)
@@ -1041,28 +1077,41 @@ function buildCardRows(
     return `│${labelPadded}${' '.repeat(innerGap)}${cell}${' '.repeat(rightMargin)}│`
   }
 
-  const pilesRow = buildField('piles', pilesCell)
-  const remRow = buildField('remainder', remCell)
+  const pilesRow = buildField('Piles', pilesCell)
+  const foursRow = buildField('Fours', '× 4')
+  const subtotalRow = buildField('Subtotal', subtotalLabel)
+  const remRow = buildField('Remainder', `+ ${remCell}`)
   const suspendedRow =
     suspendedCell === null
       ? `│${' '.repeat(HEAP_CARD_INTERIOR)}│`
-      : buildField('suspended', suspendedCell)
+      : buildField('Suspended', `+ ${suspendedCell}`)
+  const totalRow = buildField('Total', totalLabel)
+  const sepRow = cardSeparatorRow()
+  // Footer: centred `┬` tee — `└────────┬────────┘`.
+  const half = Math.max(0, Math.floor((HEAP_CARD_INTERIOR - 1) / 2))
+  const footerRow = `└${'─'.repeat(half)}┬${'─'.repeat(HEAP_CARD_INTERIOR - 1 - half)}┘`
 
-  // Totals row: `│  = X stalks  │` — pad to interior width.
-  const totalContent = `  = ${totalLabel} stalks`
-  const totalsTrail = Math.max(0, HEAP_CARD_INTERIOR - totalContent.length)
-  const totalsRow = `│${totalContent}${' '.repeat(totalsTrail)}│`
-
-  const footerRow = `└${'─'.repeat(HEAP_CARD_INTERIOR)}┘`
-
-  return [headerRow, pilesRow, remRow, suspendedRow, totalsRow, footerRow]
+  return [
+    headerRow,
+    pilesRow,
+    foursRow,
+    sepRow,
+    subtotalRow,
+    remRow,
+    suspendedRow,
+    sepRow,
+    totalRow,
+    footerRow,
+  ]
 }
 
 /**
- * Build the 6-row LEFT + RIGHT heap card pair as pre-rendered text rows.
- * Each returned row contains both cards joined by a 4-col gap. Active cells
- * render inverse-video; resolved state wraps each row in BOLD_GREEN ... NORMAL.
- * Pure function — no Ink involvement.
+ * Build the 10-row LEFT + RIGHT heap card pair as pre-rendered text rows.
+ * Each returned row contains both cards joined by a 4-col gap. Raw input
+ * cells (Piles / Remainder) render `?`/inverse-video; the derived Subtotal /
+ * Total tick live with untyped fields treated as 0 (the RIGHT Total folds in
+ * the +1 always-suspended stalk). Resolved state wraps each row in
+ * BOLD_GREEN ... NORMAL. Pure function — no Ink involvement.
  */
 export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
   const { pilesL, remL, pilesR, remR, focusedField, state } = args
@@ -1070,34 +1119,130 @@ export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
   const remLCell = cellText(remL, 'remL', focusedField, state)
   const pilesRCell = cellText(pilesR, 'pilesR', focusedField, state)
   const remRCell = cellText(remR, 'remR', focusedField, state)
-  const leftTotalLabel =
-    pilesL === null || remL === null ? '?' : String(4 * pilesL + remL)
-  // RIGHT total includes the +1 always-suspended stalk (surfaced inline as
-  // the `suspended   1` row in the RIGHT card), so the card's `= N stalks`
-  // total sums vertically (piles·4 + remainder + suspended) the same way
-  // LEFT's total sums (piles·4 + remainder + 0 since LEFT has no suspended).
-  const rightTotalLabel =
-    pilesR === null || remR === null ? '?' : String(4 * pilesR + remR + 1)
-  const leftRows = buildCardRows(
-    'LEFT HEAP',
-    pilesLCell,
-    remLCell,
-    null, // LEFT has no suspended stalk — blank slot for visual alignment
-    leftTotalLabel,
-  )
-  const rightRows = buildCardRows(
-    'RIGHT HEAP',
-    pilesRCell,
-    remRCell,
-    '1', // RIGHT always has the +1 suspended stalk
-    rightTotalLabel,
-  )
+  const leftSubtotal = 4 * (pilesL ?? 0)
+  const rightSubtotal = 4 * (pilesR ?? 0)
+  const leftTotal = leftSubtotal + (remL ?? 0)
+  // RIGHT total folds in the +1 always-suspended stalk (surfaced inline as the
+  // `Suspended + 1` row), so the card sums vertically the same way LEFT does.
+  const rightTotal = rightSubtotal + (remR ?? 0) + 1
+  const leftRows = buildCardRows({
+    header: 'LEFT HEAP',
+    pilesCell: pilesLCell,
+    subtotalLabel: String(leftSubtotal),
+    remCell: remLCell,
+    suspendedCell: null, // LEFT has no suspended stalk — blank slot
+    totalLabel: String(leftTotal),
+  })
+  const rightRows = buildCardRows({
+    header: 'RIGHT HEAP',
+    pilesCell: pilesRCell,
+    subtotalLabel: String(rightSubtotal),
+    remCell: remRCell,
+    suspendedCell: '1', // RIGHT always has the +1 suspended stalk
+    totalLabel: String(rightTotal),
+  })
   const gap = '    '
   const combined = leftRows.map((row, i) => `${row}${gap}${rightRows[i]!}`)
   if (state === 'resolved') {
     return combined.map((row) => `${BOLD_GREEN}${row}${NORMAL}`)
   }
   return combined
+}
+
+// ── Manual flow-diagram geometry ─────────────────────────────────────────
+// Both heap cards are CARD_OUTER cols wide; the pair sits CARD_GAP apart,
+// giving DIAGRAM_WIDTH. Each card footer carries a centred `┬` tee at
+// CARD_TEE_OFFSET (cols from the card's left edge); the branch/join connectors
+// and the UNPARTED/COUNTED drops all align to FLOW_MID_COL — the midpoint
+// between the two card tees — so the vertical flow reads as one circuit.
+const CARD_OUTER = HEAP_CARD_INTERIOR + 2
+const CARD_GAP = 4
+const DIAGRAM_WIDTH = CARD_OUTER * 2 + CARD_GAP
+const CARD_TEE_OFFSET = 1 + Math.floor((HEAP_CARD_INTERIOR - 1) / 2)
+const LEFT_TEE_COL = CARD_TEE_OFFSET
+const RIGHT_TEE_COL = CARD_OUTER + CARD_GAP + CARD_TEE_OFFSET
+const FLOW_MID_COL = Math.floor((LEFT_TEE_COL + RIGHT_TEE_COL) / 2)
+// Ledger readout column: label left-aligned, value right-aligned. Also the
+// length of the COUNTED/MISSING subtraction rule.
+const READOUT_WIDTH = 22
+
+// A horizontal connector spanning the two card tees: corners at LEFT_TEE_COL /
+// RIGHT_TEE_COL, a `─` bar between them, and a single `stub` at FLOW_MID_COL
+// (`┴` points up to UNPARTED, `┬` points down to COUNTED).
+function connectorRow(
+  leftCorner: string,
+  rightCorner: string,
+  stub: string,
+): string {
+  const cells = Array.from({ length: DIAGRAM_WIDTH }, () => ' ')
+  for (let c = LEFT_TEE_COL + 1; c < RIGHT_TEE_COL; c++) cells[c] = '─'
+  cells[LEFT_TEE_COL] = leftCorner
+  cells[RIGHT_TEE_COL] = rightCorner
+  cells[FLOW_MID_COL] = stub
+  return cells.join('')
+}
+
+// A single vertical drop `│` at FLOW_MID_COL.
+function dropRow(): string {
+  return `${' '.repeat(FLOW_MID_COL)}│`
+}
+
+// A ledger readout: `LABEL    VALUE` — label left, value right-aligned within
+// READOUT_WIDTH. ANSI in `value` (the coloured MISSING count) is width-
+// discounted via `stringWidth`.
+function ledgerRow(label: string, value: string): string {
+  const gap = Math.max(1, READOUT_WIDTH - label.length - stringWidth(value))
+  return `${label}${' '.repeat(gap)}${value}`
+}
+
+/**
+ * The 3 rows above the heap-card band: the `UNPARTED STALKS: N` source
+ * readout, a vertical drop, and the downward-cornered branch whose `┴` stub
+ * feeds the drop. Pure text; aligned to the card geometry above.
+ */
+export function flowHeaderRows(unparted: number): string[] {
+  return [
+    ledgerRow('UNPARTED STALKS:', String(unparted)),
+    dropRow(),
+    connectorRow('┌', '┐', '┴'),
+  ]
+}
+
+// MISSING gauge colour: neutral while mid-countdown, green when commit-ready
+// (count 0 + fully valid), red on a completed-but-wrong conservation total.
+type MissingColor = 'neutral' | 'green' | 'red'
+
+interface FlowFooterArgs {
+  counted: number
+  missing: number
+  missingColor: MissingColor
+}
+
+/**
+ * The 5 rows below the heap-card band: the upward-cornered join (its `┬` stub
+ * gathers the two card tees), a vertical drop, the `COUNTED STALKS: - N`
+ * accumulator (subtraction-signed), a ledger rule, and the `MISSING STALKS N`
+ * conservation gauge — coloured per `missingColor` (green = commit-ready,
+ * red = conservation violation, neutral = mid-countdown). Pure text.
+ */
+const MISSING_WRAP: Record<MissingColor, string> = {
+  green: BOLD_GREEN,
+  red: BOLD_RED,
+  neutral: '',
+}
+
+export function flowFooterRows(args: FlowFooterArgs): string[] {
+  const { counted, missing, missingColor } = args
+  const missingStr = String(missing)
+  const wrap = MISSING_WRAP[missingColor]
+  const coloredMissing = wrap ? `${wrap}${missingStr}${NORMAL}` : missingStr
+  return [
+    connectorRow('└', '┘', '┬'),
+    dropRow(),
+    ledgerRow('COUNTED STALKS:', `- ${counted}`),
+    '─'.repeat(READOUT_WIDTH),
+    ledgerRow('MISSING STALKS', coloredMissing),
+  ]
 }
 
 interface QuestionPanelRowsArgs {
@@ -1167,15 +1312,10 @@ export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
 }
 
 // Bottom-strip error-branch discriminant. The strip's `error` branch wraps
-// these args; they are flat-extended into BottomStripArgs below.
+// these args; they are flat-extended into BottomStripArgs below. Conservation
+// is NOT here — the MISSING gauge owns conservation visually (red when the
+// completed count ≠ unparted), so the strip never duplicates it as text.
 type BottomStripErrorArgs =
-  | {
-      errorKind: 'conservation'
-      leftHeapTotal: number
-      rightHeapTotal: number
-      total: number
-      unpartedStalks: number
-    }
   | {
       errorKind: 'suspended-sum'
       remL: number
@@ -1191,10 +1331,11 @@ type BottomStripErrorArgs =
 
 export type BottomStripArgs =
   | {
+      // Mid-edit (incomplete or conservation-failing) or commit-ready. The
+      // live count lives in the MISSING gauge, so the strip only nudges:
+      // blank while not ready, "Press Enter to commit" once fully valid.
       branch: 'editing'
-      liveLeftTotal: number
-      liveRightTotal: number
-      unpartedStalks: number
+      commitReady: boolean
       renderWidth: number
     }
   | ({ branch: 'error'; renderWidth: number } & BottomStripErrorArgs)
@@ -1212,8 +1353,6 @@ function zeroRemainderSide(remL: number, remR: number): string {
 
 function errorMessageText(args: BottomStripErrorArgs): string {
   switch (args.errorKind) {
-    case 'conservation':
-      return `Total counted ${args.leftHeapTotal} + ${args.rightHeapTotal} + 1 = ${args.total}, expected ${args.unpartedStalks}`
     case 'suspended-sum':
       return `Suspended sum (1 + ${args.remL} + ${args.remR}) = ${args.sum}, expected ${args.expectedLabel}`
     case 'zero-remainder':
@@ -1235,26 +1374,22 @@ function leftRightRow(
 }
 
 /**
- * One-row bottom strip below the manual prompt's body. Three branches:
+ * One-row feedback strip below the manual prompt's body. Three branches, each
+ * with a uniform `Shift+Tab: go back` hint on the right:
  *
- *  - **editing** — live totals on the left, commit/back hint on the right.
- *  - **error** — BOLD_RED validator-derived message on the left, "Shift+Tab:
- *    back to fix" on the right.
- *  - **resolved** — BOLD_GREEN "→ next cast: N unparted", left-aligned (the
- *    right pane's `Resolved.` / `Enter to advance` already covers the advance
- *    prompt, and the per-card totals are visible in the diagram itself).
+ *  - **editing** — blank left while mid-edit (the MISSING gauge carries the
+ *    live count); "Press Enter to commit" once `commitReady`.
+ *  - **error** — BOLD_RED suspended-sum / zero-remainder message on the left
+ *    (conservation is owned by the MISSING gauge, never shown here as text).
+ *  - **resolved** — BOLD_GREEN "→ next cast: N unparted", left-aligned.
  *
  * Output is exactly `renderWidth` display cols wide.
  */
 export function bottomStripRow(args: BottomStripArgs): string {
+  const backHint = 'Shift+Tab: go back'
   if (args.branch === 'editing') {
-    // +1 for the stalk suspended from the right heap — it's physically set
-    // aside the moment the user parts the stalks, so it counts toward the
-    // accounted total even before any field is filled.
-    const accounted = args.liveLeftTotal + args.liveRightTotal + 1
-    const left = `${accounted} of ${args.unpartedStalks} stalks accounted`
-    const right = 'Enter: next · Shift+Tab: back'
-    return leftRightRow(left, right, args.renderWidth)
+    const left = args.commitReady ? 'Press Enter to commit' : ''
+    return leftRightRow(left, backHint, args.renderWidth)
   }
   if (args.branch === 'resolved') {
     const message = `→ next cast: ${args.next} unparted`
@@ -1264,8 +1399,7 @@ export function bottomStripRow(args: BottomStripArgs): string {
   }
   const message = errorMessageText(args)
   const left = `${BOLD_RED}${message}${NORMAL}`
-  const right = 'Shift+Tab: back to fix'
-  return leftRightRow(left, right, args.renderWidth)
+  return leftRightRow(left, backHint, args.renderWidth)
 }
 
 interface ManualCastingPromptProps {
@@ -1474,15 +1608,18 @@ function manualBufferForField(
  * canonical split index (`4 × pilesL + remL`) and hand it upstream as if it
  * were a typed cast.
  *
- * Layout (9 content rows + 2 border = 11 rows total): a one-line title with
- * inline `●●○○` step-progress dots / blank spacer / 6-row side-by-side body
- * — LEFT and RIGHT heap cards on the left half (each card: header / piles /
- * rem / `= N stalks` / footer), question + dim range hint + 3-row drawn-box
- * input on the right half — / one-row bottom strip (live `X of M stalks
- * accounted` total or a BOLD_RED validator-derived error message, swapped to
- * a BOLD_GREEN `→ next cast: ${next} unparted` during the post-Enter reveal).
- * Each row is pre-built ANSI text and sliced by `horizontalOffset` for the
- * viewer's narrow-terminal `<` / `>` pan, mirroring `<SliderCastingPrompt>`.
+ * Layout (22 content rows + 2 border = 24 rows total) is a vertical flow
+ * diagram: slim title (`Line N/6 · Cast C/3 · Step P/4`) / blank / 3-row
+ * UNPARTED header (`UNPARTED STALKS: N` + drop + branch) / 10-row heap-card
+ * band (LEFT + RIGHT cards, each: header / Piles / Fours ×4 / sep / Subtotal /
+ * Remainder / Suspended-or-blank / sep / Total / footer), with the question +
+ * dim range hint + 3-row drawn-box input + step dots mapped onto the right of
+ * the band / 5-row COUNTED-MISSING footer (join + drop + `COUNTED STALKS: - N`
+ * + rule + `MISSING STALKS N`) / blank / one-row feedback strip. The MISSING
+ * gauge is the live conservation readout — neutral mid-countdown, green when
+ * commit-ready, red on a completed wrong total. Each row is pre-built ANSI text
+ * and sliced by `horizontalOffset` for the viewer's narrow-terminal `<` / `>`
+ * pan, mirroring `<SliderCastingPrompt>`.
  *
  * Tab cycles focus forward through `pilesL → remL → pilesR → remR → pilesL`;
  * Shift+Tab cycles backward. Digit/backspace input is owned by this
@@ -1490,9 +1627,10 @@ function manualBufferForField(
  * `<NumberInput>` child); the validator + commit path are likewise local.
  *
  * Validator priority (first failing check wins): incomplete → zero-remainder
- * → conservation → suspended-sum → ok. The bottom strip's error branch
- * renders the validator's textual output verbatim; the diagram's active
- * cells switch from inverse-video to plain `?`/value cells when in error.
+ * → conservation → suspended-sum → ok. Conservation is surfaced by the red
+ * MISSING gauge (never as strip text); the feedback strip's error branch
+ * renders only the suspended-sum / zero-remainder messages. The diagram's
+ * active cells stay inverse-video on the focused field even in error.
  *
  * On a valid Enter:
  *   - local `committed = { pick, next }` captures the resolved pick plus the
@@ -1508,7 +1646,7 @@ function manualBufferForField(
  *     full reveal.
  *
  * The rendered height is locked at
- * `getCastingPromptHeight(_, _, 'manual') = 11`.
+ * `getCastingPromptHeight(_, _, 'manual') = 24`.
  */
 function ManualCastingPrompt({
   lineNumber,
@@ -1728,9 +1866,11 @@ function ManualCastingPrompt({
   // Row 1: title.
   const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
 
-  // Rows 3-7: the 5-row LEFT/RIGHT diagram on the left half, padded to a
-  // 6th blank row so it aligns with the right pane's 6 rows.
-  const diagramRows = twoHeapDiagramRows({
+  // Left half is the vertical flow diagram: UNPARTED header (3 rows) → the
+  // 10-row heap-card band → COUNTED/MISSING footer (5 rows). The card band's
+  // 10 rows are the only ones paired with right-pane content.
+  const flowHeader = flowHeaderRows(unpartedStalks)
+  const cardBand = twoHeapDiagramRows({
     pilesL,
     remL,
     pilesR,
@@ -1738,17 +1878,23 @@ function ManualCastingPrompt({
     focusedField,
     state: diagramState,
   })
-  // Natural diagram width: 19 (LEFT card outer) + 4-col gap + 19 (RIGHT
-  // card outer) = 42. Both cards are 19 cols wide (HEAP_CARD_INTERIOR=17
-  // + 2 borders). `twoHeapDiagramRows` already returns 6 paired rows — no
-  // padding row needed.
-  const diagramWidth = (HEAP_CARD_INTERIOR + 2) * 2 + 4
-  const diagramPaddedRows = diagramRows
+  // COUNTED ticks live (untyped fields → 0; +1 always-suspended). MISSING is
+  // the conservation gauge: green when fully commit-ready, red on a completed
+  // wrong total, neutral mid-countdown (incomplete / suspended-sum / zero-rem).
+  const counted = liveLeftTotal + liveRightTotal + 1
+  const missing = unpartedStalks - counted
+  let missingColor: MissingColor = 'neutral'
+  if (committed !== null || validation.kind === 'ok') {
+    missingColor = 'green'
+  } else if (validation.kind === 'conservation') {
+    missingColor = 'red'
+  }
+  const flowFooter = flowFooterRows({ counted, missing, missingColor })
 
-  // Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
-  // rows, aligned with the 6 diagram rows on the left half. During the resolved
-  // dwell the input box collapses to blanks (the Resolved. / Enter to
-  // advance question panel already occupies the visual focus).
+  // Right pane aligned to the 10-row card band: question + dim range hint sit
+  // beside Piles / Fours; the 3-row input box beside Subtotal / Remainder /
+  // Suspended; the step dots beside Total. Header / separators / footer rows
+  // get a blank right. During the resolved dwell the input box collapses.
   const qRows = questionPanelRows({
     focusedField,
     unpartedStalks,
@@ -1766,26 +1912,37 @@ function ManualCastingPrompt({
           focused: true,
         })
       : ['', '', '']
-  // Right pane: 2 question rows + 3 input box rows + 1 trailing blank = 6
-  // rows, aligned with the 6 diagram rows on the left half.
-  const rightRows = [...qRows, ...inputRows, '']
+  const dotsRow = committed === null ? stepDotsRow(focusedField) : ''
+  const cardRightPane = [
+    '', // header
+    qRows[0] ?? '', // Piles → question
+    qRows[1] ?? '', // Fours → range hint
+    '', // separator
+    inputRows[0] ?? '', // Subtotal → input box top
+    inputRows[1] ?? '', // Remainder → input box mid
+    inputRows[2] ?? '', // Suspended → input box bottom
+    '', // separator
+    dotsRow, // Total → step dots
+    '', // footer
+  ]
 
-  // Compose each body row from a left half (diagram, display width
-  // `diagramWidth`) and a right half (question/input), gap = 4. Pad the
-  // whole row out to `renderWidth` so successive slices land at predictable
-  // offsets.
+  // Compose each body row from a left half (flow diagram, display width
+  // DIAGRAM_WIDTH) and a right half, gap = 8. Pad the whole row out to
+  // `renderWidth` so successive slices land at predictable offsets.
   const composeBodyRow = (leftRow: string, rightRow: string): string => {
     const leftWidth = stringWidth(leftRow)
     const rightWidth = stringWidth(rightRow)
-    const leftPadTrail = Math.max(0, diagramWidth - leftWidth)
+    const leftPadTrail = Math.max(0, DIAGRAM_WIDTH - leftWidth)
     const middleGap = 8
-    const totalSoFar = diagramWidth + middleGap + rightWidth
+    const totalSoFar = DIAGRAM_WIDTH + middleGap + rightWidth
     const trailingPad = Math.max(0, renderWidth - totalSoFar)
     return `${leftRow}${' '.repeat(leftPadTrail)}${' '.repeat(middleGap)}${rightRow}${' '.repeat(trailingPad)}`
   }
-  const bodyRows = diagramPaddedRows.map((leftRow, i) =>
-    composeBodyRow(leftRow, rightRows[i] ?? ''),
-  )
+  const bodyRows = [
+    ...flowHeader.map((row) => composeBodyRow(row, '')),
+    ...cardBand.map((row, i) => composeBodyRow(row, cardRightPane[i] ?? '')),
+    ...flowFooter.map((row) => composeBodyRow(row, '')),
+  ]
 
   // Row 9: the one-row bottom strip — editing / error / resolved branch
   // selected from the validator + committed state.
@@ -1794,17 +1951,6 @@ function ManualCastingPrompt({
       return {
         branch: 'resolved',
         next: committed.next,
-        renderWidth,
-      }
-    }
-    if (validation.kind === 'conservation') {
-      return {
-        branch: 'error',
-        errorKind: 'conservation',
-        leftHeapTotal: validation.leftHeapTotal,
-        rightHeapTotal: validation.rightHeapTotal,
-        total: validation.total,
-        unpartedStalks: validation.unparted,
         renderWidth,
       }
     }
@@ -1828,20 +1974,20 @@ function ManualCastingPrompt({
         renderWidth,
       }
     }
+    // incomplete | conservation | ok — conservation is surfaced by the MISSING
+    // gauge (red), not the strip, so it shares the blank editing branch.
     return {
       branch: 'editing',
-      liveLeftTotal,
-      liveRightTotal,
-      unpartedStalks,
+      commitReady: validation.kind === 'ok',
       renderWidth,
     }
   })()
   const stripRow = bottomStripRow(bottomStripBranchArgs)
 
-  // Stack the 9 content rows (title / blank / 6 body rows / strip), pad
-  // each to renderWidth, then slice by horizontalOffset for the viewer's
-  // `<` / `>` narrow-terminal pan — same shape as `<SliderCastingPrompt>`.
-  const allRows = [titleRow, '', ...bodyRows, stripRow]
+  // Stack the 22 content rows (title / blank / 3 flow-header / 10 card-band /
+  // 5 flow-footer / blank / feedback strip), pad each to renderWidth, then
+  // slice by horizontalOffset for the viewer's `<` / `>` narrow-terminal pan.
+  const allRows = [titleRow, '', ...bodyRows, '', stripRow]
   const slicedRows = allRows.map((row) => {
     const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
     return sliceAnsi(
