@@ -116,6 +116,7 @@ export {
 export {
   ALWAYS,
   BINDINGS,
+  CAN_SCROLL,
   dispatchKey,
   IN_CASTING_SLIDER,
   IN_DONE,

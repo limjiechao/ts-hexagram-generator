@@ -16,13 +16,13 @@ import { isInteractiveEnv } from '@hexagram/viewer-core'
 // The manual flow's per-cast prompt has no plain-mode fallback (per the spec's
 // "Non-goals"), so there is no `--plain` branch here.
 
-// The manual casting prompt's flow diagram reserves 24 rows; with the viewer
+// The manual casting prompt's flow diagram reserves 22 rows; with the viewer
 // chrome (header + query + tab bar + footer ≈ 9) and a 1-row content floor it
-// needs ~34 terminal rows. Below that the alternate screen overflows and the
+// needs ~32 terminal rows. Below that the alternate screen overflows and the
 // COUNTED/MISSING gauge or the footer would be clipped, so we refuse upfront
 // with the same stderr-and-exit-1 shape as the non-TTY guard rather than
 // render a broken screen.
-const MANUAL_MIN_TERMINAL_ROWS = 34
+const MANUAL_MIN_TERMINAL_ROWS = 32
 
 async function main(): Promise<void> {
   try {

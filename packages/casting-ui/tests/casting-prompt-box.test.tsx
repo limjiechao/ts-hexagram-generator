@@ -300,43 +300,59 @@ describe('twoHeapDiagramRows', () => {
 })
 
 describe('flowHeaderRows', () => {
-  it('renders the UNPARTED readout, a drop, and an upward branch', () => {
+  it('renders the UNPARTED readout directly above the branch (no drop row)', () => {
     const rows = flowHeaderRows(49)
-    expect(rows).toHaveLength(3)
+    expect(rows).toHaveLength(2)
     expect(rows[0]).toMatch(/UNPARTED STALKS:\s+49/)
-    // Drop connector.
-    expect(rows[1]).toContain('│')
     // Branch: down-facing corners with an upward `┴` stub.
-    expect(rows[2]).toContain('┌')
-    expect(rows[2]).toContain('┴')
-    expect(rows[2]).toContain('┐')
+    expect(rows[1]).toContain('┌')
+    expect(rows[1]).toContain('┴')
+    expect(rows[1]).toContain('┐')
+  })
+
+  it('aligns the `┴` stub under the last digit of the UNPARTED value', () => {
+    // The value is right-aligned within the 22-col ledger, so its last digit
+    // sits at column 21; the upward stub points exactly there.
+    const rows = flowHeaderRows(49)
+    expect([...rows[0]!].indexOf('9')).toBe(21)
+    expect([...rows[1]!].indexOf('┴')).toBe(21)
   })
 })
 
 describe('flowFooterRows', () => {
   const ESC = String.fromCodePoint(27)
-  it('renders the join, drop, COUNTED, rule, and MISSING ledger', () => {
+  it('renders the join directly above COUNTED (no drop row), then rule and MISSING', () => {
     const rows = flowFooterRows({
       counted: 36,
       missing: 13,
       missingColor: 'neutral',
     })
-    expect(rows).toHaveLength(5)
+    expect(rows).toHaveLength(4)
     // Join: up-facing corners with a downward `┬` stub.
     expect(rows[0]).toContain('└')
     expect(rows[0]).toContain('┬')
     expect(rows[0]).toContain('┘')
-    // Drop connector.
-    expect(rows[1]).toContain('│')
     // COUNTED carries a `- ` subtraction prefix.
-    expect(rows[2]).toMatch(/COUNTED STALKS:\s+- 36/)
+    expect(rows[1]).toMatch(/COUNTED STALKS:\s+- 36/)
     // Ledger rule.
-    expect(rows[3]).toMatch(/─{4,}/)
+    expect(rows[2]).toMatch(/─{4,}/)
     // MISSING result.
-    expect(rows[4]).toMatch(/MISSING STALKS\s+13/)
+    expect(rows[3]).toMatch(/MISSING STALKS\s+13/)
     // Neutral colour: no ANSI wrap on the value.
-    expect(rows[4]).not.toContain(`${ESC}[1;92m`)
-    expect(rows[4]).not.toContain(`${ESC}[1;91m`)
+    expect(rows[3]).not.toContain(`${ESC}[1;92m`)
+    expect(rows[3]).not.toContain(`${ESC}[1;91m`)
+  })
+
+  it('aligns the `┬` stub under the last digit of the COUNTED value', () => {
+    // COUNTED (`- 36`) is right-aligned within the 22-col ledger, so its last
+    // digit sits at column 21; the downward stub points exactly there.
+    const rows = flowFooterRows({
+      counted: 36,
+      missing: 13,
+      missingColor: 'neutral',
+    })
+    expect([...rows[1]!].indexOf('6')).toBe(21)
+    expect([...rows[0]!].indexOf('┬')).toBe(21)
   })
 
   it('wraps the MISSING value in BOLD_GREEN when commit-ready (missing 0)', () => {
@@ -345,7 +361,7 @@ describe('flowFooterRows', () => {
       missing: 0,
       missingColor: 'green',
     })
-    expect(rows[4]).toContain(`${ESC}[1;92m`)
+    expect(rows[3]).toContain(`${ESC}[1;92m`)
   })
 
   it('wraps the MISSING value in BOLD_RED on a conservation violation', () => {
@@ -354,7 +370,7 @@ describe('flowFooterRows', () => {
       missing: 13,
       missingColor: 'red',
     })
-    expect(rows[4]).toContain(`${ESC}[1;91m`)
+    expect(rows[3]).toContain(`${ESC}[1;91m`)
   })
 })
 
@@ -1378,12 +1394,13 @@ describe('CastingPromptBox (slider mode)', () => {
 // ── getCastingPromptHeight (manual arm) ─────────────────────────────────────
 
 describe('getCastingPromptHeight', () => {
-  it('returns 24 for manual flow regardless of inputMode/error', () => {
-    // 2 border + 22 content (title / blank / 3 flow-header / 10 card-band /
-    // 5 flow-footer / blank / feedback strip).
-    expect(getCastingPromptHeight('number', false, 'manual')).toBe(24)
-    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(24)
-    expect(getCastingPromptHeight('number', true, 'manual')).toBe(24)
+  it('returns 22 for manual flow regardless of inputMode/error', () => {
+    // 2 border + 20 content (title / blank / 2 flow-header / 10 card-band /
+    // 4 flow-footer / blank / feedback strip). The two connector drop rows
+    // were removed to tighten the diagram by 2 lines.
+    expect(getCastingPromptHeight('number', false, 'manual')).toBe(22)
+    expect(getCastingPromptHeight('slider', false, 'manual')).toBe(22)
+    expect(getCastingPromptHeight('number', true, 'manual')).toBe(22)
   })
 
   it('preserves the existing slider/number heights for interactive', () => {

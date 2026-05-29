@@ -55,7 +55,11 @@ export function castingMarkdownSection(casting: CastingRecord | null): string {
   const cell = (split: PartialSplitRecord): string => {
     if (split === null)
       return `${castRight('·', 8)}│${castRight('·', 7)}│${castRight('·', 7)}`
-    return `${castRight(String(split.max), 8)}│${castRight(String(split.pick), 7)}│${castRight(String(split.max - split.pick), 7)}`
+    // `Stalks` (max + 1) and `Right` (max - pick + 1) fold the one stalk
+    // suspended from the right heap back in — it was part of the unparted
+    // stalks and part of the right heap before sorting — so Left + Right ==
+    // Stalks. Mirrors `castingSection` in @hexagram/viewer-core.
+    return `${castRight(String(split.max + 1), 8)}│${castRight(String(split.pick), 7)}│${castRight(String(split.max - split.pick + 1), 7)}`
   }
 
   const indexedLines = [

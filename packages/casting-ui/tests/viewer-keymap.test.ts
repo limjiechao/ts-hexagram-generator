@@ -2,6 +2,7 @@ import { emptyPartialCastingRecord } from '@hexagram/types'
 import {
   ALWAYS,
   BINDINGS,
+  CAN_SCROLL,
   dispatchKey,
   IN_CASTING_SLIDER,
   IN_DONE,
@@ -144,6 +145,15 @@ describe('keymap predicates', () => {
     expect(IN_DONE(makeState({ mode: 'awaitingQuery' }))).toBe(false)
     expect(IN_DONE(makeState({ mode: 'computing' }))).toBe(false)
   })
+
+  it('CAN_SCROLL matches both done and casting modes', () => {
+    // Vertical scroll is shared: the done readout AND the in-flight casting
+    // table (every flow) accept arrow/page/home/end scrolling.
+    expect(CAN_SCROLL(makeState({ mode: 'done' }))).toBe(true)
+    expect(CAN_SCROLL(makeState({ mode: 'casting' }))).toBe(true)
+    expect(CAN_SCROLL(makeState({ mode: 'awaitingQuery' }))).toBe(false)
+    expect(CAN_SCROLL(makeState({ mode: 'computing' }))).toBe(false)
+  })
 })
 
 // ── Table shape ──────────────────────────────────────────────────────────────
@@ -162,12 +172,12 @@ describe('BINDINGS table', () => {
       'done/jump-digit',
       'done/pan-left',
       'done/pan-right',
-      'done/scroll-up',
-      'done/scroll-down',
-      'done/page-up',
-      'done/page-down',
-      'done/home',
-      'done/end',
+      'scroll/up',
+      'scroll/down',
+      'scroll/page-up',
+      'scroll/page-down',
+      'scroll/home',
+      'scroll/end',
     ])
   })
 
@@ -231,6 +241,40 @@ describe('casting bindings', () => {
     const ctx = makeContext(makeState({ mode: 'casting' }), 'number')
     expect(dispatchKey('<', makeKey(), ctx)).toBe(false)
     expect(ctx.spies.panCastingPromptBy).not.toHaveBeenCalled()
+  })
+})
+
+// ── Casting-mode scroll (all flows) ──────────────────────────────────────────
+
+describe('casting-mode scroll', () => {
+  const casting = (): FlowState => makeState({ mode: 'casting' })
+
+  it('scroll/up — ↑ scrolls the casting table -1 row (flow-agnostic)', () => {
+    // Input mode is irrelevant: vertical scroll works for slider, number, and
+    // manual casting alike.
+    const ctx = makeContext(casting(), 'number')
+    expect(dispatchKey('', makeKey({ upArrow: true }), ctx)).toBe(true)
+    expect(ctx.spies.scrollActiveBy).toHaveBeenCalledWith(-1)
+  })
+
+  it('scroll/down — ↓ scrolls the casting table +1 row (flow-agnostic)', () => {
+    const ctx = makeContext(casting(), 'slider')
+    expect(dispatchKey('', makeKey({ downArrow: true }), ctx)).toBe(true)
+    expect(ctx.spies.scrollActiveBy).toHaveBeenCalledWith(1)
+  })
+
+  it('scroll/page-down — PgDn pages the casting table while casting', () => {
+    const ctx = makeContext(casting(), 'number', 25)
+    expect(dispatchKey('', makeKey({ pageDown: true }), ctx)).toBe(true)
+    expect(ctx.spies.scrollActiveBy).toHaveBeenCalledWith(24)
+  })
+
+  it('scroll/end — G jumps the casting table to the bottom while casting', () => {
+    const ctx = makeContext(casting(), 'number')
+    expect(dispatchKey('G', makeKey(), ctx)).toBe(true)
+    expect(ctx.spies.scrollActiveTo).toHaveBeenCalledWith(
+      Number.POSITIVE_INFINITY,
+    )
   })
 })
 

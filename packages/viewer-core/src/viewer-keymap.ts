@@ -63,6 +63,12 @@ export const ALWAYS = (): boolean => true
 export const IN_CASTING_SLIDER = (s: FlowStateSlice, im: InputMode): boolean =>
   s.mode === 'casting' && im === 'slider'
 export const IN_DONE = (s: FlowStateSlice): boolean => s.mode === 'done'
+// Vertical scroll is shared between the unlocked `done` readout and the
+// in-flight `casting` table — every flow (random / interactive / manual) can
+// scroll the casting table into view while the prompt occupies the lower
+// rows. Independent of `inputMode`, so it stays scrollable in all three.
+export const CAN_SCROLL = (s: FlowStateSlice): boolean =>
+  s.mode === 'done' || s.mode === 'casting'
 
 export const BINDINGS: readonly KeyBinding[] = [
   // ── Global ───────────────────────────────────────────────────────────────
@@ -149,49 +155,50 @@ export const BINDINGS: readonly KeyBinding[] = [
       ctx.panActiveBy(1)
     },
   },
+  // ── Vertical scroll (done readout + in-flight casting table) ──────────────
   {
-    id: 'done/scroll-up',
-    when: IN_DONE,
+    id: 'scroll/up',
+    when: CAN_SCROLL,
     match: (_input, key) => key.upArrow === true,
     run: (ctx) => {
       ctx.scrollActiveBy(-1)
     },
   },
   {
-    id: 'done/scroll-down',
-    when: IN_DONE,
+    id: 'scroll/down',
+    when: CAN_SCROLL,
     match: (_input, key) => key.downArrow === true,
     run: (ctx) => {
       ctx.scrollActiveBy(1)
     },
   },
   {
-    id: 'done/page-up',
-    when: IN_DONE,
+    id: 'scroll/page-up',
+    when: CAN_SCROLL,
     match: (_input, key) => key.pageUp === true,
     run: (ctx) => {
       ctx.scrollActiveBy(-(ctx.viewportHeight - 1))
     },
   },
   {
-    id: 'done/page-down',
-    when: IN_DONE,
+    id: 'scroll/page-down',
+    when: CAN_SCROLL,
     match: (_input, key) => key.pageDown === true,
     run: (ctx) => {
       ctx.scrollActiveBy(ctx.viewportHeight - 1)
     },
   },
   {
-    id: 'done/home',
-    when: IN_DONE,
+    id: 'scroll/home',
+    when: CAN_SCROLL,
     match: (input, key) => key.home === true || input === 'g',
     run: (ctx) => {
       ctx.scrollActiveTo(0)
     },
   },
   {
-    id: 'done/end',
-    when: IN_DONE,
+    id: 'scroll/end',
+    when: CAN_SCROLL,
     match: (input, key) => key.end === true || input === 'G',
     run: (ctx) => {
       // `scrollActiveTo` clamps against the active tab's `maxOffset` (see

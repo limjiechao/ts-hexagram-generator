@@ -60,6 +60,17 @@ describe('castingMarkdownSection', () => {
     expect(text).toContain('33')
   })
 
+  it('folds the suspended stalk back into Stalks and Right', () => {
+    // Stalks shows the round's unparted total (max + 1) and Right shows
+    // max - pick + 1, re-including the one stalk suspended from the right
+    // heap — both were part of the unparted stalks before sorting. Every
+    // first cast in the fixture has max 48, so 49 must appear and the old
+    // selectable-range value 48 must not survive anywhere in the table.
+    const text = castingMarkdownSection(casting as never)
+    expect(text).toContain('49')
+    expect(text).not.toContain('48')
+  })
+
   it('contains no ANSI escape codes', () => {
     const text = castingMarkdownSection(casting as never)
     // Check for ANSI escape sequences using Unicode escape

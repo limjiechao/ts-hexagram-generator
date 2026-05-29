@@ -256,10 +256,13 @@ function castRight(text: string, width: number, color?: string): string {
 // hexagram order (Line 6 at top, matching the diagram sections); columns are
 // grouped under a top-level `Cast` banner, split into three ordinals
 // (`1st` / `2nd` / `3rd`), and within each cast the leaf columns are
-// `Stalks` (the round's selectable range) and a `Heap → {Left, Right}`
-// subgroup recording the two heaps the stalks were parted into (`Left` is
-// the index parted at, `Right` is `Stalks − Left`). The query is not
-// repeated here — it has its own section.
+// `Stalks` (the round's unparted total, `max + 1`) and a `Heap → {Left,
+// Right}` subgroup recording the two heaps the stalks were parted into
+// (`Left` is the index parted at = `pick`; `Right` is `Stalks − Left`).
+// `Stalks` and `Right` both fold the one stalk suspended from the right heap
+// back in — it was part of the unparted stalks and part of the right heap
+// before sorting — so `Left + Right == Stalks`. The query is not repeated
+// here — it has its own section.
 //
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
 // casting is still being collected by the interactive viewer — `null` cells
@@ -316,7 +319,7 @@ ${NORMAL}Casting not recorded
   const cell = (split: PartialSplitRecord): string =>
     split === null
       ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}`
-      : `${castRight(String(split.max), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}│${castRight(String(split.max - split.pick), 7, BOLD_WHITE)}`
+      : `${castRight(String(split.max + 1), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}│${castRight(String(split.max - split.pick + 1), 7, BOLD_WHITE)}`
 
   // `casting` is a 6-tuple and the literal source `[6, 5, 4, 3, 2, 1]` covers
   // every valid index, but TS can't narrow `lineNumber - 1` to `0..5` from a

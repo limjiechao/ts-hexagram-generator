@@ -514,13 +514,13 @@ export type CastingInputMode = 'slider' | 'number'
  *   slider mode → 5 content rows (title + blank + bar + blank + readout) → 7
  *                 with border
  *   number mode → 2 content rows + optional error → 5 normally, 6 with error
- *   manual flow → always 24 — the vertical flow diagram: slim title / blank /
- *                 3-row UNPARTED header (readout + drop + branch) / 10-row
+ *   manual flow → always 22 — the vertical flow diagram: slim title / blank /
+ *                 2-row UNPARTED header (readout + branch) / 10-row
  *                 heap-card band (LEFT + RIGHT, with the question + dim range
  *                 hint + 3-row drawn-box input + step dots mapped onto the
- *                 right of the band) / 5-row COUNTED/MISSING footer (join +
- *                 drop + COUNTED + rule + MISSING) / blank / feedback strip
- *                 → 22 content rows + 2 border. The feedback strip renders
+ *                 right of the band) / 4-row COUNTED/MISSING footer (join +
+ *                 COUNTED + rule + MISSING) / blank / feedback strip
+ *                 → 20 content rows + 2 border. The feedback strip renders
  *                 one of three branches: editing (blank, or "Press Enter to
  *                 commit" once valid), error (BOLD_RED suspended-sum /
  *                 zero-remainder message), or resolved (BOLD_GREEN next-cast
@@ -535,7 +535,7 @@ export function getCastingPromptHeight(
   hasError: boolean,
   flowKind: FlowKind = 'interactive',
 ): number {
-  if (flowKind === 'manual') return 24
+  if (flowKind === 'manual') return 22
   if (inputMode === 'slider') return 7
   return hasError ? 6 : 5
 }
@@ -1153,21 +1153,27 @@ export function twoHeapDiagramRows(args: TwoHeapDiagramRowsArgs): string[] {
 // Both heap cards are CARD_OUTER cols wide; the pair sits CARD_GAP apart,
 // giving DIAGRAM_WIDTH. Each card footer carries a centred `┬` tee at
 // CARD_TEE_OFFSET (cols from the card's left edge); the branch/join connectors
-// and the UNPARTED/COUNTED drops all align to FLOW_MID_COL — the midpoint
-// between the two card tees — so the vertical flow reads as one circuit.
+// span the two card tees (LEFT_TEE_COL..RIGHT_TEE_COL) and point their
+// `┴` / `┬` stub at LEDGER_VALUE_END_COL — under the last digit of the
+// right-aligned UNPARTED / COUNTED value above/below — so the vertical flow
+// reads as one circuit anchored to the numbers it sums.
 const CARD_OUTER = HEAP_CARD_INTERIOR + 2
 const CARD_GAP = 4
 const DIAGRAM_WIDTH = CARD_OUTER * 2 + CARD_GAP
 const CARD_TEE_OFFSET = 1 + Math.floor((HEAP_CARD_INTERIOR - 1) / 2)
 const LEFT_TEE_COL = CARD_TEE_OFFSET
 const RIGHT_TEE_COL = CARD_OUTER + CARD_GAP + CARD_TEE_OFFSET
-const FLOW_MID_COL = Math.floor((LEFT_TEE_COL + RIGHT_TEE_COL) / 2)
 // Ledger readout column: label left-aligned, value right-aligned. Also the
 // length of the COUNTED/MISSING subtraction rule.
 const READOUT_WIDTH = 22
+// Column of the last digit of a right-aligned ledger value — the connector
+// stub (`┴` / `┬`) points here so it lands under the UNPARTED / COUNTED
+// number rather than the geometric midpoint of the card pair.
+const LEDGER_VALUE_END_COL = READOUT_WIDTH - 1
 
 // A horizontal connector spanning the two card tees: corners at LEFT_TEE_COL /
-// RIGHT_TEE_COL, a `─` bar between them, and a single `stub` at FLOW_MID_COL
+// RIGHT_TEE_COL, a `─` bar between them, and a single `stub` at
+// LEDGER_VALUE_END_COL — under the last digit of the UNPARTED / COUNTED value
 // (`┴` points up to UNPARTED, `┬` points down to COUNTED).
 function connectorRow(
   leftCorner: string,
@@ -1178,13 +1184,8 @@ function connectorRow(
   for (let c = LEFT_TEE_COL + 1; c < RIGHT_TEE_COL; c++) cells[c] = '─'
   cells[LEFT_TEE_COL] = leftCorner
   cells[RIGHT_TEE_COL] = rightCorner
-  cells[FLOW_MID_COL] = stub
+  cells[LEDGER_VALUE_END_COL] = stub
   return cells.join('')
-}
-
-// A single vertical drop `│` at FLOW_MID_COL.
-function dropRow(): string {
-  return `${' '.repeat(FLOW_MID_COL)}│`
 }
 
 // A ledger readout: `LABEL    VALUE` — label left, value right-aligned within
@@ -1196,14 +1197,14 @@ function ledgerRow(label: string, value: string): string {
 }
 
 /**
- * The 3 rows above the heap-card band: the `UNPARTED STALKS: N` source
- * readout, a vertical drop, and the downward-cornered branch whose `┴` stub
- * feeds the drop. Pure text; aligned to the card geometry above.
+ * The 2 rows above the heap-card band: the `UNPARTED STALKS: N` source
+ * readout, and the downward-cornered branch directly below it whose `┴` stub
+ * points up at the value's last digit. Pure text; aligned to the card
+ * geometry above.
  */
 export function flowHeaderRows(unparted: number): string[] {
   return [
     ledgerRow('UNPARTED STALKS:', String(unparted)),
-    dropRow(),
     connectorRow('┌', '┐', '┴'),
   ]
 }
@@ -1219,11 +1220,12 @@ interface FlowFooterArgs {
 }
 
 /**
- * The 5 rows below the heap-card band: the upward-cornered join (its `┬` stub
- * gathers the two card tees), a vertical drop, the `COUNTED STALKS: - N`
- * accumulator (subtraction-signed), a ledger rule, and the `MISSING STALKS N`
- * conservation gauge — coloured per `missingColor` (green = commit-ready,
- * red = conservation violation, neutral = mid-countdown). Pure text.
+ * The 4 rows below the heap-card band: the upward-cornered join (its `┬` stub
+ * gathers the two card tees and points down at the COUNTED value's last
+ * digit), the `COUNTED STALKS: - N` accumulator (subtraction-signed) directly
+ * below it, a ledger rule, and the `MISSING STALKS N` conservation gauge —
+ * coloured per `missingColor` (green = commit-ready, red = conservation
+ * violation, neutral = mid-countdown). Pure text.
  */
 const MISSING_WRAP: Record<MissingColor, string> = {
   green: BOLD_GREEN,
@@ -1238,7 +1240,6 @@ export function flowFooterRows(args: FlowFooterArgs): string[] {
   const coloredMissing = wrap ? `${wrap}${missingStr}${NORMAL}` : missingStr
   return [
     connectorRow('└', '┘', '┬'),
-    dropRow(),
     ledgerRow('COUNTED STALKS:', `- ${counted}`),
     '─'.repeat(READOUT_WIDTH),
     ledgerRow('MISSING STALKS', coloredMissing),
@@ -1608,13 +1609,13 @@ function manualBufferForField(
  * canonical split index (`4 × pilesL + remL`) and hand it upstream as if it
  * were a typed cast.
  *
- * Layout (22 content rows + 2 border = 24 rows total) is a vertical flow
- * diagram: slim title (`Line N/6 · Cast C/3 · Step P/4`) / blank / 3-row
- * UNPARTED header (`UNPARTED STALKS: N` + drop + branch) / 10-row heap-card
+ * Layout (20 content rows + 2 border = 22 rows total) is a vertical flow
+ * diagram: slim title (`Line N/6 · Cast C/3 · Step P/4`) / blank / 2-row
+ * UNPARTED header (`UNPARTED STALKS: N` + branch) / 10-row heap-card
  * band (LEFT + RIGHT cards, each: header / Piles / Fours ×4 / sep / Subtotal /
  * Remainder / Suspended-or-blank / sep / Total / footer), with the question +
  * dim range hint + 3-row drawn-box input + step dots mapped onto the right of
- * the band / 5-row COUNTED-MISSING footer (join + drop + `COUNTED STALKS: - N`
+ * the band / 4-row COUNTED-MISSING footer (join + `COUNTED STALKS: - N`
  * + rule + `MISSING STALKS N`) / blank / one-row feedback strip. The MISSING
  * gauge is the live conservation readout — neutral mid-countdown, green when
  * commit-ready, red on a completed wrong total. Each row is pre-built ANSI text
@@ -1646,7 +1647,7 @@ function manualBufferForField(
  *     full reveal.
  *
  * The rendered height is locked at
- * `getCastingPromptHeight(_, _, 'manual') = 24`.
+ * `getCastingPromptHeight(_, _, 'manual') = 22`.
  */
 function ManualCastingPrompt({
   lineNumber,
@@ -1866,8 +1867,8 @@ function ManualCastingPrompt({
   // Row 1: title.
   const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
 
-  // Left half is the vertical flow diagram: UNPARTED header (3 rows) → the
-  // 10-row heap-card band → COUNTED/MISSING footer (5 rows). The card band's
+  // Left half is the vertical flow diagram: UNPARTED header (2 rows) → the
+  // 10-row heap-card band → COUNTED/MISSING footer (4 rows). The card band's
   // 10 rows are the only ones paired with right-pane content.
   const flowHeader = flowHeaderRows(unpartedStalks)
   const cardBand = twoHeapDiagramRows({
@@ -1984,8 +1985,8 @@ function ManualCastingPrompt({
   })()
   const stripRow = bottomStripRow(bottomStripBranchArgs)
 
-  // Stack the 22 content rows (title / blank / 3 flow-header / 10 card-band /
-  // 5 flow-footer / blank / feedback strip), pad each to renderWidth, then
+  // Stack the 20 content rows (title / blank / 2 flow-header / 10 card-band /
+  // 4 flow-footer / blank / feedback strip), pad each to renderWidth, then
   // slice by horizontalOffset for the viewer's `<` / `>` narrow-terminal pan.
   const allRows = [titleRow, '', ...bodyRows, '', stripRow]
   const slicedRows = allRows.map((row) => {
