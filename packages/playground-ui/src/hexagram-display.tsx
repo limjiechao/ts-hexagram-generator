@@ -3,7 +3,7 @@
 // the top half never wraps on narrow terminals; the host owns the offset and
 // re-renders this component when it changes.
 
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 import sliceAnsi from 'slice-ansi'

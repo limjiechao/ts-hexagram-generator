@@ -5,25 +5,25 @@ Date: 2026-05-29
 
 The project is a Turborepo + pnpm-workspaces monorepo. Published libraries live
 under `packages/*`; the CLI lives under `apps/*` as the private `@hexagram/bin`.
-The work is split into ten packages along a strict dependency DAG:
+The work is split into nine packages along a strict dependency DAG:
 
 ```
-types → core → consultation-file → viewer-core → readout → {casting-ui, history-ui, playground-ui} → shell → bin
-                                                            (test-utils is a dev-only leaf, consumed by every UI package)
+core → consultation-file → viewer-core → readout → {casting-ui, history-ui, playground-ui} → shell → bin
+                                                    (test-utils is a dev-only leaf, consumed by every UI package)
 ```
 
 The decomposition follows two rules: **a package owns one concern**, and **a
 package depends only on layers strictly below it**. Concretely:
 
-- `types` — the domain vocabulary (`Line`, `Hexagram`, `CastingRecord`,
-  `LineState`) with zero dependencies, so every other package can import it
-  without cycles.
-- `core` — the pure casting algorithm, RNG, getters, and the 64+8 records. It is
-  UI-free and file-free. `random-casting` and `getters` ship as **subpaths of
-  core** (not separate packages) because they are thin consumers of the same
-  algorithm/records and splitting them out would only create a circular pull on
-  core. See [ADR-0003](0003-package-publishing-and-module-strategy.md) for the subpath
-  mechanics.
+- `core` — the domain vocabulary (`Line`, `Hexagram`, `CastingRecord`,
+  `LineState`) plus the pure casting algorithm, RNG, getters, and the 64+8
+  records. It is UI-free and file-free, and sits at the bottom of the DAG with
+  zero workspace dependencies. The vocabulary ships as the **`./types` subpath**,
+  and `random-casting` / `getters` likewise ship as subpaths (not separate
+  packages). See [ADR-0003](0003-package-publishing-and-module-strategy.md) for the
+  subpath mechanics, and [ADR-0017](0017-types-folded-into-core.md) for why the
+  vocabulary was folded into `core` (superseding the original separate-`types`
+  package in this ADR).
 - `consultation-file` — the on-disk format and (de)serialisation, with no React/
   Ink dependency, so the format can be read and written headlessly. See
   [ADR-0008](0008-consultation-file-format.md).

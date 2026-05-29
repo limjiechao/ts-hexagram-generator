@@ -1,4 +1,4 @@
-import type { CastingRecord, Hexagram } from '@hexagram/types'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import {

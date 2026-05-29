@@ -9,7 +9,7 @@
 // frame transition is deterministic given a seeded RNG and unit-testable
 // without rendering Ink.
 
-import type { Hexagram, Line } from '@hexagram/types'
+import type { Hexagram, Line } from '@hexagram/core/types'
 import {
   deriveBannerLine,
   polarityOf,

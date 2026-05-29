@@ -25,7 +25,6 @@
   },
   "dependencies": {
     "@hexagram/core": "workspace:*",
-    "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6",

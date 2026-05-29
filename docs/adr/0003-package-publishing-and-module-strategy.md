@@ -19,8 +19,8 @@ built `.mjs`/`.d.mts`. (`vitest` is wired to honour `source` — see
 
 Packages with more than one concern expose **multiple entry points** rather than a
 single barrel, so consumers import exactly what they need and bundlers can
-tree-shake: `core` ships six (`index`, `random-casting`, `crypto-random`,
-`getters`, `hexagrams`, `trigrams`), `consultation-file` ships several
+tree-shake: `core` ships seven (`index`, `types`, `random-casting`,
+`crypto-random`, `getters`, `hexagrams`, `trigrams`), `consultation-file` ships several
 (`index`, `file`, `markdown`, `frontmatter`, `legacy-converter`), and `bin` ships
 one per CLI command. tsdown builds each entry to its own `.mjs` + `.d.mts`; all
 configs target `platform: 'node'`.

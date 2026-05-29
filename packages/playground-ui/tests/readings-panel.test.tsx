@@ -5,7 +5,7 @@
 // `playground-app.test.tsx` so the fake stdout never reports zero rows.
 
 import { getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import { stripAnsi } from '@hexagram/viewer-core'
 import { render } from 'ink-testing-library'
 import type { ComponentProps } from 'react'

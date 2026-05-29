@@ -1,4 +1,4 @@
-import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/types'
+import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/core/types'
 
 const lc = (
   p1: number,

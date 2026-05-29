@@ -9,8 +9,7 @@ This is a **Turborepo + pnpm-workspaces monorepo**. The root is private; publish
 ```
 ts-hexagram-generator/         # workspace root (private)
 ├── packages/
-│   ├── types/                 # @hexagram/types — public type defs + assertions
-│   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
+│   ├── core/                  # @hexagram/core — type vocabulary (./types), algorithm, random, getters, hexagram/trigram records
 │   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), renderers, legacy converter
 │   ├── viewer-core/           # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout, line glyphs)
 │   ├── readout/               # @hexagram/readout — Consultation Readout renderer (ConsultationReadout + per-section ANSI string builders)
@@ -89,7 +88,7 @@ pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → 
 # Per-package operations (use --filter for a single package)
 pnpm --filter @hexagram/core test
 pnpm --filter @hexagram/casting-ui build
-pnpm --filter @hexagram/types type:check
+pnpm --filter @hexagram/core type:check
 
 # Regenerate JSON data files after changing hexagram/trigram TypeScript sources
 pnpm generate-json-files    # turbo run generate-json-files --filter=@hexagram/core
@@ -122,7 +121,7 @@ Reach for them before pushing a race-condition fix, before merging an Ink compon
 partTheStalks → suspendOneFromTheRight → sortLeftAndRightIntoFours → setAsideRemainderFromSortedLeftAndRight
 ```
 
-`makeLineGenerator` is a synchronous generator that runs this pipeline three times (三變成爻) and yields a `FourOperationsResult` after each round, receiving the next `partStalksAtIndex` via `generator.next(index)`. After all three rounds, it returns a `Line` (6 | 7 | 8 | 9). `packages/core/src/index.ts` exposes the runtime algorithm (`makeLineGenerator`, `stalksBeforeParting`, etc.); types like `Line`, `Hexagram`, and `CastingRecord` are imported directly from `@hexagram/types`.
+`makeLineGenerator` is a synchronous generator that runs this pipeline three times (三變成爻) and yields a `FourOperationsResult` after each round, receiving the next `partStalksAtIndex` via `generator.next(index)`. After all three rounds, it returns a `Line` (6 | 7 | 8 | 9). `packages/core/src/index.ts` exposes the runtime algorithm (`makeLineGenerator`, `stalksBeforeParting`, etc.); types like `Line`, `Hexagram`, and `CastingRecord` are imported from `@hexagram/core/types` (the vocabulary ships as a subpath of `core`).
 
 **Line semantics:**
 
@@ -141,7 +140,7 @@ Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping 
 
 `@hexagram/core` also exposes `cryptoRandom()` at `@hexagram/core/crypto-random` — a `[0, 1)` float helper backed by `node:crypto.randomInt`. It's the production RNG behind the home banner's `<AnimatedBanner>` animation, replacing `Math.random` so no flow in the app depends on V8's pseudorandom generator.
 
-Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/casting-ui/src/utils-mode.ts`:
+Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `CastingRecord` (`@hexagram/core/types`) — each `SplitRecord` pairs the index parted at (`pick`) with that round's selectable range (`max`). The per-line `splits` ride along on the generator's `LineGeneratorResult`. Output mode is decided by `resolveOutputMode()` in `packages/casting-ui/src/utils-mode.ts`:
 
 - **Ink viewer (default)** — a full-screen tabbed viewer (`packages/casting-ui/src/viewer.tsx`) with up to four tabs (Casting / Transformation / Standing Hexagram / Emerging Hexagram), opening on Casting, query pinned above and the saved-file path pinned below. Built on [Ink](https://github.com/vadimdemedes/ink); `runConsultationViewer({ flowKind, inputMode, maxWrapWidth, sliderSweepMs, sliderCommitRevealMs })` renders it on the alternate screen.
 
@@ -216,10 +215,9 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `packages/core/src
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/types` → `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/viewer-core` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/viewer-core` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
-- `packages/types/tsdown.config.ts` — single `./src/index.ts` entry.
-- `packages/core/tsdown.config.ts` — six entries: `index`, `random-casting`, `crypto-random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; the latter two ship from `src/models/` but are exported at the top-level subpath).
+- `packages/core/tsdown.config.ts` — seven entries: `index`, `types`, `random-casting`, `crypto-random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; `types` is the domain vocabulary; the `hexagrams`/`trigrams` entries ship from `src/models/` but are exported at the top-level subpath).
 - `packages/consultation-file/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
 - `packages/viewer-core/tsdown.config.ts` — single `./src/index.ts` entry.
 - `packages/readout/tsdown.config.ts` — single `./src/index.ts` entry (the `ConsultationReadout` component + the per-section string builders).

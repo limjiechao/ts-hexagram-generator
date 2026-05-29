@@ -4,7 +4,7 @@ import {
   type FourOperationsResult,
   type Line,
   type LineState,
-} from '@hexagram/types'
+} from './types.js'
 
 type SortedStalks =
   | [number, number, number, number]

@@ -1,7 +1,7 @@
 // Pure unit tests for the Playground's line helpers. No React, no
 // Ink — every function is exercised directly with plain value inputs.
 
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import {

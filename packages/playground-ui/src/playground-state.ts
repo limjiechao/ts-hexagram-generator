@@ -29,7 +29,7 @@
 //   - `saveError` — the error message from the last failed save, cleared on
 //     any subsequent mutation.
 
-import type { Hexagram, Line } from '@hexagram/types'
+import type { Hexagram, Line } from '@hexagram/core/types'
 
 import {
   cycleLineBackward,

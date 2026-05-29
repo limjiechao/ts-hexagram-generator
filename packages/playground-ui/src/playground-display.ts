@@ -28,8 +28,8 @@
 // identity as standing but rendered in NORMAL_GREY everywhere.
 
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
+import type { Hexagram, Line } from '@hexagram/core/types'
 import { MOVING_ARROW, POSITION_LABELS, STATIC_GAP } from '@hexagram/readout'
-import type { Hexagram, Line } from '@hexagram/types'
 import {
   BOLD_GREY,
   BOLD_RED,

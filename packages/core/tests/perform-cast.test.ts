@@ -1,4 +1,3 @@
-import type { AdvanceableLineState, LineState } from '@hexagram/types'
 import { describe, expect, test } from 'vitest'
 
 import {
@@ -7,6 +6,7 @@ import {
   performCast,
   stalksBeforeParting,
 } from '../src/index'
+import type { AdvanceableLineState, LineState } from '../src/types.js'
 
 describe('initialLineState', () => {
   test('is in 0th-cast phase with all 49 stalks unparted', () => {

@@ -1,4 +1,4 @@
-import type { CastingRecord, Hexagram, Line } from '@hexagram/types'
+import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
 
 import {
   castingMarkdownSection,

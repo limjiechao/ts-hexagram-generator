@@ -2,7 +2,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import {
   BOLD_GREY,
   BOLD_RED,

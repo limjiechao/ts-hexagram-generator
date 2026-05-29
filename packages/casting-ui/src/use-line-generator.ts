@@ -1,5 +1,5 @@
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
-import type { LineState } from '@hexagram/types'
+import type { LineState } from '@hexagram/core/types'
 import { useRef, type Dispatch } from 'react'
 
 import type { FlowAction, FlowState } from './viewer-flow.js'

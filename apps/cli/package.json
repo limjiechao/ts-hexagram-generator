@@ -28,7 +28,6 @@
     "@hexagram/history-ui": "workspace:*",
     "@hexagram/playground-ui": "workspace:*",
     "@hexagram/shell": "workspace:*",
-    "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*"
   }
 }

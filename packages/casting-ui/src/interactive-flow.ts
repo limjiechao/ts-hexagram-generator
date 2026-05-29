@@ -6,7 +6,7 @@ import {
   type Hexagram,
   type LineGeneratorResult,
   type SplitRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 import { number } from '@inquirer/prompts'
 

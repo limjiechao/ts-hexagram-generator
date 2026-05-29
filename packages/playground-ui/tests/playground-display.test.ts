@@ -3,7 +3,7 @@
 // `buildPlaygroundDisplay`.
 
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import { NORMAL_GREY, stripAnsi } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'
 

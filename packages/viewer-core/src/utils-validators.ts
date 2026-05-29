@@ -1,4 +1,4 @@
-import type { Line } from '@hexagram/types'
+import type { Line } from '@hexagram/core/types'
 
 export function isMovingLine(line: Line): line is Extract<Line, 6 | 9> {
   return line === 6 || line === 9

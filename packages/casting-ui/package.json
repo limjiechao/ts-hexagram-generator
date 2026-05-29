@@ -28,7 +28,6 @@
     "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/readout": "workspace:*",
-    "@hexagram/types": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "@inquirer/prompts": "^8.4.3",
     "ink": "^7.0.3",

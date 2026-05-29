@@ -7,8 +7,8 @@ import {
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { yieldMacrotask } from '@hexagram/test-utils'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

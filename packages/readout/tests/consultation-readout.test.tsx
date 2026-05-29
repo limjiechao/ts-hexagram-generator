@@ -1,5 +1,5 @@
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { Text } from 'ink'
 import { render } from 'ink-testing-library'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

@@ -3,7 +3,7 @@ import type {
   CastingRecord,
   Hexagram,
   PartialCastingRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 import { isMovingLine } from '@hexagram/viewer-core'
 
 import {

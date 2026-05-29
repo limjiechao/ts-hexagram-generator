@@ -1,5 +1,5 @@
+import type { Hexagram } from '@hexagram/core/types'
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
-import type { Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 

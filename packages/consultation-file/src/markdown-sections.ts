@@ -8,7 +8,7 @@ import type {
   Hexagram,
   Line,
   PartialSplitRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 
 // Pure column-padding helpers (no ANSI). Mirrors the geometry used in the
 // casting-ui `castingSection`, but emits plain text inside a ```text fence.

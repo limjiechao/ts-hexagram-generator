@@ -29,6 +29,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0014 | Product identity                                    | Accepted |
 | 0015 | Data hygiene                                        | Accepted |
 | 0016 | Readout renderer extracted from viewer-core         | Accepted |
+| 0017 | Type vocabulary folded into core                    | Accepted |
 
 ## Template
 

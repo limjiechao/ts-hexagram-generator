@@ -3,7 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import { serializeFrontmatter } from '../src/frontmatter'

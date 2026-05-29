@@ -7,7 +7,7 @@ import {
   type Line,
   type LineCasting,
   type SplitRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 
 import type { ConsultationEnvelope } from './frontmatter.js'
 

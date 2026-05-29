@@ -19,18 +19,18 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 
 The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private; published packages live under `packages/*` and CLI bins under `apps/*`.
 
-| Package                       | Description                                                                                                                            |
-| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
-| `@hexagram/types`             | Public type definitions for the hexagram + casting domain (`Line`, `Hexagram`, `CastingRecord`, `LineState`, plus runtime assertions). |
-| `@hexagram/core`              | Yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records.            |
-| `@hexagram/consultation-file` | The saved-reading file format (Markdown + YAML frontmatter), renderers, and the legacy `.txt` converter.                               |
-| `@hexagram/viewer-core`       | Generic terminal-UI building blocks shared by the casting and history UIs (the `ScreenShell`, palette, section builders).              |
-| `@hexagram/casting-ui`        | The casting Viewer (Ink tabbed viewer + interactive/manual flows), plus the `--plain` Inquirer flow and console renderers.             |
-| `@hexagram/history-ui`        | The Ink browser for past consultations.                                                                                                |
-| `@hexagram/playground-ui`     | The Ink interactive 4-state line explorer.                                                                                             |
-| `@hexagram/shell`             | The Home hub that aggregates the casting, history, and playground UIs into one app.                                                    |
-| `@hexagram/test-utils`        | Workspace-private test helpers (polling + readiness-witness utilities). Not published.                                                 |
-| `@hexagram/bin` _(private)_   | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-history`, `hexagram-playground`).    |
+| Package                       | Description                                                                                                                                                                                                                               |
+| ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `@hexagram/core`              | The domain type vocabulary (`Line`, `Hexagram`, `CastingRecord`, `LineState` + assertions, at `./types`), the yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records. |
+| `@hexagram/consultation-file` | The saved-reading file format (Markdown + YAML frontmatter), renderers, and the legacy `.txt` converter.                                                                                                                                  |
+| `@hexagram/viewer-core`       | Generic terminal-UI building blocks shared by the UIs (the `ScreenShell`, palette, chrome, keymap, layout maths, line glyphs) — no divination knowledge.                                                                                  |
+| `@hexagram/readout`           | The Consultation Readout renderer: the `ConsultationReadout` component + the per-section ANSI string builders.                                                                                                                            |
+| `@hexagram/casting-ui`        | The casting Viewer (Ink tabbed viewer + interactive/manual flows), plus the `--plain` Inquirer flow and console renderers.                                                                                                                |
+| `@hexagram/history-ui`        | The Ink browser for past consultations.                                                                                                                                                                                                   |
+| `@hexagram/playground-ui`     | The Ink interactive 4-state line explorer.                                                                                                                                                                                                |
+| `@hexagram/shell`             | The Home hub that aggregates the casting, history, and playground UIs into one app.                                                                                                                                                       |
+| `@hexagram/test-utils`        | Workspace-private test helpers (polling + readiness-witness utilities). Not published.                                                                                                                                                    |
+| `@hexagram/bin` _(private)_   | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-history`, `hexagram-playground`).                                                                                                       |
 
 Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions. See [docs/adr/0002](docs/adr/0002-monorepo-structure-and-package-decomposition.md) and [docs/adr/0003](docs/adr/0003-package-publishing-and-module-strategy.md).
 
@@ -41,13 +41,8 @@ Every library package publishes via `package.json#exports` only — no `main` / 
 Once published, consumers can reach into the library at these subpaths:
 
 ```ts
-// Algorithm + types in one import (core re-exports types).
-import {
-  makeLineGenerator,
-  stalksBeforeParting,
-  type Hexagram,
-  type Line,
-} from '@hexagram/core'
+// The casting algorithm.
+import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
 
 // RNG-driven generators.
 import {
@@ -67,12 +62,14 @@ import {
 import { HEXAGRAM_RECORDS } from '@hexagram/core/hexagrams'
 import { TRIGRAM_RECORDS } from '@hexagram/core/trigrams'
 
-// Type-only re-exports also live at the foundation package.
+// The domain type vocabulary ships as a subpath of core.
 import type {
   CastingRecord,
+  Hexagram,
+  Line,
   LineGeneratorResult,
   SplitRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 
 // Terminal UI (viewer + Inquirer flow + formatters), if you want to embed
 // the CLI experience in your own host.
@@ -133,10 +130,10 @@ pnpm build
 # Pack the library packages (workspace deps) and the CLI. The CLI depends,
 # transitively, on every published package, so pack them all (skip the
 # private @hexagram/test-utils, which is dev-only).
-pnpm --filter @hexagram/types             pack
 pnpm --filter @hexagram/core              pack
 pnpm --filter @hexagram/consultation-file pack
 pnpm --filter @hexagram/viewer-core       pack
+pnpm --filter @hexagram/readout           pack
 pnpm --filter @hexagram/casting-ui        pack
 pnpm --filter @hexagram/history-ui        pack
 pnpm --filter @hexagram/playground-ui     pack

@@ -1,4 +1,4 @@
-import { emptyPartialCastingRecord } from '@hexagram/types'
+import { emptyPartialCastingRecord } from '@hexagram/core/types'
 import {
   ALWAYS,
   BINDINGS,

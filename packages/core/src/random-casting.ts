@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto'
 
+import { makeLineGenerator, stalksBeforeParting } from './index'
 import {
   assertIsCastingRecord,
   assertIsFourOperationsResult,
@@ -10,9 +11,7 @@ import {
   type Hexagram,
   type Line,
   type LineGeneratorResult,
-} from '@hexagram/types'
-
-import { makeLineGenerator, stalksBeforeParting } from './index'
+} from './types.js'
 
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
 // `randomInt(min, max)` is exclusive on `max`, so passing `length` here yields

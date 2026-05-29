@@ -3,7 +3,7 @@
 // `advanceBannerState`, and `deriveBannerFrame` are exercised directly with a
 // scripted, fully-deterministic RNG.
 
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import {

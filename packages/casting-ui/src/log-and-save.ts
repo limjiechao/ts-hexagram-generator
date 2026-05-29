@@ -1,5 +1,5 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 
 import { consultationConsoleOutput } from './output-composers.js'

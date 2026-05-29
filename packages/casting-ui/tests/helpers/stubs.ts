@@ -1,4 +1,4 @@
-import type { CastingRecord, Hexagram } from '@hexagram/types'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 
 // Shared stubs reused across viewer tests. None of these need to be
 // algorithmically valid — the viewer only renders them — but the casting

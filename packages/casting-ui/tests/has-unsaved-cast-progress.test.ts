@@ -1,4 +1,4 @@
-import { emptyPartialCastingRecord } from '@hexagram/types'
+import { emptyPartialCastingRecord } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import { hasUnsavedCastProgress } from '../src/has-unsaved-cast-progress'

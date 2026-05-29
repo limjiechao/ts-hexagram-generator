@@ -1,4 +1,4 @@
-import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/types'
+import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/core/types'
 
 // Build one line's three divisions from its picks and selectable ranges. The
 // `max` values follow a real yarrow casting: the first division always ranges

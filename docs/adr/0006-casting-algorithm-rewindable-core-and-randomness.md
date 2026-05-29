@@ -55,6 +55,6 @@ it is yarrow casting, not a general RNG utility.)
 
 - `packages/core/src/index.ts` — `performCast`, `initialLineState`, `maxPickFor`,
   `makeLineGenerator` wrapper.
-- `packages/types/src/index.ts` — `LineState` / `AdvanceableLineState` unions.
+- `packages/core/src/types.ts` — `LineState` / `AdvanceableLineState` unions.
 - `packages/core/src/crypto-random.ts` — `cryptoRandom` + the `2^48 − 1` bound.
 - `packages/core/src/random-casting.ts` — `randomInt`-driven splits.

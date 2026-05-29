@@ -1,10 +1,9 @@
-import type { Hexagram, Line } from '@hexagram/types'
-
 import type { HexagramKey } from './models/foundation'
 import type { GenericHexagramRecord } from './models/hexagram'
 import { HEXAGRAM_RECORDS } from './models/hexagrams'
 import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
 import { TRIGRAM_RECORDS } from './models/trigrams'
+import type { Hexagram, Line } from './types.js'
 
 const HexagramLineToKey = {
   6: 2,

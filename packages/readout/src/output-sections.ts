@@ -8,7 +8,7 @@ import type {
   Line,
   PartialCastingRecord,
   PartialSplitRecord,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 import {
   assertLine1ToLine6,
   BOLD_GREY,

@@ -12,7 +12,7 @@
 // judgments).
 
 import { getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/types'
+import type { Hexagram } from '@hexagram/core/types'
 import {
   BOLD_GREY,
   BOLD_WHITE,

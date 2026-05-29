@@ -11,7 +11,7 @@
 // Moving lines transform on commit: 6→7, 9→8 (the emerging hexagram).
 
 import { getEmergingHexagram } from '@hexagram/core/getters'
-import type { Hexagram, Line } from '@hexagram/types'
+import type { Hexagram, Line } from '@hexagram/core/types'
 import { isMovingLine } from '@hexagram/viewer-core'
 
 /** The Playground opens on Qian #1 — all six lines young yang (7). */

@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-import type { CastingRecord, Hexagram } from '@hexagram/types'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 
 import {
   CURRENT_SCHEMA_VERSION,

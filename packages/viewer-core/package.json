@@ -24,7 +24,7 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/types": "workspace:*",
+    "@hexagram/core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6",
     "slice-ansi": "^9.0.0",

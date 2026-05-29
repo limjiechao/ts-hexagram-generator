@@ -1,6 +1,6 @@
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { buildConsultationSections } from '@hexagram/readout'
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'

@@ -14,7 +14,7 @@
 //   row4: Lower: <chinese> <Pinyin> (<English imagery>)
 
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
-import type { Hexagram, Line } from '@hexagram/types'
+import type { Hexagram, Line } from '@hexagram/core/types'
 
 function visualWidth(text: string): number {
   let width = 0

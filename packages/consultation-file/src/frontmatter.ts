@@ -5,7 +5,7 @@ import {
   type Hexagram,
   type Line,
   type LineCasting,
-} from '@hexagram/types'
+} from '@hexagram/core/types'
 import matter from 'gray-matter'
 import jsYaml from 'js-yaml'
 

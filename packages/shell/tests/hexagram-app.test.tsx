@@ -36,8 +36,8 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { getHexagramRecord } from '@hexagram/core/getters'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { waitFor as baseWaitFor, yieldMacrotask } from '@hexagram/test-utils'
-import type { CastingRecord, Hexagram } from '@hexagram/types'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 

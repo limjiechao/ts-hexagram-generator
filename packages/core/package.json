@@ -10,6 +10,11 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
+    "./types": {
+      "source": "./src/types.ts",
+      "types": "./dist/types.d.mts",
+      "import": "./dist/types.mjs"
+    },
     "./random-casting": {
       "source": "./src/random-casting.ts",
       "types": "./dist/random-casting.d.mts",
@@ -48,8 +53,5 @@
     "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit",
     "generate-json-files": "tsx scripts/generate-json-files.ts && oxfmt --write src/models/*.json"
-  },
-  "dependencies": {
-    "@hexagram/types": "workspace:*"
   }
 }
