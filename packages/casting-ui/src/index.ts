@@ -48,22 +48,3 @@ export {
   runManualConsultationViewer,
   type FlowKind,
 } from './viewer.js'
-
-export {
-  buildConsultationSections,
-  buildPartialCastingSections,
-  type ConsultationSections,
-} from '@hexagram/viewer-core'
-
-// ANSI palette constants used by the formatted output.
-export {
-  BOLD_GREY,
-  BOLD_RED,
-  BOLD_WHITE,
-  HEADING_GREY,
-  MUTED_GREY,
-  NORMAL,
-  NORMAL_GREY,
-  PLACEHOLDER_GREY,
-  VALUE_WHITE,
-} from '@hexagram/viewer-core'

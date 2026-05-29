@@ -3,17 +3,15 @@
 import process from 'node:process'
 
 import {
-  BOLD_GREY,
-  BOLD_WHITE,
   getHexagramViaInteraction,
   logAndSaveConsultationOutput,
-  NORMAL,
   resolveInputMode,
   resolveOutputMode,
   resolveSliderSweepMs,
   resolveWrapWidth,
   runConsultationViewer,
 } from '@hexagram/casting-ui'
+import { BOLD_GREY, BOLD_WHITE, NORMAL } from '@hexagram/viewer-core'
 
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
 
