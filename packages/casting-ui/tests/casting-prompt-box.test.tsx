@@ -369,7 +369,7 @@ describe('bottomStripRow', () => {
       unpartedStalks: 49,
       renderWidth: 78,
     })
-    expect(row.startsWith('21 of 49 stalks accounted')).toBe(true)
+    expect(row.startsWith('22 of 49 stalks accounted')).toBe(true)
     expect(row.endsWith('Enter: next · Shift+Tab: back')).toBe(true)
     expect(stringWidth(row)).toBe(78)
   })
@@ -434,16 +434,15 @@ describe('bottomStripRow', () => {
     expect(both).toContain('Left and right heaps have no remainder')
   })
 
-  it('resolved branch — BOLD_GREEN totals + next-cast; no right hint', () => {
+  it('resolved branch — BOLD_GREEN "→ next cast: N unparted"; no right hint', () => {
     const row = bottomStripRow({
       branch: 'resolved',
-      leftHeapTotal: 24,
-      rightHeapTotal: 24,
-      unpartedStalks: 49,
       next: 40,
       renderWidth: 78,
     })
-    expect(row).toContain('· 1 suspended · 48 of 49 · → next cast: 40 unparted')
+    expect(row).toContain('→ next cast: 40 unparted')
+    expect(row).not.toContain('1 suspended')
+    expect(row).not.toContain('of 49')
     expect(row).not.toContain('Enter: next')
     expect(row).not.toContain('Shift+Tab: back')
     expect(row).toContain('\u001B[1;92m')
@@ -1582,7 +1581,7 @@ describe('CastingPromptBox (manual flow)', () => {
     expect(frame).toContain('How many piles of 4 stalks')
     expect(frame).toContain('in the LEFT heap?')
     expect(frame).toContain('valid 0 to 10')
-    expect(frame).toContain('0 of 40 stalks accounted')
+    expect(frame).toContain('1 of 40 stalks accounted')
     expect(frame).toContain('Enter: next · Shift+Tab: back')
     unmount()
   })
@@ -1687,7 +1686,7 @@ describe('CastingPromptBox (manual flow)', () => {
     await waitForReady(onReady)
     await typeFourFields(stdin, onFocusedFieldChange, validBasePropsInput)
     await waitFor(() => {
-      expect(lastFrame() ?? '').toContain('39 of 40 stalks accounted')
+      expect(lastFrame() ?? '').toContain('40 of 40 stalks accounted')
     })
     unmount()
   })
@@ -1913,11 +1912,8 @@ describe('CastingPromptBox (manual flow)', () => {
     // Reveal appears immediately; onSubmit hasn't fired yet.
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      const total =
-        validBasePropsInput.expectedLeftHeapTotal +
-        validBasePropsInput.expectedRightHeapTotal
       expect(frame).toContain(
-        `· 1 suspended · ${total} of ${baseProps.unpartedStalks} · → next cast: ${validBasePropsInput.expectedNext} unparted`,
+        `→ next cast: ${validBasePropsInput.expectedNext} unparted`,
       )
       expect(frame).toContain('Resolved.')
       expect(frame).toContain('Enter to advance')
@@ -1977,7 +1973,7 @@ describe('CastingPromptBox (manual flow)', () => {
     unmount()
   })
 
-  it('reveal uses byte-identity arithmetic (round-1 commit pinned to 24/49 → suspended 9, next 40)', async () => {
+  it('reveal uses byte-identity arithmetic (round-1 commit pinned to 24/49 → next 40)', async () => {
     // Anchor the closed-form helper against the canonical first-round split.
     //   pick = 24, unparted = 49
     //   leftRem  = ((24 - 1) % 4) + 1 = 4
@@ -1985,7 +1981,6 @@ describe('CastingPromptBox (manual flow)', () => {
     //   rightCount     = 25 - 1 = 24
     //   rightRem       = ((24 - 1) % 4) + 1 = 4
     //   next           = 24 - 4 + (24 - 4) = 40
-    //   suspended      = 49 - 40 = 9
     const onSubmit = vi.fn()
     const onReady = vi.fn()
     const onFocusedFieldChange = vi.fn()
@@ -2013,7 +2008,7 @@ describe('CastingPromptBox (manual flow)', () => {
     stdin.write(ENTER)
     await waitFor(() => {
       const frame = lastFrame() ?? ''
-      expect(frame).toContain('48 of 49 · → next cast: 40 unparted')
+      expect(frame).toContain('→ next cast: 40 unparted')
     })
     unmount()
   })
@@ -2107,13 +2102,13 @@ describe('CastingPromptBox (manual flow)', () => {
     stdin.write(BACKSPACE)
     await yieldMacrotask()
     // After backspace pilesL is empty; the live editing strip is back to
-    // `0 of 40 stalks accounted`, and the diagram no longer shows the typed `5` in the
+    // `1 of 40 stalks accounted` (1 for the always-suspended stalk), and the diagram no longer shows the typed `5` in the
     // pilesL cell. (Focused empty cell renders as an inverse space — invisible
     // after ANSI strip — so we assert via the live total and the absence of
     // the digit instead.)
     // oxlint-disable-next-line no-control-regex
     const stripped1 = (lastFrame() ?? '').replaceAll(/\u001B\[[0-9;]*m/g, '')
-    expect(stripped1).toContain('0 of 40 stalks accounted')
+    expect(stripped1).toContain('1 of 40 stalks accounted')
     expect(stripped1).not.toMatch(/piles\s+5/)
     unmount()
   })

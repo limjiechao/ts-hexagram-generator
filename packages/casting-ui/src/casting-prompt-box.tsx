@@ -1200,9 +1200,6 @@ export type BottomStripArgs =
   | ({ branch: 'error'; renderWidth: number } & BottomStripErrorArgs)
   | {
       branch: 'resolved'
-      leftHeapTotal: number
-      rightHeapTotal: number
-      unpartedStalks: number
       next: number
       renderWidth: number
     }
@@ -1243,22 +1240,24 @@ function leftRightRow(
  *  - **editing** — live totals on the left, commit/back hint on the right.
  *  - **error** — BOLD_RED validator-derived message on the left, "Shift+Tab:
  *    back to fix" on the right.
- *  - **resolved** — BOLD_GREEN totals + "→ next cast: W unparted", full-width
- *    (the right pane's `Resolved.` / `Enter to advance` already covers the
- *    advance prompt).
+ *  - **resolved** — BOLD_GREEN "→ next cast: N unparted", left-aligned (the
+ *    right pane's `Resolved.` / `Enter to advance` already covers the advance
+ *    prompt, and the per-card totals are visible in the diagram itself).
  *
  * Output is exactly `renderWidth` display cols wide.
  */
 export function bottomStripRow(args: BottomStripArgs): string {
   if (args.branch === 'editing') {
-    const accounted = args.liveLeftTotal + args.liveRightTotal
+    // +1 for the stalk suspended from the right heap — it's physically set
+    // aside the moment the user parts the stalks, so it counts toward the
+    // accounted total even before any field is filled.
+    const accounted = args.liveLeftTotal + args.liveRightTotal + 1
     const left = `${accounted} of ${args.unpartedStalks} stalks accounted`
     const right = 'Enter: next · Shift+Tab: back'
     return leftRightRow(left, right, args.renderWidth)
   }
   if (args.branch === 'resolved') {
-    const total = args.leftHeapTotal + args.rightHeapTotal
-    const message = `· 1 suspended · ${total} of ${args.unpartedStalks} · → next cast: ${args.next} unparted`
+    const message = `→ next cast: ${args.next} unparted`
     const colored = `${BOLD_GREEN}${message}${NORMAL}`
     const trailing = Math.max(0, args.renderWidth - stringWidth(colored))
     return `${colored}${' '.repeat(trailing)}`
@@ -1283,10 +1282,7 @@ interface ManualCastingPromptProps {
 
 interface ManualCommit {
   pick: number
-  suspended: number
   next: number
-  leftHeapTotal: number
-  rightHeapTotal: number
 }
 
 /**
@@ -1482,12 +1478,11 @@ function manualBufferForField(
  * inline `●●○○` step-progress dots / blank spacer / 6-row side-by-side body
  * — LEFT and RIGHT heap cards on the left half (each card: header / piles /
  * rem / `= N stalks` / footer), question + dim range hint + 3-row drawn-box
- * input on the right half — / one-row bottom strip (live totals or a
- * BOLD_RED validator-derived error message, swapped to a BOLD_GREEN
- * `· 1 suspended · ${total} of ${unparted} · → next cast: ${next} unparted`
- * during the post-Enter reveal). Each row is pre-built ANSI text and sliced
- * by `horizontalOffset` for the viewer's narrow-terminal `<` / `>` pan,
- * mirroring `<SliderCastingPrompt>`.
+ * input on the right half — / one-row bottom strip (live `X of M stalks
+ * accounted` total or a BOLD_RED validator-derived error message, swapped to
+ * a BOLD_GREEN `→ next cast: ${next} unparted` during the post-Enter reveal).
+ * Each row is pre-built ANSI text and sliced by `horizontalOffset` for the
+ * viewer's narrow-terminal `<` / `>` pan, mirroring `<SliderCastingPrompt>`.
  *
  * Tab cycles focus forward through `pilesL → remL → pilesR → remR → pilesL`;
  * Shift+Tab cycles backward. Digit/backspace input is owned by this
@@ -1500,13 +1495,11 @@ function manualBufferForField(
  * cells switch from inverse-video to plain `?`/value cells when in error.
  *
  * On a valid Enter:
- *   - local `committed = { pick, suspended, next, leftHeapTotal,
- *     rightHeapTotal }` captures the resolved pick plus the closed-form
- *     round numbers and both heap totals,
+ *   - local `committed = { pick, next }` captures the resolved pick plus the
+ *     closed-form next-round unparted count,
  *   - both heap cards switch to BOLD_GREEN and the right pane swaps to
  *     `Resolved. / blank / Enter to advance (or wait 2.5 s)`,
- *   - the bottom strip swaps to a green
- *     `· 1 suspended · X of M · → next cast: N unparted`,
+ *   - the bottom strip swaps to a green `→ next cast: N unparted`,
  *   - a `manualRevealMs`-delayed `setTimeout` fires `onSubmit(pick)`
  *     upstream (tests opt out with `manualRevealMs={0}`, which short-circuits
  *     to a synchronous dispatch),
@@ -1614,10 +1607,7 @@ function ManualCastingPrompt({
       )
       setCommitted({
         pick: validation.pick,
-        suspended: result.suspended,
         next: result.next,
-        leftHeapTotal: validation.leftHeapTotal,
-        rightHeapTotal: validation.rightHeapTotal,
       })
       return
     }
@@ -1803,9 +1793,6 @@ function ManualCastingPrompt({
     if (committed !== null) {
       return {
         branch: 'resolved',
-        leftHeapTotal: committed.leftHeapTotal,
-        rightHeapTotal: committed.rightHeapTotal,
-        unpartedStalks,
         next: committed.next,
         renderWidth,
       }
