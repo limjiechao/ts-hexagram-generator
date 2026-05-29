@@ -7,8 +7,9 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 ## Features
 
 - Accurate simulation of the yarrow stalk method
-- A random hexagram generation in CLI
-- An interactive hexagram generation in CLI
+- Random and interactive hexagram generation in the CLI
+- A manual flow for transcribing a physical yarrow-stalk cast (`hexagram-manual`)
+- A browser for past consultations (`hexagram-history`) and an interactive line explorer (`hexagram-playground`)
 - A full-screen tabbed terminal UI for reading the consultation (with a `--plain` fallback)
 - A casting record of all eighteen stalk divisions, shown in the UI and the saved reading
 - Unit test to validate the statistical analysis of line distributions
@@ -18,14 +19,20 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 
 The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private; published packages live under `packages/*` and CLI bins under `apps/*`.
 
-| Package                     | Description                                                                                                                                      |
-| --------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `@hexagram/types`           | Public type definitions for the hexagram + casting domain (`Line`, `Hexagram`, `CastingRecord`, `LineGeneratorResult`, plus runtime assertions). |
-| `@hexagram/core`            | Yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records.                      |
-| `@hexagram/viewer-ui`       | Terminal UI: Ink-based tabbed viewer, Inquirer fallback flow, formatted output sections.                                                         |
-| `@hexagram/bin` _(private)_ | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-history`) — dogfoods every published package.                     |
+| Package                       | Description                                                                                                                            |
+| ----------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `@hexagram/types`             | Public type definitions for the hexagram + casting domain (`Line`, `Hexagram`, `CastingRecord`, `LineState`, plus runtime assertions). |
+| `@hexagram/core`              | Yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records.            |
+| `@hexagram/consultation-file` | The saved-reading file format (Markdown + YAML frontmatter), renderers, and the legacy `.txt` converter.                               |
+| `@hexagram/viewer-core`       | Generic terminal-UI building blocks shared by the casting and history UIs (the `ScreenShell`, palette, section builders).              |
+| `@hexagram/casting-ui`        | The casting Viewer (Ink tabbed viewer + interactive/manual flows), plus the `--plain` Inquirer flow and console renderers.             |
+| `@hexagram/history-ui`        | The Ink browser for past consultations.                                                                                                |
+| `@hexagram/playground-ui`     | The Ink interactive 4-state line explorer.                                                                                             |
+| `@hexagram/shell`             | The Home hub that aggregates the casting, history, and playground UIs into one app.                                                    |
+| `@hexagram/test-utils`        | Workspace-private test helpers (polling + readiness-witness utilities). Not published.                                                 |
+| `@hexagram/bin` _(private)_   | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-history`, `hexagram-playground`).    |
 
-Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions.
+Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions. See [docs/adr/0002](docs/adr/0002-monorepo-structure-and-package-decomposition.md) and [docs/adr/0003](docs/adr/0003-package-publishing-and-module-strategy.md).
 
 ---
 
@@ -47,7 +54,7 @@ import {
   generateRandomConsultation,
   generateRandomHexagram,
   generateRandomHexagrams,
-} from '@hexagram/core/random'
+} from '@hexagram/core/random-casting'
 
 // Hexagram / trigram record lookup.
 import {
@@ -73,14 +80,14 @@ import {
   getHexagramViaInteraction,
   logAndSaveConsultationOutput,
   runConsultationViewer,
-} from '@hexagram/viewer-ui'
+} from '@hexagram/casting-ui'
 ```
 
 ## Install globally from local source
 
 The CLI bins are exposed by the `@hexagram/bin` workspace package. Until publishing lands you can install them globally from your local clone.
 
-`hexagram` opens on a Home menu from which you can cast a new consultation or browse past ones. The `hexagram-random` and `hexagram-interactive` CLIs present the reading directly in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.txt` under `consultations/`.
+`hexagram` opens on a Home menu from which you can cast a new consultation or browse past ones. The `hexagram-random` and `hexagram-interactive` CLIs present the reading directly in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.md` under `consultations/`.
 
 In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap-width <n>` (e.g. `hexagram-random --wrap-width 100`) to change the cap. It is capped to the terminal width on narrower terminals and floored so the fixed-width hexagram diagrams are never broken; `--wrap-width` has no effect in plain mode.
 
@@ -123,11 +130,18 @@ hexagram-random
 pnpm install
 pnpm build
 
-# Pack the three library packages (workspace deps) and the CLI.
-pnpm --filter @hexagram/types     pack
-pnpm --filter @hexagram/core      pack
-pnpm --filter @hexagram/viewer-ui pack
-pnpm --filter @hexagram/bin       pack
+# Pack the library packages (workspace deps) and the CLI. The CLI depends,
+# transitively, on every published package, so pack them all (skip the
+# private @hexagram/test-utils, which is dev-only).
+pnpm --filter @hexagram/types             pack
+pnpm --filter @hexagram/core              pack
+pnpm --filter @hexagram/consultation-file pack
+pnpm --filter @hexagram/viewer-core       pack
+pnpm --filter @hexagram/casting-ui        pack
+pnpm --filter @hexagram/history-ui        pack
+pnpm --filter @hexagram/playground-ui     pack
+pnpm --filter @hexagram/shell             pack
+pnpm --filter @hexagram/bin               pack
 
 # Install the CLI tarball globally; pnpm resolves the workspace deps from
 # the same store (or use --offline against the just-packed tarballs).

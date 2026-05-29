@@ -12,12 +12,17 @@ ts-hexagram-generator/         # workspace root (private)
 │   ├── types/                 # @hexagram/types — public type defs + assertions
 │   ├── core/                  # @hexagram/core — algorithm, random, getters, hexagram/trigram records
 │   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), renderers, legacy converter
-│   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer, Inquirer flow, ANSI section renderers
+│   ├── viewer-core/           # @hexagram/viewer-core — shared terminal-UI primitives (ScreenShell, palette, section builders)
+│   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
 │   ├── history-ui/            # @hexagram/history-ui — Ink history browser
-│   └── playground-ui/         # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
+│   ├── playground-ui/         # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
+│   ├── shell/                 # @hexagram/shell — Home hub aggregating the casting/history/playground UIs
+│   └── test-utils/            # @hexagram/test-utils (private, dev-only) — polling + readiness-witness test helpers
 └── apps/
     └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins
 ```
+
+The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; see `docs/adr/` for the full set of architecture decisions.
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
 
@@ -92,7 +97,7 @@ pnpm generate-json-files    # turbo run generate-json-files --filter=@hexagram/c
 pnpm generate-fixtures      # turbo run generate-fixtures --filter=@hexagram/casting-ui
 ```
 
-The statistical distribution test (`generateLines() should return valid report` in `packages/core/tests/random.test.ts`) runs 1,000,000 iterations and has a 40-second timeout — it is slow by design and runs on every `pnpm test` invocation. Factor this in when wiring CI: a default Vitest run will spend ~30 s in this one test. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random.test.ts` (or `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` to drop only the slow describe block).
+The statistical distribution test (the `rng distribution (slow)` block in `packages/core/tests/random-casting.test.ts`) runs 1,000,000 iterations and carries a 90-second per-test timeout — it is slow by design (~40 s) and runs on every `pnpm test` invocation. Factor this in when wiring CI. To skip it locally, use `pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts` (or `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` to drop only the slow describe block). See `docs/adr/0013-test-execution-and-ci-posture.md`.
 
 ### CI simulation
 

@@ -19,4 +19,4 @@ Default canonical triage vocabulary — `needs-triage`, `needs-info`, `ready-for
 
 ### Domain docs
 
-Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`.
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`. The architecture decisions are indexed in `docs/adr/README.md`.

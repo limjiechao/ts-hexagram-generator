@@ -2,7 +2,7 @@
 
 How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-This is a **single-context** repo: one `CONTEXT.md` and one `docs/adr/` directory at the repo root cover the whole monorepo. All packages (`types`, `core`, `consultation`, `casting-ui`, `history-ui`, `cli`) share the same divination domain vocabulary.
+This is a **single-context** repo: one `CONTEXT.md` and one `docs/adr/` directory at the repo root cover the whole monorepo. All packages (`types`, `core`, `consultation-file`, `viewer-core`, `casting-ui`, `history-ui`, `playground-ui`, `shell`, `test-utils`) and the `apps/cli` bins share the same divination domain vocabulary.
 
 ## Before exploring, read these
 
@@ -10,6 +10,12 @@ This is a **single-context** repo: one `CONTEXT.md` and one `docs/adr/` director
 - **`docs/adr/`** — read ADRs that touch the area you're about to work in.
 
 If any of these files don't exist, **proceed silently**. Don't flag their absence; don't suggest creating them upfront. The producer skill (`/grill-with-docs`) creates them lazily when terms or decisions actually get resolved.
+
+> Note: `docs/adr/` was given a one-time backfill (2026-05-29) that promoted the
+> significant decisions previously scattered across config, commit history, and
+> now-pruned implementation plans into topical ADRs (0002–0015). The lazy,
+> resolve-then-record model above is unchanged going forward — the backfill was a
+> catch-up, not a new process.
 
 ## File structure
 
