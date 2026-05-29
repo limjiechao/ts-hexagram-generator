@@ -29,6 +29,12 @@ import {
 } from './helpers/keystrokes'
 import { pickFromFrame } from './helpers/slider'
 
+// Strip SGR ANSI so layout assertions can match the textual skeleton
+// independent of the Scheme B field colouring (dim labels / cyan computed /
+// bold-white input) woven into the heap-card rows.
+// oxlint-disable-next-line no-control-regex
+const stripAnsi = (s: string): string => s.replaceAll(/\[[0-9;]*m/g, '')
+
 function CastingPromptBoxHost({
   onSubmit,
   onError,
@@ -182,17 +188,18 @@ describe('twoHeapDiagramRows', () => {
     // Separator rows 3 and 7.
     expect(rows[3]).toContain('─────────────')
     expect(rows[7]).toContain('─────────────')
-    // Subtotal = piles · 4: LEFT 16, RIGHT 20.
-    expect(rows[4]).toMatch(/Subtotal\s+16/)
-    expect(rows[4]).toMatch(/Subtotal\s+20/)
+    // Subtotal = piles · 4: LEFT 16, RIGHT 20. (Scheme B weaves field colour
+    // between label and value, so match against the ANSI-stripped skeleton.)
+    expect(stripAnsi(rows[4]!)).toMatch(/Subtotal\s+16/)
+    expect(stripAnsi(rows[4]!)).toMatch(/Subtotal\s+20/)
     // Remainder carries a `+` prefix.
-    expect(rows[5]).toMatch(/Remainder \+ 3/)
-    expect(rows[5]).toMatch(/Remainder \+ 1/)
+    expect(stripAnsi(rows[5]!)).toMatch(/Remainder \+ 3/)
+    expect(stripAnsi(rows[5]!)).toMatch(/Remainder \+ 1/)
     // Suspended: RIGHT shows `Suspended + 1`; LEFT interior is blank.
-    expect(rows[6]).toMatch(/Suspended \+ 1/)
+    expect(stripAnsi(rows[6]!)).toMatch(/Suspended \+ 1/)
     // Total: LEFT = 16 + 3 = 19; RIGHT = 20 + 1 + 1 (suspended) = 22.
-    expect(rows[8]).toMatch(/Total\s+19/)
-    expect(rows[8]).toMatch(/Total\s+22/)
+    expect(stripAnsi(rows[8]!)).toMatch(/Total\s+19/)
+    expect(stripAnsi(rows[8]!)).toMatch(/Total\s+22/)
     // Footer carries a `┬` tee for the convergence connector.
     expect(rows[9]).toContain('┬')
   })
@@ -207,11 +214,11 @@ describe('twoHeapDiagramRows', () => {
       state: 'editing',
     })
     // LEFT: pilesL untyped → Subtotal 0, Total = 0 + 3 = 3.
-    expect(rows[4]).toMatch(/Subtotal\s+0/)
-    expect(rows[8]).toMatch(/Total\s+3/)
+    expect(stripAnsi(rows[4]!)).toMatch(/Subtotal\s+0/)
+    expect(stripAnsi(rows[8]!)).toMatch(/Total\s+3/)
     // RIGHT: pilesR 4 → Subtotal 16; remR untyped → Total = 16 + 0 + 1 = 17.
-    expect(rows[4]).toMatch(/Subtotal\s+16/)
-    expect(rows[8]).toMatch(/Total\s+17/)
+    expect(stripAnsi(rows[4]!)).toMatch(/Subtotal\s+16/)
+    expect(stripAnsi(rows[8]!)).toMatch(/Total\s+17/)
     // Derived rows never show `?`.
     expect(rows[4]).not.toContain('?')
     expect(rows[8]).not.toContain('?')
@@ -235,6 +242,12 @@ describe('twoHeapDiagramRows', () => {
       // oxlint-disable-next-line no-control-regex
       expect(row).not.toMatch(/\u001B\[7m/)
     }
+    // Scheme B field colours are suppressed under the all-green wrap — an
+    // interior cyan/dim reset would terminate the BOLD_GREEN run early.
+    for (const row of rows) {
+      expect(row).not.toContain('\u001B[36m')
+      expect(row).not.toContain('\u001B[2m')
+    }
   })
 
   it('renders an inverse-space cursor when the active cell is empty', () => {
@@ -246,8 +259,11 @@ describe('twoHeapDiagramRows', () => {
       focusedField: 'pilesL',
       state: 'editing',
     })
+    // The focused empty Piles cell renders an inverse-space cursor.
+    // (Scheme B dims the label, so a `Piles\s+` prefix would straddle the
+    // dim-off code; assert the inverse-space cell directly.)
     // oxlint-disable-next-line no-control-regex
-    expect(rows[1]).toMatch(/Piles\s+\u001B\[7m \u001B\[27m/)
+    expect(rows[1]).toMatch(/\u001B\[7m \u001B\[27m/)
   })
 
   it('shows inverse styling on focused cell when state === error', () => {
@@ -282,6 +298,33 @@ describe('twoHeapDiagramRows', () => {
     // Inverse-video ANSI: ESC[7m...ESC[27m — the focused cell wraps its value.
     // oxlint-disable-next-line no-control-regex
     expect(rows[1]).toMatch(/\u001B\[7m4\u001B\[27m/)
+  })
+
+  it('applies Scheme B field colours: dim labels/inert, cyan computed, bold-white input', () => {
+    const rows = twoHeapDiagramRows({
+      pilesL: 4,
+      remL: 3,
+      pilesR: 5,
+      remR: 1,
+      focusedField: 'pilesR',
+      state: 'editing',
+    })
+    // Labels are dimmed (SGR 2): Piles (row 1), Subtotal (row 4).
+    expect(rows[1]).toContain('\u001B[2m')
+    expect(rows[4]).toContain('\u001B[2m')
+    // Inert values are dimmed: `Fours × 4` (row 2), `Suspended + 1` (row 6).
+    expect(rows[2]).toContain('\u001B[2m')
+    expect(rows[6]).toContain('\u001B[2m')
+    // Computed values are cyan (SGR 36): Subtotal (row 4), Total (row 8).
+    expect(rows[4]).toContain('\u001B[36m')
+    expect(rows[8]).toContain('\u001B[36m')
+    // Unfocused input values are bold white (SGR 1;97): pilesL on row 1,
+    // remL/remR on row 5.
+    expect(rows[1]).toContain('\u001B[1;97m')
+    expect(rows[5]).toContain('\u001B[1;97m')
+    // The focused input cell (pilesR = 5) keeps inverse-video, not bold-white.
+    // oxlint-disable-next-line no-control-regex
+    expect(rows[1]).toMatch(/\u001B\[7m5\u001B\[27m/)
   })
 
   it('renders the suspended row as static `1` (never inverse-video, no field maps to it)', () => {
