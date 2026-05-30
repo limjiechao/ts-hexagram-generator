@@ -15,6 +15,7 @@ import {
 } from '@hexagram/readout'
 import {
   ConfirmModal,
+  HelpOverlay,
   keyHintsFlowDefault,
   keyHintsForCasting,
   QueryBox,
@@ -25,6 +26,7 @@ import {
   useEffect,
   useMemo,
   useReducer,
+  useRef,
   useState,
   type ReactElement,
 } from 'react'
@@ -36,7 +38,8 @@ import {
 } from './casting-prompt-box.js'
 import { CastingStatus, getCastingStatusHeight } from './casting-status.js'
 import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
-import { MANUAL_REVEAL_MS } from './manual-prompt.js'
+import { MANUAL_GUIDE_LINES, MANUAL_GUIDE_TITLE } from './manual-guide.js'
+import { MANUAL_REVEAL_MS, type ManualDraft } from './manual-prompt.js'
 import { QueryEditor } from './query-editor.js'
 import {
   SLIDER_COMMIT_REVEAL_MS,
@@ -189,6 +192,15 @@ export function ConsultationViewer({
   // here, inside the viewer — only the viewer knows its own flow progress.
   const [confirmingDiscard, setConfirmingDiscard] = useState<DiscardPath>(null)
 
+  // The `?` help overlay (manual flow only, for now). Orthogonal UI state — not
+  // a flow mode — so it lives here, not in the reducer. While open, the viewer
+  // renders the full-screen `<HelpOverlay>` in place of `<ConsultationReadout>`.
+  const [helpOpen, setHelpOpen] = useState(false)
+  // The current manual cast's draft, lifted out of `<ManualCastingPrompt>` so
+  // opening help (which unmounts the readout subtree) doesn't lose in-progress
+  // typing. Re-seeded into the prompt as `initialDraft` on remount.
+  const manualDraftRef = useRef<ManualDraft | null>(null)
+
   // The interactive line generator — drives the interactive casting flow.
   // The random flow never consults `submitSplit`/`interactiveMax`; it reads
   // its picks and selectable ranges straight from `state.castingPlan`. The
@@ -211,9 +223,18 @@ export function ConsultationViewer({
       if (key.ctrl && input === 'r') {
         rewindCurrentLine()
         dispatch({ type: 'lineRewound' })
+        return
+      }
+      // `?` opens the manual help overlay. Closing is owned by the overlay's
+      // own `useInput`; this handler is gated off (`!helpOpen`) while it's up.
+      if (input === '?') {
+        setHelpOpen(true)
       }
     },
-    { isActive: state.mode === 'casting' && state.flowKind === 'manual' },
+    {
+      isActive:
+        state.mode === 'casting' && state.flowKind === 'manual' && !helpOpen,
+    },
   )
 
   // The current cast's selectable range. For the interactive flow it comes
@@ -582,6 +603,10 @@ export function ConsultationViewer({
       onFocusedFieldChange={
         state.flowKind === 'manual' ? onManualFocusedFieldChange : undefined
       }
+      initialDraft={manualDraftRef.current ?? undefined}
+      onDraftChange={(draft) => {
+        manualDraftRef.current = draft
+      }}
     />
   )
 
@@ -635,6 +660,24 @@ export function ConsultationViewer({
 
   const readoutTitle = `Consultation · ${state.flowKind}`
 
+  // The `?` help overlay takes over the whole screen. Rendering it in place of
+  // the readout unmounts the casting prompt — its in-progress draft survives
+  // via `manualDraftRef` (re-seeded as `initialDraft` when the prompt remounts
+  // on close). The flow state machine lives in this component, so it is
+  // untouched by the readout subtree coming and going.
+  if (helpOpen) {
+    return (
+      <HelpOverlay
+        title={MANUAL_GUIDE_TITLE}
+        lines={MANUAL_GUIDE_LINES}
+        footerHint="↑↓ scroll · PgUp/PgDn page · g/G ends · ? or Esc close"
+        onClose={() => {
+          setHelpOpen(false)
+        }}
+      />
+    )
+  }
+
   return (
     <ConsultationReadout
       sections={effectiveSections}
@@ -663,7 +706,10 @@ export function ConsultationViewer({
               )
               if (state.flowKind !== 'manual') return base
               const showRewind = state.lineIndex > 0 || state.castIndex > 0
-              return showRewind ? `${base}   · Ctrl+R rewind line` : base
+              const withRewind = showRewind
+                ? `${base}   · Ctrl+R rewind line`
+                : base
+              return `${withRewind}   · ?: help`
             })()
           : keyHintsFlowDefault(exitLabel)
       }
