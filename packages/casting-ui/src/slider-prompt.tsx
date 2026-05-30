@@ -1,0 +1,670 @@
+import { isGlobalExitKey } from '@hexagram/viewer-core'
+import { Box, Text, useInput } from 'ink'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactElement,
+} from 'react'
+import sliceAnsi from 'slice-ansi'
+import stringWidth from 'string-width'
+
+import { armDelayTicks, firstLandingTick } from './bounce-trajectory.js'
+
+/**
+ * Auto-land configuration for the bouncing slider — supplied only by the
+ * random-casting playback. `target` is the RNG-predetermined pick; the slider
+ * bounces freely until `armDelayMs` has elapsed, then commits on the first
+ * tick its cursor naturally sits on `target` (a real pass-through, never a
+ * teleport — see `bounce-trajectory.ts`). Interactive callers pass no
+ * `autoLand` and the slider commits on SPACE as before.
+ */
+export interface SliderAutoLand {
+  target: number
+  armDelayMs: number
+}
+
+// How long `<SliderCastingPrompt>` holds the numeric Left/Right Heap readout
+// after the user presses SPACE before forwarding `onSubmit` to the parent
+// flow. Long enough that the user can register the cast they just made, short
+// enough that 18 reveals don't drag. The viewer remounts the prompt per cast
+// (see `viewer.tsx` `<CastingPromptBox key=…>`), so this state is local to a
+// single cast.
+export const SLIDER_COMMIT_REVEAL_MS = 500
+
+// Slider-mode prompt title. The interactive flow instructs the user to press
+// SPACE; the random flow auto-drives the slider, so its title just narrates.
+// Shared between `<SliderCastingPrompt>` (which renders it) and `viewer.tsx`'s
+// `castingPromptContentWidth` (which measures it to size the `<` / `>` pan) so the
+// two can never drift — a wider title would silently under-reserve pan space.
+export function sliderPromptTitle(
+  lineNumber: number,
+  castIndex: number,
+  isRandomFlow: boolean,
+): string {
+  const prefix = `Line ${lineNumber}/6 · Cast ${castIndex + 1}/3: —`
+  return isRandomFlow
+    ? `${prefix} parting the stalks`
+    : `${prefix} Press SPACE to part the stalks`
+}
+
+// ── Slider primitives ───────────────────────────────────────────────────────
+
+// Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`.
+// During the ticking state the spinner replaces the cursor's numeric
+// position in the readout below the bar — see `<SliderInput>` /
+// `<SliderCastingPrompt>` — so the user sees motion (the slider is alive)
+// but not the value (the cast stays unbiased). The glyphs render as
+// ` ⠋`/` ⠏` (leading space + 1-column glyph) so each cell is 2 columns
+// wide, matching the post-commit padded number. After SPACE,
+// `<SliderCastingPrompt>` swaps the glyphs for the concrete
+// `Left Heap:  <pick> | Right Heap: <max − pick> + 1 suspended` numbers
+// (each pick padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
+// advancing. `<SliderInput>` has no reveal — it keeps the padded spinner
+// readout for its whole lifetime.
+const BRAILLE_SPINNER = [
+  '⠋',
+  '⠙',
+  '⠹',
+  '⠸',
+  '⠼',
+  '⠴',
+  '⠦',
+  '⠧',
+  '⠇',
+  '⠏',
+] as const
+
+// `BRAILLE_SPINNER` cycles the dots clockwise. The slider's right-heap glyph
+// mirrors the left's motion, so step through the same glyphs in reverse order.
+// At `tickCount = 0` both directions show `⠋`; from `tickCount = 1` onward
+// the right glyph walks backward through the cycle (⠏, ⠇, ⠧, …).
+function reverseBrailleGlyph(tickCount: number): string {
+  const length = BRAILLE_SPINNER.length
+  const index = (length - (tickCount % length)) % length
+  return BRAILLE_SPINNER[index]!
+}
+
+interface UseSliderBounceArgs {
+  min: number
+  max: number
+  focused: boolean
+  tickMs: number
+  onSubmit: (value: number) => void
+  // Random-playback auto-land. When set the slider commits itself on the
+  // landing tick instead of waiting for SPACE; `null` for the interactive
+  // flow, which keeps the SPACE-to-commit behaviour.
+  autoLand?: SliderAutoLand | null
+  // Random-playback skip. While auto-land is active, SPACE routes here
+  // instead of committing the pick — it abandons the rest of the animation.
+  // Ignored (and never invoked) when `autoLand` is `null`: the interactive
+  // flow keeps SPACE-commits-the-pick. `undefined` is a safe no-op.
+  onSkip?: (() => void) | undefined
+}
+
+interface SliderSnapshot {
+  position: number
+  tickCount: number
+  // The position captured by an auto-land commit, or `null` while the slider
+  // is still bouncing (or was committed by SPACE — that path notifies the
+  // parent directly). `useSliderBounce` fires `onSubmit` once when this turns
+  // non-null so the parent flow advances exactly as a SPACE commit would.
+  autoLanded: number | null
+}
+
+/**
+ * File-local store backing `useSliderBounce`. Owns the bouncing-cursor
+ * position/direction/committed state and the `setInterval` that drives the
+ * tick loop. Consumers attach via `subscribe`/`getSnapshot` so React's
+ * `useSyncExternalStore` can read the live position without the legacy
+ * `useReducer((c) => c + 1, 0)` forced-rerender hack. The interval starts
+ * lazily on first subscribe and clears when the last subscriber detaches —
+ * no leaked timers.
+ *
+ * `setRange` is invoked from the hook's render phase so a cast-boundary
+ * range change rewinds the cursor synchronously, matching the prior
+ * zero-frame-lag behaviour.
+ */
+class BouncingSliderStore {
+  private position: number
+  private direction: 1 | -1 = 1
+  private committed = false
+  private min: number
+  private max: number
+  private tickMs: number
+  private tickCount = 0
+  // Random-playback auto-land. `landingTick` is the precomputed tick on which
+  // the cursor naturally passes through the RNG target at or after the arm
+  // delay (`bounce-trajectory.ts`); `null` disables auto-land (interactive
+  // flow). `autoLanded` records the position captured by the auto-land
+  // commit so `getSnapshot` can surface it to the hook.
+  private autoLand: SliderAutoLand | null
+  private landingTick: number | null = null
+  private autoLanded: number | null = null
+  // Cached so `getSnapshot` returns a referentially-stable reference between
+  // ticks — `useSyncExternalStore`'s `Object.is` check relies on this.
+  private snapshot: SliderSnapshot
+  private readonly listeners = new Set<() => void>()
+  private intervalId: ReturnType<typeof setInterval> | null = null
+
+  constructor(
+    min: number,
+    max: number,
+    tickMs: number,
+    autoLand: SliderAutoLand | null,
+  ) {
+    this.min = min
+    this.max = max
+    this.tickMs = tickMs
+    this.position = min
+    this.autoLand = autoLand
+    this.snapshot = { position: min, tickCount: 0, autoLanded: null }
+    this.recomputeLandingTick()
+  }
+
+  // Recompute the landing tick from the current range, tickMs and auto-land
+  // config. The slider commits itself on this tick — the visible bounce and
+  // the landing are the same triangle wave, so the cursor genuinely passes
+  // through the target (no teleport). A landing tick of 0 (degenerate
+  // single-cell range with no arm delay) is committed immediately, since the
+  // interval's first fire is tick 1 and would otherwise never match.
+  private recomputeLandingTick(): void {
+    this.landingTick =
+      this.autoLand === null
+        ? null
+        : firstLandingTick(
+            this.autoLand.target,
+            this.min,
+            this.max,
+            armDelayTicks(this.autoLand.armDelayMs, this.tickMs),
+          )
+    if (this.landingTick === 0 && !this.committed) {
+      this.committed = true
+      this.autoLanded = this.position
+      this.snapshot = {
+        position: this.position,
+        tickCount: this.tickCount,
+        autoLanded: this.autoLanded,
+      }
+    }
+  }
+
+  readonly subscribe = (listener: () => void): (() => void) => {
+    this.listeners.add(listener)
+    if (this.listeners.size === 1) this.startTicking()
+    return () => {
+      this.listeners.delete(listener)
+      if (this.listeners.size === 0) this.stopTicking()
+    }
+  }
+
+  readonly getSnapshot = (): SliderSnapshot => this.snapshot
+
+  // Called from the hook's render phase. Mutates synchronously so the same
+  // render's `getSnapshot()` reflects any rewind (range change) or interval
+  // re-arm (tickMs change) — no `notify()`, which would fire the
+  // `useSyncExternalStore` subscriber mid-render and trigger React's
+  // "setState while rendering" warning. The triggering render commits with
+  // the updated state.
+  setRange(
+    min: number,
+    max: number,
+    tickMs: number,
+    autoLand: SliderAutoLand | null,
+  ): void {
+    if (
+      this.min === min &&
+      this.max === max &&
+      this.tickMs === tickMs &&
+      this.autoLand === autoLand
+    )
+      return
+    const rangeChanged = this.min !== min || this.max !== max
+    this.min = min
+    this.max = max
+    this.tickMs = tickMs
+    this.autoLand = autoLand
+    this.recomputeLandingTick()
+    // Only rewind on a true range change — a bare tickMs change (per-cast
+    // sweep duration recalc) re-arms the interval at the new rate but keeps
+    // the cursor where it is so the user doesn't see a visual jump. The
+    // spinner's tick counter also resets so each new cast restarts at the
+    // first glyph (`⠋`).
+    if (rangeChanged) {
+      this.position = min
+      this.direction = 1
+      this.committed = false
+      this.tickCount = 0
+      this.autoLanded = null
+      this.snapshot = { position: min, tickCount: 0, autoLanded: null }
+    }
+    // Restart the tick timer so the next tick is a full `tickMs` away and
+    // picks up the new interval — matches the pre-refactor
+    // `useEffect([min, max, …])` behaviour for range changes, and also re-arms
+    // the interval at the new rate when only `tickMs` changes.
+    if (this.intervalId !== null) {
+      this.stopTicking()
+      this.startTicking()
+    }
+  }
+
+  commit(): number {
+    this.committed = true
+    return this.position
+  }
+
+  private startTicking(): void {
+    if (this.intervalId !== null) return
+    this.intervalId = setInterval(() => {
+      if (this.committed) return
+      let next = this.position + this.direction
+      if (next > this.max) {
+        this.direction = -1
+        next = this.max - 1
+      } else if (next < this.min) {
+        this.direction = 1
+        next = this.min + 1
+      }
+      this.position = next
+      this.tickCount += 1
+      // Auto-land — the random flow commits itself on the precomputed landing
+      // tick. The cursor reached `next` by the same bounce maths the
+      // trajectory module models, so `next` IS the target here: a genuine
+      // pass-through, not a teleport. The interval keeps running but the
+      // `this.committed` guard above freezes the cursor.
+      if (this.landingTick !== null && this.tickCount === this.landingTick) {
+        this.committed = true
+        this.autoLanded = next
+      }
+      this.snapshot = {
+        position: next,
+        tickCount: this.tickCount,
+        autoLanded: this.autoLanded,
+      }
+      this.notify()
+    }, this.tickMs)
+  }
+
+  private stopTicking(): void {
+    if (this.intervalId === null) return
+    clearInterval(this.intervalId)
+    this.intervalId = null
+  }
+
+  private notify(): void {
+    for (const listener of this.listeners) listener()
+  }
+}
+
+// Stable no-op subscriber used when `focused` is false — `useSyncExternalStore`
+// requires a referentially-stable subscribe function, so we hoist this rather
+// than inline a fresh closure on every render. The listener argument is
+// intentionally unread: we never need to notify when the slider is unfocused.
+const noopSubscribe = (): (() => void) => () => {}
+
+/**
+ * Headless bouncing-slider state. Drives a cursor between `min..max` at
+ * `tickMs` intervals, bouncing off both endpoints, and commits the current
+ * position via `onSubmit` when SPACE is pressed. Backed by a file-local
+ * `BouncingSliderStore` consumed via `useSyncExternalStore`; the store owns
+ * the interval and clears it whenever the last subscriber unmounts (or
+ * `focused` toggles off, which swaps in a noop subscribe).
+ *
+ * Reset semantics: whenever `min` or `max` changes (i.e. a new cast), the
+ * position rewinds to `min`, the direction flips back to +1, and the commit
+ * flag clears. A bare `tickMs` change re-arms the interval at the new rate
+ * but preserves the cursor position. `setRange` runs in the hook's render
+ * phase so the reset is visible on the same frame — no `useEffect` lag.
+ */
+function useSliderBounce({
+  min,
+  max,
+  focused,
+  tickMs,
+  onSubmit,
+  autoLand = null,
+  onSkip,
+}: UseSliderBounceArgs): SliderSnapshot {
+  const storeRef = useRef<BouncingSliderStore | null>(null)
+  storeRef.current ??= new BouncingSliderStore(min, max, tickMs, autoLand)
+  // Render-phase sync — preserves zero-frame-lag rewind on cast-boundary
+  // range changes (or tickMs changes), exactly like the previous
+  // prevRangeRef branch.
+  storeRef.current.setRange(min, max, tickMs, autoLand)
+
+  const snapshot = useSyncExternalStore(
+    focused ? storeRef.current.subscribe : noopSubscribe,
+    storeRef.current.getSnapshot,
+    storeRef.current.getSnapshot,
+  )
+
+  // Latest-`onSkip` ref so the `useInput` handler always calls the current
+  // callback without `useInput` re-subscribing when the parent hands a fresh
+  // closure — mirrors the `onSubmitRef` pattern in `<SliderCastingPrompt>`.
+  const onSkipRef = useRef(onSkip)
+  useEffect(() => {
+    onSkipRef.current = onSkip
+  })
+
+  useInput(
+    (input, key) => {
+      // Global exit keys (Ctrl+C / Esc) keep their existing behaviour — they
+      // are never a commit and never a skip.
+      if (isGlobalExitKey(input, key)) return
+      if (input !== ' ') return
+      // During random playback (auto-land active) SPACE abandons the rest of
+      // the animation — route it to the skip callback. This fires whether the
+      // slider is still ticking or already in its post-land reveal dwell, as
+      // this handler stays mounted for the whole cast.
+      //
+      // `autoLand` is read straight from the closure here — no `onSkipRef`-style
+      // latest-value ref — because, unlike `onSkip`, it cannot change within a
+      // cast: `viewer.tsx` memoizes the auto-land config, and the prompt is
+      // keyed per cast (`<CastingPromptBox key=…>`) so it remounts rather than
+      // re-renders across casts. The closure therefore always holds the value
+      // for the current cast's lifetime. `onSkip` still needs the ref because
+      // the parent hands it a fresh inline closure on every pan re-render.
+      if (autoLand !== null) {
+        onSkipRef.current?.()
+        return
+      }
+      // The interactive flow commits the current pick on SPACE.
+      onSubmit(storeRef.current!.commit())
+    },
+    { isActive: focused },
+  )
+
+  // Auto-land bridge: when the store commits itself (`autoLanded` turns
+  // non-null) fire `onSubmit` exactly once so the parent flow advances just
+  // as a SPACE commit would. A ref guards against a double-fire if the
+  // component re-renders before the next cast remounts the slider.
+  const autoLandFiredRef = useRef(false)
+  useEffect(() => {
+    if (snapshot.autoLanded !== null && !autoLandFiredRef.current) {
+      autoLandFiredRef.current = true
+      onSubmit(snapshot.autoLanded)
+    }
+  }, [snapshot.autoLanded, onSubmit])
+
+  return snapshot
+}
+
+// Build the bar string from a position. `▕` + (cursorIndex × ░) + `█` +
+// (remaining × ░) + `▏`. Each cell measures one display column under
+// `string-width@8`, so the rendered bar's total width is `cells + 2`.
+function buildSliderBar(position: number, min: number, max: number): string {
+  const cells = max - min + 1
+  const cursorIndex = Math.max(0, Math.min(cells - 1, position - min))
+  const left = '░'.repeat(cursorIndex)
+  const right = '░'.repeat(Math.max(0, cells - cursorIndex - 1))
+  return `▕${left}█${right}▏`
+}
+
+interface SliderInputProps {
+  min: number
+  max: number
+  focused: boolean
+  onSubmit: (value: number) => void
+  /** Tick interval in ms — defaults to 80, which sweeps `max=48` in ~3.8 s. */
+  tickMs?: number
+  /**
+   * Fired exactly once, after this component's mount effects have committed
+   * — by which point `useSliderBounce`'s `useInput` has registered with
+   * Ink's stdin dispatcher. Tests use this as a positive witness that SPACE
+   * presses will reach the slider's handler, closing the bind race where a
+   * keystroke written between render-commit and bind would be dispatched to
+   * ancestor handlers and silently swallowed (see the 9-round CI
+   * stabilisation post-mortem). Defensive: guarded by a `firedRef` so a
+   * StrictMode double-mount can't double-fire.
+   */
+  onReady?: () => void
+}
+
+/**
+ * Bouncing-slider input — replaces the typed `<NumberInput>` when the viewer
+ * is in slider mode. The cursor sweeps 1 cell per tick, bouncing off `min`
+ * and `max`; pressing SPACE commits the current value via `onSubmit`. Bar
+ * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
+ *
+ * Renders two centred rows via Ink flexbox: the bar, and a
+ * `Stalks: <max + 1> | Left Heap:  <glyph> | Right Heap:  <glyph> + 1 suspended`
+ * readout where both glyphs are Braille spinners advanced one frame per tick —
+ * the left walks the cycle clockwise, the right walks it anticlockwise.
+ * `Stalks` is `max + 1`, not `max`: `max` is only the left-heap pick
+ * ceiling, held one short of the true stalk count so the right heap always
+ * retains a stalk to suspend (掛一以象三). That suspended stalk — taken from
+ * the right heap (see `suspendOneFromTheRight` in `@hexagram/core`) — is the
+ * trailing `+ 1 suspended` on the right readout, so the row conserves:
+ * left (pick) + right (max − pick) + 1 suspended = max + 1 stalks.
+ * Each heap cell is pre-padded with a leading space so its rendered width
+ * (2 columns) matches the post-commit numeric form in
+ * `<SliderCastingPrompt>` — no lateral shift between modes. The spinners
+ * deliberately hide the live cursor value so the user commits without bias
+ * toward a specific number; the bar already conveys motion visually.
+ * `<CastingPromptBox>` uses `useSliderBounce` directly so it can pre-slice
+ * the bar/readout strings for horizontal scrolling on narrow terminals; this
+ * component is the testable surface for the slider in isolation.
+ */
+export function SliderInput({
+  min,
+  max,
+  focused,
+  onSubmit,
+  tickMs = 80,
+  onReady,
+}: SliderInputProps): ReactElement {
+  const { position, tickCount } = useSliderBounce({
+    min,
+    max,
+    focused,
+    tickMs,
+    onSubmit,
+  })
+  // Mount-witness effect. Registered AFTER `useSliderBounce` (which calls
+  // `useInput` internally) so React's commit-phase effect-flush runs
+  // `useInput`'s bind effect first; by the time this fires, the stdin
+  // listener is live. Guarded by `onReadyFiredRef` so it only fires on the
+  // first commit per mount — defensive against a re-render before unmount.
+  const onReadyFiredRef = useRef(false)
+  useEffect(() => {
+    if (onReadyFiredRef.current) return
+    onReadyFiredRef.current = true
+    onReady?.()
+  }, [onReady])
+  const bar = buildSliderBar(position, min, max)
+  // Pad to a stable 2-column cell width so the readout never shifts laterally
+  // when the glyph swaps to a 1- or 2-digit pick (see `<SliderCastingPrompt>`
+  // for the post-commit numeric form).
+  const leftGlyph = ` ${BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!}`
+  const rightGlyph = ` ${reverseBrailleGlyph(tickCount)}`
+  return (
+    <Box flexDirection="column" flexShrink={0}>
+      <Box justifyContent="center">
+        <Text>{bar}</Text>
+      </Box>
+      <Box justifyContent="center">
+        <Text>{`Stalks: ${max + 1} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph} + 1 suspended`}</Text>
+      </Box>
+    </Box>
+  )
+}
+
+// Pre-pad `content` (display width `contentWidth`) with leading spaces so it
+// centres within `total` columns, then trail-fill to exactly `total` columns
+// so successive slices land at predictable offsets.
+function padCenter(
+  content: string,
+  contentWidth: number,
+  total: number,
+): string {
+  if (total <= contentWidth) return content
+  const leading = Math.floor((total - contentWidth) / 2)
+  const trailing = total - leading - contentWidth
+  return `${' '.repeat(leading)}${content}${' '.repeat(Math.max(0, trailing))}`
+}
+
+interface SliderCastingPromptProps {
+  lineNumber: 1 | 2 | 3 | 4 | 5 | 6
+  castIndex: 0 | 1 | 2
+  min: number
+  max: number
+  width: number
+  tickMs: number
+  horizontalOffset: number
+  commitRevealMs: number
+  autoLand: SliderAutoLand | null
+  onSkip: (() => void) | undefined
+  onSubmit: (value: number) => void
+  /**
+   * Mount-witness — see `CastingPromptBoxProps.onReady`. Fired exactly once
+   * per mount, after `useSliderBounce`'s `useInput` has registered with
+   * Ink's stdin dispatcher.
+   */
+  onReady?: () => void
+}
+
+/**
+ * Slider-mode body of `<CastingPromptBox>`. Owns the bouncing state via
+ * `useSliderBounce` and renders five sliced rows (title, blank, bar, blank,
+ * readout) so the box content never reflows on narrow terminals — the viewer
+ * can pan `<` / `>` to scroll instead.
+ *
+ * Three visual states drive the readout row:
+ *  1. **Ticking** — the cursor sweeps and the readout shows two
+ *     counter-rotating Braille spinners (live cursor value hidden so the
+ *     cast stays unbiased).
+ *  2. **Reveal** — SPACE captures the picked value into local `committed`
+ *     state; the cursor freezes (`BouncingSliderStore.commit()` sets the
+ *     internal flag) and the readout swaps the glyphs for the concrete
+ *     `Left Heap: <pick> | Right Heap: <max − pick> + 1 suspended` numbers,
+ *     each padStart'd to 2 columns so the row width matches the ticking state.
+ *  3. **Advance** — after `SLIDER_COMMIT_REVEAL_MS`, the parent's `onSubmit`
+ *     fires and the viewer advances to the next cast (which remounts a
+ *     fresh `<SliderCastingPrompt>` via the keyed `<CastingPromptBox>` in
+ *     `viewer.tsx`).
+ *
+ * `focused: true` is hardcoded because this component is only mounted while
+ * the casting prompt is active; `useSliderBounce`'s `noopSubscribe` branch
+ * is therefore unreachable in current callers. If a future change passes a
+ * dynamic `focused` prop, audit `useSliderBounce` to add a real
+ * stop-ticking path on unsubscribe.
+ */
+export function SliderCastingPrompt({
+  lineNumber,
+  castIndex,
+  min,
+  max,
+  width,
+  tickMs,
+  horizontalOffset,
+  commitRevealMs,
+  autoLand,
+  onSkip,
+  onSubmit,
+  onReady,
+}: SliderCastingPromptProps): ReactElement {
+  const [committed, setCommitted] = useState<number | null>(null)
+
+  const handleStoreCommit = useCallback((value: number) => {
+    setCommitted(value)
+  }, [])
+
+  // Ref pattern: the timer must read the LATEST onSubmit when it fires, but
+  // the effect must NOT re-run when onSubmit's identity changes. Otherwise
+  // any parent re-render (e.g. `<` / `>` pan during the post-SPACE reveal) would
+  // produce a new inline-arrow onSubmit, cleanup the pending timeout, and
+  // restart the 1-second dwell from zero — potentially stalling indefinitely
+  // on the 18th cast.
+  const onSubmitRef = useRef(onSubmit)
+  useEffect(() => {
+    onSubmitRef.current = onSubmit
+  })
+
+  useEffect(() => {
+    if (committed === null) return
+    const timer = setTimeout(() => {
+      onSubmitRef.current(committed)
+    }, commitRevealMs)
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [committed, commitRevealMs])
+
+  const { position, tickCount } = useSliderBounce({
+    min,
+    max,
+    focused: true,
+    tickMs,
+    onSubmit: handleStoreCommit,
+    autoLand,
+    onSkip,
+  })
+
+  // Mount-witness effect — see `SliderInput`'s sibling effect for the full
+  // rationale. Registered AFTER `useSliderBounce` (which calls `useInput`
+  // internally) so React's commit-phase effect-flush runs `useInput`'s bind
+  // effect first; by the time this fires, the stdin listener is live and
+  // tests can safely write the next keystroke. Guarded by `onReadyFiredRef`
+  // so it only fires on the first commit per mount.
+  const onReadyFiredRef = useRef(false)
+  useEffect(() => {
+    if (onReadyFiredRef.current) return
+    onReadyFiredRef.current = true
+    onReady?.()
+  }, [onReady])
+
+  // The random flow auto-drives the slider, so its title describes the
+  // stalks being parted rather than instructing the user to press SPACE.
+  const title = sliderPromptTitle(lineNumber, castIndex, autoLand !== null)
+  const bar = buildSliderBar(position, min, max)
+  // Both cells render at a stable 2-column width — leading-space + glyph
+  // during ticking, and padStart(2) on the numeric pick after commit — so the
+  // centred readout never shifts laterally across the ticking → reveal
+  // transition or between (pick, max − pick) splits of differing digit counts.
+  const leftCell =
+    committed === null
+      ? ` ${BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!}`
+      : String(committed).padStart(2, ' ')
+  const rightCell =
+    committed === null
+      ? ` ${reverseBrailleGlyph(tickCount)}`
+      : String(max - committed).padStart(2, ' ')
+  const readout = `Stalks: ${max + 1} | Left Heap: ${leftCell} | Right Heap: ${rightCell} + 1 suspended`
+
+  const titleWidth = stringWidth(title)
+  const barWidth = stringWidth(bar)
+  const readoutWidth = stringWidth(readout)
+  const innerContentWidth = Math.max(1, width - 2)
+  const renderWidth = Math.max(
+    innerContentWidth,
+    titleWidth,
+    barWidth,
+    readoutWidth,
+  )
+
+  const slice = (s: string): string =>
+    sliceAnsi(s, horizontalOffset, horizontalOffset + innerContentWidth)
+
+  const titleRow = slice(padCenter(title, titleWidth, renderWidth))
+  const barRow = slice(padCenter(bar, barWidth, renderWidth))
+  const readoutRow = slice(padCenter(readout, readoutWidth, renderWidth))
+  const blankRow = slice(padCenter('', 0, renderWidth))
+
+  return (
+    <Box
+      borderStyle="round"
+      borderColor="cyan"
+      width={width}
+      flexShrink={0}
+      flexDirection="column"
+    >
+      <Text dimColor>{titleRow}</Text>
+      <Text>{blankRow}</Text>
+      <Text>{barRow}</Text>
+      <Text>{blankRow}</Text>
+      <Text>{readoutRow}</Text>
+    </Box>
+  )
+}
