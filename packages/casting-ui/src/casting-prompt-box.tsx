@@ -12,36 +12,6 @@ import {
 } from './slider-prompt.js'
 import type { FlowKind } from './viewer-flow.js'
 
-// ── Compatibility surface ───────────────────────────────────────────────────
-// The slider/manual widgets were split out of this file (see `slider-prompt.ts`
-// + `manual-prompt.ts` + `manual-diagram.ts`); re-export the symbols `viewer.tsx`
-// and the test suites import from `./casting-prompt-box.js` so those call sites
-// stay untouched.
-export {
-  bottomStripRow,
-  flowFooterRows,
-  flowHeaderRows,
-  focusedInputBoxRows,
-  manualTitleRow,
-  questionPanelRows,
-  stepDotsRow,
-  twoHeapDiagramRows,
-  type BottomStripArgs,
-  type ManualDiagramState,
-  type ManualFocusedField,
-} from './manual-diagram.js'
-export { MANUAL_REVEAL_MS } from './manual-prompt.js'
-export {
-  validateManualInput,
-  type ManualValidationResult,
-} from './manual-validation.js'
-export {
-  SLIDER_COMMIT_REVEAL_MS,
-  SliderInput,
-  sliderPromptTitle,
-  type SliderAutoLand,
-} from './slider-prompt.js'
-
 // ── CastingPromptBox ────────────────────────────────────────────────────────
 
 export type CastingInputMode = 'slider' | 'number'

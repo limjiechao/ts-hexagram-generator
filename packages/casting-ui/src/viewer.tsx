@@ -33,14 +33,16 @@ import stringWidth from 'string-width'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
-  MANUAL_REVEAL_MS,
-  SLIDER_COMMIT_REVEAL_MS,
-  sliderPromptTitle,
-  type SliderAutoLand,
 } from './casting-prompt-box.js'
 import { CastingStatus, getCastingStatusHeight } from './casting-status.js'
 import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
+import { MANUAL_REVEAL_MS } from './manual-prompt.js'
 import { QueryEditor } from './query-editor.js'
+import {
+  SLIDER_COMMIT_REVEAL_MS,
+  sliderPromptTitle,
+  type SliderAutoLand,
+} from './slider-prompt.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
   DEFAULT_CAST_BOUNCE_MS,
