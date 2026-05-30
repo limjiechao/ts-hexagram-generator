@@ -46,11 +46,41 @@ interface ManualCastingPromptProps {
   onSubmit: (parsed: number) => void
   onReady?: () => void
   onFocusedFieldChange?: (field: ManualFocusedField) => void
+  /**
+   * Restore the four field buffers + focus + commit on mount — but only when
+   * `castKey` matches this cast's `${lineNumber}-${castIndex}`. Lets the viewer
+   * preserve in-progress typing across an unmount/remount (e.g. opening the
+   * full-screen help overlay) without persisting it into a different cast.
+   */
+  initialDraft?: ManualDraft
+  /**
+   * Reports the live draft up whenever a buffer / focus / commit changes (and
+   * once on mount). The viewer stashes it in a ref so `initialDraft` can
+   * rehydrate the prompt after a remount. Omitted by non-manual callers.
+   */
+  onDraftChange?: (draft: ManualDraft) => void
 }
 
 interface ManualCommit {
   pick: number
   next: number
+}
+
+/**
+ * The full editable state of one manual cast — the four field buffers, the
+ * focused field, and the resolved commit (if Enter has fired). Tagged with
+ * `castKey` (`${lineNumber}-${castIndex}`) so a stale draft is never restored
+ * into a different cast. Lifted out of `<ManualCastingPrompt>` so the viewer
+ * can carry it across a remount.
+ */
+export interface ManualDraft {
+  castKey: string
+  pilesLBuffer: string
+  remLBuffer: string
+  pilesRBuffer: string
+  remRBuffer: string
+  focusedField: ManualFocusedField
+  committed: ManualCommit | null
 }
 
 // Field-router helpers — used by the parent `useInput` digit/backspace
@@ -157,13 +187,25 @@ export function ManualCastingPrompt({
   onSubmit,
   onReady,
   onFocusedFieldChange,
+  initialDraft,
+  onDraftChange,
 }: ManualCastingPromptProps): ReactElement {
-  const [pilesLBuffer, setPilesLBuffer] = useState('')
-  const [remLBuffer, setRemLBuffer] = useState('')
-  const [pilesRBuffer, setPilesRBuffer] = useState('')
-  const [remRBuffer, setRemRBuffer] = useState('')
-  const [focusedField, setFocusedField] = useState<ManualFocusedField>('pilesL')
-  const [committed, setCommitted] = useState<ManualCommit | null>(null)
+  // Rehydrate from a lifted draft only when it belongs to THIS cast — a draft
+  // tagged with a different `castKey` is from a prior cast and must not bleed
+  // in (a fresh cast always starts empty). Read once via lazy useState
+  // initialisers; later draft identity changes never overwrite live typing.
+  const castKey = `${lineNumber}-${castIndex}`
+  const restored = initialDraft?.castKey === castKey ? initialDraft : null
+  const [pilesLBuffer, setPilesLBuffer] = useState(restored?.pilesLBuffer ?? '')
+  const [remLBuffer, setRemLBuffer] = useState(restored?.remLBuffer ?? '')
+  const [pilesRBuffer, setPilesRBuffer] = useState(restored?.pilesRBuffer ?? '')
+  const [remRBuffer, setRemRBuffer] = useState(restored?.remRBuffer ?? '')
+  const [focusedField, setFocusedField] = useState<ManualFocusedField>(
+    restored?.focusedField ?? 'pilesL',
+  )
+  const [committed, setCommitted] = useState<ManualCommit | null>(
+    restored?.committed ?? null,
+  )
 
   // Per-field bounds. Piles ∈ [0, floor(unparted/4)] — a UX guard; the
   // validator's conservation check is the source of truth for the
@@ -208,6 +250,33 @@ export function ManualCastingPrompt({
   useEffect(() => {
     onFocusedFieldChangeRef.current = onFocusedFieldChange
   })
+  const onDraftChangeRef = useRef(onDraftChange)
+  useEffect(() => {
+    onDraftChangeRef.current = onDraftChange
+  })
+
+  // Report the live draft up on every change (and once on mount) so the viewer
+  // can rehydrate it after a remount (e.g. the help overlay). Keyed by
+  // `castKey` so the viewer knows which cast the stashed draft belongs to.
+  useEffect(() => {
+    onDraftChangeRef.current?.({
+      castKey,
+      pilesLBuffer,
+      remLBuffer,
+      pilesRBuffer,
+      remRBuffer,
+      focusedField,
+      committed,
+    })
+  }, [
+    castKey,
+    pilesLBuffer,
+    remLBuffer,
+    pilesRBuffer,
+    remRBuffer,
+    focusedField,
+    committed,
+  ])
 
   // Tab / Shift+Tab / Enter / digit / backspace handler. The parent owns
   // both the focus cycle and the gated commit; digit + backspace handling

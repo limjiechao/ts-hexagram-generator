@@ -3,7 +3,11 @@ import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 
 import type { ManualFocusedField } from './manual-diagram.js'
-import { MANUAL_REVEAL_MS, ManualCastingPrompt } from './manual-prompt.js'
+import {
+  MANUAL_REVEAL_MS,
+  ManualCastingPrompt,
+  type ManualDraft,
+} from './manual-prompt.js'
 import { NumberInput } from './number-input.js'
 import {
   SLIDER_COMMIT_REVEAL_MS,
@@ -135,6 +139,14 @@ interface CastingPromptBoxProps {
    * outside `flowKind === 'manual'`.
    */
   onFocusedFieldChange?: (field: ManualFocusedField) => void
+  /**
+   * Manual-flow draft rehydration / reporting — forwarded to
+   * `<ManualCastingPrompt>` so the viewer can preserve in-progress typing
+   * across a remount (e.g. opening the help overlay). Ignored outside
+   * `flowKind === 'manual'`.
+   */
+  initialDraft?: ManualDraft
+  onDraftChange?: (draft: ManualDraft) => void
 }
 
 /**
@@ -191,6 +203,8 @@ export function CastingPromptBox({
   manualRevealMs = MANUAL_REVEAL_MS,
   unpartedStalks,
   onFocusedFieldChange,
+  initialDraft,
+  onDraftChange,
 }: CastingPromptBoxProps): ReactElement {
   if (flowKind === 'manual') {
     // Defensive default — the viewer threads `unpartedStalks` explicitly, but
@@ -209,6 +223,8 @@ export function CastingPromptBox({
         onSubmit={onSubmit}
         onReady={onReady}
         onFocusedFieldChange={onFocusedFieldChange}
+        initialDraft={initialDraft}
+        onDraftChange={onDraftChange}
       />
     )
   }

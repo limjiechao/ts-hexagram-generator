@@ -28,6 +28,10 @@ export {
 // Editor primitives shared by every in-Ink single-line text editor.
 export { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
+// Generic full-screen scrollable help overlay — title + windowed body + footer
+// hint, framed in the viewer-core chrome. Owns its own input handling.
+export { HelpOverlay, type HelpOverlayProps } from './help-overlay.js'
+
 // ANSI palette constants used by the formatted output.
 export {
   BOLD_GREEN,

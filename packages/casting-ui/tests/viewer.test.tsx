@@ -5,6 +5,7 @@ import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
+import { MANUAL_GUIDE_TITLE } from '../src/manual-guide'
 import { ConsultationViewer } from '../src/viewer'
 import {
   ARROW_DOWN,
@@ -1949,6 +1950,102 @@ describe('ConsultationViewer (manual flow)', () => {
     await waitFor(() => {
       expect(lastFrame() ?? '').toContain('Ctrl+R rewind line')
     })
+    unmount()
+  })
+})
+
+describe('ConsultationViewer (manual help overlay)', () => {
+  beforeEach(() => {
+    consultationFileOutputMock.mockClear()
+  })
+
+  // Drive a fresh manual viewer up to the first cast prompt. Returns the
+  // ink-testing-library handles plus the prompt-ready spy so callers can gate
+  // cross-state keystrokes on remounts.
+  async function openManualToCasting(): Promise<{
+    lastFrame: () => string | undefined
+    stdin: { write: (data: string) => unknown }
+    unmount: () => void
+    onReady: ReturnType<typeof vi.fn>
+  }> {
+    // The 24-row manual prompt needs a tall terminal so the gauge isn't clipped.
+    windowSize.current = { columns: 100, rows: 40 }
+    const onReady = vi.fn()
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="manual"
+        inputMode="number"
+        manualRevealMs={0}
+        onManualPromptReady={onReady}
+      />,
+    )
+    stdin.write('A question')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await waitForReady(onReady)
+    return { lastFrame, stdin, unmount, onReady }
+  }
+
+  it('advertises the ? help affordance in the casting footer', async () => {
+    const { lastFrame, unmount } = await openManualToCasting()
+    expect(lastFrame() ?? '').toContain('?: help')
+    unmount()
+  })
+
+  it('opens the full-screen guide on ? and returns to casting on Escape', async () => {
+    const { lastFrame, stdin, unmount, onReady } = await openManualToCasting()
+    // The casting screen is showing the prompt, not the guide.
+    expect(lastFrame() ?? '').toContain('LEFT HEAP')
+    expect(lastFrame() ?? '').not.toContain(MANUAL_GUIDE_TITLE)
+
+    stdin.write('?')
+    await waitFor(() => {
+      const frame = lastFrame() ?? ''
+      expect(frame).toContain(MANUAL_GUIDE_TITLE)
+      expect(frame).toContain('The four operations')
+    })
+    // The casting prompt is gone while the guide is up.
+    expect(lastFrame() ?? '').not.toContain('LEFT HEAP')
+
+    // Escape closes the guide; the prompt remounts (ready fires a 2nd time).
+    stdin.write(ESCAPE)
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(2))
+    const back = lastFrame() ?? ''
+    expect(back).toContain('LEFT HEAP')
+    expect(back).not.toContain(MANUAL_GUIDE_TITLE)
+    unmount()
+  })
+
+  it('closes the guide on a second ?', async () => {
+    const { lastFrame, stdin, unmount, onReady } = await openManualToCasting()
+    stdin.write('?')
+    await waitFor(() => expect(lastFrame() ?? '').toContain(MANUAL_GUIDE_TITLE))
+    stdin.write('?')
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(2))
+    expect(lastFrame() ?? '').not.toContain(MANUAL_GUIDE_TITLE)
+    unmount()
+  })
+
+  it('preserves in-progress typing across opening and closing the guide', async () => {
+    const { lastFrame, stdin, unmount, onReady } = await openManualToCasting()
+    // Nothing typed yet → MISSING shows 48 (49 unparted − 1 suspended).
+    expect(lastFrame() ?? '').toContain('48')
+
+    // Type 5 piles into the (focused) LEFT pile field → counted 21, missing 28.
+    stdin.write('5')
+    await waitFor(() => expect(lastFrame() ?? '').toContain('28'))
+    expect(lastFrame() ?? '').not.toContain('48')
+
+    // Open the guide (prompt unmounts) and close it (prompt remounts).
+    stdin.write('?')
+    await waitFor(() => expect(lastFrame() ?? '').toContain(MANUAL_GUIDE_TITLE))
+    stdin.write(ESCAPE)
+    await waitFor(() => expect(onReady).toHaveBeenCalledTimes(2))
+
+    // The typed 5 survived the remount: still MISSING 28, not the fresh 48.
+    const back = lastFrame() ?? ''
+    expect(back).toContain('28')
+    expect(back).not.toContain('48')
     unmount()
   })
 })
