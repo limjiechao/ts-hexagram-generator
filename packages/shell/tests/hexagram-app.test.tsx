@@ -558,19 +558,28 @@ function homeRows(hex: Hexagram): string[] {
 }
 
 describe('<HomeMenu> — banner layout', () => {
-  it('anchors the hexagram figure at the same column for every hexagram', () => {
-    // The pre-fix banner nested two centring passes — the figure within a
-    // name-width box, then that box within the screen — and the two integer
-    // roundings beat against the name width's parity, jittering the figure
-    // ±1 column. Every banner line begins `<value>  ━━━…`, so the first `━`
-    // column is the figure's left edge for both yang and yin lines.
-    const columns = allSettledHexagrams().map((hex) => {
-      const barRow = homeRows(hex).find((row) => row.includes('━'))
-      expect(barRow).toBeDefined()
-      return barRow?.indexOf('━')
-    })
-    expect(new Set(columns).size).toBe(1)
-  })
+  it(
+    'anchors the hexagram figure at the same column for every hexagram',
+    // This renders all 64 HomeMenu banners in a single test — by far the
+    // heaviest case in the suite (~2.4 s on a quiet local box). On the
+    // Windows GHA runner under 2-CPU contention it has overrun the 30 s
+    // default and timed out; 90 s gives the same headroom the core
+    // distribution test reserves for the same runner-variance reason.
+    { timeout: 90_000 },
+    () => {
+      // The pre-fix banner nested two centring passes — the figure within a
+      // name-width box, then that box within the screen — and the two integer
+      // roundings beat against the name width's parity, jittering the figure
+      // ±1 column. Every banner line begins `<value>  ━━━…`, so the first `━`
+      // column is the figure's left edge for both yang and yin lines.
+      const columns = allSettledHexagrams().map((hex) => {
+        const barRow = homeRows(hex).find((row) => row.includes('━'))
+        expect(barRow).toBeDefined()
+        return barRow?.indexOf('━')
+      })
+      expect(new Set(columns).size).toBe(1)
+    },
+  )
 
   it('separates the identity block from the banner by two blank rows', () => {
     const rows = homeRows([7, 8, 7, 8, 7, 8])
