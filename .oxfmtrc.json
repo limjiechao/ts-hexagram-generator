@@ -5,5 +5,5 @@
   "printWidth": 80,
   "sortImports": true,
   "sortPackageJson": false,
-  "ignorePatterns": []
+  "ignorePatterns": ["packages/consultation-file/tests/fixtures/*.md"]
 }
