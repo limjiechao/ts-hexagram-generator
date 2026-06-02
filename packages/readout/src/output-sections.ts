@@ -264,7 +264,7 @@ export function querySection(query: string): string {
 // Every field is derived from one `SplitRecord {pick, max}` via `deriveSplit`;
 // no algorithm or `CastingRecord` change is needed. Header names fuse plain
 // English with classical glosses, compact (no space after the glyph) so the
-// content fits the 120-col default wrap — 109 visual columns.
+// content fits the 120-col default wrap — 111 visual columns.
 const LEDGER_COLUMNS = [
   { key: 'line', header: '爻Line', width: 6 },
   { key: 'cast', header: '變Cast', width: 6 },
@@ -277,11 +277,16 @@ const LEDGER_COLUMNS = [
   { key: 'held', header: '掛Held', width: 6 },
   { key: 'rightRemainder', header: '扐Odd', width: 5 },
   { key: 'setAside', header: '歸奇Aside', width: 9 },
-  { key: 'sigma', header: '營Σ', width: 5 },
+  { key: 'sigma', header: '營Tally', width: 7 },
 ] as const
 
 const LEDGER_INDENT = '   '
-const LEDGER_GUTTER = ' │ '
+// The inter-cell gutter `│` is painted the same NORMAL_GREY as the `═╪═` /
+// `─┼─` rule rows so every border in the table reads as one uniform grey
+// grid. The flanking spaces stay uncoloured (invisible) and the ANSI codes
+// are zero-width, so the gutter is still exactly 3 visual columns — the `+ 3`
+// span arithmetic in the banner row is unaffected.
+const LEDGER_GUTTER = ` ${NORMAL_GREY}│${NORMAL} `
 
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
 // interactive viewer is still collecting casts: a `null` split renders its ten

@@ -56,7 +56,7 @@ describe('castingSection — full ledger', () => {
       '右Heap',
       '掛Held',
       '歸奇Aside',
-      '營Σ',
+      '營Tally',
     ])
       expect(out).toContain(h)
     expect(out).toMatch(/═╪═/)
