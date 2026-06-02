@@ -12,8 +12,19 @@ import type { ReactElement } from 'react'
 const SEAL = '易　筮　占'
 const MOTTO = '黑窗問易　受命終端'
 const DIVIDER = '──── ◇ ────'
-const WORDMARK = 'H · E · X · A · G · R · A · M'
-const TAGLINE = 'the Yijing Yarrow Oracle — in your terminal'
+// RubiFont figlet rendering of "HEXAGRAM" (4 rows, each exactly 42 columns
+// wide) drawn with Unicode quadrant block elements (U+2580–U+259F). The
+// uniform width matters: Ink's `alignItems="center"` centres each `<Text>`
+// row independently, so equal-width rows shift by the same amount and stay
+// vertically aligned. 42 cols sits comfortably inside the 80-col home-screen
+// baseline.
+const WORDMARK_LINES = [
+  '▗▖ ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▖  ▗▄▄▖▗▄▄▖  ▗▄▖ ▗▖  ▗▖',
+  '▐▌ ▐▌▐▌    ▝▚▞▘ ▐▌ ▐▌▐▌   ▐▌ ▐▌▐▌ ▐▌▐▛▚▞▜▌',
+  '▐▛▀▜▌▐▛▀▀▘  ▐▌  ▐▛▀▜▌▐▌▝▜▌▐▛▀▚▖▐▛▀▜▌▐▌  ▐▌',
+  '▐▌ ▐▌▐▙▄▄▖▗▞▘▝▚▖▐▌ ▐▌▝▚▄▞▘▐▌ ▐▌▐▌ ▐▌▐▌  ▐▌',
+]
+const TAGLINE = 'Yijing Yarrow Oracle in your terminal'
 
 /**
  * The static identity block. Centred via Ink's `alignItems="center"` (Ink
@@ -26,7 +37,11 @@ export function IdentityBlock(): ReactElement {
       <Text>{`${WHITE}${SEAL}${NORMAL}`}</Text>
       <Text>{`${NORMAL_GREY}${MOTTO}${NORMAL}`}</Text>
       <Text>{`${NORMAL_GREY}${DIVIDER}${NORMAL}`}</Text>
-      <Text>{`${WHITE}${WORDMARK}${NORMAL}`}</Text>
+      {WORDMARK_LINES.map((line, index) => (
+        // `index` is a stable key: five fixed positional rows of ASCII art,
+        // never reordered or filtered — the row position IS its identity.
+        <Text key={index}>{`${WHITE}${line}${NORMAL}`}</Text>
+      ))}
       <Text>{`${NORMAL_GREY}${TAGLINE}${NORMAL}`}</Text>
     </Box>
   )

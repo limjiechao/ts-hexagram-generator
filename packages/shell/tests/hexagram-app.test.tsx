@@ -200,9 +200,11 @@ describe('<HexagramApp> — Home screen', () => {
     // The hexagram banner: a six-line figure with both bar styles.
     expect(frame).toContain('━━━━━━━━━')
     expect(frame).toContain('━━━   ━━━')
-    // The static identity block.
-    expect(frame).toContain('H · E · X · A · G · R · A · M')
-    expect(frame).toContain('the Yijing Yarrow Oracle — in your terminal')
+    // The static identity block — the "HEXAGRAM" RubiFont wordmark, two
+    // distinctive rows of the figlet block (top row + a middle row).
+    expect(frame).toContain('▗▖ ▗▖▗▄▄▄▖▗▖  ▗▖ ▗▄▖  ▗▄▄▖▗▄▄▖  ▗▄▖ ▗▖  ▗▖')
+    expect(frame).toContain('▐▛▀▜▌▐▛▀▀▘  ▐▌  ▐▛▀▜▌▐▌▝▜▌▐▛▀▚▖▐▛▀▜▌▐▌  ▐▌')
+    expect(frame).toContain('Yijing Yarrow Oracle in your terminal')
     // The three menu items + footer are unchanged.
     expect(frame).toContain('New interactive consultation')
     expect(frame).toContain('New random consultation')
@@ -584,7 +586,7 @@ describe('<HomeMenu> — banner layout', () => {
   it('separates the identity block from the banner by two blank rows', () => {
     const rows = homeRows([7, 8, 7, 8, 7, 8])
     const taglineRow = rows.findIndex((row) =>
-      row.includes('the Yijing Yarrow Oracle'),
+      row.includes('Yijing Yarrow Oracle'),
     )
     const firstBarRow = rows.findIndex((row) => row.includes('━'))
     expect(taglineRow).toBeGreaterThanOrEqual(0)
