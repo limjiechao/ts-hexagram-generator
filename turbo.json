@@ -17,6 +17,7 @@
       "outputs": ["dist/**"]
     },
     "test": {
+      "dependsOn": ["^build"],
       "env": ["FORCE_COLOR"]
     },
     "type:check": {
