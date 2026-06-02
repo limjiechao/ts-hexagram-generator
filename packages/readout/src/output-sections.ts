@@ -1,3 +1,4 @@
+import { deriveSplit } from '@hexagram/core/casting-derivation'
 import {
   getEmergingHexagram,
   getHexagramRecord,
@@ -11,6 +12,7 @@ import type {
 } from '@hexagram/core/types'
 import {
   assertLine1ToLine6,
+  BOLD_CYAN,
   BOLD_GREY,
   BOLD_RED,
   BOLD_WHITE,
@@ -20,6 +22,7 @@ import {
   NORMAL,
   NORMAL_GREY,
   PLACEHOLDER_GREY,
+  YELLOW,
 } from '@hexagram/viewer-core'
 
 // `✕` U+2715 — matches the home banner's moving-yin glyph so every render
@@ -92,6 +95,31 @@ function visualWidth(text: string): number {
 function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
 }
+
+/** Right-align `text` within `width` visual columns (CJK-aware). */
+function padStartVisual(text: string, width: number): string {
+  return ' '.repeat(Math.max(0, width - visualWidth(text))) + text
+}
+
+/** Centre `text` within `width` visual columns (CJK-aware). */
+function centerVisual(text: string, width: number): string {
+  const total = Math.max(0, width - visualWidth(text))
+  const left = Math.floor(total / 2)
+  return ' '.repeat(left) + text + ' '.repeat(total - left)
+}
+
+// I-Ching line labels: the classical ordinal glyph (初 for line 1, else 二..六)
+// fused with the Arabic line number, mirroring the diagram sections' position
+// labels (初/二/三/四/五/六). `六6` is 3 visual columns — well inside the
+// `爻Line` column's width of 6.
+const LINE_LABELS = {
+  1: '初1',
+  2: '二2',
+  3: '三3',
+  4: '四4',
+  5: '五5',
+  6: '六6',
+} as const
 
 function capitalizeFirst(text: string): string {
   if (text.length === 0) return text
@@ -230,47 +258,38 @@ export function querySection(query: string): string {
   ${BOLD_WHITE}${query || '(Query not provided)'}`
 }
 
-// Pad `text` to `width` visual columns, centred. The styling wraps just the
-// text — ANSI codes are zero-width so the cell still aligns.
-function castCenter(text: string, width: number, color?: string): string {
-  const leftPad = Math.floor((width - text.length) / 2)
-  const rightPad = width - text.length - leftPad
-  const body = color ? `${color}${text}${NORMAL}` : text
-  return `${' '.repeat(leftPad)}${body}${' '.repeat(rightPad)}`
-}
+// Column layout for the enumerated casting ledger. Eighteen rows (6 lines × 3
+// casts) each carry twelve right-aligned cells joined by a ` │ ` gutter under a
+// two-level header: the `左Left` / `右Right` banners span their sub-columns.
+// Every field is derived from one `SplitRecord {pick, max}` via `deriveSplit`;
+// no algorithm or `CastingRecord` change is needed. Header names fuse plain
+// English with classical glosses, compact (no space after the glyph) so the
+// content fits the 120-col default wrap — 109 visual columns.
+const LEDGER_COLUMNS = [
+  { key: 'line', header: '爻Line', width: 6 },
+  { key: 'cast', header: '變Cast', width: 6 },
+  { key: 'stalks', header: '蓍Stalks', width: 8 },
+  { key: 'leftHeap', header: '左Heap', width: 6 },
+  { key: 'leftPiles', header: '揲Fours', width: 7 },
+  { key: 'leftRemainder', header: '扐Odd', width: 5 },
+  { key: 'rightHeap', header: '右Heap', width: 6 },
+  { key: 'rightPiles', header: '揲Fours', width: 7 },
+  { key: 'held', header: '掛Held', width: 6 },
+  { key: 'rightRemainder', header: '扐Odd', width: 5 },
+  { key: 'setAside', header: '歸奇Aside', width: 9 },
+  { key: 'sigma', header: '營Σ', width: 5 },
+] as const
 
-// Right-aligned cell: filler, then the (optionally styled) text, then a single
-// trailing space — keeps numeric values lined up against the right edge of the
-// column with a touch of breathing room from the border.
-function castRight(text: string, width: number, color?: string): string {
-  const leading = Math.max(0, width - text.length - 1)
-  const body = color ? `${color}${text}${NORMAL}` : text
-  return `${' '.repeat(leading)}${body} `
-}
+const LEDGER_INDENT = '   '
+const LEDGER_GUTTER = ' │ '
 
-// The eighteen stalk divisions (十有八變) that produced the hexagram, laid out
-// as a single 6×9 grid under a hierarchical header. Rows are lines in
-// hexagram order (Line 6 at top, matching the diagram sections); columns are
-// grouped under a top-level `Cast` banner, split into three ordinals
-// (`1st` / `2nd` / `3rd`), and within each cast the leaf columns are
-// `Stalks` (the round's unparted total, `max + 1`) and a `Heap → {Left,
-// Right}` subgroup recording the two heaps the stalks were parted into
-// (`Left` is the index parted at = `pick`; `Right` is `Stalks − Left`).
-// `Stalks` and `Right` both fold the one stalk suspended from the right heap
-// back in — it was part of the unparted stalks and part of the right heap
-// before sorting — so `Left + Right == Stalks`. The query is not repeated
-// here — it has its own section.
-//
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
-// casting is still being collected by the interactive viewer — `null` cells
-// fall back to a `·` placeholder of the same column width, so border characters
-// never shift as cells fill in. `CastingRecord` is structurally a subtype, so
-// fully-populated callers keep producing byte-identical output (the four
-// `tests/fixtures/plain-output-*.txt` byte-identity tests guard this).
-//
-// A `null` casting (a consultation with no recorded casting — e.g. one
-// migrated from a pre-CASTING legacy `.txt`) renders a "Casting not recorded"
-// caption instead of the table.
+// interactive viewer is still collecting casts: a `null` split renders its ten
+// derived cells as width-stable `·` placeholders (the structural 爻Line / 變Cast
+// cells still print), so column boundaries never shift as cells fill in.
+// `CastingRecord` is a structural subtype, so fully-populated callers render the
+// final table. A `null` casting (e.g. one migrated from a pre-CASTING legacy
+// `.txt`) renders a "Casting not recorded" caption instead of the table.
 export function castingSection(casting: PartialCastingRecord | null): string {
   if (casting === null)
     return `
@@ -279,50 +298,105 @@ ${BOLD_GREY}CASTING:${NORMAL}
 ${NORMAL}Casting not recorded
 `.trim()
 
-  const TOP =
-    '┌──────┬──────────────────────────────────────────────────────────────────────────┐'
-  const CAST_OUTER_DIVIDER =
-    '│      ├────────────────────────┬────────────────────────┬────────────────────────┤'
-  const CAST_INNER_DIVIDER =
-    '│      ├────────┬───────────────┼────────┬───────────────┼────────┬───────────────┤'
-  const HEAP_INNER_DIVIDER =
-    '│      │        ├───────┬───────┤        ├───────┬───────┤        ├───────┬───────┤'
-  const MID =
-    '├──────┼────────┼───────┼───────┼────────┼───────┼───────┼────────┼───────┼───────┤'
-  const BOTTOM =
-    '└──────┴────────┴───────┴───────┴────────┴───────┴───────┴────────┴───────┴───────┘'
+  const width = (key: string): number =>
+    LEDGER_COLUMNS.find((c) => c.key === key)!.width
+  const blank = (key: string): string => ' '.repeat(width(key))
 
-  // Header rows, top-down: a `Cast` banner spanning all three casts; three
-  // ordinal labels (`1st` / `2nd` / `3rd`); a `Heap` subgroup banner over the
-  // `Left` / `Right` pair within each cast (the `Stalks` slot is left blank
-  // so the column header below visually owns it); and the leaf labels.
-  // Spanning labels are `castCenter`-ed over their group; leaf labels use
-  // `castRight` so they share the one-column trailing gutter of the numeric
-  // body cells below.
-  const CAST_LABEL = `│      │${castCenter('Cast', 74, HEADING_GREY)}│`
+  // Banner row: the 左Left / 右Right banners each span their sub-columns plus
+  // the interior 3-col gutters between them.
+  const leftSpan =
+    width('leftHeap') + 3 + width('leftPiles') + 3 + width('leftRemainder')
+  const rightSpan =
+    width('rightHeap') +
+    3 +
+    width('rightPiles') +
+    3 +
+    width('held') +
+    3 +
+    width('rightRemainder')
+  const bannerRow = `${
+    LEDGER_INDENT +
+    [blank('line'), blank('cast'), blank('stalks')].join(LEDGER_GUTTER) +
+    LEDGER_GUTTER
+  }${HEADING_GREY}${centerVisual('左Left', leftSpan)}${NORMAL}${
+    LEDGER_GUTTER
+  }${HEADING_GREY}${centerVisual('右Right', rightSpan)}${NORMAL}${
+    LEDGER_GUTTER
+  }${[blank('setAside'), blank('sigma')].join(LEDGER_GUTTER)}`
 
-  const nthCell = (text: string): string => castCenter(text, 24, HEADING_GREY)
-  const NTH_LABEL = `│      │${nthCell('1st')}│${nthCell('2nd')}│${nthCell('3rd')}│`
+  const headerRow =
+    LEDGER_INDENT +
+    LEDGER_COLUMNS.map(
+      (c) => `${HEADING_GREY}${padStartVisual(c.header, c.width)}${NORMAL}`,
+    ).join(LEDGER_GUTTER)
 
-  const heapBanner = `        │${castCenter('Heap', 15, HEADING_GREY)}`
-  const HEAP_LABEL = `│      │${heapBanner}│${heapBanner}│${heapBanner}│`
+  const headerRule = `${
+    LEDGER_INDENT
+  }${NORMAL_GREY}${LEDGER_COLUMNS.map((c) => '═'.repeat(c.width)).join('═╪═')}${NORMAL}`
+  const blockRule = `${
+    LEDGER_INDENT
+  }${NORMAL_GREY}${LEDGER_COLUMNS.map((c) => '─'.repeat(c.width)).join('─┼─')}${NORMAL}`
 
-  const colCell = `${castRight('Stalks', 8, HEADING_GREY)}│${castRight('Left', 7, HEADING_GREY)}│${castRight('Right', 7, HEADING_GREY)}`
-  const COL_LABELS = `│${castRight('Line', 6, HEADING_GREY)}│${colCell}│${colCell}│${colCell}│`
+  const dataRow = (
+    lineNumber: 1 | 2 | 3 | 4 | 5 | 6,
+    castNumber: 1 | 2 | 3,
+    split: PartialSplitRecord,
+    showLine: boolean,
+  ): string => {
+    // Each line label is one CJK glyph + one digit (2 code points / 3 visual
+    // columns). To keep every data row's *code-point* length identical — not
+    // just its visual width — the unlabeled line cells fill with one ideographic
+    // space (U+3000: 1 code point, 2 visual columns) so they carry the same
+    // code-point budget as a labelled cell.
+    const lineCell = showLine ? LINE_LABELS[lineNumber] : '\u3000'
+    const cells: string[] = [
+      `${BOLD_WHITE}${padStartVisual(lineCell, width('line'))}${NORMAL}`,
+      `${NORMAL_GREY}${padStartVisual(String(castNumber), width('cast'))}${NORMAL}`,
+    ]
+    if (split === null) {
+      for (const key of [
+        'stalks',
+        'leftHeap',
+        'leftPiles',
+        'leftRemainder',
+        'rightHeap',
+        'rightPiles',
+        'held',
+        'rightRemainder',
+        'setAside',
+        'sigma',
+      ])
+        cells.push(
+          `${PLACEHOLDER_GREY}${padStartVisual('·', width(key))}${NORMAL}`,
+        )
+    } else {
+      const d = deriveSplit(split)
+      const plain = (value: number, key: string): string =>
+        padStartVisual(String(value), width(key))
+      cells.push(
+        `${NORMAL_GREY}${plain(d.stalks, 'stalks')}${NORMAL}`,
+        plain(d.leftHeap, 'leftHeap'),
+        plain(d.leftPiles, 'leftPiles'),
+        `${YELLOW}${plain(d.leftRemainder, 'leftRemainder')}${NORMAL}`,
+        plain(d.rightHeap, 'rightHeap'),
+        plain(d.rightPiles, 'rightPiles'),
+        `${NORMAL_GREY}${plain(d.held, 'held')}${NORMAL}`,
+        `${YELLOW}${plain(d.rightRemainder, 'rightRemainder')}${NORMAL}`,
+        `${NORMAL_GREY}${plain(d.setAside, 'setAside')}${NORMAL}`,
+        castNumber === 3
+          ? `${BOLD_CYAN}${padStartVisual(`⇒ ${d.combinedPiles}`, width('sigma'))}${NORMAL}`
+          : padStartVisual(String(d.combinedPiles), width('sigma')),
+      )
+    }
+    return LEDGER_INDENT + cells.join(LEDGER_GUTTER)
+  }
 
-  // All numeric body cells right-align so multi-digit values line up against
-  // the right column edge. Pending cells get a `·` in all three sub-columns,
-  // dimmed so the eye reads them as "not yet picked".
-  const cell = (split: PartialSplitRecord): string =>
-    split === null
-      ? `${castRight('·', 8, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}│${castRight('·', 7, PLACEHOLDER_GREY)}`
-      : `${castRight(String(split.max + 1), 8, NORMAL_GREY)}│${castRight(String(split.pick), 7, BOLD_WHITE)}│${castRight(String(split.max - split.pick + 1), 7, BOLD_WHITE)}`
-
-  // `casting` is a 6-tuple and the literal source `[6, 5, 4, 3, 2, 1]` covers
-  // every valid index, but TS can't narrow `lineNumber - 1` to `0..5` from a
-  // plain `number`. Index with the tuple-positioned literals instead — each
-  // access is provably in-bounds.
-  const indexedLines = [
+  // Lines top→bottom are 6→1 (matching the diagram sections). Within each block
+  // casts are reversed — cast 3 (the resolving cast, carrying `⇒ N`) on top,
+  // cast 1 (`蓍Stalks` = 49) at the bottom. The line label prints only on the
+  // block's top (cast-3) row. Index with tuple-positioned literals so TS proves
+  // each access in-bounds and `lineNumber` is a 1..6 literal.
+  const lineOrder = [
     [6, casting[5]],
     [5, casting[4]],
     [4, casting[3]],
@@ -330,27 +404,28 @@ ${NORMAL}Casting not recorded
     [2, casting[1]],
     [1, casting[0]],
   ] as const
-  const dataRows = indexedLines
-    .map(([lineNumber, lineCasting]) => {
-      const [first, second, third] = lineCasting
-      return `│${castRight(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
+
+  const body = lineOrder
+    .map(([lineNumber, lineCasting], blockIndex) => {
+      const [cast1, cast2, cast3] = lineCasting
+      const rows = [
+        dataRow(lineNumber, 3, cast3, true),
+        dataRow(lineNumber, 2, cast2, false),
+        dataRow(lineNumber, 1, cast1, false),
+      ]
+      return blockIndex < lineOrder.length - 1
+        ? [...rows, blockRule].join('\n')
+        : rows.join('\n')
     })
     .join('\n')
 
   return `
 ${BOLD_GREY}CASTING:${NORMAL}
 
-${TOP}
-${CAST_LABEL}
-${CAST_OUTER_DIVIDER}
-${NTH_LABEL}
-${CAST_INNER_DIVIDER}
-${HEAP_LABEL}
-${HEAP_INNER_DIVIDER}
-${COL_LABELS}
-${MID}
-${dataRows}
-${BOTTOM}
+${bannerRow}
+${headerRow}
+${headerRule}
+${body}
 `.trim()
 }
 
