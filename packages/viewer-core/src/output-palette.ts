@@ -11,6 +11,13 @@ export const BOLD_GREY = '[1;90m'
 export const BOLD_WHITE = '[1;97m'
 export const BOLD_RED = '[1;91m'
 export const BOLD_GREEN = '[1;92m'
+// Bold cyan (SGR 1;96) — the resolved third-cast result cell (`⇒ N`), the
+// one number in the casting ledger that equals the emerged line value.
+export const BOLD_CYAN = '[1;96m'
+// Bright yellow (SGR 93) — the set-aside remainders (扐) in the casting
+// ledger. A neutral attention accent, deliberately not red (which reads as
+// error).
+export const YELLOW = '[93m'
 // Dimmed red (SGR 2;91) — the home banner's moving lines on their dim pulse
 // beat. Pairs with BOLD_RED for the bright beat.
 export const DIM_RED = '[2;91m'

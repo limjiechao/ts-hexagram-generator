@@ -34,6 +34,7 @@ export { HelpOverlay, type HelpOverlayProps } from './help-overlay.js'
 
 // ANSI palette constants used by the formatted output.
 export {
+  BOLD_CYAN,
   BOLD_GREEN,
   BOLD_GREY,
   BOLD_RED,
@@ -47,6 +48,7 @@ export {
   PLACEHOLDER_GREY,
   VALUE_WHITE,
   WHITE,
+  YELLOW,
 } from './output-palette.js'
 
 // TTY-and-environment guard shared by every Ink-only bin's run entry.
