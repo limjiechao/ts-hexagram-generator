@@ -895,12 +895,12 @@ describe('ConsultationViewer (T3 refinements)', () => {
       <ConsultationViewer sections={movingSections} savedPath={SAVED_PATH} />,
     )
     const frame = lastFrame() ?? ''
-    // The casting table header row is intact (no mid-row truncation that
-    // would leave a dangling `│` with no cell content after it). After R3
+    // The casting ledger header row is intact (no mid-row truncation that
+    // would leave a dangling `│` with no cell content after it). After R5
     // the header cells are SGR-wrapped (HEADING_GREY), so strip ANSI
     // before checking the literal substring.
     const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
-    expect(stripped).toContain('│ Line │')
+    expect(stripped).toContain('爻Line │ 變Cast │')
     // The key hints remain fully visible in the footer (hints rendered first;
     // horizontal status is pushed right and may be truncated on narrow terminals
     // by design — scroll position is regenerable glance-info).
