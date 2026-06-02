@@ -53,7 +53,7 @@ describe('castingMarkdownSection', () => {
     expect(text).toContain('爻Line') // header column labels
     expect(text).toContain('蓍Stalks')
     expect(text).toContain('掛Held')
-    expect(text).toContain('營Σ')
+    expect(text).toContain('營Tally')
     expect(text).toMatch(/═╪═/) // double rule under the header
     expect(text).toMatch(/⇒ \d/) // resolved third-cast cell
     expect(text).toContain('六6') // glyph+number line label

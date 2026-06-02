@@ -89,7 +89,7 @@ const LEDGER_COLUMNS = [
   { key: 'held', header: '掛Held', width: 6 },
   { key: 'rightRemainder', header: '扐Odd', width: 5 },
   { key: 'setAside', header: '歸奇Aside', width: 9 },
-  { key: 'sigma', header: '營Σ', width: 5 },
+  { key: 'sigma', header: '營Tally', width: 7 },
 ] as const
 
 const LEDGER_INDENT = '   '
