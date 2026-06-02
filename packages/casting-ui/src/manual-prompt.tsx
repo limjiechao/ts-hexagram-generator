@@ -568,7 +568,7 @@ export function ManualCastingPrompt({
   return (
     <Box
       borderStyle="round"
-      borderColor="cyan"
+      borderColor="gray"
       width={width}
       flexShrink={0}
       flexDirection="column"
