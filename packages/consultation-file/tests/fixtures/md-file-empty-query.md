@@ -98,7 +98,7 @@ _(No transformation)_
 _Line at bottom is first._
 
 ```text
-  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （上, 6th）──┐
   7  ━━━━━━━━━  （五, 5th）──┼── 天（上卦）
   7  ━━━━━━━━━  （四, 4th）──┘   heaven (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐

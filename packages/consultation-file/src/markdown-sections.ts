@@ -23,7 +23,7 @@ const POSITION_LABELS = {
   3: '（三, 3rd）',
   4: '（四, 4th）',
   5: '（五, 5th）',
-  6: '（六, 6th）',
+  6: '（上, 6th）',
 } as const
 
 function isMovingLine(line: Line): boolean {

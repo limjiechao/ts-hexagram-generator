@@ -38,7 +38,7 @@ How will the journey unfold?
 ```text
   Standing                                    Emerging
 
-  8  ━━━   ━━━  （六, 6th）                   8  ━━━   ━━━  （六, 6th）
+  8  ━━━   ━━━  （上, 6th）                   8  ━━━   ━━━  （上, 6th）
   7  ━━━━━━━━━  （五, 5th）                   7  ━━━━━━━━━  （五, 5th）
   8  ━━━   ━━━  （四, 4th）                   8  ━━━   ━━━  （四, 4th）
   7  ━━━━━━━━━  （三, 3rd）                   7  ━━━━━━━━━  （三, 3rd）
@@ -54,7 +54,7 @@ How will the journey unfold?
 _Line at bottom is first._
 
 ```text
-  8  ━━━   ━━━  （六, 6th）──┐
+  8  ━━━   ━━━  （上, 6th）──┐
   7  ━━━━━━━━━  （五, 5th）──┼── 水（上卦）
   8  ━━━   ━━━  （四, 4th）──┘   water (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐
@@ -87,7 +87,7 @@ XLVIII. The Žing Hexagram
 _Line at bottom is first._
 
 ```text
-  8  ━━━   ━━━  （六, 6th）──┐
+  8  ━━━   ━━━  （上, 6th）──┐
   7  ━━━━━━━━━  （五, 5th）──┼── 水（上卦）
   8  ━━━   ━━━  （四, 4th）──┘   water (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐

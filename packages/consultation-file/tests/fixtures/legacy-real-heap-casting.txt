@@ -23,7 +23,7 @@ TRANSFORMATION:
 
   Standing                                    Emerging
 
-  7  ━━━━━━━━━  （六, 6th）                   7  ━━━━━━━━━  （六, 6th）
+  7  ━━━━━━━━━  （上, 6th）                   7  ━━━━━━━━━  （上, 6th）
   6  ━━━ × ━━━  （五, 5th）─────────────────▶ 7  ━━━━━━━━━  （五, 5th）
   8  ━━━   ━━━  （四, 4th）                   8  ━━━   ━━━  （四, 4th）
   7  ━━━━━━━━━  （三, 3rd）                   7  ━━━━━━━━━  （三, 3rd）
@@ -38,7 +38,7 @@ STANDING HEXAGRAM 52:
 
 (Line at bottom is first)
 
-  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （上, 6th）──┐
   6  ━━━ × ━━━  （五, 5th）──┼── 山（上卦）
   8  ━━━   ━━━  （四, 4th）──┘   mountain (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐
@@ -115,7 +115,7 @@ EMERGING HEXAGRAM 53:
 
 (Line at bottom is first)
 
-  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （上, 6th）──┐
   7  ━━━━━━━━━  （五, 5th）──┼── 風（上卦）
   8  ━━━   ━━━  （四, 4th）──┘   wind, wood (upper trigram)
   7  ━━━━━━━━━  （三, 3rd）──┐

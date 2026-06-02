@@ -38,7 +38,7 @@ Should I take the new position?
 ```text
   Standing                                    Emerging
 
-  7  ━━━━━━━━━  （六, 6th）                   7  ━━━━━━━━━  （六, 6th）
+  7  ━━━━━━━━━  （上, 6th）                   7  ━━━━━━━━━  （上, 6th）
   8  ━━━   ━━━  （五, 5th）                   8  ━━━   ━━━  （五, 5th）
   7  ━━━━━━━━━  （四, 4th）                   7  ━━━━━━━━━  （四, 4th）
   8  ━━━   ━━━  （三, 3rd）                   8  ━━━   ━━━  （三, 3rd）
@@ -54,7 +54,7 @@ Should I take the new position?
 _Line at bottom is first._
 
 ```text
-  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （上, 6th）──┐
   8  ━━━   ━━━  （五, 5th）──┼── 火（上卦）
   7  ━━━━━━━━━  （四, 4th）──┘   fire (upper trigram)
   8  ━━━   ━━━  （三, 3rd）──┐
@@ -87,7 +87,7 @@ LXIV. The Wei Žî Hexagram
 _Line at bottom is first._
 
 ```text
-  7  ━━━━━━━━━  （六, 6th）──┐
+  7  ━━━━━━━━━  （上, 6th）──┐
   8  ━━━   ━━━  （五, 5th）──┼── 火（上卦）
   7  ━━━━━━━━━  （四, 4th）──┘   fire (upper trigram)
   8  ━━━   ━━━  （三, 3rd）──┐

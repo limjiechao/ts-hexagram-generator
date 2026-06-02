@@ -54,7 +54,7 @@ describe('<PlaygroundApp>', () => {
     expect(frame).toContain('Ch’ien')
     // Position labels rendered alongside each line row.
     expect(frame).toContain('（初, 1st）')
-    expect(frame).toContain('（六, 6th）')
+    expect(frame).toContain('（上, 6th）')
     // Yang static bar glyphs (one per line, both sides).
     expect(frame).toContain('━━━━━━━━━')
     // The focus chevron is rendered with ANSI codes between `›` and the

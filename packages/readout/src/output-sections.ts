@@ -47,7 +47,7 @@ function getLineColor(line: Line): typeof BOLD_RED | typeof BOLD_WHITE {
 //   gap/arrow = 17×─ + ▶ + 1 space                                    = 19 cols
 //   right column starts at                                               col 46
 //
-// position labels like （六, 6th）: （(2) + CJK(2) + ", "(2) + "6th"(3) + ）(2) = 11 cols
+// position labels like （上, 6th）: （(2) + CJK(2) + ", "(2) + "6th"(3) + ）(2) = 11 cols
 const RIGHT_COLUMN = 46
 /** 19-col inter-column connector for moving lines: 17×─ + ▶ + 1 space. */
 export const MOVING_ARROW = '─────────────────▶ '
@@ -61,7 +61,7 @@ export const POSITION_LABELS = {
   3: '（三, 3rd）',
   4: '（四, 4th）',
   5: '（五, 5th）',
-  6: '（六, 6th）',
+  6: '（上, 6th）',
 } as const
 
 /**
