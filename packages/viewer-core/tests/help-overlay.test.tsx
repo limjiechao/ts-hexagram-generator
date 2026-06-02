@@ -8,8 +8,19 @@ import { stripAnsi } from '../src/viewer-layout.js'
 const ESC = String.fromCodePoint(0x1b)
 const ARROW_DOWN = `${ESC}[B`
 
-// A 50-line body overflows ink-testing-library's 24-row fake stdout (viewport
-// = rows − title − footer = 22), so the scroll affordances engage.
+// `HelpOverlay` derives its viewport from `useWindowSize`. ink-testing-library's
+// fake stdout reports 100 columns but no rows, so the real terminal would leak
+// in via `terminal-size` — making the windowing math depend on whoever runs the
+// suite. Pin the dimensions here (same idiom as casting-ui's viewer.test) so the
+// viewport is a deterministic 24 rows on every machine and CI.
+const windowSize = vi.hoisted(() => ({ current: { columns: 100, rows: 24 } }))
+vi.mock('ink', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('ink')>()
+  return { ...actual, useWindowSize: () => windowSize.current }
+})
+
+// A 50-line body overflows the pinned 24-row viewport (= rows − title − footer =
+// 22), so the scroll affordances engage.
 const longBody = Array.from({ length: 50 }, (_, i) => `Guide line ${i + 1}`)
 
 describe('<HelpOverlay> — rendering', () => {
