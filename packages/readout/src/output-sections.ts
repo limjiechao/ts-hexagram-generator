@@ -108,17 +108,17 @@ function centerVisual(text: string, width: number): string {
   return ' '.repeat(left) + text + ' '.repeat(total - left)
 }
 
-// I-Ching line labels: the classical ordinal glyph (初 for line 1, else 二..六)
-// fused with the Arabic line number, mirroring the diagram sections' position
-// labels (初/二/三/四/五/六). `六6` is 3 visual columns — well inside the
-// `爻Line` column's width of 6.
+// I-Ching line labels: the classical ordinal glyph (初 for line 1, 上 for
+// line 6, else 二..五) fused with the Arabic line number, mirroring the
+// diagram sections' position labels (初/二/三/四/五/上). `上6` is 3 visual
+// columns — well inside the `爻Line` column's width of 6.
 const LINE_LABELS = {
   1: '初1',
   2: '二2',
   3: '三3',
   4: '四4',
   5: '五5',
-  6: '六6',
+  6: '上6',
 } as const
 
 function capitalizeFirst(text: string): string {

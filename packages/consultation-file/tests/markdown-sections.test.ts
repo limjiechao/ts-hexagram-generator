@@ -56,7 +56,7 @@ describe('castingMarkdownSection', () => {
     expect(text).toContain('營Tally')
     expect(text).toMatch(/═╪═/) // double rule under the header
     expect(text).toMatch(/⇒ \d/) // resolved third-cast cell
-    expect(text).toContain('六6') // glyph+number line label
+    expect(text).toContain('上6') // glyph+number line label
     // Numeric values from the fixture must appear:
     expect(text).toContain('27')
     expect(text).toContain('33')

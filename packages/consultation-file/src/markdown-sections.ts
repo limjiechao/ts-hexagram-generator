@@ -67,7 +67,7 @@ const LINE_LABELS = {
   3: '三3',
   4: '四4',
   5: '五5',
-  6: '六6',
+  6: '上6',
 } as const
 
 function padToColumn(text: string, targetColumn: number, minGap = 1): string {

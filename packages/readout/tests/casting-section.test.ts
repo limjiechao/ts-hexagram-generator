@@ -25,7 +25,7 @@ const borderColumns = (row: string): number[] => {
   return positions
 }
 
-// Visual column width: CJK ideographs (the line-label glyphs 初二三四五六) are
+// Visual column width: CJK ideographs (the line-label glyphs 初二三四五上) are
 // East-Asian-Wide (2 columns); everything else here is 1. `[...r].length`
 // (code points) is NOT visual width when wide glyphs are present. The
 // U+3000..U+9FFF range covers the ideographic space and the CJK ideographs;
@@ -76,15 +76,15 @@ describe('castingSection — full ledger', () => {
 
   it('labels each line block with its glyph+number once, on the cast-3 row, with ⇒ N', () => {
     const out = stripAnsi(castingSection(FULL))
-    for (const label of ['初1', '二2', '三3', '四4', '五5', '六6'])
+    for (const label of ['初1', '二2', '三3', '四4', '五5', '上6'])
       expect(out).toContain(label)
     const rows = dataRowsOf(castingSection(FULL))
-    // The first block is line 6: its top (cast-3) row carries 六6 and ⇒ N.
-    expect(rows[0]!).toContain('六6')
+    // The first block is line 6: its top (cast-3) row carries 上6 and ⇒ N.
+    expect(rows[0]!).toContain('上6')
     expect(rows[0]!).toMatch(/⇒ \d/)
     // The block's other two rows (casts 2, 1) carry no line label.
-    expect(rows[1]!).not.toContain('六6')
-    expect(rows[2]!).not.toContain('六6')
+    expect(rows[1]!).not.toContain('上6')
+    expect(rows[2]!).not.toContain('上6')
   })
 
   it('keeps every data row the same visual width', () => {
