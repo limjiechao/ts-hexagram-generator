@@ -10,15 +10,10 @@
       "types": "./dist/index.d.mts",
       "import": "./dist/index.mjs"
     },
-    "./types": {
-      "source": "./src/types.ts",
-      "types": "./dist/types.d.mts",
-      "import": "./dist/types.mjs"
-    },
-    "./random-casting": {
-      "source": "./src/random-casting.ts",
-      "types": "./dist/random-casting.d.mts",
-      "import": "./dist/random-casting.mjs"
+    "./casting-derivation": {
+      "source": "./src/casting-derivation.ts",
+      "types": "./dist/casting-derivation.d.mts",
+      "import": "./dist/casting-derivation.mjs"
     },
     "./crypto-random": {
       "source": "./src/crypto-random.ts",
@@ -35,10 +30,20 @@
       "types": "./dist/models/hexagrams.d.mts",
       "import": "./dist/models/hexagrams.mjs"
     },
+    "./random-casting": {
+      "source": "./src/random-casting.ts",
+      "types": "./dist/random-casting.d.mts",
+      "import": "./dist/random-casting.mjs"
+    },
     "./trigrams": {
       "source": "./src/models/trigrams.ts",
       "types": "./dist/models/trigrams.d.mts",
       "import": "./dist/models/trigrams.mjs"
+    },
+    "./types": {
+      "source": "./src/types.ts",
+      "types": "./dist/types.d.mts",
+      "import": "./dist/types.mjs"
     },
     "./package.json": "./package.json"
   },
