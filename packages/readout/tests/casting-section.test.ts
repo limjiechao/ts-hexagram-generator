@@ -25,6 +25,14 @@ const borderColumns = (row: string): number[] => {
   return positions
 }
 
+// Visual column width: CJK ideographs (the line-label glyphs 初二三四五六) are
+// East-Asian-Wide (2 columns); everything else here is 1. `[...r].length`
+// (code points) is NOT visual width when wide glyphs are present. The
+// U+3000..U+9FFF range covers the ideographic space and the CJK ideographs;
+// the gutter `│` (U+2502) and `⇒` (U+21D2) are 1-column and fall outside it.
+const visualWidthOf = (row: string): number =>
+  [...row].reduce((n, ch) => n + (/[\u3000-\u9FFF]/.test(ch) ? 2 : 1), 0)
+
 // pick=24, max=48 derives to stalks 49, L heap 24 / 5 piles / 4 odd,
 // R heap 25 / 5 piles / 4 odd, held 1, aside 9, Σ 10.
 const FULL: CastingRecord = Array.from({ length: 6 }, () => [
@@ -81,7 +89,7 @@ describe('castingSection — full ledger', () => {
 
   it('keeps every data row the same visual width', () => {
     const rows = dataRowsOf(castingSection(FULL))
-    const widths = new Set(rows.map((r) => [...r].length))
+    const widths = new Set(rows.map(visualWidthOf))
     expect(widths.size).toBe(1)
   })
 })

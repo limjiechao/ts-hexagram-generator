@@ -343,12 +343,7 @@ ${NORMAL}Casting not recorded
     split: PartialSplitRecord,
     showLine: boolean,
   ): string => {
-    // Each line label is one CJK glyph + one digit (2 code points / 3 visual
-    // columns). To keep every data row's *code-point* length identical — not
-    // just its visual width — the unlabeled line cells fill with one ideographic
-    // space (U+3000: 1 code point, 2 visual columns) so they carry the same
-    // code-point budget as a labelled cell.
-    const lineCell = showLine ? LINE_LABELS[lineNumber] : '\u3000'
+    const lineCell = showLine ? LINE_LABELS[lineNumber] : ''
     const cells: string[] = [
       `${BOLD_WHITE}${padStartVisual(lineCell, width('line'))}${NORMAL}`,
       `${NORMAL_GREY}${padStartVisual(String(castNumber), width('cast'))}${NORMAL}`,
