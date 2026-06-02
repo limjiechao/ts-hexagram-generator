@@ -1,99 +1,10 @@
+import { deriveSplit } from '@hexagram/core/casting-derivation'
 import {
   getEmergingHexagram,
   getHexagramRecord,
   getTrigramRecord,
 } from '@hexagram/core/getters'
-import type {
-  CastingRecord,
-  Hexagram,
-  Line,
-  PartialSplitRecord,
-} from '@hexagram/core/types'
-
-// Pure column-padding helpers (no ANSI). Mirrors the geometry used in the
-// casting-ui `castingSection`, but emits plain text inside a ```text fence.
-function castCenter(text: string, width: number): string {
-  const leftPad = Math.floor((width - text.length) / 2)
-  const rightPad = width - text.length - leftPad
-  return `${' '.repeat(leftPad)}${text}${' '.repeat(rightPad)}`
-}
-function castRight(text: string, width: number): string {
-  const leading = Math.max(0, width - text.length - 1)
-  return `${' '.repeat(leading)}${text} `
-}
-
-const TOP =
-  '┌──────┬──────────────────────────────────────────────────────────────────────────┐'
-const CAST_OUTER_DIVIDER =
-  '│      ├────────────────────────┬────────────────────────┬────────────────────────┤'
-const CAST_INNER_DIVIDER =
-  '│      ├────────┬───────────────┼────────┬───────────────┼────────┬───────────────┤'
-const HEAP_INNER_DIVIDER =
-  '│      │        ├───────┬───────┤        ├───────┬───────┤        ├───────┬───────┤'
-const MID =
-  '├──────┼────────┼───────┼───────┼────────┼───────┼───────┼────────┼───────┼───────┤'
-const BOTTOM =
-  '└──────┴────────┴───────┴───────┴────────┴───────┴───────┴────────┴───────┴───────┘'
-
-/**
- * Markdown version of the casting table. Same box-drawing geometry as the
- * casting-ui renderer, but no ANSI styling — content is wrapped in a
- * ```text fence so monospace is preserved when rendered. A `null` `casting`
- * renders an italic "Casting not recorded" caption instead of the table.
- */
-export function castingMarkdownSection(casting: CastingRecord | null): string {
-  if (casting === null) return `## CASTING\n\n_Casting not recorded._\n`
-
-  const castLabel = `│      │${castCenter('Cast', 74)}│`
-  const nth = (text: string): string => castCenter(text, 24)
-  const nthLabel = `│      │${nth('1st')}│${nth('2nd')}│${nth('3rd')}│`
-  const heapBanner = `        │${castCenter('Heap', 15)}`
-  const heapLabel = `│      │${heapBanner}│${heapBanner}│${heapBanner}│`
-  const colCell = `${castRight('Stalks', 8)}│${castRight('Left', 7)}│${castRight('Right', 7)}`
-  const colLabels = `│${castRight('Line', 6)}│${colCell}│${colCell}│${colCell}│`
-
-  const cell = (split: PartialSplitRecord): string => {
-    if (split === null)
-      return `${castRight('·', 8)}│${castRight('·', 7)}│${castRight('·', 7)}`
-    // `Stalks` (max + 1) and `Right` (max - pick + 1) fold the one stalk
-    // suspended from the right heap back in — it was part of the unparted
-    // stalks and part of the right heap before sorting — so Left + Right ==
-    // Stalks. Mirrors `castingSection` in @hexagram/readout.
-    return `${castRight(String(split.max + 1), 8)}│${castRight(String(split.pick), 7)}│${castRight(String(split.max - split.pick + 1), 7)}`
-  }
-
-  const indexedLines = [
-    [6, casting[5]],
-    [5, casting[4]],
-    [4, casting[3]],
-    [3, casting[2]],
-    [2, casting[1]],
-    [1, casting[0]],
-  ] as const
-  const dataRows = indexedLines
-    .map(([lineNumber, lineCasting]) => {
-      const [first, second, third] = lineCasting
-      return `│${castRight(String(lineNumber), 6)}│${cell(first)}│${cell(second)}│${cell(third)}│`
-    })
-    .join('\n')
-
-  return `## CASTING
-
-\`\`\`text
-${TOP}
-${castLabel}
-${CAST_OUTER_DIVIDER}
-${nthLabel}
-${CAST_INNER_DIVIDER}
-${heapLabel}
-${HEAP_INNER_DIVIDER}
-${colLabels}
-${MID}
-${dataRows}
-${BOTTOM}
-\`\`\`
-`
-}
+import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
 
 // `✕` U+2715 — matches the home banner's and viewer-core's moving-yin glyph
 // so every render surface speaks one glyph vocabulary. Saved consultation
@@ -140,8 +51,155 @@ function visualWidth(text: string): number {
   return width
 }
 
+function padStartVisual(text: string, width: number): string {
+  return ' '.repeat(Math.max(0, width - visualWidth(text))) + text
+}
+
+function centerVisual(text: string, width: number): string {
+  const total = Math.max(0, width - visualWidth(text))
+  const left = Math.floor(total / 2)
+  return ' '.repeat(left) + text + ' '.repeat(total - left)
+}
+
+const LINE_LABELS = {
+  1: '初1',
+  2: '二2',
+  3: '三3',
+  4: '四4',
+  5: '五5',
+  6: '六6',
+} as const
+
 function padToColumn(text: string, targetColumn: number, minGap = 1): string {
   return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
+}
+
+// Column layout for the enumerated casting ledger — identical geometry to
+// `castingSection` in @hexagram/readout, minus ANSI, inside a ```text fence.
+// Every field is derived from one `SplitRecord {pick, max}` via `deriveSplit`.
+const LEDGER_COLUMNS = [
+  { key: 'line', header: '爻Line', width: 6 },
+  { key: 'cast', header: '變Cast', width: 6 },
+  { key: 'stalks', header: '蓍Stalks', width: 8 },
+  { key: 'leftHeap', header: '左Heap', width: 6 },
+  { key: 'leftPiles', header: '揲Fours', width: 7 },
+  { key: 'leftRemainder', header: '扐Odd', width: 5 },
+  { key: 'rightHeap', header: '右Heap', width: 6 },
+  { key: 'rightPiles', header: '揲Fours', width: 7 },
+  { key: 'held', header: '掛Held', width: 6 },
+  { key: 'rightRemainder', header: '扐Odd', width: 5 },
+  { key: 'setAside', header: '歸奇Aside', width: 9 },
+  { key: 'sigma', header: '營Σ', width: 5 },
+] as const
+
+const LEDGER_INDENT = '   '
+const LEDGER_GUTTER = ' │ '
+
+/**
+ * Markdown version of the casting table. Same 18-row ledger geometry as the
+ * casting-ui renderer, but no ANSI styling — content is wrapped in a ```text
+ * fence so monospace is preserved when rendered. A `null` `casting` renders an
+ * italic "Casting not recorded" caption instead of the table.
+ */
+export function castingMarkdownSection(casting: CastingRecord | null): string {
+  if (casting === null) return `## CASTING\n\n_Casting not recorded._\n`
+
+  const width = (key: string): number =>
+    LEDGER_COLUMNS.find((c) => c.key === key)!.width
+  const blank = (key: string): string => ' '.repeat(width(key))
+
+  const leftSpan =
+    width('leftHeap') + 3 + width('leftPiles') + 3 + width('leftRemainder')
+  const rightSpan =
+    width('rightHeap') +
+    3 +
+    width('rightPiles') +
+    3 +
+    width('held') +
+    3 +
+    width('rightRemainder')
+  const bannerRow =
+    LEDGER_INDENT +
+    [blank('line'), blank('cast'), blank('stalks')].join(LEDGER_GUTTER) +
+    LEDGER_GUTTER +
+    centerVisual('左Left', leftSpan) +
+    LEDGER_GUTTER +
+    centerVisual('右Right', rightSpan) +
+    LEDGER_GUTTER +
+    [blank('setAside'), blank('sigma')].join(LEDGER_GUTTER)
+
+  const headerRow =
+    LEDGER_INDENT +
+    LEDGER_COLUMNS.map((c) => padStartVisual(c.header, c.width)).join(
+      LEDGER_GUTTER,
+    )
+  const headerRule =
+    LEDGER_INDENT + LEDGER_COLUMNS.map((c) => '═'.repeat(c.width)).join('═╪═')
+  const blockRule =
+    LEDGER_INDENT + LEDGER_COLUMNS.map((c) => '─'.repeat(c.width)).join('─┼─')
+
+  const dataRow = (
+    lineNumber: 1 | 2 | 3 | 4 | 5 | 6,
+    castNumber: 1 | 2 | 3,
+    split: CastingRecord[number][number],
+    showLine: boolean,
+  ): string => {
+    const d = deriveSplit(split)
+    const plain = (value: number, key: string): string =>
+      padStartVisual(String(value), width(key))
+    return (
+      LEDGER_INDENT +
+      [
+        padStartVisual(showLine ? LINE_LABELS[lineNumber] : '', width('line')),
+        plain(castNumber, 'cast'),
+        plain(d.stalks, 'stalks'),
+        plain(d.leftHeap, 'leftHeap'),
+        plain(d.leftPiles, 'leftPiles'),
+        plain(d.leftRemainder, 'leftRemainder'),
+        plain(d.rightHeap, 'rightHeap'),
+        plain(d.rightPiles, 'rightPiles'),
+        plain(d.held, 'held'),
+        plain(d.rightRemainder, 'rightRemainder'),
+        plain(d.setAside, 'setAside'),
+        castNumber === 3
+          ? padStartVisual(`⇒ ${d.combinedPiles}`, width('sigma'))
+          : padStartVisual(String(d.combinedPiles), width('sigma')),
+      ].join(LEDGER_GUTTER)
+    )
+  }
+
+  const lineOrder = [
+    [6, casting[5]],
+    [5, casting[4]],
+    [4, casting[3]],
+    [3, casting[2]],
+    [2, casting[1]],
+    [1, casting[0]],
+  ] as const
+
+  const body = lineOrder
+    .map(([lineNumber, lineCasting], blockIndex) => {
+      const [cast1, cast2, cast3] = lineCasting
+      const rows = [
+        dataRow(lineNumber, 3, cast3, true),
+        dataRow(lineNumber, 2, cast2, false),
+        dataRow(lineNumber, 1, cast1, false),
+      ]
+      return blockIndex < lineOrder.length - 1
+        ? [...rows, blockRule].join('\n')
+        : rows.join('\n')
+    })
+    .join('\n')
+
+  return `## CASTING
+
+\`\`\`text
+${bannerRow}
+${headerRow}
+${headerRule}
+${body}
+\`\`\`
+`
 }
 
 export function queryMarkdownSection(query: string): string {

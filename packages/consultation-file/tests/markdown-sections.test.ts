@@ -43,29 +43,29 @@ const casting = [
 ] as const
 
 describe('castingMarkdownSection', () => {
-  it('emits a ## CASTING header followed by a fenced text block with the hierarchical table', () => {
+  it('emits a ## CASTING header followed by a fenced ledger with the two-level header', () => {
     const text = castingMarkdownSection(casting as never)
     expect(text).toMatch(/^## CASTING\n/)
     expect(text).toContain('```text\n')
     expect(text).toContain('\n```\n')
-    expect(text).toContain('Cast') // banner row
-    expect(text).toContain('1st')
-    expect(text).toContain('Heap')
-    expect(text).toContain('Stalks')
-    expect(text).toContain('Left')
-    expect(text).toContain('Right')
-    expect(text).toContain('│ Line │') // header column label
-    // Numeric values must appear in the table:
+    expect(text).toContain('左Left') // banner
+    expect(text).toContain('右Right')
+    expect(text).toContain('爻Line') // header column labels
+    expect(text).toContain('蓍Stalks')
+    expect(text).toContain('掛Held')
+    expect(text).toContain('營Σ')
+    expect(text).toMatch(/═╪═/) // double rule under the header
+    expect(text).toMatch(/⇒ \d/) // resolved third-cast cell
+    expect(text).toContain('六6') // glyph+number line label
+    // Numeric values from the fixture must appear:
     expect(text).toContain('27')
     expect(text).toContain('33')
   })
 
-  it('folds the suspended stalk back into Stalks and Right', () => {
-    // Stalks shows the round's unparted total (max + 1) and Right shows
-    // max - pick + 1, re-including the one stalk suspended from the right
-    // heap — both were part of the unparted stalks before sorting. Every
-    // first cast in the fixture has max 48, so 49 must appear and the old
-    // selectable-range value 48 must not survive anywhere in the table.
+  it('folds the suspended stalk back into Stalks and the right heap', () => {
+    // Stalks = max + 1, right heap = max - pick + 1, both re-including the one
+    // suspended stalk. Every first cast in the fixture has max 48, so 49 must
+    // appear and the old selectable-range value 48 must not survive.
     const text = castingMarkdownSection(casting as never)
     expect(text).toContain('49')
     expect(text).not.toContain('48')
@@ -73,7 +73,6 @@ describe('castingMarkdownSection', () => {
 
   it('contains no ANSI escape codes', () => {
     const text = castingMarkdownSection(casting as never)
-    // Check for ANSI escape sequences using Unicode escape
     const escapeChar = ''
     expect(text.includes(escapeChar)).toBe(false)
   })
