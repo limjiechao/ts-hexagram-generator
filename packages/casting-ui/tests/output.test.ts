@@ -39,8 +39,14 @@ const borderColumns = (row: string): number[] => {
   return positions
 }
 
+// A data row has the ` │ ` gutter and at least one digit (the cast number);
+// the banner, leaf header and rule rows carry no digits.
 const dataRowsOf = (rendered: string): string[] =>
-  rendered.split('\n').filter((row) => /^│ {2,4}\d │/.test(stripAnsi(row)))
+  rendered
+    .split('\n')
+    .filter(
+      (row) => stripAnsi(row).includes(' │ ') && /\d/.test(stripAnsi(row)),
+    )
 
 // Guards that the plain console output (and therefore the saved consultation
 // file) stays byte-for-byte identical. Regenerate with `pnpm generate-fixtures`
@@ -123,16 +129,16 @@ describe('buildConsultationSections', () => {
 
 // `castingSection` accepts a `PartialCastingRecord` so the same renderer is
 // reused while the casting is still being collected by the interactive viewer.
-// Border characters must never shift as cells fill in — verified by structural
+// Column boundaries must never shift as cells fill in — verified by structural
 // `indexOf('│')` comparisons against the fully-populated rendering.
 describe('castingSection (partial)', () => {
-  it('renders an all-empty grid with the same column boundaries as a full grid', () => {
+  it('renders an all-empty ledger with the same column boundaries as a full ledger', () => {
     const empty = castingSection(emptyPartialCastingRecord())
     const full = castingSection(sampleCasting)
     const emptyRows = dataRowsOf(empty)
     const fullRows = dataRowsOf(full)
-    expect(emptyRows).toHaveLength(6)
-    expect(fullRows).toHaveLength(6)
+    expect(emptyRows).toHaveLength(18)
+    expect(fullRows).toHaveLength(18)
     for (const [index, fullRow] of fullRows.entries()) {
       const emptyRow = emptyRows[index]
       if (emptyRow === undefined) throw new Error(`row ${index} missing`)
@@ -142,24 +148,22 @@ describe('castingSection (partial)', () => {
 
   it('renders a `·` placeholder for null cells', () => {
     const empty = castingSection(emptyPartialCastingRecord())
-    // 6 lines × 3 casts × 3 leaf sub-columns (Stalks + Heap.Left + Heap.Right) = 54 dots.
+    // 18 rows × 10 derived cells (爻Line + 變Cast are structural, never dots).
     const dots = (stripAnsi(empty).match(/·/g) ?? []).length
-    expect(dots).toBe(54)
+    expect(dots).toBe(180)
   })
 
   it('shows populated cells alongside placeholders when partially filled', () => {
     const mixed = emptyPartialCastingRecord()
     mixed[0][0] = { pick: 20, max: 48 }
     const rendered = stripAnsi(castingSection(mixed))
-    // Line 1's first cast cell shows `49` (Stalks = max + 1, folding the one
-    // suspended stalk back in), `20` (Heap.Left = pick), and `29`
-    // (Heap.Right = max - pick + 1, likewise re-including the suspended stalk
-    // that was part of the right heap before sorting); the remaining 17 cells
-    // stay as 3-dot placeholders, so 54 − 3 = 51 dots remain.
+    // Line 1's first cast derives Stalks 49 (max + 1), Left heap 20 (pick) and
+    // Right heap 29 (max - pick + 1); its ten derived cells fill in, leaving
+    // 180 − 10 = 170 dots.
     expect(rendered).toContain(' 49 ')
     expect(rendered).toContain(' 20 ')
     expect(rendered).toContain(' 29 ')
-    expect((rendered.match(/·/g) ?? []).length).toBe(51)
+    expect((rendered.match(/·/g) ?? []).length).toBe(170)
   })
 
   it('renders "Casting not recorded" when casting is null', () => {
