@@ -51,6 +51,7 @@ plus a content floor) and refuses shorter terminals rather than render broken.
 **Pure row-builder layout.** The prompt is assembled from pure text row-builders
 (diagram rows, question/hint rows, input box, bottom strip), which keeps it
 testable and lets it pan horizontally on narrow terminals without reflow.
+On terminals wider than the natural body width, the body block (diagram + right pane) and the title centre horizontally within the box as one rigid unit, clamping to left-aligned + horizontal pan below it; the centring is a leading-pad post-pass in `manual-prompt.tsx`, so the row-builders stay width-pure.
 
 ## Considered options
 
