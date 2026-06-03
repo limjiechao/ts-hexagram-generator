@@ -1,3 +1,4 @@
+import { assertSelectablePick } from './casting-derivation.js'
 import {
   assertIsLine,
   type AdvanceableLineState,
@@ -185,9 +186,14 @@ export const initialLineState: Extract<LineState, { phase: '0th-cast' }> = {
   rounds: [],
 }
 
-// The selectable range for the next pick: the prompt's "Pick a number from
-// 1 to max". Only meaningful before resolution — `'3rd-cast'` has nothing
-// left to pick, so it's excluded from the input domain.
+// The **recorded** max for the next pick — `unparted.length - 1`, i.e. the
+// `SplitRecord.max` stored alongside the pick (it reserves the right heap's
+// suspended stalk 掛一). This is NOT the selectable ceiling a prompt offers:
+// flows cap the pick one lower, at `selectablePickMax(maxPickFor(state))`, so
+// the right heap keeps a countable stalk and its remainder is never 0 (see
+// `selectablePickMax` in `casting-derivation.ts`). Only meaningful before
+// resolution — `'3rd-cast'` has nothing left to pick, so it's excluded from the
+// input domain.
 export const maxPickFor = (state: AdvanceableLineState): number =>
   state.unparted.length - 1
 
@@ -211,6 +217,14 @@ export function performCast<P extends AdvanceableLineState['phase']>(
       'performCast called on resolved 3rd-cast state — bypass via @ts-expect-error?',
     )
   }
+
+  // Reject a pick that would empty the right heap after suspension (掛一),
+  // leaving nothing to count by fours — its remainder would be 0, which the
+  // procedure never produces. The valid domain is `[1, recordedMax - 1]` where
+  // `recordedMax = unparted.length - 1`; see `selectablePickMax`. This is the
+  // single runtime enforcement point — every input flow already clamps to it,
+  // and the legacy converter's replay catches the throw as a mismatch.
+  assertSelectablePick(state.unparted.length - 1, pick)
 
   // All three advanceable phases share the same fourOperations call — only
   // what we do with the result differs per phase.

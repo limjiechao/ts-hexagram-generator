@@ -1,7 +1,49 @@
 import { describe, expect, it } from 'vitest'
 
-import { deriveSplit, neverZeroMod4 } from '../src/casting-derivation.js'
+import {
+  assertSelectablePick,
+  deriveSplit,
+  neverZeroMod4,
+  selectablePickMax,
+} from '../src/casting-derivation.js'
 import type { SplitRecord } from '../src/types.js'
+
+describe('selectablePickMax', () => {
+  it('is one below the recorded max (reserving a second, countable stalk)', () => {
+    // `recordedMax` (= stalks - 1) already reserves the suspended stalk (掛一);
+    // the selectable ceiling holds back a SECOND stalk so the right heap's
+    // remainder stays 1..4, never 0.
+    expect(selectablePickMax(48)).toBe(47)
+    expect([48, 43, 39, 32, 13].map(selectablePickMax)).toEqual([
+      47, 42, 38, 31, 12,
+    ])
+  })
+
+  it('agrees with deriveSplit: pick = selectablePickMax keeps both remainders in 1..4', () => {
+    for (const max of [48, 43, 39, 32, 13]) {
+      const d = deriveSplit({ pick: selectablePickMax(max), max })
+      expect(d.rightRemainder).toBeGreaterThanOrEqual(1)
+      expect(d.rightRemainder).toBeLessThanOrEqual(4)
+    }
+  })
+})
+
+describe('assertSelectablePick', () => {
+  it('accepts picks in [1, selectablePickMax(recordedMax)]', () => {
+    expect(() => assertSelectablePick(48, 1)).not.toThrow()
+    expect(() => assertSelectablePick(48, 47)).not.toThrow()
+  })
+
+  it('throws RangeError at the recorded max (the zero-remainder boundary)', () => {
+    // pick === recordedMax empties the right heap after suspension → remainder 0.
+    expect(() => assertSelectablePick(48, 48)).toThrow(RangeError)
+  })
+
+  it('throws RangeError below 1 and on non-integers', () => {
+    expect(() => assertSelectablePick(48, 0)).toThrow(RangeError)
+    expect(() => assertSelectablePick(48, 24.5)).toThrow(RangeError)
+  })
+})
 
 describe('neverZeroMod4', () => {
   it('returns 1..4 for non-empty heaps, 4 for exact multiples of four', () => {

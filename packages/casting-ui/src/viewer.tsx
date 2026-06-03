@@ -1,4 +1,5 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
+import { selectablePickMax } from '@hexagram/core/casting-derivation'
 import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
   assertIsCastingRecord,
@@ -253,7 +254,8 @@ export function ConsultationViewer({
   // true stalk count `currentMax + 1` is passed to the prompt as `stalksTotal`.
   // The random flow's plan picks are likewise ≤ this ceiling (see
   // `splitStalksRandomly`), so the slider auto-land target is always reachable.
-  const reachablePickMax = currentMax - 1
+  // The rule lives in `@hexagram/core` — see `selectablePickMax`.
+  const reachablePickMax = selectablePickMax(currentMax)
 
   // The random flow's per-cast slider auto-land config — the RNG-chosen pick
   // as the target plus the ceremonial bounce arm delay. `null` for the

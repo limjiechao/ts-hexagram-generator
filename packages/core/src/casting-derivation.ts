@@ -10,6 +10,47 @@ import type { SplitRecord } from './types.js'
 export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
 
 /**
+ * The highest pick a stalk-input flow may offer or draw, given the recorded
+ * `SplitRecord.max` (= unparted stalks − 1, which already reserves the right
+ * heap's suspended stalk 掛一).
+ *
+ * It is one **below** the recorded max: a pick of `recordedMax` would leave the
+ * right heap with only that one suspended stalk — nothing to count by fours —
+ * and `neverZeroMod4(0) === 0`. A division-by-four remainder is always 1..4
+ * (揲之以四 counts a multiple of four's last group as the remainder, never 0),
+ * so the right heap must keep a SECOND, countable stalk. Capping the pick here
+ * is the single source of truth for that rule; the recorded `SplitRecord.max`
+ * is unchanged, so the readout's stalk count, conservation, and the saved file
+ * are untouched.
+ *
+ * Every input flow clamps to this: the slider cursor and typed prompt (viewer),
+ * the plain Inquirer prompt, and the RNG (`splitStalksRandomly`). The manual
+ * flow's validator derives the same `[1, recordedMax − 1]` range structurally
+ * (its remainders are constrained to 1..4 by construction). `performCast` — the
+ * algorithm of record — enforces it at runtime via `assertSelectablePick`.
+ */
+export const selectablePickMax = (recordedMax: number): number =>
+  recordedMax - 1
+
+/**
+ * Throw a `RangeError` unless `pick` is a strictly-interior split of a round's
+ * stalk pile: `1 ≤ pick ≤ selectablePickMax(recordedMax)`. This is the runtime
+ * guard behind the never-zero-remainder invariant (see `selectablePickMax`);
+ * `performCast` calls it, and the legacy converter's replay relies on it.
+ */
+export const assertSelectablePick = (
+  recordedMax: number,
+  pick: number,
+): void => {
+  const ceiling = selectablePickMax(recordedMax)
+  if (!Number.isInteger(pick) || pick < 1 || pick > ceiling) {
+    throw new RangeError(
+      `pick ${pick} out of range 1..${ceiling} (recorded max ${recordedMax})`,
+    )
+  }
+}
+
+/**
  * Every intermediate quantity of one stalk division (一變), reconstructed from
  * its `{ pick, max }` record for display. `stalks` and `rightHeap` fold the one
  * suspended stalk back in (it was part of the unparted stalks and the right

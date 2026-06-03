@@ -136,11 +136,16 @@ describe('CLI', () => {
     })
 
     it('should handle different valid split indices', async () => {
-      // Mock different split indices to test variety
+      // Line 1 uses each round's selectable CEILING (47, 42, 38) — one below the
+      // recorded max (48, 43, 39). The ceiling is the largest pick `performCast`
+      // accepts; a pick equal to the recorded max empties the right heap after
+      // suspension and is rejected (never-zero-remainder invariant, ADR-0006).
+      // The ceilings yield the same line value (9) as the old degenerate max
+      // picks did, so the hexagram is unchanged.
       const mockNumberPromptInputs: MockNumberPromptInputs = {
         type: 'valid',
         inputs: [
-          48, 43, 39, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
+          47, 42, 38, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
         ],
       }
       mockNumberPrompt(mockNumberPromptInputs)
@@ -156,7 +161,7 @@ describe('CLI', () => {
 
       // The casting record's picks mirror the 18 mocked inputs, in order.
       expect(casting.flat().map((split) => split.pick)).toEqual([
-        48, 43, 39, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
+        47, 42, 38, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
       ])
       expect(casting[0][0].max).toBe(48)
     })

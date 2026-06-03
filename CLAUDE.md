@@ -20,3 +20,7 @@ Default canonical triage vocabulary — `needs-triage`, `needs-info`, `ready-for
 ### Domain docs
 
 Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`. The architecture decisions are indexed in `docs/adr/README.md`.
+
+### Casting invariants
+
+Domain rules for the yarrow-stalk casting pipeline — most importantly, the pick must always be clamped to `selectablePickMax` so a heap remainder is never 0. Read before touching any flow that produces or consumes a `SplitRecord`. See `docs/agents/casting-invariants.md`.

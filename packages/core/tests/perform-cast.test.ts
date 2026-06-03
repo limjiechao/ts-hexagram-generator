@@ -62,6 +62,21 @@ describe('performCast', () => {
     expect(a).toBe(b)
   })
 
+  test('throws RangeError when the pick empties the right heap (pick === recordedMax)', () => {
+    // The degenerate split the input flows exclude: `pick = unparted.length - 1`
+    // leaves the right heap with only the suspended stalk after 掛一 — nothing
+    // to count by fours — so the round corrupts the line. `performCast` is the
+    // algorithm of record and rejects it outright. (`deriveSplit`, the display
+    // reconstruction, stays tolerant for historical records.)
+    const recordedMax = initialLineState.unparted.length - 1 // 48
+    expect(() => performCast(initialLineState, recordedMax)).toThrow(RangeError)
+  })
+
+  test('accepts the selectable ceiling pick === recordedMax - 1', () => {
+    const recordedMax = initialLineState.unparted.length - 1 // 48
+    expect(() => performCast(initialLineState, recordedMax - 1)).not.toThrow()
+  })
+
   test('immutability: the input state is not mutated', () => {
     const before = initialLineState
     const beforeUnpartedSnapshot = [...before.unparted]

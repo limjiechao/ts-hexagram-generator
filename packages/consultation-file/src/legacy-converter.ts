@@ -6,7 +6,6 @@ import {
   type Hexagram,
   type Line,
   type LineCasting,
-  type SplitRecord,
 } from '@hexagram/core/types'
 
 import type { ConsultationEnvelope } from './frontmatter.js'
@@ -184,7 +183,11 @@ function castingReplaysTo(casting: CastingRecord, expected: Hexagram): boolean {
 /** Drive `makeLineGenerator` for one line with its three `(pick)` splits. */
 function replayLine(lineCasting: LineCasting): Line {
   const [cast1, cast2, cast3] = lineCasting
-  assertPickInRange(cast1, stalksBeforeParting.length)
+  // Each recorded pick is validated by `performCast` inside `makeLineGenerator`
+  // (the single runtime enforcer): a degenerate pick that empties the right heap
+  // after suspension throws `RangeError`, which `castingReplaysTo` catches as a
+  // mismatch → `castingRecovered: false`. So a legacy file that recorded an
+  // empty right heap is not recovered, by design (see ADR-0006).
   const generator = makeLineGenerator({
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],
@@ -192,25 +195,10 @@ function replayLine(lineCasting: LineCasting): Line {
   })
   const roundOne = generator.next()
   if (roundOne.done) throw new Error('replay: generator ended early')
-  assertPickInRange(cast2, roundOne.value.unpartedStalks.length)
   const roundTwo = generator.next(cast2.pick)
   if (roundTwo.done) throw new Error('replay: generator ended early')
-  assertPickInRange(cast3, roundTwo.value.unpartedStalks.length)
   generator.next(cast3.pick)
   const line = generator.next().value
   assertIsLine(line)
   return line
-}
-
-/**
- * Reject a split whose `pick` is not a strictly-interior index of the round's
- * stalk pile (1 ≤ pick ≤ stalkCount − 1) — the same range an interactive
- * prompt would have offered.
- */
-function assertPickInRange(split: SplitRecord, stalkCount: number): void {
-  if (split.pick < 1 || split.pick > stalkCount - 1) {
-    throw new Error(
-      `replay: pick ${split.pick} out of range 1..${stalkCount - 1}`,
-    )
-  }
 }

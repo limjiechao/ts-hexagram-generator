@@ -66,7 +66,14 @@ describe('convertLegacyTxt — SPLIT casting table', () => {
 })
 
 describe('convertLegacyTxt — multiple moving lines', () => {
-  it('recovers and replay-validates the multi-moving HEAP fixture', () => {
+  it('does NOT recover a HEAP fixture with an empty-right-heap split', () => {
+    // This fixture records two degenerate splits (Line 2 / 1st Cast and Line 3 /
+    // 2nd Cast both have Left Heap == Stalks, Right Heap == 0 → pick === max).
+    // That violates the never-zero-remainder invariant (ADR-0006): the right
+    // heap keeps only the suspended stalk, so its remainder would be 0. The
+    // now-strict `performCast` throws on replay, so the casting is not recovered
+    // and resolves to null — we drop degenerate-legacy recovery rather than
+    // resurrect invariant-violating casting. The hexagram still parses.
     const result = convertLegacyTxt({
       text: read('legacy-heap-multi-moving.txt'),
       filenameTimestamp: '2026-02-20T09-30-00+0800',
@@ -74,10 +81,7 @@ describe('convertLegacyTxt — multiple moving lines', () => {
     expect(result.ok).toBe(true)
     if (!result.ok) return
     expect(result.envelope.hexagram).toEqual([6, 9, 9, 9, 9, 8])
-    expect(result.envelope.casting).not.toBeNull()
-    expect(replayHexagram(result.envelope.casting!)).toEqual(
-      result.envelope.hexagram,
-    )
+    expect(result.envelope.casting).toBeNull()
   })
 })
 
@@ -149,8 +153,9 @@ describe('convertLegacyTxt — replay-validation discards bad castings', () => {
     })
     expect(result.ok).toBe(true)
     if (!result.ok) return
-    // The real file's hexagram is [8,8,7,8,6,7]; the donor casting replays to
-    // [6,9,9,9,9,8] — a mismatch, so the casting is discarded.
+    // The real file's hexagram is [8,8,7,8,6,7]; the donor casting contains
+    // empty-right-heap splits that throw during replay (never-zero-remainder
+    // invariant), so the casting is discarded either way.
     expect(result.envelope.hexagram).toEqual([8, 8, 7, 8, 6, 7])
     expect(result.envelope.casting).toBeNull()
   })

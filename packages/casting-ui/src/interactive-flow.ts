@@ -1,4 +1,5 @@
 import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
+import { selectablePickMax } from '@hexagram/core/casting-derivation'
 import {
   assertIsFourOperationsResult,
   assertIsLine,
@@ -15,14 +16,11 @@ import { getUserQuery } from './prompts.js'
 async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
   const min = 1
   const max = unpartedStalks.length - 1
-  // The selectable pick ceiling is `max - 1`, not `max`. `max` already reserves
-  // the right heap's suspended stalk (掛一); a pick of `max` would leave the
-  // right heap with only that one stalk — nothing to count by fours — and a
-  // remainder of 0, which can never happen (a remainder is always 1..4). So the
-  // right heap must keep a second, countable stalk. We still RECORD the full
-  // `max` (= stalks - 1) in the SplitRecord so the readout's stalk count and
-  // conservation are unchanged. Mirrors `splitStalksRandomly` and the viewer.
-  const pickMax = max - 1
+  // The selectable ceiling is one below the recorded `max`, so the right heap
+  // keeps a countable stalk after suspension and its remainder is never 0. We
+  // still RECORD the full `max` so the readout and conservation are unchanged.
+  // The rule lives in `@hexagram/core` — see `selectablePickMax`.
+  const pickMax = selectablePickMax(max)
 
   const pick = await number({
     message: `Divide the stalks. Pick a number from ${min} to ${pickMax}.`,
