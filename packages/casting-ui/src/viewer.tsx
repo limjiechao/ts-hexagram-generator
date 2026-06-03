@@ -9,6 +9,7 @@ import {
 import {
   buildConsultationSections,
   buildPartialCastingSections,
+  castingTableActiveRow,
   ConsultationReadout,
   type CastingPromptPan,
   type ConsultationSections,
@@ -470,6 +471,13 @@ export function ConsultationViewer({
   // ── Casting prompt slot (above-footer) ──────────────────────────────────
 
   const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
+  // Auto-follow scroll: while casting, pin the active line's row near the bottom
+  // of the Casting table so the row being cast stays visible even when the
+  // prompt box (especially the tall manual one) shrinks the table viewport.
+  const autoScrollTarget =
+    state.mode === 'casting'
+      ? { row: castingTableActiveRow(state.lineIndex), align: 'bottom' as const }
+      : null
   // Casting prompt box height — sourced from the component so a new input
   // mode can't drift the reserved vertical space out of sync with what the
   // component actually renders. The number-mode random reveal shows the
@@ -711,6 +719,7 @@ export function ConsultationViewer({
           : keyHintsFlowDefault(exitLabel)
       }
       inputMode={inputMode}
+      autoScrollTarget={autoScrollTarget}
       title={readoutTitle}
       onExit={handleExitAttempt}
       onHardQuit={handleHardQuitAttempt}

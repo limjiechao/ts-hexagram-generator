@@ -366,6 +366,27 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
+
+  it('auto-scrolls the Casting table to keep the active line visible while casting', async () => {
+    // rows 18 with the number prompt box leaves a ~5-row table viewport; the
+    // 28-row casting table overflows. Without auto-follow the table sits at the
+    // top (line 6) and the line-1 row being cast is off-screen. With it, line 1
+    // is pinned into view.
+    windowSize.current = { columns: 100, rows: 18 }
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
+    )
+    stdin.write('Hi') // non-empty query
+    await yieldMacrotask()
+    stdin.write(ENTER) // submit -> casting, line 1 / cast 1
+    await yieldMacrotask()
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 1/6 · Cast 1/3') // sanity: in casting mode
+    expect(frame).toContain('初1') // line 1 row pinned into view
+    expect(frame).not.toContain('上6') // line 6 scrolled off the top
+    unmount()
+  })
+
   it('shows a validation error for out-of-range picks', async () => {
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
