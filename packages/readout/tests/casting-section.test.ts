@@ -138,7 +138,7 @@ describe('castingTableActiveRow', () => {
     const LINE_LABELS = ['初1', '二2', '三3', '四4', '五5', '上6'] // line 1..6
     for (let lineIndex = 0; lineIndex < 6; lineIndex++) {
       const labelRow = rows.findIndex((row) =>
-        row.includes(LINE_LABELS[lineIndex]),
+        row.includes(LINE_LABELS[lineIndex]!),
       )
       expect(labelRow).toBeGreaterThanOrEqual(0)
       expect(castingTableActiveRow(lineIndex)).toBe(

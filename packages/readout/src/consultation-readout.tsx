@@ -366,17 +366,15 @@ export function ConsultationReadout({
   // the first paint (no post-commit effect, no extra render). Guarded by row
   // value so casts within a line — and manual scrolls — are not overridden;
   // reset when auto-follow is off so re-entry re-pins from scratch.
-  if (autoScrollTarget != null) {
-    if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
-      offsetsRef.current[activeIndex] = computeAutoScrollOffset({
-        row: autoScrollTarget.row,
-        viewportHeight,
-        maxOffset,
-      })
-      lastAutoScrollRowRef.current = autoScrollTarget.row
-    }
-  } else {
+  if (autoScrollTarget == null) {
     lastAutoScrollRowRef.current = -1
+  } else if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
+    offsetsRef.current[activeIndex] = computeAutoScrollOffset({
+      row: autoScrollTarget.row,
+      viewportHeight,
+      maxOffset,
+    })
+    lastAutoScrollRowRef.current = autoScrollTarget.row
   }
   const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
   const canScrollVertically = totalRows > viewportHeight

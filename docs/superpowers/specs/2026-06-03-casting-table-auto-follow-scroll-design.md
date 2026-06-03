@@ -15,7 +15,7 @@ scrolls by hand.
 
 The manual prompt box is 22 rows tall (slider 7, numeric 5–6), so on a normal
 terminal it crushes the table viewport to a handful of rows. The row the user is
-actually casting — line 1, at the *bottom* of the table — sits below the fold,
+actually casting — line 1, at the _bottom_ of the table — sits below the fold,
 invisible, and never follows as casting climbs to lines 2–6.
 
 Observed in the manual flow (`pnpm hexagram-manual`): while casting line 1, the
@@ -94,7 +94,8 @@ export const CASTING_ROWS_PER_BLOCK = 4 // cast3, cast2, cast1, blockRule
 export const CAST1_OFFSET_IN_BLOCK = 2 // cast-1 row, relative to block top
 
 export function castingTableActiveRow(lineIndex: number): number {
-  const blockTop = CASTING_HEADER_ROWS + (5 - lineIndex) * CASTING_ROWS_PER_BLOCK
+  const blockTop =
+    CASTING_HEADER_ROWS + (5 - lineIndex) * CASTING_ROWS_PER_BLOCK
   return blockTop + CAST1_OFFSET_IN_BLOCK
 }
 // line 1 (idx 0) -> 27 ; line 6 (idx 5) -> 7
@@ -136,7 +137,7 @@ readonly autoScrollTarget?: {
 Applied with a **render-phase ref guard**, mirroring the existing
 `lastResetTokenRef` mechanism that already resets `castingHorizontalOffsetRef`
 when `castingPromptPan.resetToken` changes (consultation-readout.tsx:248–259).
-This runs *during render*, before `offset` is computed from `offsetsRef`, so the
+This runs _during render_, before `offset` is computed from `offsetsRef`, so the
 new offset lands on the **first** paint of a line change — no post-commit effect,
 no `forceRender`, no `eslint-disable`, no one-frame flash:
 
@@ -167,6 +168,7 @@ if (autoScrollTarget != null) {
 ```
 
 Notes:
+
 - The guard keys on `autoScrollTarget.row` only. Because the row is identical
   across a line's three casts (it is a function of `lineIndex`), the write fires
   exactly **once per line** — a manual scroll within a line is not clobbered
@@ -256,12 +258,12 @@ consultation-readout.tsx  (render phase, guarded by lastAutoScrollRowRef)
    changes — the single guard against the constants in §1 drifting from the
    renderer.
 3. **Unit — offset formula:** given `(windowedRow, viewportHeight, maxOffset,
-   BOTTOM_MARGIN)`, assert the clamped offset (the `fromBottom`-clamped
+BOTTOM_MARGIN)`, assert the clamped offset (the `fromBottom`-clamped
    bottom-align), including:
    - line 1 on a short viewport → clamps to `maxOffset` (bottom shown),
    - line 6 on a tall viewport → clamps to `0` (top shown),
    - `viewportHeight === 1` → the active row itself is visible (no overshoot).
-   Extract the pure offset computation so it is testable without rendering.
+     Extract the pure offset computation so it is testable without rendering.
 4. **Readout-level render test — PRIMARY behavioral check**
    (`@hexagram/readout`): render `ConsultationReadout` directly with a fixed
    `autoScrollTarget={{ row, align: 'bottom' }}`, a locked partial casting, and a

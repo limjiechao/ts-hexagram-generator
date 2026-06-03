@@ -366,7 +366,6 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
-
   it('auto-scrolls the Casting table to keep the active line visible while casting', async () => {
     // rows 18 with the number prompt box leaves a ~5-row table viewport; the
     // 28-row casting table overflows. Without auto-follow the table sits at the

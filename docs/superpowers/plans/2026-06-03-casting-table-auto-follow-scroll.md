@@ -4,7 +4,7 @@
 
 **Goal:** While casting, auto-scroll the Casting tab table so the line currently being cast stays visible — pinned near the bottom of the table viewport — across all casting flows.
 
-**Architecture:** A pure geometry helper in `@hexagram/readout` maps the active line index to its content-row. The viewer passes that row to `ConsultationReadout` as a declarative `autoScrollTarget` prop. The readout applies it with a *render-phase ref guard* (mirroring its existing `lastResetTokenRef`), writing the active tab's scroll offset once per distinct row so the new position lands on the first paint and manual scrolls within a line are preserved. A pure `computeAutoScrollOffset` function owns the bottom-align + clamp math and is unit-tested in isolation.
+**Architecture:** A pure geometry helper in `@hexagram/readout` maps the active line index to its content-row. The viewer passes that row to `ConsultationReadout` as a declarative `autoScrollTarget` prop. The readout applies it with a _render-phase ref guard_ (mirroring its existing `lastResetTokenRef`), writing the active tab's scroll offset once per distinct row so the new position lands on the first paint and manual scrolls within a line are preserved. A pure `computeAutoScrollOffset` function owns the bottom-align + clamp math and is unit-tested in isolation.
 
 **Tech Stack:** TypeScript, React + [Ink](https://github.com/vadimdemedes/ink) (terminal UI), Vitest + ink-testing-library, pnpm + Turborepo monorepo.
 
@@ -32,6 +32,7 @@ Phase 3 (after C lands):
 ```
 
 **Parallelism notes for the orchestrator:**
+
 - Tasks A, B, D touch **disjoint files** and share no state — dispatch them in a single batch of concurrent subagents.
   - A touches: `packages/readout/src/output-sections.ts`, `packages/readout/src/index.ts`, `packages/readout/tests/casting-section.test.ts`.
   - B touches: `packages/readout/src/auto-scroll-offset.ts` (new), `packages/readout/tests/auto-scroll-offset.test.ts` (new), `packages/readout/src/consultation-readout.tsx`, `packages/readout/tests/consultation-readout.test.tsx`.
@@ -41,6 +42,7 @@ Phase 3 (after C lands):
 - **Per-agent token budget is ~100k.** Each task below is self-contained: it lists the exact files, the exact code, and the exact commands. **Agents must NOT explore the wider codebase** — read only the files named in your task, apply the steps, run the listed commands. All cross-file facts you need are already inlined here.
 
 **Conventions every agent must follow:**
+
 - TDD: write the failing test, run it to watch it fail, implement, run it to watch it pass, commit.
 - Run package tests via: `pnpm --filter <pkg> test -- <file>` (Vitest resolves workspace deps through the `source` export condition — **no build step needed to run tests**).
 - Commit messages end with the trailer:
@@ -51,18 +53,18 @@ Phase 3 (after C lands):
 
 ## File Structure
 
-| File | Responsibility | Task |
-| --- | --- | --- |
-| `packages/readout/src/output-sections.ts` | **Single source** of casting-table row geometry: layout constants + `castingTableActiveRow`, co-located with `castingSection`. | A |
-| `packages/readout/src/index.ts` | Public API surface — export `castingTableActiveRow` for the viewer. | A |
-| `packages/readout/tests/casting-section.test.ts` | Geometry unit test + consistency/contract test vs `castingSection` output. | A |
-| `packages/readout/src/auto-scroll-offset.ts` *(new)* | Pure `computeAutoScrollOffset` — bottom-align + clamp math, no React. | B |
-| `packages/readout/tests/auto-scroll-offset.test.ts` *(new)* | Unit tests for the offset math, incl. tiny-viewport guard. | B |
-| `packages/readout/src/consultation-readout.tsx` | New `autoScrollTarget` prop + render-phase ref guard that applies the offset. | B |
-| `packages/readout/tests/consultation-readout.test.tsx` | Readout-level render test (PRIMARY behavioral check). | B |
-| `packages/casting-ui/src/viewer.tsx` | Compute `autoScrollTarget` from `state.lineIndex` during `casting`; pass the prop. | C |
-| `packages/casting-ui/tests/viewer.test.tsx` | Minimal end-to-end wiring check. | C |
-| `AGENTS.md` | Document the auto-follow behavior in the casting-flow scroll paragraph. | D |
+| File                                                        | Responsibility                                                                                                                 | Task |
+| ----------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ | ---- |
+| `packages/readout/src/output-sections.ts`                   | **Single source** of casting-table row geometry: layout constants + `castingTableActiveRow`, co-located with `castingSection`. | A    |
+| `packages/readout/src/index.ts`                             | Public API surface — export `castingTableActiveRow` for the viewer.                                                            | A    |
+| `packages/readout/tests/casting-section.test.ts`            | Geometry unit test + consistency/contract test vs `castingSection` output.                                                     | A    |
+| `packages/readout/src/auto-scroll-offset.ts` _(new)_        | Pure `computeAutoScrollOffset` — bottom-align + clamp math, no React.                                                          | B    |
+| `packages/readout/tests/auto-scroll-offset.test.ts` _(new)_ | Unit tests for the offset math, incl. tiny-viewport guard.                                                                     | B    |
+| `packages/readout/src/consultation-readout.tsx`             | New `autoScrollTarget` prop + render-phase ref guard that applies the offset.                                                  | B    |
+| `packages/readout/tests/consultation-readout.test.tsx`      | Readout-level render test (PRIMARY behavioral check).                                                                          | B    |
+| `packages/casting-ui/src/viewer.tsx`                        | Compute `autoScrollTarget` from `state.lineIndex` during `casting`; pass the prop.                                             | C    |
+| `packages/casting-ui/tests/viewer.test.tsx`                 | Minimal end-to-end wiring check.                                                                                               | C    |
+| `AGENTS.md`                                                 | Document the auto-follow behavior in the casting-flow scroll paragraph.                                                        | D    |
 
 ---
 
@@ -71,12 +73,14 @@ Phase 3 (after C lands):
 **Package:** `@hexagram/readout`
 
 **Files:**
+
 - Modify: `packages/readout/src/output-sections.ts` (add geometry constants + helper, immediately before `export function castingSection`)
 - Modify: `packages/readout/src/index.ts` (export `castingTableActiveRow`)
 - Test: `packages/readout/tests/casting-section.test.ts` (append a new `describe` block)
 
 **Background you need (do not go read these files to confirm — it's all here):**
 The string returned by `castingSection(...)` is the Casting tab's content verbatim (the viewer does **not** strip it). Its rows, 0-based, top-first, are:
+
 ```
  0  "CASTING:" title line        ┐
  1  (blank)                       │
@@ -90,6 +94,7 @@ The string returned by `castingSection(...)` is the Casting tab's content verbat
 21..24  line 2 block (label 二2)
 25..27  line 1 block: cast3 (⇒1 + label 初1), cast2, cast1   (NO trailing rule — last block)
 ```
+
 Each line is a 4-row block (cast3, cast2, cast1, blockRule) except line 1 (no trailing rule). The line label prints only on the block's **cast-3** (top) row. The **cast-1** row is the block bottom — the row we pin near the viewport bottom. So `castingTableActiveRow(lineIndex)` returns `5 + (5 - lineIndex)*4 + 2` → line 1 (idx 0) = 27, line 6 (idx 5) = 7.
 
 - [ ] **Step 1: Write the failing tests**
@@ -97,10 +102,13 @@ Each line is a 4-row block (cast3, cast2, cast1, blockRule) except line 1 (no tr
 Append this block to the **end** of `packages/readout/tests/casting-section.test.ts` (the file already defines `stripAnsi` and `FULL` near its top — reuse them; add the new imports to the existing `import { castingSection } from '../src/output-sections.js'` line):
 
 Change the existing import line:
+
 ```ts
 import { castingSection } from '../src/output-sections.js'
 ```
+
 to:
+
 ```ts
 import {
   CAST1_OFFSET_IN_BLOCK,
@@ -110,6 +118,7 @@ import {
 ```
 
 Then append:
+
 ```ts
 describe('castingTableActiveRow', () => {
   it('maps each line index to its cast-1 (block-bottom) content row', () => {
@@ -147,6 +156,7 @@ Expected: FAIL — `castingTableActiveRow` / `CAST1_OFFSET_IN_BLOCK` are not exp
 - [ ] **Step 3: Implement the geometry helper + constants**
 
 In `packages/readout/src/output-sections.ts`, find the line `export function castingSection(` and insert this block **immediately before it**:
+
 ```ts
 // ── Casting-table row geometry ────────────────────────────────────────────
 // Single source for the Casting tab's content-row layout (the string
@@ -176,6 +186,7 @@ export function castingTableActiveRow(lineIndex: number): number {
 - [ ] **Step 4: Export `castingTableActiveRow` from the package**
 
 In `packages/readout/src/index.ts`, find the existing export block that ends with `} from './output-sections.js'`. Add `castingTableActiveRow,` to it, keeping alphabetical-ish order (place it right after `castingSection,`):
+
 ```ts
 export {
   castingSection,
@@ -217,15 +228,17 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 **Package:** `@hexagram/readout`
 
 **Files:**
+
 - Create: `packages/readout/src/auto-scroll-offset.ts`
 - Create: `packages/readout/tests/auto-scroll-offset.test.ts`
 - Modify: `packages/readout/src/consultation-readout.tsx`
 - Modify: `packages/readout/tests/consultation-readout.test.tsx`
 
 **Background you need (all inlined — do not go exploring):**
+
 - `consultation-readout.tsx` already imports `clamp` from `@hexagram/viewer-core`, and `useRef`/`useEffect`/`useReducer` from `'react'`-style ink imports.
 - The readout pads the active tab's content rows with one leading + one trailing blank "breather": `rowsWithBreathers = ['', ...contentRows, '']`. So a content-row index `R` maps to windowed-row `R + 1`. `totalRows = rowsWithBreathers.length`. For the 28-row casting table, `totalRows = 30`.
-- The scroll offset for the active tab lives in `offsetsRef.current[activeIndex]` (a `number[]` ref). `maxOffset = Math.max(0, totalRows - viewportHeight)`. The component computes `const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)` — **reading the ref during render**. Writing the ref *before* that line, during render, lands on the same paint.
+- The scroll offset for the active tab lives in `offsetsRef.current[activeIndex]` (a `number[]` ref). `maxOffset = Math.max(0, totalRows - viewportHeight)`. The component computes `const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)` — **reading the ref during render**. Writing the ref _before_ that line, during render, lands on the same paint.
 - There is an existing render-phase ref-guard precedent in this file: `lastResetTokenRef` resets `castingHorizontalOffsetRef` when `castingPromptPan.resetToken` changes. You are adding an analogous guard for vertical auto-scroll.
 
 ### B.1 — Pure offset helper (TDD)
@@ -233,6 +246,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing test**
 
 Create `packages/readout/tests/auto-scroll-offset.test.ts`:
+
 ```ts
 import { describe, expect, it } from 'vitest'
 
@@ -274,6 +288,7 @@ Expected: FAIL — cannot resolve `../src/auto-scroll-offset.js`.
 - [ ] **Step 3: Implement the helper**
 
 Create `packages/readout/src/auto-scroll-offset.ts`:
+
 ```ts
 import { clamp } from '@hexagram/viewer-core'
 
@@ -331,6 +346,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 6: Write the failing render test**
 
 In `packages/readout/tests/consultation-readout.test.tsx`, append this `describe` block at the end of the file. It uses the file's existing `renderReadout(props)` helper, `windowSize` mock, `movingSections`, and `beforeEach` (which resets `windowSize` to 100×24). The active tab while `locked` is the Casting table.
+
 ```ts
 describe('auto-follow scroll (autoScrollTarget)', () => {
   it('pins line 1 near the bottom on a short viewport', () => {
@@ -369,6 +385,7 @@ Expected: FAIL — `autoScrollTarget` is not a known prop, so no scrolling happe
 - [ ] **Step 8: Add the prop to the interface**
 
 In `packages/readout/src/consultation-readout.tsx`, inside `export interface ConsultationReadoutProps { ... }`, add this member (place it right after the `castingPromptPan` member for locality):
+
 ```ts
   /**
    * Auto-follow scroll target for the active (Casting) tab during a casting
@@ -387,47 +404,54 @@ In `packages/readout/src/consultation-readout.tsx`, inside `export interface Con
 - [ ] **Step 9: Import the helper and destructure the prop**
 
 In the same file, add the import (next to the other local `./` imports, e.g. just after the `slice-ansi` / `string-width` imports):
+
 ```ts
 import { computeAutoScrollOffset } from './auto-scroll-offset.js'
 ```
+
 Then, in the `ConsultationReadout({ ... })` destructured parameter list, add `autoScrollTarget,` (place it right after `castingPromptPan,`).
 
 - [ ] **Step 10: Add the render-phase guard**
 
 In the same file: first declare the guard ref next to the existing offset ref. Find `const offsetsRef = useRef<number[]>([])` and add immediately below it:
+
 ```ts
-  // Last row auto-follow scrolled to; guards the render-phase write below so it
-  // fires once per distinct row (i.e. once per casting line), not every render.
-  const lastAutoScrollRowRef = useRef<number>(-1)
+// Last row auto-follow scrolled to; guards the render-phase write below so it
+// fires once per distinct row (i.e. once per casting line), not every render.
+const lastAutoScrollRowRef = useRef<number>(-1)
 ```
+
 Then find the two consecutive lines:
+
 ```ts
-  const maxOffset = Math.max(0, totalRows - viewportHeight)
-  const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
+const maxOffset = Math.max(0, totalRows - viewportHeight)
+const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
 ```
+
 and insert the guard **between** them, so it reads:
+
 ```ts
-  const maxOffset = Math.max(0, totalRows - viewportHeight)
-  // ── Auto-follow scroll (render-phase, once per distinct row) ──────────────
-  // Mirrors the lastResetTokenRef pattern: when the casting flow advances to a
-  // new line, seat that line's active row near the viewport bottom by writing
-  // the active tab's offset here, during render, so the new position lands on
-  // the first paint (no post-commit effect, no extra render). Guarded by row
-  // value so casts within a line — and manual scrolls — are not overridden;
-  // reset when auto-follow is off so re-entry re-pins from scratch.
-  if (autoScrollTarget != null) {
-    if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
-      offsetsRef.current[activeIndex] = computeAutoScrollOffset({
-        row: autoScrollTarget.row,
-        viewportHeight,
-        maxOffset,
-      })
-      lastAutoScrollRowRef.current = autoScrollTarget.row
-    }
-  } else {
-    lastAutoScrollRowRef.current = -1
+const maxOffset = Math.max(0, totalRows - viewportHeight)
+// ── Auto-follow scroll (render-phase, once per distinct row) ──────────────
+// Mirrors the lastResetTokenRef pattern: when the casting flow advances to a
+// new line, seat that line's active row near the viewport bottom by writing
+// the active tab's offset here, during render, so the new position lands on
+// the first paint (no post-commit effect, no extra render). Guarded by row
+// value so casts within a line — and manual scrolls — are not overridden;
+// reset when auto-follow is off so re-entry re-pins from scratch.
+if (autoScrollTarget != null) {
+  if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
+    offsetsRef.current[activeIndex] = computeAutoScrollOffset({
+      row: autoScrollTarget.row,
+      viewportHeight,
+      maxOffset,
+    })
+    lastAutoScrollRowRef.current = autoScrollTarget.row
   }
-  const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
+} else {
+  lastAutoScrollRowRef.current = -1
+}
+const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
 ```
 
 - [ ] **Step 11: Run the render test to verify it passes**
@@ -461,10 +485,12 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 **Depends on:** Task A (`castingTableActiveRow` export) and Task B (`autoScrollTarget` prop) — both must be committed first.
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/viewer.tsx`
 - Test: `packages/casting-ui/tests/viewer.test.tsx`
 
 **Background (inlined):**
+
 - `viewer.tsx` already imports from `@hexagram/readout` in a block ending `} from '@hexagram/readout'` (it imports `buildConsultationSections`, `buildPartialCastingSections`, `ConsultationReadout`, and types).
 - The flow state machine exposes `state.mode` (`'awaitingQuery' | 'casting' | 'computing' | 'done'`) and `state.lineIndex` (`0..5`, where 0 = line 1). Both are already in the component's render scope (e.g. `const lineNumber = (state.lineIndex + 1) as ...` already exists near the bottom of the component).
 - The component returns `<ConsultationReadout ... />` near the end of the file.
@@ -473,6 +499,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 - [ ] **Step 1: Write the failing wiring test**
 
 In `packages/casting-ui/tests/viewer.test.tsx`, add this test inside the existing `describe('ConsultationViewer', () => { ... })` block (place it after the "reveals the casting prompt box once the query is submitted" test):
+
 ```ts
   it('auto-scrolls the Casting table to keep the active line visible while casting', async () => {
     // rows 18 with the number prompt box leaves a ~5-row table viewport; the
@@ -503,6 +530,7 @@ Expected: FAIL — the viewer doesn't pass `autoScrollTarget` yet, so the table 
 - [ ] **Step 3: Import the geometry helper**
 
 In `packages/casting-ui/src/viewer.tsx`, add `castingTableActiveRow,` to the `from '@hexagram/readout'` import block:
+
 ```ts
 import {
   buildConsultationSections,
@@ -517,22 +545,24 @@ import {
 - [ ] **Step 4: Compute `autoScrollTarget`**
 
 In the same file, find the line `const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6` (near the bottom of the component, above the `return`). Add immediately after it:
+
 ```ts
-  // Auto-follow scroll: while casting, pin the active line's row near the bottom
-  // of the Casting table so the row being cast stays visible even when the
-  // prompt box (especially the tall manual one) shrinks the table viewport.
-  const autoScrollTarget =
-    state.mode === 'casting'
-      ? { row: castingTableActiveRow(state.lineIndex), align: 'bottom' as const }
-      : null
+// Auto-follow scroll: while casting, pin the active line's row near the bottom
+// of the Casting table so the row being cast stays visible even when the
+// prompt box (especially the tall manual one) shrinks the table viewport.
+const autoScrollTarget =
+  state.mode === 'casting'
+    ? { row: castingTableActiveRow(state.lineIndex), align: 'bottom' as const }
+    : null
 ```
 
 - [ ] **Step 5: Pass the prop to `ConsultationReadout`**
 
 In the `<ConsultationReadout ... />` JSX, add the prop on its own line right after `inputMode={inputMode}`:
+
 ```tsx
-      inputMode={inputMode}
-      autoScrollTarget={autoScrollTarget}
+inputMode = { inputMode }
+autoScrollTarget = { autoScrollTarget }
 ```
 
 - [ ] **Step 6: Run the wiring test to verify it passes**
@@ -563,6 +593,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Task D: Docs — AGENTS.md
 
 **Files:**
+
 - Modify: `AGENTS.md`
 
 This is pure documentation and shares no files with A/B/C — safe to run in Phase 1.
@@ -570,6 +601,7 @@ This is pure documentation and shares no files with A/B/C — safe to run in Pha
 - [ ] **Step 1: Update the casting-flow scroll paragraph**
 
 In `AGENTS.md`, find the sentence describing the during-casting vertical scroll (it contains the substring `↑/↓/PgUp/PgDn/g/G scroll the Casting tab table vertically`). Append the following to the end of that sentence (before its closing period / next sentence), so the behavior is documented:
+
 ```
 ; additionally, during casting the table **auto-follows** the active line —
 the viewer passes `autoScrollTarget` (the cast-1 content row from

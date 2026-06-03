@@ -476,7 +476,10 @@ export function ConsultationViewer({
   // prompt box (especially the tall manual one) shrinks the table viewport.
   const autoScrollTarget =
     state.mode === 'casting'
-      ? { row: castingTableActiveRow(state.lineIndex), align: 'bottom' as const }
+      ? {
+          row: castingTableActiveRow(state.lineIndex),
+          align: 'bottom' as const,
+        }
       : null
   // Casting prompt box height — sourced from the component so a new input
   // mode can't drift the reserved vertical space out of sync with what the
