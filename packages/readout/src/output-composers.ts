@@ -6,8 +6,8 @@ import type {
 } from '@hexagram/core/types'
 import { isMovingLine } from '@hexagram/viewer-core'
 
+import { castingSection } from './casting-ledger.js'
 import {
-  castingSection,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,
