@@ -350,7 +350,7 @@ export function HistoryList({
     }
   })
 
-  // ── onReady witness signal ───────────────────────────────────────────
+  // ── onReady witness signal ────────────────────────────────────────────────
   // Fires after this component's `useInput` registration above has bound to
   // Ink's stdin dispatcher. Effects run in declaration order, so this
   // `useEffect` is queued immediately after the one Ink uses internally for
