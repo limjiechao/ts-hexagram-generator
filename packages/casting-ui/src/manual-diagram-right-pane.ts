@@ -81,7 +81,3 @@ export function focusedInputBoxRows(args: FocusedInputBoxRowsArgs): string[] {
   const middle = `│${' '.repeat(leading)}${args.value}${cursor}${' '.repeat(trailingPad)}│`
   return [top, middle, bottom]
 }
-
-// Bottom-strip error-branch discriminant. The strip's `error` branch wraps
-// these args; they are flat-extended into BottomStripArgs below. Conservation
-// is NOT here — the MISSING gauge owns conservation visually (red when the
