@@ -417,6 +417,20 @@ export function ManualCastingPrompt({
   const naturalBodyWidth = MANUAL_NATURAL_BODY_WIDTH
   const renderWidth = Math.max(innerContentWidth, naturalBodyWidth)
 
+  // ── Horizontal centering (manual prompt only) ─────────────────────────
+  // Center the body block (natural width 95) as one rigid unit, and the
+  // title text independently, both within innerContentWidth. Both clamp to 0
+  // below their natural width, where the existing pad-to-renderWidth +
+  // sliceAnsi pan takes over unchanged. The strip is built at
+  // `renderWidth - leadingPadBody` and prepended with the same pad, so its
+  // left element lands at the body-left-edge while `Shift+Tab` stays pinned
+  // to the box's right edge.
+  const leadingPadBody = Math.max(
+    0,
+    Math.floor((innerContentWidth - naturalBodyWidth) / 2),
+  )
+  const stripRenderWidth = renderWidth - leadingPadBody
+
   // Diagram state drives editing / error / resolved colouring. Validator
   // `incomplete` and `ok` are both "editing" — the user is mid-flow and
   // hasn't surfaced an actionable error yet.
@@ -433,6 +447,11 @@ export function ManualCastingPrompt({
 
   // Row 1: title.
   const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
+  const leadingPadTitle = Math.max(
+    0,
+    Math.floor((innerContentWidth - stringWidth(titleRow)) / 2),
+  )
+  const centeredTitleRow = ' '.repeat(leadingPadTitle) + titleRow
 
   // Left half is the vertical flow diagram: UNPARTED header (2 rows) → the
   // 10-row heap-card band → COUNTED/MISSING footer (4 rows). The card band's
@@ -506,10 +525,13 @@ export function ManualCastingPrompt({
     const trailingPad = Math.max(0, renderWidth - totalSoFar)
     return `${leftRow}${' '.repeat(leftPadTrail)}${' '.repeat(middleGap)}${rightRow}${' '.repeat(trailingPad)}`
   }
+  const padBody = (row: string): string => ' '.repeat(leadingPadBody) + row
   const bodyRows = [
-    ...flowHeader.map((row) => composeBodyRow(row, '')),
-    ...cardBand.map((row, i) => composeBodyRow(row, cardRightPane[i] ?? '')),
-    ...flowFooter.map((row) => composeBodyRow(row, '')),
+    ...flowHeader.map((row) => padBody(composeBodyRow(row, ''))),
+    ...cardBand.map((row, i) =>
+      padBody(composeBodyRow(row, cardRightPane[i] ?? '')),
+    ),
+    ...flowFooter.map((row) => padBody(composeBodyRow(row, ''))),
   ]
 
   // Row 9: the one-row bottom strip — editing / error / resolved branch
@@ -519,7 +541,7 @@ export function ManualCastingPrompt({
       return {
         branch: 'resolved',
         next: committed.next,
-        renderWidth,
+        renderWidth: stripRenderWidth,
       }
     }
     if (validation.kind === 'suspended-sum') {
@@ -530,7 +552,7 @@ export function ManualCastingPrompt({
         remR: validation.remR,
         sum: validation.sum,
         expectedLabel: validation.expectedLabel,
-        renderWidth,
+        renderWidth: stripRenderWidth,
       }
     }
     if (validation.kind === 'zero-remainder') {
@@ -539,7 +561,7 @@ export function ManualCastingPrompt({
         errorKind: 'zero-remainder',
         remL: validation.remL,
         remR: validation.remR,
-        renderWidth,
+        renderWidth: stripRenderWidth,
       }
     }
     // incomplete | conservation | ok — conservation is surfaced by the MISSING
@@ -547,15 +569,16 @@ export function ManualCastingPrompt({
     return {
       branch: 'editing',
       commitReady: validation.kind === 'ok',
-      renderWidth,
+      renderWidth: stripRenderWidth,
     }
   })()
-  const stripRow = bottomStripRow(bottomStripBranchArgs)
+  const stripRow =
+    ' '.repeat(leadingPadBody) + bottomStripRow(bottomStripBranchArgs)
 
   // Stack the 20 content rows (title / blank / 2 flow-header / 10 card-band /
   // 4 flow-footer / blank / feedback strip), pad each to renderWidth, then
   // slice by horizontalOffset for the viewer's `<` / `>` narrow-terminal pan.
-  const allRows = [titleRow, '', ...bodyRows, '', stripRow]
+  const allRows = [centeredTitleRow, '', ...bodyRows, '', stripRow]
   const slicedRows = allRows.map((row) => {
     const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
     return sliceAnsi(

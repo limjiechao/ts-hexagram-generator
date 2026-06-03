@@ -103,6 +103,23 @@ describe('CastingPromptBox (manual flow)', () => {
     await yieldMacrotask()
   }
 
+  // Strip ANSI, split into lines, and return the count of leading spaces on
+  // the first line containing `needle` (−1 if no such line). Used to assert
+  // horizontal centering offsets without depending on exact trailing padding.
+  function leadingSpacesOf(frame: string, needle: string): number {
+    // oxlint-disable-next-line no-control-regex
+    const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
+    for (const rawLine of stripped.split('\n')) {
+      // Drop the box's left border glyph (chrome) so the count reflects the
+      // content's own leading pad, not the border.
+      const line = rawLine.replace(/^[│╭╰╮╯]/, '')
+      if (line.includes(needle)) {
+        return line.length - line.trimStart().length
+      }
+    }
+    return -1
+  }
+
   it('renders the title, flow diagram (UNPARTED → heaps → COUNTED/MISSING), question panel, and feedback strip', async () => {
     const onReady = vi.fn()
     const { lastFrame, unmount } = render(
@@ -608,6 +625,87 @@ describe('CastingPromptBox (manual flow)', () => {
     // frame does not.
     expect(at0).toContain('Line 3/6')
     expect(at20).not.toContain('Line 3/6')
+  })
+
+  it('centers the body block and title within a wide box', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        width={140}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    const frame = lastFrame() ?? ''
+    // width 140 → innerContentWidth 138; body natural width 95 →
+    // leadingPadBody = floor((138-95)/2) = 21; title is 30 cols →
+    // leadingPadTitle = floor((138-30)/2) = 54.
+    expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(21)
+    expect(leadingSpacesOf(frame, 'LEFT HEAP')).toBe(21)
+    expect(leadingSpacesOf(frame, 'COUNTED STALKS:')).toBe(21)
+    expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(54)
+    unmount()
+  })
+
+  it('does not center the body below its natural width; title still centers', async () => {
+    const onReady = vi.fn()
+    const { lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        width={80}
+        onSubmit={() => {}}
+        onReady={onReady}
+      />,
+    )
+    await waitForReady(onReady)
+    const frame = lastFrame() ?? ''
+    // width 80 → innerContentWidth 78 < 95 → leadingPadBody = 0 (body left-
+    // aligned exactly as before). Title is 30 cols → leadingPadTitle =
+    // floor((78-30)/2) = 24, so the title still centers independently.
+    expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(0)
+    expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(24)
+    unmount()
+  })
+
+  it('aligns the strip hint to the body-left-edge with Shift+Tab pinned right', async () => {
+    const onReady = vi.fn()
+    const onFocusedFieldChange = vi.fn()
+    const { stdin, lastFrame, unmount } = render(
+      <CastingPromptBox
+        {...baseProps}
+        width={140}
+        onSubmit={() => {}}
+        onReady={onReady}
+        onFocusedFieldChange={onFocusedFieldChange}
+      />,
+    )
+    await waitForReady(onReady)
+    // Type a conservation- and suspended-sum-valid 4-field input (no Enter):
+    // validation becomes `ok`, so the editing strip shows "Press Enter to
+    // commit" on the left.
+    await typeFourFields(stdin, onFocusedFieldChange, {
+      pilesL: validBasePropsInput.pilesL,
+      remL: validBasePropsInput.remL,
+      pilesR: validBasePropsInput.pilesR,
+      remR: validBasePropsInput.remR,
+    })
+    const frame = lastFrame() ?? ''
+    // Left element starts at the body's left edge (leadingPadBody = 21).
+    expect(leadingSpacesOf(frame, 'Press Enter to commit')).toBe(21)
+    // The global nav hint is still present (right-pinned to the box edge).
+    // oxlint-disable-next-line no-control-regex
+    const stripped = frame.replaceAll(new RegExp('\\u001b\\[[0-9;]*m', 'g'), '')
+    const stripLine =
+      stripped
+        .split('\n')
+        .find((l) => l.includes('Press Enter to commit')) ?? ''
+    expect(stripLine).toContain('Shift+Tab: go back')
+    // Right-pinned: the hint sits at the end of the content, immediately
+    // before the box's right border.
+    expect(stripLine).toMatch(/Shift\+Tab: go back[│ ]*$/)
+    unmount()
   })
 
   it('typing a digit appends to the focused buffer; resulting value > max is rejected', async () => {
