@@ -386,6 +386,34 @@ describe('ConsultationViewer (interactive flow)', () => {
     unmount()
   })
 
+  it('keeps the just-cast line visible after its third cast commits', async () => {
+    // Regression: on the third cast the line pointer advances to the next line
+    // in the same update that fills the third-cast cell. If the table re-pinned
+    // to the NEW active line immediately, line 1's block — including the cell
+    // that just filled — would scroll off the bottom before the user could see
+    // it. Anchoring the just-completed line keeps line 1 pinned at the bottom
+    // while line 2 begins, so the third cast's result stays on screen.
+    windowSize.current = { columns: 100, rows: 18 }
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer flowKind="interactive" inputMode="number" />,
+    )
+    stdin.write('Hi')
+    await yieldMacrotask()
+    stdin.write(ENTER) // submit -> casting, line 1 / cast 1
+    await yieldMacrotask()
+    // Picks (24, 20, 16) are in range for rounds 1/2/3 of an unmodified casting.
+    for (const pick of ['24', '20', '16']) {
+      stdin.write(pick)
+      await yieldMacrotask()
+      stdin.write(ENTER)
+      await yieldMacrotask()
+    }
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('Line 2/6 · Cast 1/3') // advanced to line 2
+    expect(frame).toContain('初1') // line 1 still visible — not scrolled off
+    unmount()
+  })
+
   it('shows a validation error for out-of-range picks', async () => {
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,

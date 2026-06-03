@@ -8,6 +8,7 @@ import {
   CAST1_OFFSET_IN_BLOCK,
   castingSection,
   castingTableActiveRow,
+  castingTableFollowRow,
 } from '../src/output-sections.js'
 
 // oxlint-disable-next-line no-control-regex
@@ -143,6 +144,28 @@ describe('castingTableActiveRow', () => {
       expect(labelRow).toBeGreaterThanOrEqual(0)
       expect(castingTableActiveRow(lineIndex)).toBe(
         labelRow + CAST1_OFFSET_IN_BLOCK,
+      )
+    }
+  })
+})
+
+describe('castingTableFollowRow', () => {
+  it('anchors the just-completed line so cast-3 stays visible on commit', () => {
+    // While casting line L the row pinned near the viewport bottom is the
+    // *previous* line's cast-1 row (L-1), so when L's third cast commits and
+    // the line pointer advances, the line the user just finished does not
+    // scroll off-screen. Line 1 (idx 0) has no predecessor, so it anchors
+    // itself: follow(0) === follow(1) === activeRow(0) === 27. The pin only
+    // moves on the *next* line transition (entering line 3, idx 2 -> row 23).
+    expect([0, 1, 2, 3, 4, 5].map(castingTableFollowRow)).toEqual([
+      27, 27, 23, 19, 15, 11,
+    ])
+  })
+
+  it('equals the previous line active row (or line 1 active row at the bottom)', () => {
+    for (let lineIndex = 0; lineIndex < 6; lineIndex++) {
+      expect(castingTableFollowRow(lineIndex)).toBe(
+        castingTableActiveRow(Math.max(0, lineIndex - 1)),
       )
     }
   })

@@ -312,6 +312,19 @@ export function castingTableActiveRow(lineIndex: number): number {
   return blockTop + CAST1_OFFSET_IN_BLOCK
 }
 
+/**
+ * Content-row the auto-follow scroll seats near the viewport bottom while
+ * casting `lineIndex`. Anchors the *just-completed* line (`lineIndex - 1`)
+ * rather than the active line, so when the third cast commits — filling that
+ * cell and advancing the line pointer in one update — the line the user just
+ * finished stays pinned at the bottom instead of scrolling off before its
+ * result is seen. Line 1 (`lineIndex` 0) has no predecessor, so it anchors
+ * itself; the pin therefore only moves on the *next* line transition.
+ */
+export function castingTableFollowRow(lineIndex: number): number {
+  return castingTableActiveRow(Math.max(0, lineIndex - 1))
+}
+
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
 // interactive viewer is still collecting casts: a `null` split renders its ten
 // derived cells as width-stable `·` placeholders (the structural 爻Line / 變Cast

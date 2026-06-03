@@ -9,7 +9,7 @@ import {
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-  castingTableActiveRow,
+  castingTableFollowRow,
   ConsultationReadout,
   type CastingPromptPan,
   type ConsultationSections,
@@ -471,13 +471,17 @@ export function ConsultationViewer({
   // ── Casting prompt slot (above-footer) ──────────────────────────────────
 
   const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
-  // Auto-follow scroll: while casting, pin the active line's row near the bottom
-  // of the Casting table so the row being cast stays visible even when the
-  // prompt box (especially the tall manual one) shrinks the table viewport.
+  // Auto-follow scroll: while casting, pin the just-completed line's row near
+  // the bottom of the Casting table so the row being cast stays visible even
+  // when the prompt box (especially the tall manual one) shrinks the table
+  // viewport. Anchoring the just-completed line (rather than the active one)
+  // keeps a line on screen through its third cast — that cast fills the cell
+  // and advances the line pointer in the same update, so pinning the new
+  // active line would scroll the just-filled result off before it's seen.
   const autoScrollTarget =
     state.mode === 'casting'
       ? {
-          row: castingTableActiveRow(state.lineIndex),
+          row: castingTableFollowRow(state.lineIndex),
           align: 'bottom' as const,
         }
       : null

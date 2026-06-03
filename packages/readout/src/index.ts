@@ -27,6 +27,7 @@ export {
 export {
   castingSection,
   castingTableActiveRow,
+  castingTableFollowRow,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,
