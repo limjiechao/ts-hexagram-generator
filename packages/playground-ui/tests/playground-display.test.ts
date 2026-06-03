@@ -7,15 +7,15 @@ import type { Hexagram } from '@hexagram/core/types'
 import { NORMAL_GREY, stripAnsi } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'
 
+import { buildPlaygroundDisplay } from '../src/playground-display'
 import {
   BAR_BLOCK_WIDTH,
-  buildPlaygroundDisplay,
   CHEVRON_WIDTH,
   GAP_WIDTH,
   LEFT_LINE_WIDTH,
   TOP_HALF_ROWS,
   TOP_HALF_WIDTH,
-} from '../src/playground-display'
+} from '../src/playground-display-geometry'
 
 // Replicate the same `visualWidth` the renderer uses so the tests are not
 // coupled to `string-width`. (The renderer's `visualWidth` is module-private.)
