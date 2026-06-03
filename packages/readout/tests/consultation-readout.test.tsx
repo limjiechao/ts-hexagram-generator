@@ -293,3 +293,31 @@ describe('ConsultationReadout — optional title / notice / onExit', () => {
     unmount()
   })
 })
+
+describe('auto-follow scroll (autoScrollTarget)', () => {
+  it('pins line 1 near the bottom on a short viewport', () => {
+    // rows 16 -> table viewport ~8; the 28-row casting table overflows. Without
+    // auto-follow the offset sits at 0 (top = line 6) and line 1 is off-screen.
+    windowSize.current = { columns: 100, rows: 16 }
+    const { lastFrame, unmount } = renderReadout({
+      locked: true,
+      autoScrollTarget: { row: 27, align: 'bottom' }, // line 1 cast-1
+    })
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('初1') // line 1's labelled row pulled into view
+    expect(frame).not.toContain('上6') // line 6 scrolled off the top
+    unmount()
+  })
+
+  it('clamps line 6 to the top on the same short viewport', () => {
+    windowSize.current = { columns: 100, rows: 16 }
+    const { lastFrame, unmount } = renderReadout({
+      locked: true,
+      autoScrollTarget: { row: 7, align: 'bottom' }, // line 6 cast-1
+    })
+    const frame = lastFrame() ?? ''
+    expect(frame).toContain('上6') // line 6 visible (clamped to top)
+    expect(frame).not.toContain('初1') // line 1 below the fold
+    unmount()
+  })
+})

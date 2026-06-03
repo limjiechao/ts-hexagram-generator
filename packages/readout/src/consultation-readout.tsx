@@ -38,6 +38,7 @@ import {
 import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 
+import { computeAutoScrollOffset } from './auto-scroll-offset.js'
 import type { ConsultationSections } from './output-composers.js'
 
 // `<ConsultationReadout>` — the generic tabbed, scrollable consultation
@@ -119,6 +120,18 @@ export interface ConsultationReadoutProps {
   readonly aboveFooterHeight?: number
   /** Casting-prompt pan wiring; omit when there is no pannable slot. */
   readonly castingPromptPan?: CastingPromptPan
+  /**
+   * Auto-follow scroll target for the active (Casting) tab during a casting
+   * flow. `row` is in content-row space (the casting section's own rows, before
+   * the readout's leading breather). The readout seats it near the viewport
+   * bottom once per distinct row (i.e. once per line), via a render-phase guard,
+   * so a manual scroll within a line is not clobbered. `null` / omitted disables
+   * auto-follow (every non-casting mode).
+   */
+  readonly autoScrollTarget?: {
+    readonly row: number
+    readonly align: 'bottom'
+  } | null
   /** One-line progress hint shown on the footer-bottom line during a flow. */
   readonly flowHint?: string | null
   /** Footer key hints shown while `locked`. */
@@ -215,6 +228,7 @@ export function ConsultationReadout({
   aboveFooterSlot,
   aboveFooterHeight = 0,
   castingPromptPan,
+  autoScrollTarget,
   flowHint = null,
   flowKeyHints = KEY_HINTS_FLOW_DEFAULT,
   doneKeyHints,
@@ -240,6 +254,9 @@ export function ConsultationReadout({
   const activeIndexRef = useRef(0)
   const [, forceRender] = useReducer((n: number) => n + 1, 0)
   const offsetsRef = useRef<number[]>([])
+  // Last row auto-follow scrolled to; guards the render-phase write below so it
+  // fires once per distinct row (i.e. once per casting line), not every render.
+  const lastAutoScrollRowRef = useRef<number>(-1)
   const horizontalOffsetsRef = useRef<number[]>([])
   // Horizontal pan offset for the above-footer slot (separate from the
   // active tab's content pan). Reset to 0 whenever the caller's reset token
@@ -342,6 +359,25 @@ export function ConsultationReadout({
   const totalRows = rowsWithBreathers.length
 
   const maxOffset = Math.max(0, totalRows - viewportHeight)
+  // ── Auto-follow scroll (render-phase, once per distinct row) ──────────────
+  // Mirrors the lastResetTokenRef pattern: when the casting flow advances to a
+  // new line, seat that line's active row near the viewport bottom by writing
+  // the active tab's offset here, during render, so the new position lands on
+  // the first paint (no post-commit effect, no extra render). Guarded by row
+  // value so casts within a line — and manual scrolls — are not overridden;
+  // reset when auto-follow is off so re-entry re-pins from scratch.
+  if (autoScrollTarget != null) {
+    if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
+      offsetsRef.current[activeIndex] = computeAutoScrollOffset({
+        row: autoScrollTarget.row,
+        viewportHeight,
+        maxOffset,
+      })
+      lastAutoScrollRowRef.current = autoScrollTarget.row
+    }
+  } else {
+    lastAutoScrollRowRef.current = -1
+  }
   const offset = clamp(offsetsRef.current[activeIndex] ?? 0, 0, maxOffset)
   const canScrollVertically = totalRows > viewportHeight
 
