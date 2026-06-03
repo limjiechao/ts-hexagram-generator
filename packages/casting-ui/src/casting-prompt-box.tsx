@@ -2,6 +2,7 @@ import { BOLD_RED, NORMAL } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
 
+import type { SliderAutoLand } from './bouncing-slider-store.js'
 import type { ManualFocusedField } from './manual-diagram.js'
 import {
   MANUAL_REVEAL_MS,
@@ -12,11 +13,10 @@ import { NumberInput } from './number-input.js'
 import {
   SLIDER_COMMIT_REVEAL_MS,
   SliderCastingPrompt,
-  type SliderAutoLand,
 } from './slider-prompt.js'
 import type { FlowKind } from './viewer-flow.js'
 
-// ── CastingPromptBox ────────────────────────────────────────────────────────
+// ── CastingPromptBox ─────────────────────────────────────────────────
 
 export type CastingInputMode = 'slider' | 'number'
 
@@ -160,7 +160,7 @@ interface CastingPromptBoxProps {
  *    walks the cycle clockwise, the right anticlockwise; the live cursor
  *    value stays hidden). `Stalks` is `max + 1` — the true stalk count —
  *    because `max` is only the left-heap pick ceiling, held one short so the
- *    right heap keeps a stalk to suspend (掛一); that suspended stalk is the
+ *    right heap keeps a stalk to suspend (換一); that suspended stalk is the
  *    trailing `+ 1 suspended` on the right. Each heap cell — both glyph and
  *    pick — is rendered at a stable 2-column width so the readout never
  *    shifts laterally across the ticking → reveal transition or across

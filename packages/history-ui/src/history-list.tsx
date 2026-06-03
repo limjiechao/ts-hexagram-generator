@@ -1,8 +1,6 @@
 import path from 'node:path'
 import process from 'node:process'
 
-import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
-import type { Hexagram } from '@hexagram/core/types'
 import {
   BOLD_GREY,
   BOLD_RED,
@@ -29,8 +27,22 @@ import {
 } from 'react'
 
 import { DeleteConfirmModal } from './delete-confirm-modal.js'
+import {
+  focusIndexOf,
+  reducer,
+  rowPath,
+  type ListRow,
+  type NavGeometry,
+} from './history-list-state.js'
+import {
+  buildTitle,
+  deleteIdentity,
+  entryHeadLineParts,
+  summarizeHexParts,
+  TIMESTAMP_PREFIX_WIDTH,
+} from './history-list-transforms.js'
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
-import { computeWindowStart, resolveRowWindow } from './row-window.js'
+import { resolveRowWindow } from './row-window.js'
 
 interface HistoryListProps {
   entries: HistoryEntry[]
@@ -102,16 +114,6 @@ interface HistoryListProps {
   onReady?: () => void
 }
 
-/**
- * Width of the fixed `[YYYY-MM-DD HH:mm] ` prefix on a row's first line —
- * `[` + 16 chars + `]` + one space. Line 2 is indented by this much so its
- * content aligns under the query text.
- */
-const TIMESTAMP_PREFIX_WIDTH = 19
-
-/** Page size for PgUp / PgDn. */
-const PAGE_SIZE = 10
-
 /** Height consumed by the title row. */
 const TITLE_HEIGHT = 1
 
@@ -120,207 +122,6 @@ const FILTER_LABEL = 'Filter '
 
 /** Cursor character appended to the filter input. */
 const FILTER_CURSOR = '_'
-
-/** A unified list row — either a readable entry or an unreadable file. */
-type ListRow =
-  | { kind: 'entry'; entry: HistoryEntry }
-  | { kind: 'unreadable'; item: UnreadableEntry }
-
-/** The on-disk path uniquely identifying a row regardless of its kind. */
-function rowPath(row: ListRow): string {
-  return row.kind === 'entry' ? row.entry.path : row.item.path
-}
-
-/**
- * Resolve the focused row's index from its identity `path`. When the path is
- * still present, returns its index. When it is gone (the row was deleted),
- * falls back to `fallbackIndex` — the numeric slot the deleted row occupied —
- * clamped to the new list size, so the row below the deletion slides into
- * focus (or the previous row when the last row was deleted).
- */
-function focusIndexOf(
-  listRows: ListRow[],
-  focusPath: string | null,
-  fallbackIndex = 0,
-): number {
-  if (focusPath === null || listRows.length === 0) return 0
-  const idx = listRows.findIndex((r) => rowPath(r) === focusPath)
-  if (idx !== -1) return idx
-  return Math.min(fallbackIndex, Math.max(0, listRows.length - 1))
-}
-
-interface State {
-  /** Identity anchor for the focused row; `null` only when the list is empty. */
-  focusPath: string | null
-  /** Index of the first windowed row — kept sticky across navigation. */
-  windowStart: number
-  filterMode: boolean
-  filter: string
-  /** Holds the target row's path while the delete confirm modal is open. */
-  confirmingDelete: { path: string } | null
-}
-
-/**
- * Navigation actions carry the resolved `listRows`, `windowHeight`, and the
- * render-time `currentIndex` (fallback already applied) so the reducer can
- * re-derive `focusPath` + a sticky `windowStart` in one pure step — and
- * crucially never re-resolves `focusIndexOf` itself, which would lose the
- * post-delete fallback that only the component knows.
- */
-type NavGeometry = {
-  listRows: ListRow[]
-  windowHeight: number
-  currentIndex: number
-}
-type Action =
-  | ({ type: 'up' } & NavGeometry)
-  | ({ type: 'down' } & NavGeometry)
-  | ({ type: 'pageUp' } & NavGeometry)
-  | ({ type: 'pageDown' } & NavGeometry)
-  | ({ type: 'first' } & NavGeometry)
-  | ({ type: 'last' } & NavGeometry)
-  | { type: 'filterEnter' }
-  | { type: 'filterExit' }
-  | { type: 'filterClear' }
-  | { type: 'filterChange'; value: string }
-  | { type: 'deleteRequest'; path: string }
-  | { type: 'deleteCancel' }
-
-/** Re-derive the focused path and the sticky window from a raw index. */
-function navigate(state: State, rawIndex: number, geom: NavGeometry): State {
-  const size = geom.listRows.length
-  const idx = Math.min(Math.max(rawIndex, 0), Math.max(0, size - 1))
-  const row = geom.listRows[idx]
-  return {
-    ...state,
-    focusPath: row == null ? null : rowPath(row),
-    windowStart: computeWindowStart(
-      size,
-      geom.windowHeight,
-      idx,
-      state.windowStart,
-    ),
-  }
-}
-
-function reducer(state: State, action: Action): State {
-  switch (action.type) {
-    case 'up': {
-      // ↑ wraps from the first row to the last for better browsing UX.
-      // PgUp/g stay clamped — they have an explicit "go to top" meaning.
-      const size = action.listRows.length
-      if (size <= 1) return navigate(state, action.currentIndex, action)
-      const target = (action.currentIndex - 1 + size) % size
-      return navigate(state, target, action)
-    }
-    case 'down': {
-      // ↓ wraps from the last row to the first.
-      const size = action.listRows.length
-      if (size <= 1) return navigate(state, action.currentIndex, action)
-      const target = (action.currentIndex + 1) % size
-      return navigate(state, target, action)
-    }
-    case 'pageUp':
-      return navigate(state, action.currentIndex - PAGE_SIZE, action)
-    case 'pageDown':
-      return navigate(state, action.currentIndex + PAGE_SIZE, action)
-    case 'first':
-      return navigate(state, 0, action)
-    case 'last':
-      return navigate(state, action.listRows.length - 1, action)
-    case 'filterEnter':
-      return { ...state, filterMode: true }
-    case 'filterExit':
-      return { ...state, filterMode: false, filter: '' }
-    case 'filterClear':
-      // Clear the typed text but keep the filter row open.
-      return { ...state, filter: '' }
-    case 'filterChange':
-      return { ...state, filter: action.value }
-    case 'deleteRequest':
-      return { ...state, confirmingDelete: { path: action.path } }
-    case 'deleteCancel':
-      return { ...state, confirmingDelete: null }
-  }
-}
-
-function shortenTimestamp(iso: string): string {
-  return `${iso.slice(0, 10)} ${iso.slice(11, 16)}`
-}
-
-/**
- * Structured parts of the hexagram summary line for palette-colored rendering.
- * `movingSegment` is non-null only when there are moving lines.
- */
-interface HexSummaryParts {
-  standingText: string
-  movingSegment: string | null
-}
-
-function summarizeHexParts(hexagram: Hexagram): HexSummaryParts {
-  const standing = getHexagramRecord(hexagram)
-  const hasMoving = hexagram.some((line) => line === 6 || line === 9)
-  const standingText = `#${standing.Metadata.Order.WenWang} ${standing.Name.Chinese.Traditional} ${standing.Name.English.WilhelmBaynes.split(' / ')[0] ?? standing.Name.English.WilhelmBaynes}`
-  if (!hasMoving) return { standingText, movingSegment: null }
-  const emerging = getHexagramRecord(getEmergingHexagram(hexagram))
-  const emergingText = `#${emerging.Metadata.Order.WenWang} ${emerging.Name.Chinese.Traditional} ${emerging.Name.English.WilhelmBaynes.split(' / ')[0] ?? emerging.Name.English.WilhelmBaynes}`
-  return { standingText, movingSegment: ` ──▶ ${emergingText}` }
-}
-
-/**
- * Structured parts of the first row line for palette-colored rendering.
- */
-interface HeadLineParts {
-  prefix: string
-  query: string
-}
-
-/** First line parts of a row: `[timestamp]` prefix and truncated query. */
-function entryHeadLineParts(
-  entry: HistoryEntry,
-  innerWidth: number,
-): HeadLineParts {
-  const query =
-    entry.envelope.query.length > 0 ? entry.envelope.query : '(no query)'
-  const prefix = `[${shortenTimestamp(entry.envelope.timestamp)}] `
-  return {
-    prefix,
-    query: truncateEnd(query, innerWidth - TIMESTAMP_PREFIX_WIDTH),
-  }
-}
-
-/**
- * Build the human-readable identity line shown in the delete confirm modal —
- * `[YYYY-MM-DD HH:mm] <query>` (truncated) for a readable entry, or
- * `[unreadable — <reason>]` for an unreadable row. Falls back to the path
- * when the row can no longer be found in the list.
- */
-function deleteIdentity(
-  listRows: ListRow[],
-  targetPath: string,
-  innerCols: number,
-): string {
-  const row = listRows.find((r) => rowPath(r) === targetPath)
-  if (row == null) return path.relative(process.cwd(), targetPath)
-  if (row.kind === 'unreadable') return `[unreadable — ${row.item.reason}]`
-  const head = entryHeadLineParts(row.entry, innerCols)
-  return `${head.prefix}${head.query}`
-}
-
-/**
- * Build the shell title string.
- * `Past Consultations · consultations/ · N consultations [· M unreadable]`
- * The `· M unreadable` clause appears only when M > 0.
- */
-function buildTitle(
-  consultationCount: number,
-  unreadableCount: number,
-): string {
-  const countClause = `${consultationCount} ${consultationCount === 1 ? 'consultation' : 'consultations'}`
-  const unreadableClause =
-    unreadableCount > 0 ? ` · ${unreadableCount} unreadable` : ''
-  return `Past Consultations · consultations/ · ${countClause}${unreadableClause}`
-}
 
 export function HistoryList({
   entries,
@@ -549,7 +350,7 @@ export function HistoryList({
     }
   })
 
-  // ── onReady witness signal ────────────────────────────────────────────────
+  // ── onReady witness signal ───────────────────────────────────────────
   // Fires after this component's `useInput` registration above has bound to
   // Ink's stdin dispatcher. Effects run in declaration order, so this
   // `useEffect` is queued immediately after the one Ink uses internally for

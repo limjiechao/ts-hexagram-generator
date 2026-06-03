@@ -32,6 +32,7 @@ import {
 } from 'react'
 import stringWidth from 'string-width'
 
+import type { SliderAutoLand } from './bouncing-slider-store.js'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
@@ -41,11 +42,7 @@ import { hasUnsavedCastProgress } from './has-unsaved-cast-progress.js'
 import { MANUAL_GUIDE_LINES, MANUAL_GUIDE_TITLE } from './manual-guide.js'
 import { MANUAL_REVEAL_MS, type ManualDraft } from './manual-prompt.js'
 import { QueryEditor } from './query-editor.js'
-import {
-  SLIDER_COMMIT_REVEAL_MS,
-  sliderPromptTitle,
-  type SliderAutoLand,
-} from './slider-prompt.js'
+import { SLIDER_COMMIT_REVEAL_MS, sliderPromptTitle } from './slider-prompt.js'
 import { useLineGenerator } from './use-line-generator.js'
 import {
   DEFAULT_CAST_BOUNCE_MS,
@@ -372,7 +369,7 @@ export function ConsultationViewer({
   const isNumberRandomPlayback =
     state.flowKind === 'random' && inputMode === 'number'
 
-  // ── Number-mode random reveal timer ─────────────────────────────────────
+  // ── Number-mode random reveal timer ──────────────────────────────────
   // The text-reveal pacing timer. Side effect → it lives here in the
   // imperative shell, not in the pure reducer. While the random flow is
   // mid-`casting` in number mode, it schedules ONE `setTimeout` per cast slot
@@ -413,7 +410,7 @@ export function ConsultationViewer({
     castRevealMs,
   ])
 
-  // ── Section selection ───────────────────────────────────────────────────
+  // ── Section selection ──────────────────────────────────────────────
 
   // Once `done`, the sections come from the completed flow; while the flow
   // is running, the casting table is re-rendered from the partial record
@@ -470,7 +467,7 @@ export function ConsultationViewer({
       <QueryBox query={state.query} width={innerCols} />
     )
 
-  // ── Casting prompt slot (above-footer) ──────────────────────────────────
+  // ── Casting prompt slot (above-footer) ─────────────────────────────
 
   const lineNumber = (state.lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6
   // Casting prompt box height — sourced from the component so a new input
@@ -534,7 +531,7 @@ export function ConsultationViewer({
         }
       : undefined
 
-  // ── Discard-confirm modal slot ──────────────────────────────────────────
+  // ── Discard-confirm modal slot ─────────────────────────────────────
   // When `confirmingDiscard` is set, the above-footer slot renders the
   // `<ConfirmModal>` (it is visible across `awaitingQuery` / `casting` /
   // `computing`). On confirm the slot routes per path — `back` → the injected
@@ -644,7 +641,7 @@ export function ConsultationViewer({
   const aboveFooterHeight =
     confirmingDiscard === null ? castingPromptHeight : DISCARD_MODAL_HEIGHT
 
-  // ── Footer-bottom flow hint ─────────────────────────────────────────────
+  // ── Footer-bottom flow hint ───────────────────────────────────────
 
   const flowHint = (() => {
     if (state.mode === 'awaitingQuery')
