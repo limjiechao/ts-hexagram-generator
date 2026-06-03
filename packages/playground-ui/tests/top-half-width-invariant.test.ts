@@ -10,7 +10,10 @@ import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { IDENTITY_STACK_WIDTH, TOP_HALF_WIDTH } from '../src/playground-display'
+import {
+  IDENTITY_STACK_WIDTH,
+  TOP_HALF_WIDTH,
+} from '../src/playground-display-geometry'
 
 function visualWidth(text: string): number {
   let width = 0

@@ -51,7 +51,7 @@ import {
 } from 'react'
 
 import { HexagramDisplay } from './hexagram-display.js'
-import { TOP_HALF_ROWS, TOP_HALF_WIDTH } from './playground-display.js'
+import { TOP_HALF_ROWS, TOP_HALF_WIDTH } from './playground-display-geometry.js'
 import { dispatchPlaygroundKey, toKeymapSlice } from './playground-keymap.js'
 import { buildPlaygroundDerivation } from './playground-lines.js'
 import {
