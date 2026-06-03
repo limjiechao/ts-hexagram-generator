@@ -31,8 +31,30 @@ loss. The result: no flow in the app depends on V8's pseudorandom generator. (Th
 file is named `random-casting.ts`, not `random.ts`, to reserve the generic name —
 it is yarrow casting, not a general RNG utility.)
 
+**A pick must never empty the right heap — the never-zero-remainder invariant.**
+Each cast parts the unparted stalks at an index `pick`. The recorded
+`SplitRecord.max` is `unparted − 1` (it reserves the right heap's suspended
+stalk, 掛一). The _selectable_ ceiling is one lower still — `max − 1` — because a
+pick of `max` would leave the right heap with only that suspended stalk, nothing
+to count by fours, and a division-by-four remainder of 0. A remainder is always
+1..4 (揲之以四 counts a multiple of four's last group as the remainder, never 0),
+so the right heap must keep a second, countable stalk. The rule has **one home**
+— `selectablePickMax(recordedMax)` in `casting-derivation.ts` — and one runtime
+guard, `assertSelectablePick`, which `performCast` calls on every cast. Every
+input flow (slider, typed, plain Inquirer, RNG, legacy replay) clamps to
+`selectablePickMax`; the manual flow's validator derives the same `[1, max−1]`
+range structurally. The recorded `max` is unchanged, so the `Stalks` readout,
+conservation, and the saved file are untouched.
+
 ## Considered options
 
+- **Scatter the `− 1` cap at each input boundary** (the original fix). Rejected
+  after the fact: the rule lived as bare arithmetic in four flows, a fifth
+  hand-rolled copy in the legacy converter encoded the _wrong_ bound, and the
+  core tolerated the degenerate pick silently. Centralised into
+  `selectablePickMax` / `assertSelectablePick` with `performCast` as the single
+  enforcer; `deriveSplit` stays tolerant since it reconstructs possibly-historical
+  records for display, not live casts.
 - **Keep state inside the generator** (no pure step). Rejected: a suspended
   generator can't be rewound or rebuilt from a prefix; resumable/undoable casting
   would have needed an external history stack bolted on.
@@ -50,11 +72,25 @@ it is yarrow casting, not a general RNG utility.)
 - `LineState` currently never leaves the pure core (no serialise/deserialise path);
   adding persistence later is a deliberate follow-up, not assumed.
 - The injected-RNG test override contract is preserved across the rename.
+- Because `performCast` is also the replay engine, a legacy `.txt` that recorded
+  a degenerate `pick === max` (an empty right heap) no longer replay-validates:
+  its casting converts to `null` (`castingRecovered: false`) rather than being
+  resurrected. We drop that recovery deliberately — `deriveSplit` still renders
+  such a record for display, but the algorithm of record won't reproduce it.
 
 ## Where it's enforced
 
-- `packages/core/src/index.ts` — `performCast`, `initialLineState`, `maxPickFor`,
-  `makeLineGenerator` wrapper.
+- `packages/core/src/index.ts` — `performCast` (calls `assertSelectablePick`),
+  `initialLineState`, `maxPickFor` (the _recorded_ max, not the selectable
+  ceiling), `makeLineGenerator` wrapper.
+- `packages/core/src/casting-derivation.ts` — `selectablePickMax` +
+  `assertSelectablePick` (single source of truth for the never-zero-remainder
+  invariant), alongside `neverZeroMod4` / `deriveSplit`.
 - `packages/core/src/types.ts` — `LineState` / `AdvanceableLineState` unions.
 - `packages/core/src/crypto-random.ts` — `cryptoRandom` + the `2^48 − 1` bound.
-- `packages/core/src/random-casting.ts` — `randomInt`-driven splits.
+- `packages/core/src/random-casting.ts` — `randomInt`-driven splits, clamped via
+  `selectablePickMax`.
+- `packages/casting-ui/src/viewer.tsx`, `src/interactive-flow.ts` — slider/typed
+  and plain Inquirer prompts cap the pick at `selectablePickMax`.
+- `packages/consultation-file/src/legacy-converter.ts` — replay guards each
+  recorded pick with `assertSelectablePick`.

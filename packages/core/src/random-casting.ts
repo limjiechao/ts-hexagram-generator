@@ -1,5 +1,6 @@
 import { randomInt } from 'node:crypto'
 
+import { selectablePickMax } from './casting-derivation.js'
 import { makeLineGenerator, stalksBeforeParting } from './index'
 import {
   assertIsCastingRecord,
@@ -14,22 +15,17 @@ import {
 } from './types.js'
 
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
-// `randomInt(min, max)` is exclusive on `max`, so passing `length - 1` here
-// yields picks in `[1, length-2]`, i.e. `[1, recordedMax - 1]` where
-// `recordedMax = length - 1` is the `SplitRecord.max` we store alongside the
-// pick (and the prompts surface as "1 to recordedMax-1").
-//
-// The `-1` reserves a SECOND stalk on the right heap: `recordedMax` already
-// holds one back for the suspended stalk (掛一), but a pick of `recordedMax`
-// would leave the right heap with ONLY that suspended stalk — nothing to count
-// by fours — yielding a remainder of 0. A remainder is always 1..4 (a heap
-// divisible by four counts its last group as the remainder, never 0), so the
-// right heap must keep at least one stalk to count after the suspension. This
-// matches the interactive/manual flows, which cap the pick at `recordedMax - 1`.
-// (`length` is never below ~32 across the three casts, so `length - 1 > 1` and
-// `randomInt` always has a valid `min < max`.)
-export const splitStalksRandomly = (unpartedStalks: number[]): number =>
-  randomInt(1, unpartedStalks.length - 1)
+// Draw a pick in `[1, selectablePickMax(recordedMax)]`, the same range the
+// interactive/manual flows offer (see `selectablePickMax` in
+// `casting-derivation.ts`): one below the recorded `SplitRecord.max` so the
+// right heap keeps a countable stalk after the suspended one (掛一) and its
+// remainder is never 0. `randomInt(min, max)` is exclusive on `max`, so we add
+// 1 to include the ceiling. (`length` is never below ~32 across the three
+// casts, so the ceiling is always ≥ 1 and `randomInt` has a valid `min < max`.)
+export const splitStalksRandomly = (unpartedStalks: number[]): number => {
+  const recordedMax = unpartedStalks.length - 1
+  return randomInt(1, selectablePickMax(recordedMax) + 1)
+}
 
 export const getOneRandomLine = function* (): Generator<
   /* Yield */ LineGeneratorResult,
