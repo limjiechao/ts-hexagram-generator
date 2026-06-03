@@ -26,6 +26,7 @@ export {
 // downstream renderers like the playground reuse for byte-identical layout.
 export {
   castingSection,
+  castingTableActiveRow,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,

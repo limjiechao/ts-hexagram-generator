@@ -288,6 +288,30 @@ const LEDGER_INDENT = '   '
 // span arithmetic in the banner row is unaffected.
 const LEDGER_GUTTER = ` ${NORMAL_GREY}│${NORMAL} `
 
+// ── Casting-table row geometry ────────────────────────────────────────────
+// Single source for the Casting tab's content-row layout (the string
+// castingSection returns, before the readout prepends its scroll breather).
+// Top-first: a 5-row header, then six 4-row line blocks (line 6 on top, line 1
+// at the bottom); the last block omits its trailing rule. The readout's
+// auto-follow scroll pins a line's cast-1 (block-bottom) row near the viewport
+// bottom using these constants; a consistency test asserts they still describe
+// castingSection's output. Keep them in lockstep with the bannerRow / headerRow
+// / headerRule / body assembly below.
+export const CASTING_HEADER_ROWS = 5 // "CASTING:", blank, banner, header, rule
+export const CASTING_ROWS_PER_BLOCK = 4 // cast3, cast2, cast1, blockRule
+export const CAST1_OFFSET_IN_BLOCK = 2 // cast-1 row, measured from the block top
+
+/**
+ * Content-row index (0-based, pre-breather) of the cast-1 / block-bottom row
+ * for the given hexagram line. `lineIndex` 0 => line 1 (bottom, row 27); 5 =>
+ * line 6 (top, row 7). Consumed by the viewer to drive auto-follow scroll.
+ */
+export function castingTableActiveRow(lineIndex: number): number {
+  const blockTop =
+    CASTING_HEADER_ROWS + (5 - lineIndex) * CASTING_ROWS_PER_BLOCK
+  return blockTop + CAST1_OFFSET_IN_BLOCK
+}
+
 // Accepts a `PartialCastingRecord` so the same renderer is reused while the
 // interactive viewer is still collecting casts: a `null` split renders its ten
 // derived cells as width-stable `·` placeholders (the structural 爻Line / 變Cast

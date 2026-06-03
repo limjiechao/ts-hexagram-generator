@@ -4,7 +4,11 @@ import {
 } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { castingSection } from '../src/output-sections.js'
+import {
+  CAST1_OFFSET_IN_BLOCK,
+  castingSection,
+  castingTableActiveRow,
+} from '../src/output-sections.js'
 
 // oxlint-disable-next-line no-control-regex
 const SGR_PATTERN = /\u001B\[[0-9;]*m/g
@@ -114,5 +118,32 @@ describe('castingSection — partial', () => {
     expect(out).toContain('CASTING:')
     expect(out).toContain('Casting not recorded')
     expect(out).not.toContain('│')
+  })
+})
+
+describe('castingTableActiveRow', () => {
+  it('maps each line index to its cast-1 (block-bottom) content row', () => {
+    // line 1 (idx 0) is the bottom block (row 27); line 6 (idx 5) the top (row 7).
+    expect([0, 1, 2, 3, 4, 5].map(castingTableActiveRow)).toEqual([
+      27, 23, 19, 15, 11, 7,
+    ])
+  })
+
+  it('stays consistent with castingSection output (contract)', () => {
+    // Locate each line's labelled cast-3 row in the real render, then assert the
+    // helper's cast-1 row is exactly CAST1_OFFSET_IN_BLOCK below it. This fails
+    // loudly if castingSection's header height, block height, or ordering ever
+    // changes — the guard against the geometry constants drifting.
+    const rows = stripAnsi(castingSection(FULL)).split('\n')
+    const LINE_LABELS = ['初1', '二2', '三3', '四4', '五5', '上6'] // line 1..6
+    for (let lineIndex = 0; lineIndex < 6; lineIndex++) {
+      const labelRow = rows.findIndex((row) =>
+        row.includes(LINE_LABELS[lineIndex]),
+      )
+      expect(labelRow).toBeGreaterThanOrEqual(0)
+      expect(castingTableActiveRow(lineIndex)).toBe(
+        labelRow + CAST1_OFFSET_IN_BLOCK,
+      )
+    }
   })
 })
