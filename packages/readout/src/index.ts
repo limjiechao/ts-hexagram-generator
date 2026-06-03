@@ -4,6 +4,14 @@
 // for the generic chrome (ScreenShell, TabBar, palette, layout maths) and on
 // @hexagram/core/getters for the derived hexagram data it renders.
 
+// Casting ledger table builder + the casting-table row geometry helpers that
+// drive the readout's auto-follow scroll.
+export {
+  castingSection,
+  castingTableActiveRow,
+  castingTableFollowRow,
+} from './casting-ledger.js'
+
 // Tabbed scrollable consultation readout — the generic chrome engine wired to
 // consultation sections; serves both the casting-flow view and standalone
 // readouts (history) via slots. Owns its own input handling.
@@ -25,9 +33,6 @@ export {
 // geometry constants (position labels, inter-column connector / gap) that
 // downstream renderers like the playground reuse for byte-identical layout.
 export {
-  castingSection,
-  castingTableActiveRow,
-  castingTableFollowRow,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,

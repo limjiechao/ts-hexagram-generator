@@ -9,7 +9,7 @@ import {
   castingSection,
   castingTableActiveRow,
   castingTableFollowRow,
-} from '../src/output-sections.js'
+} from '../src/casting-ledger.js'
 
 // oxlint-disable-next-line no-control-regex
 const SGR_PATTERN = /\u001B\[[0-9;]*m/g
