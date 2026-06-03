@@ -61,6 +61,7 @@ The component under change is `ManualCastingPrompt` in `packages/casting-ui/src/
 ## Task 1: Add horizontal centering to the manual prompt (TDD)
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/manual-prompt.tsx` (render body, ~lines 412–566)
 - Test: `packages/casting-ui/tests/manual-prompt.test.tsx` (new cases in the manual-flow describe block)
 
@@ -69,52 +70,52 @@ The component under change is `ManualCastingPrompt` in `packages/casting-ui/src/
 Insert this helper immediately after the `typeFourFields` function definition (after line 104, before the first `it(...)` at line 106) in `packages/casting-ui/tests/manual-prompt.test.tsx`:
 
 ```tsx
-  // Strip ANSI, split into lines, and return the count of leading spaces on
-  // the first line containing `needle` (−1 if no such line). Used to assert
-  // horizontal centering offsets without depending on exact trailing padding.
-  function leadingSpacesOf(frame: string, needle: string): number {
-    // oxlint-disable-next-line no-control-regex
-    const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
-    for (const rawLine of stripped.split('\n')) {
-      // Drop the box's left border glyph (chrome) so the count reflects the
-      // content's own leading pad, not the border.
-      const line = rawLine.replace(/^[│╭╰╮╯]/, '')
-      if (line.includes(needle)) {
-        return line.length - line.trimStart().length
-      }
+// Strip ANSI, split into lines, and return the count of leading spaces on
+// the first line containing `needle` (−1 if no such line). Used to assert
+// horizontal centering offsets without depending on exact trailing padding.
+function leadingSpacesOf(frame: string, needle: string): number {
+  // oxlint-disable-next-line no-control-regex
+  const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
+  for (const rawLine of stripped.split('\n')) {
+    // Drop the box's left border glyph (chrome) so the count reflects the
+    // content's own leading pad, not the border.
+    const line = rawLine.replace(/^[│╭╰╮╯]/, '')
+    if (line.includes(needle)) {
+      return line.length - line.trimStart().length
     }
-    return -1
   }
+  return -1
+}
 ```
 
-Note: the manual prompt content is rendered *inside* an Ink `<Box borderStyle="round">`, so each content line in `lastFrame()` is `│` + content + `│`. The helper removes the single left border glyph, then counts the content's own leading spaces.
+Note: the manual prompt content is rendered _inside_ an Ink `<Box borderStyle="round">`, so each content line in `lastFrame()` is `│` + content + `│`. The helper removes the single left border glyph, then counts the content's own leading spaces.
 
 - [ ] **Step 2: Write the failing test — body + title centered on a wide terminal**
 
 Add this `it(...)` inside the manual-flow describe block (e.g. directly after the existing slicing test that ends at line 611):
 
 ```tsx
-  it('centers the body block and title within a wide box', async () => {
-    const onReady = vi.fn()
-    const { lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        width={140}
-        onSubmit={() => {}}
-        onReady={onReady}
-      />,
-    )
-    await waitForReady(onReady)
-    const frame = lastFrame() ?? ''
-    // width 140 → innerContentWidth 138; body natural width 95 →
-    // leadingPadBody = floor((138-95)/2) = 21; title is 30 cols →
-    // leadingPadTitle = floor((138-30)/2) = 54.
-    expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(21)
-    expect(leadingSpacesOf(frame, 'LEFT HEAP')).toBe(21)
-    expect(leadingSpacesOf(frame, 'COUNTED STALKS:')).toBe(21)
-    expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(54)
-    unmount()
-  })
+it('centers the body block and title within a wide box', async () => {
+  const onReady = vi.fn()
+  const { lastFrame, unmount } = render(
+    <CastingPromptBox
+      {...baseProps}
+      width={140}
+      onSubmit={() => {}}
+      onReady={onReady}
+    />,
+  )
+  await waitForReady(onReady)
+  const frame = lastFrame() ?? ''
+  // width 140 → innerContentWidth 138; body natural width 95 →
+  // leadingPadBody = floor((138-95)/2) = 21; title is 30 cols →
+  // leadingPadTitle = floor((138-30)/2) = 54.
+  expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(21)
+  expect(leadingSpacesOf(frame, 'LEFT HEAP')).toBe(21)
+  expect(leadingSpacesOf(frame, 'COUNTED STALKS:')).toBe(21)
+  expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(54)
+  unmount()
+})
 ```
 
 - [ ] **Step 3: Write the failing test — narrow terminal does not center the body**
@@ -122,25 +123,25 @@ Add this `it(...)` inside the manual-flow describe block (e.g. directly after th
 Add this `it(...)` after the previous one:
 
 ```tsx
-  it('does not center the body below its natural width; title still centers', async () => {
-    const onReady = vi.fn()
-    const { lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        width={80}
-        onSubmit={() => {}}
-        onReady={onReady}
-      />,
-    )
-    await waitForReady(onReady)
-    const frame = lastFrame() ?? ''
-    // width 80 → innerContentWidth 78 < 95 → leadingPadBody = 0 (body left-
-    // aligned exactly as before). Title is 30 cols → leadingPadTitle =
-    // floor((78-30)/2) = 24, so the title still centers independently.
-    expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(0)
-    expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(24)
-    unmount()
-  })
+it('does not center the body below its natural width; title still centers', async () => {
+  const onReady = vi.fn()
+  const { lastFrame, unmount } = render(
+    <CastingPromptBox
+      {...baseProps}
+      width={80}
+      onSubmit={() => {}}
+      onReady={onReady}
+    />,
+  )
+  await waitForReady(onReady)
+  const frame = lastFrame() ?? ''
+  // width 80 → innerContentWidth 78 < 95 → leadingPadBody = 0 (body left-
+  // aligned exactly as before). Title is 30 cols → leadingPadTitle =
+  // floor((78-30)/2) = 24, so the title still centers independently.
+  expect(leadingSpacesOf(frame, 'UNPARTED STALKS:')).toBe(0)
+  expect(leadingSpacesOf(frame, 'Line 3/6 · Cast 2/3 · Step 1/4')).toBe(24)
+  unmount()
+})
 ```
 
 - [ ] **Step 4: Write the failing test — strip left element at body-left-edge, Shift+Tab pinned right**
@@ -148,44 +149,42 @@ Add this `it(...)` after the previous one:
 Add this `it(...)` after the previous one. It types the known-valid input so the strip reaches its commit-ready editing branch (`Press Enter to commit`) without committing:
 
 ```tsx
-  it('aligns the strip hint to the body-left-edge with Shift+Tab pinned right', async () => {
-    const onReady = vi.fn()
-    const onFocusedFieldChange = vi.fn()
-    const { stdin, lastFrame, unmount } = render(
-      <CastingPromptBox
-        {...baseProps}
-        width={140}
-        onSubmit={() => {}}
-        onReady={onReady}
-        onFocusedFieldChange={onFocusedFieldChange}
-      />,
-    )
-    await waitForReady(onReady)
-    // Type a conservation- and suspended-sum-valid 4-field input (no Enter):
-    // validation becomes `ok`, so the editing strip shows "Press Enter to
-    // commit" on the left.
-    await typeFourFields(stdin, onFocusedFieldChange, {
-      pilesL: validBasePropsInput.pilesL,
-      remL: validBasePropsInput.remL,
-      pilesR: validBasePropsInput.pilesR,
-      remR: validBasePropsInput.remR,
-    })
-    const frame = lastFrame() ?? ''
-    // Left element starts at the body's left edge (leadingPadBody = 21).
-    expect(leadingSpacesOf(frame, 'Press Enter to commit')).toBe(21)
-    // The global nav hint is still present (right-pinned to the box edge).
-    // oxlint-disable-next-line no-control-regex
-    const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
-    const stripLine =
-      stripped
-        .split('\n')
-        .find((l) => l.includes('Press Enter to commit')) ?? ''
-    expect(stripLine).toContain('Shift+Tab: go back')
-    // Right-pinned: the hint sits at the end of the content, immediately
-    // before the box's right border.
-    expect(stripLine).toMatch(/Shift\+Tab: go back[│ ]*$/)
-    unmount()
+it('aligns the strip hint to the body-left-edge with Shift+Tab pinned right', async () => {
+  const onReady = vi.fn()
+  const onFocusedFieldChange = vi.fn()
+  const { stdin, lastFrame, unmount } = render(
+    <CastingPromptBox
+      {...baseProps}
+      width={140}
+      onSubmit={() => {}}
+      onReady={onReady}
+      onFocusedFieldChange={onFocusedFieldChange}
+    />,
+  )
+  await waitForReady(onReady)
+  // Type a conservation- and suspended-sum-valid 4-field input (no Enter):
+  // validation becomes `ok`, so the editing strip shows "Press Enter to
+  // commit" on the left.
+  await typeFourFields(stdin, onFocusedFieldChange, {
+    pilesL: validBasePropsInput.pilesL,
+    remL: validBasePropsInput.remL,
+    pilesR: validBasePropsInput.pilesR,
+    remR: validBasePropsInput.remR,
   })
+  const frame = lastFrame() ?? ''
+  // Left element starts at the body's left edge (leadingPadBody = 21).
+  expect(leadingSpacesOf(frame, 'Press Enter to commit')).toBe(21)
+  // The global nav hint is still present (right-pinned to the box edge).
+  // oxlint-disable-next-line no-control-regex
+  const stripped = frame.replaceAll(/\u001B\[[0-9;]*m/g, '')
+  const stripLine =
+    stripped.split('\n').find((l) => l.includes('Press Enter to commit')) ?? ''
+  expect(stripLine).toContain('Shift+Tab: go back')
+  // Right-pinned: the hint sits at the end of the content, immediately
+  // before the box's right border.
+  expect(stripLine).toMatch(/Shift\+Tab: go back[│ ]*$/)
+  unmount()
+})
 ```
 
 - [ ] **Step 5: Run the new tests to verify they FAIL**
@@ -199,25 +198,25 @@ Expected: the three new tests FAIL. The wide-centering and strip tests fail beca
 In `packages/casting-ui/src/manual-prompt.tsx`, find the `renderWidth` line (currently line 418):
 
 ```tsx
-  const renderWidth = Math.max(innerContentWidth, naturalBodyWidth)
+const renderWidth = Math.max(innerContentWidth, naturalBodyWidth)
 ```
 
 Insert immediately after it:
 
 ```tsx
-  // ── Horizontal centering (manual prompt only) ─────────────────────────
-  // Center the body block (natural width 95) as one rigid unit, and the
-  // title text independently, both within innerContentWidth. Both clamp to 0
-  // below their natural width, where the existing pad-to-renderWidth +
-  // sliceAnsi pan takes over unchanged. The strip is built at
-  // `renderWidth - leadingPadBody` and prepended with the same pad, so its
-  // left element lands at the body-left-edge while `Shift+Tab` stays pinned
-  // to the box's right edge.
-  const leadingPadBody = Math.max(
-    0,
-    Math.floor((innerContentWidth - naturalBodyWidth) / 2),
-  )
-  const stripRenderWidth = renderWidth - leadingPadBody
+// ── Horizontal centering (manual prompt only) ─────────────────────────
+// Center the body block (natural width 95) as one rigid unit, and the
+// title text independently, both within innerContentWidth. Both clamp to 0
+// below their natural width, where the existing pad-to-renderWidth +
+// sliceAnsi pan takes over unchanged. The strip is built at
+// `renderWidth - leadingPadBody` and prepended with the same pad, so its
+// left element lands at the body-left-edge while `Shift+Tab` stays pinned
+// to the box's right edge.
+const leadingPadBody = Math.max(
+  0,
+  Math.floor((innerContentWidth - naturalBodyWidth) / 2),
+)
+const stripRenderWidth = renderWidth - leadingPadBody
 ```
 
 - [ ] **Step 7: Implement centering — center the title row**
@@ -225,18 +224,18 @@ Insert immediately after it:
 Find the title construction (currently line 435):
 
 ```tsx
-  const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
+const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
 ```
 
 Replace it with:
 
 ```tsx
-  const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
-  const leadingPadTitle = Math.max(
-    0,
-    Math.floor((innerContentWidth - stringWidth(titleRow)) / 2),
-  )
-  const centeredTitleRow = ' '.repeat(leadingPadTitle) + titleRow
+const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
+const leadingPadTitle = Math.max(
+  0,
+  Math.floor((innerContentWidth - stringWidth(titleRow)) / 2),
+)
+const centeredTitleRow = ' '.repeat(leadingPadTitle) + titleRow
 ```
 
 - [ ] **Step 8: Implement centering — prepend the body pad to every body row**
@@ -244,24 +243,24 @@ Replace it with:
 Find the `bodyRows` construction (currently lines 509–513):
 
 ```tsx
-  const bodyRows = [
-    ...flowHeader.map((row) => composeBodyRow(row, '')),
-    ...cardBand.map((row, i) => composeBodyRow(row, cardRightPane[i] ?? '')),
-    ...flowFooter.map((row) => composeBodyRow(row, '')),
-  ]
+const bodyRows = [
+  ...flowHeader.map((row) => composeBodyRow(row, '')),
+  ...cardBand.map((row, i) => composeBodyRow(row, cardRightPane[i] ?? '')),
+  ...flowFooter.map((row) => composeBodyRow(row, '')),
+]
 ```
 
 Replace it with:
 
 ```tsx
-  const padBody = (row: string): string => ' '.repeat(leadingPadBody) + row
-  const bodyRows = [
-    ...flowHeader.map((row) => padBody(composeBodyRow(row, ''))),
-    ...cardBand.map((row, i) =>
-      padBody(composeBodyRow(row, cardRightPane[i] ?? '')),
-    ),
-    ...flowFooter.map((row) => padBody(composeBodyRow(row, ''))),
-  ]
+const padBody = (row: string): string => ' '.repeat(leadingPadBody) + row
+const bodyRows = [
+  ...flowHeader.map((row) => padBody(composeBodyRow(row, ''))),
+  ...cardBand.map((row, i) =>
+    padBody(composeBodyRow(row, cardRightPane[i] ?? '')),
+  ),
+  ...flowFooter.map((row) => padBody(composeBodyRow(row, ''))),
+]
 ```
 
 - [ ] **Step 9: Implement centering — build the strip at the reduced width and prepend the pad**
@@ -269,55 +268,55 @@ Replace it with:
 In the `bottomStripBranchArgs` IIFE (currently lines 517–552), replace each of the **four** `renderWidth,` occurrences with `renderWidth: stripRenderWidth,`. The four occurrences are in the `resolved`, `error` (suspended-sum), `error` (zero-remainder), and `editing` branches. After the change the IIFE reads:
 
 ```tsx
-  const bottomStripBranchArgs = ((): BottomStripArgs => {
-    if (committed !== null) {
-      return {
-        branch: 'resolved',
-        next: committed.next,
-        renderWidth: stripRenderWidth,
-      }
-    }
-    if (validation.kind === 'suspended-sum') {
-      return {
-        branch: 'error',
-        errorKind: 'suspended-sum',
-        remL: validation.remL,
-        remR: validation.remR,
-        sum: validation.sum,
-        expectedLabel: validation.expectedLabel,
-        renderWidth: stripRenderWidth,
-      }
-    }
-    if (validation.kind === 'zero-remainder') {
-      return {
-        branch: 'error',
-        errorKind: 'zero-remainder',
-        remL: validation.remL,
-        remR: validation.remR,
-        renderWidth: stripRenderWidth,
-      }
-    }
-    // incomplete | conservation | ok — conservation is surfaced by the MISSING
-    // gauge (red), not the strip, so it shares the blank editing branch.
+const bottomStripBranchArgs = ((): BottomStripArgs => {
+  if (committed !== null) {
     return {
-      branch: 'editing',
-      commitReady: validation.kind === 'ok',
+      branch: 'resolved',
+      next: committed.next,
       renderWidth: stripRenderWidth,
     }
-  })()
+  }
+  if (validation.kind === 'suspended-sum') {
+    return {
+      branch: 'error',
+      errorKind: 'suspended-sum',
+      remL: validation.remL,
+      remR: validation.remR,
+      sum: validation.sum,
+      expectedLabel: validation.expectedLabel,
+      renderWidth: stripRenderWidth,
+    }
+  }
+  if (validation.kind === 'zero-remainder') {
+    return {
+      branch: 'error',
+      errorKind: 'zero-remainder',
+      remL: validation.remL,
+      remR: validation.remR,
+      renderWidth: stripRenderWidth,
+    }
+  }
+  // incomplete | conservation | ok — conservation is surfaced by the MISSING
+  // gauge (red), not the strip, so it shares the blank editing branch.
+  return {
+    branch: 'editing',
+    commitReady: validation.kind === 'ok',
+    renderWidth: stripRenderWidth,
+  }
+})()
 ```
 
 Then find the `stripRow` construction (currently line 553):
 
 ```tsx
-  const stripRow = bottomStripRow(bottomStripBranchArgs)
+const stripRow = bottomStripRow(bottomStripBranchArgs)
 ```
 
 Replace it with:
 
 ```tsx
-  const stripRow =
-    ' '.repeat(leadingPadBody) + bottomStripRow(bottomStripBranchArgs)
+const stripRow =
+  ' '.repeat(leadingPadBody) + bottomStripRow(bottomStripBranchArgs)
 ```
 
 - [ ] **Step 10: Implement centering — use the centered title in the row stack**
@@ -325,13 +324,13 @@ Replace it with:
 Find the `allRows` construction (currently line 558):
 
 ```tsx
-  const allRows = [titleRow, '', ...bodyRows, '', stripRow]
+const allRows = [titleRow, '', ...bodyRows, '', stripRow]
 ```
 
 Replace it with:
 
 ```tsx
-  const allRows = [centeredTitleRow, '', ...bodyRows, '', stripRow]
+const allRows = [centeredTitleRow, '', ...bodyRows, '', stripRow]
 ```
 
 - [ ] **Step 11: Run the new tests to verify they PASS**
@@ -402,6 +401,7 @@ Expected: matches the agreed mockup at wide widths; unchanged behaviour when nar
 The codebase's two authoritative manual-flow docs (`AGENTS.md`, always loaded into agent context; and `docs/adr/0011-manual-casting-flow-design.md`) both predate (a) the new centering behaviour and (b) a file split + strip redesign. This task records the centering decision and refreshes the verified-stale references. Keep the two concerns in **separate commits** so history reads cleanly.
 
 **Files:**
+
 - Modify: `AGENTS.md` (manual-flow paragraph, ~line 156)
 - Modify: `docs/adr/0011-manual-casting-flow-design.md` ("Tiered validation" ~lines 19–30; "Pure row-builder layout" ~lines 51–53; "Where it's enforced" ~line 81)
 
@@ -599,7 +599,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 
 ## Flagged ambiguities (resolved during review)
 
-- **`zero-remainder` validation tier drift — RESOLVED, folded into Task 3 Commit B.** Initially deferred; a parallel review agent then derived the ground truth from `validateManualInput` (`incomplete → zero-remainder → conservation → suspended-sum → ok`; `zero-remainder` precedes conservation for a real correctness reason; conservation surfaces only via the red MISSING gauge). Because the verified corrections rewrite the *same* doc sentences as the already-agreed strip-text fix, leaving it deferred would have produced an incoherent half-edited paragraph ("blank strip…" next to "three invariants"). So the full tier correction is now in Commit B Steps 5, 7, 7b, with the ordering rationale recorded in ADR 0011's Consequences.
+- **`zero-remainder` validation tier drift — RESOLVED, folded into Task 3 Commit B.** Initially deferred; a parallel review agent then derived the ground truth from `validateManualInput` (`incomplete → zero-remainder → conservation → suspended-sum → ok`; `zero-remainder` precedes conservation for a real correctness reason; conservation surfaces only via the red MISSING gauge). Because the verified corrections rewrite the _same_ doc sentences as the already-agreed strip-text fix, leaving it deferred would have produced an incoherent half-edited paragraph ("blank strip…" next to "three invariants"). So the full tier correction is now in Commit B Steps 5, 7, 7b, with the ordering rationale recorded in ADR 0011's Consequences.
 - **In-app guide (`manual-guide.ts`) is already accurate** — it teaches the never-zero rule, the balance rule, and the suspended-sum check as three distinct concepts. No change needed (one minor staleness at `:97` — "the bottom strip turns green the moment the figures balance," now the MISSING gauge — left as a future tidy, not in scope).
 
 ---
@@ -607,6 +607,7 @@ Co-Authored-By: Claude Opus 4.8 (1M context) <noreply@anthropic.com>"
 ## Self-Review (completed by plan author)
 
 **Spec coverage:**
+
 - Body block centered as one rigid unit → Task 1, Steps 6 & 8 + test Step 2. ✓
 - Title centered within full box, independent → Task 1, Step 7 + tests Steps 2 & 3. ✓
 - Dynamic centering clamped at 0; narrow path untouched → Step 6 formula + test Step 3. ✓

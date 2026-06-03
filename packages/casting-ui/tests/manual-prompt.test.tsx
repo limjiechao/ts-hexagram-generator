@@ -696,11 +696,10 @@ describe('CastingPromptBox (manual flow)', () => {
     expect(leadingSpacesOf(frame, 'Press Enter to commit')).toBe(21)
     // The global nav hint is still present (right-pinned to the box edge).
     // oxlint-disable-next-line no-control-regex
-    const stripped = frame.replaceAll(new RegExp('\\u001b\\[[0-9;]*m', 'g'), '')
+    const stripped = frame.replaceAll(/\[[0-9;]*m/g, '')
     const stripLine =
-      stripped
-        .split('\n')
-        .find((l) => l.includes('Press Enter to commit')) ?? ''
+      stripped.split('\n').find((l) => l.includes('Press Enter to commit')) ??
+      ''
     expect(stripLine).toContain('Shift+Tab: go back')
     // Right-pinned: the hint sits at the end of the content, immediately
     // before the box's right border.
