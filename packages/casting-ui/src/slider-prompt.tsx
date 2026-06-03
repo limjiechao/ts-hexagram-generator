@@ -41,7 +41,7 @@ export function sliderPromptTitle(
     : `${prefix} Press SPACE to part the stalks`
 }
 
-// ── Slider primitives ───────────────────────────────────────────────────
+// ── Slider primitives ───────────────────────────────────────────────────────
 
 // Braille-spinner glyphs cycled by `tickCount % BRAILLE_SPINNER.length`.
 // During the ticking state the spinner replaces the cursor's numeric
@@ -231,7 +231,7 @@ interface SliderInputProps {
  * the left walks the cycle clockwise, the right walks it anticlockwise.
  * `Stalks` is `max + 1`, not `max`: `max` is only the left-heap pick
  * ceiling, held one short of the true stalk count so the right heap always
- * retains a stalk to suspend (換一以象三). That suspended stalk — taken from
+ * retains a stalk to suspend (掛一以象三). That suspended stalk — taken from
  * the right heap (see `suspendOneFromTheRight` in `@hexagram/core`) — is the
  * trailing `+ 1 suspended` on the right readout, so the row conserves:
  * left (pick) + right (max − pick) + 1 suspended = max + 1 stalks.
