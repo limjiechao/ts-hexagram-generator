@@ -20,14 +20,23 @@ size.
 highest-priority failing rule:
 
 1. **incomplete** — any field empty → neutral placeholder.
-2. **conservation** — `4·pilesL + remL + 4·pilesR + remR + 1 ≠ unpartedStalks` →
-   red, with the "a heap divisible by 4 yields remainder 4, not 0" hint.
-3. **suspended sum** — `1 + remL + remR` must be in `{5, 9}` for cast 1 or `{4, 8}`
-   for casts 2/3 → red, with the "remove the last group of 4" hint.
+2. **zero-remainder** — any remainder typed as `0` → red strip text, with the
+   "a heap divisible by 4 yields remainder 4, not 0" hint. Checked **before**
+   conservation: a `0` remainder can sneak past the conservation sum when the
+   missing 4 is shifted into the pile count on the same side (`pR=N+1, rR=0`
+   sums identically to `pR=N, rR=4`), so the never-zero form is rejected
+   explicitly first.
+3. **conservation** — `4·pilesL + remL + 4·pilesR + remR + 1 ≠ unpartedStalks` →
+   surfaced as the red `MISSING STALKS` gauge in the flow diagram, not as strip
+   text (the gauge owns the conservation signal; the strip never duplicates it).
+4. **suspended sum** — `1 + remL + remR` must be in `{5, 9}` for cast 1 or `{4, 8}`
+   for casts 2/3 → red strip text, with the "remove the last group of 4" hint.
 
-The bottom strip reads `X of M stalks accounted` while editing (X counts the typed
-heap totals plus the always-suspended stalk) and turns bold-green
-`→ next cast: N unparted` on commit.
+(Conservation + suspended-sum passing together guarantees the derived pick lands
+in `[1, unparted-1]`, so there is no separate `range` tier.) While editing, the
+bottom strip is blank — the live count lives in the `MISSING STALKS` gauge — and
+shows `Press Enter to commit` once valid; on commit it turns bold-green
+`→ next cast: N unparted`.
 
 **Two-line rewind window.** `Ctrl+R` rewinds the most-recently-completed line:
 mid-line it wipes the current line; immediately after a line completes it drops back
@@ -76,11 +85,17 @@ On terminals wider than the natural body width, the body block (diagram + right 
   diagram means revisiting the floor.
 - Rewind semantics live in the reducer/hook, not in the component — extend undo
   there.
+- `zero-remainder` must stay ahead of `conservation` in `validateManualInput` —
+  conservation is a sum check and cannot detect a `0` remainder hidden by a
+  compensating pile-count shift. Reordering them silently re-admits malformed
+  `0`-remainder casts.
 
 ## Where it's enforced
 
-- `packages/casting-ui/src/casting-prompt-box.tsx` — `ManualCastingPrompt`, the
-  row-builders, validation tiers, `MANUAL_REVEAL_MS`.
+- `packages/casting-ui/src/manual-prompt.tsx` — `ManualCastingPrompt`, `MANUAL_REVEAL_MS`.
+- `packages/casting-ui/src/manual-diagram.ts` — the pure row-builders.
+- `packages/casting-ui/src/manual-validation.ts` — the validation tiers.
+- `packages/casting-ui/src/casting-prompt-box.tsx` — `CastingPromptBox` dispatch + `getCastingPromptHeight`.
 - `packages/casting-ui/src/viewer-flow.ts` — `lineRewound` action.
 - `packages/casting-ui/src/use-line-generator.ts` — `rewindCurrentLine()` op.
 - `packages/casting-ui/tests/viewer.test.tsx` — manual≡interactive byte-identity test.
