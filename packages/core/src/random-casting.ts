@@ -14,12 +14,22 @@ import {
 } from './types.js'
 
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
-// `randomInt(min, max)` is exclusive on `max`, so passing `length` here yields
-// picks in `[1, length-1]` — matching the inclusive upper bound the interactive
-// prompt offers (`interactive-flow.ts` uses `max = unpartedStalks.length - 1`)
-// and the `SplitRecord.max` we record alongside each pick.
+// `randomInt(min, max)` is exclusive on `max`, so passing `length - 1` here
+// yields picks in `[1, length-2]`, i.e. `[1, recordedMax - 1]` where
+// `recordedMax = length - 1` is the `SplitRecord.max` we store alongside the
+// pick (and the prompts surface as "1 to recordedMax-1").
+//
+// The `-1` reserves a SECOND stalk on the right heap: `recordedMax` already
+// holds one back for the suspended stalk (掛一), but a pick of `recordedMax`
+// would leave the right heap with ONLY that suspended stalk — nothing to count
+// by fours — yielding a remainder of 0. A remainder is always 1..4 (a heap
+// divisible by four counts its last group as the remainder, never 0), so the
+// right heap must keep at least one stalk to count after the suspension. This
+// matches the interactive/manual flows, which cap the pick at `recordedMax - 1`.
+// (`length` is never below ~32 across the three casts, so `length - 1 > 1` and
+// `randomInt` always has a valid `min < max`.)
 export const splitStalksRandomly = (unpartedStalks: number[]): number =>
-  randomInt(1, unpartedStalks.length)
+  randomInt(1, unpartedStalks.length - 1)
 
 export const getOneRandomLine = function* (): Generator<
   /* Yield */ LineGeneratorResult,

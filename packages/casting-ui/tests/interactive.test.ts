@@ -126,7 +126,9 @@ describe('CLI', () => {
       // The casting record captures all 18 splits: 6 lines × 3 divisions.
       expect(casting).toHaveLength(6)
       expect(casting.every((line) => line.length === 3)).toBe(true)
-      // Every mocked pick was 1; the first division always ranges 1–48.
+      // Every mocked pick was 1; the first division records max 48 (= stalks
+      // - 1; the selectable pick range is 1–47, reserving the right heap's
+      // countable stalk so the remainder is never 0).
       expect(casting.flat().map((split) => split.pick)).toEqual(
         Array.from({ length: 18 }, () => 1),
       )

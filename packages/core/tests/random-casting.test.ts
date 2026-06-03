@@ -1,9 +1,12 @@
 import { describe, expect, test } from 'vitest'
 
+import { deriveSplit } from '../src/casting-derivation'
 import {
+  generateRandomConsultation,
   generateRandomHexagram,
   generateRandomHexagrams,
   generateRandomLines,
+  splitStalksRandomly,
 } from '../src/random-casting'
 
 describe('generateRandomHexagram', () => {
@@ -20,6 +23,45 @@ describe('generateRandomHexagram', () => {
         hexagram.map((line, index) => [`Line ${index + 1}`, line]).toReversed(),
       ),
     )
+  })
+})
+
+describe('splitStalksRandomly (pick ceiling)', () => {
+  // Regression: a pick equal to the recorded max (`length - 1`) would leave the
+  // right heap with only its suspended stalk — nothing to count — and a
+  // remainder of 0, which can never occur. The RNG must reserve a SECOND,
+  // countable stalk, so every pick stays in `[1, length - 2]`.
+  test('never parts at the recorded max (length - 1)', () => {
+    for (const length of [49, 44, 40, 36, 32]) {
+      const unparted = Array.from({ length }, (_, index) => index + 1)
+      for (let iteration = 0; iteration < 5_000; iteration += 1) {
+        const pick = splitStalksRandomly(unparted)
+        expect(pick).toBeGreaterThanOrEqual(1)
+        // `length - 1` is the recorded `SplitRecord.max`; the ceiling is one
+        // below it.
+        expect(pick).toBeLessThanOrEqual(length - 2)
+      }
+    }
+  })
+})
+
+describe('generateRandomConsultation (no zero remainders)', () => {
+  // End-to-end invariant the bug report is about: across whole random
+  // consultations, no heap — left or right — ever sorts to a remainder of 0.
+  // Derived straight from each recorded `{ pick, max }` via `deriveSplit`.
+  test('no heap remainder is ever 0 across 500 consultations', () => {
+    for (let iteration = 0; iteration < 500; iteration += 1) {
+      const { casting } = generateRandomConsultation()
+      for (const line of casting) {
+        for (const split of line) {
+          const { leftRemainder, rightRemainder } = deriveSplit(split)
+          expect(leftRemainder).toBeGreaterThanOrEqual(1)
+          expect(leftRemainder).toBeLessThanOrEqual(4)
+          expect(rightRemainder).toBeGreaterThanOrEqual(1)
+          expect(rightRemainder).toBeLessThanOrEqual(4)
+        }
+      }
+    }
   })
 })
 

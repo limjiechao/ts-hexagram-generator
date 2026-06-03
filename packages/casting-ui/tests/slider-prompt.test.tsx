@@ -34,6 +34,25 @@ describe('SliderInput', () => {
     unmount()
   })
 
+  it('shows stalksTotal in the readout, decoupled from the reachable max', () => {
+    // The viewer caps the cursor at the reachable ceiling `max` but passes the
+    // TRUE stalk count via `stalksTotal`, so the `Stalks` readout reflects the
+    // full count even though the right heap reserves a second countable stalk.
+    // Here max=8 (reachable) but the true count is 10 — Stalks must read 10.
+    const { lastFrame, unmount } = render(
+      <SliderInput
+        min={1}
+        max={8}
+        stalksTotal={10}
+        focused
+        onSubmit={() => {}}
+        tickMs={50}
+      />,
+    )
+    expect(lastFrame() ?? '').toContain('Stalks: 10 | Left Heap:')
+    unmount()
+  })
+
   it('advances one cell per tick (bouncing rightward)', () => {
     vi.useFakeTimers({ shouldAdvanceTime: true })
     try {
@@ -549,6 +568,59 @@ describe('CastingPromptBox (slider mode)', () => {
       await waitFor(() => {
         expect(onSubmit).toHaveBeenCalledTimes(1)
         expect(onSubmit).toHaveBeenCalledWith(5)
+      })
+      unmount()
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+
+  it('reveals a non-zero right heap when committing at the reachable ceiling', async () => {
+    // Regression for the "no zero remainder" bug: with `stalksTotal` supplied
+    // and the cursor at the reachable ceiling `max`, the right heap is
+    // `stalksTotal - 1 - pick = 7 - 1 - 5 = 1` — NOT 0. (Before the fix the
+    // cursor could land on the recorded max with `stalksTotal` absent, leaving
+    // the right heap at 0.) Conserves: 5 + 1 + 1 suspended = 7.
+    const REVEAL_MS = 600
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+    try {
+      const onSubmit = vi.fn()
+      const { lastFrame, stdin, rerender, unmount } = render(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={5}
+          stalksTotal={7}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={REVEAL_MS}
+          onSubmit={onSubmit}
+        />,
+      )
+      // Four ticks: 1 → 2 → 3 → 4 → 5 (the reachable ceiling / turning point).
+      vi.advanceTimersByTime(200)
+      rerender(
+        <CastingPromptBox
+          lineNumber={1}
+          castIndex={0}
+          min={1}
+          max={5}
+          stalksTotal={7}
+          width={80}
+          inputMode="slider"
+          tickMs={50}
+          commitRevealMs={REVEAL_MS}
+          onSubmit={onSubmit}
+        />,
+      )
+      expect(pickFromFrame(lastFrame() ?? '')).toBe(5)
+      stdin.write(SPACE)
+      await waitFor(() => {
+        expect(lastFrame() ?? '').toContain(
+          'Stalks: 7 | Left Heap:  5 | Right Heap:  1 + 1 suspended',
+        )
       })
       unmount()
     } finally {

@@ -243,6 +243,18 @@ export function ConsultationViewer({
       ? interactiveMax
       : state.castingPlan.casting[state.lineIndex][state.castIndex].max
 
+  // The reachable pick ceiling — one below the recorded `SplitRecord.max`.
+  // `currentMax` (= stalks - 1) already reserves the right heap's suspended
+  // stalk (掛一); reserving a SECOND stalk here keeps a countable stalk on the
+  // right after the suspension, so its remainder is always 1..4, never 0 (a
+  // heap divisible by four counts its last group as the remainder). The slider
+  // cursor / typed input are capped at this value, while `currentMax` is still
+  // RECORDED (so the `Stalks` readout and conservation are unchanged) and the
+  // true stalk count `currentMax + 1` is passed to the prompt as `stalksTotal`.
+  // The random flow's plan picks are likewise ≤ this ceiling (see
+  // `splitStalksRandomly`), so the slider auto-land target is always reachable.
+  const reachablePickMax = currentMax - 1
+
   // The random flow's per-cast slider auto-land config — the RNG-chosen pick
   // as the target plus the ceremonial bounce arm delay. `null` for the
   // interactive flow, which commits on SPACE.
@@ -518,15 +530,15 @@ export function ConsultationViewer({
               state.castingPlan !== null,
             ),
           ),
-          currentMax + 2, // bar = max + 2 (▕ + cells + ▏)
+          reachablePickMax + 2, // bar = reachable cells + 2 (▕ + cells + ▏)
           // Readout below the bar is
-          // `Stalks: <max + 1> | Left Heap: <cell> | Right Heap: <cell> + 1 suspended`,
+          // `Stalks: <currentMax + 1> | Left Heap: <cell> | Right Heap: <cell> + 1 suspended`,
           // where each heap cell renders at a stable 2-column width —
           // leading-space + glyph during ticking, padStart(2) on the numeric
-          // pick after commit. `Stalks` shows `max + 1` (the true stalk count —
-          // `max` is one short to reserve the suspended stalk), and the right
-          // heap carries the trailing `+ 1 suspended`. Width is therefore a
-          // pure function of `currentMax`; two 2-digit placeholders model the
+          // pick after commit. `Stalks` shows the true stalk count
+          // `currentMax + 1` (the slider's `stalksTotal`), and the right heap
+          // carries the trailing `+ 1 suspended`. Width is therefore a pure
+          // function of `currentMax`; two 2-digit placeholders model the
           // post-commit form exactly.
           stringWidth(
             `Stalks: ${currentMax + 1} | Left Heap: 99 | Right Heap: 99 + 1 suspended`,
@@ -593,7 +605,8 @@ export function ConsultationViewer({
       lineNumber={lineNumber}
       castIndex={state.castIndex}
       min={1}
-      max={currentMax}
+      max={reachablePickMax}
+      stalksTotal={currentMax + 1}
       buffer={state.castingBuffer}
       error={state.error}
       width={innerCols}
@@ -601,7 +614,7 @@ export function ConsultationViewer({
       flowKind={state.flowKind}
       manualRevealMs={manualRevealMs}
       unpartedStalks={currentMax + 1}
-      tickMs={deriveTickMs(sliderSweepMs, currentMax)}
+      tickMs={deriveTickMs(sliderSweepMs, reachablePickMax)}
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}
       autoLand={castingAutoLand}

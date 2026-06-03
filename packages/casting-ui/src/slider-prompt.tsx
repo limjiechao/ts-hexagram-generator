@@ -204,6 +204,15 @@ interface SliderInputProps {
   max: number
   focused: boolean
   onSubmit: (value: number) => void
+  /**
+   * True total stalk count for the `Stalks: <n>` readout, decoupled from the
+   * reachable cursor ceiling `max`. The cursor sweeps `[min, max]`, but the
+   * right heap reserves TWO stalks beyond the pick (one suspended via 掛一, one
+   * to count by fours so the remainder is never 0), so the true stalk count is
+   * `max + 2` when the viewer caps the pick. Defaults to `max + 1` — the legacy
+   * single-reservation value — so standalone callers/tests need not supply it.
+   */
+  stalksTotal?: number
   /** Tick interval in ms — defaults to 80, which sweeps `max=48` in ~3.8 s. */
   tickMs?: number
   /**
@@ -226,15 +235,17 @@ interface SliderInputProps {
  * width = `max - min + 1` cells (Option A: 1 cell = 1 value).
  *
  * Renders two centred rows via Ink flexbox: the bar, and a
- * `Stalks: <max + 1> | Left Heap:  <glyph> | Right Heap:  <glyph> + 1 suspended`
+ * `Stalks: <stalksTotal> | Left Heap:  <glyph> | Right Heap:  <glyph> + 1 suspended`
  * readout where both glyphs are Braille spinners advanced one frame per tick —
  * the left walks the cycle clockwise, the right walks it anticlockwise.
- * `Stalks` is `max + 1`, not `max`: `max` is only the left-heap pick
- * ceiling, held one short of the true stalk count so the right heap always
- * retains a stalk to suspend (掛一以象三). That suspended stalk — taken from
- * the right heap (see `suspendOneFromTheRight` in `@hexagram/core`) — is the
- * trailing `+ 1 suspended` on the right readout, so the row conserves:
- * left (pick) + right (max − pick) + 1 suspended = max + 1 stalks.
+ * `Stalks` is `stalksTotal` (default `max + 1`), not the reachable ceiling
+ * `max`: `max` is only the left-heap pick ceiling, held short of the true stalk
+ * count so the right heap always retains a stalk to suspend (掛一以象三) — and,
+ * when the viewer caps the pick, a second stalk to count (so the remainder is
+ * never 0). That suspended stalk — taken from the right heap (see
+ * `suspendOneFromTheRight` in `@hexagram/core`) — is the trailing
+ * `+ 1 suspended` on the right readout, so the row conserves:
+ * left (pick) + right + 1 suspended = stalksTotal.
  * Each heap cell is pre-padded with a leading space so its rendered width
  * (2 columns) matches the post-commit numeric form in
  * `<SliderCastingPrompt>` — no lateral shift between modes. The spinners
@@ -249,9 +260,11 @@ export function SliderInput({
   max,
   focused,
   onSubmit,
+  stalksTotal,
   tickMs = 80,
   onReady,
 }: SliderInputProps): ReactElement {
+  const totalStalks = stalksTotal ?? max + 1
   const { position, tickCount } = useSliderBounce({
     min,
     max,
@@ -282,7 +295,7 @@ export function SliderInput({
         <Text>{bar}</Text>
       </Box>
       <Box justifyContent="center">
-        <Text>{`Stalks: ${max + 1} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph} + 1 suspended`}</Text>
+        <Text>{`Stalks: ${totalStalks} | Left Heap: ${leftGlyph} | Right Heap: ${rightGlyph} + 1 suspended`}</Text>
       </Box>
     </Box>
   )
@@ -315,6 +328,14 @@ interface SliderCastingPromptProps {
   onSkip: (() => void) | undefined
   onSubmit: (value: number) => void
   /**
+   * True total stalk count for the readout, decoupled from the reachable
+   * cursor ceiling `max` (see `SliderInputProps.stalksTotal`). `Right Heap` is
+   * `stalksTotal - 1 - pick` (the suspended stalk is the trailing
+   * `+ 1 suspended`), so the row conserves to `stalksTotal`. Defaults to
+   * `max + 1`.
+   */
+  stalksTotal?: number
+  /**
    * Mount-witness — see `CastingPromptBoxProps.onReady`. Fired exactly once
    * per mount, after `useSliderBounce`'s `useInput` has registered with
    * Ink's stdin dispatcher.
@@ -335,8 +356,9 @@ interface SliderCastingPromptProps {
  *  2. **Reveal** — SPACE captures the picked value into local `committed`
  *     state; the cursor freezes (`BouncingSliderStore.commit()` sets the
  *     internal flag) and the readout swaps the glyphs for the concrete
- *     `Left Heap: <pick> | Right Heap: <max − pick> + 1 suspended` numbers,
- *     each padStart'd to 2 columns so the row width matches the ticking state.
+ *     `Left Heap: <pick> | Right Heap: <stalksTotal − 1 − pick> + 1 suspended`
+ *     numbers, each padStart'd to 2 columns so the row width matches the
+ *     ticking state.
  *  3. **Advance** — after `SLIDER_COMMIT_REVEAL_MS`, the parent's `onSubmit`
  *     fires and the viewer advances to the next cast (which remounts a
  *     fresh `<SliderCastingPrompt>` via the keyed `<CastingPromptBox>` in
@@ -360,8 +382,10 @@ export function SliderCastingPrompt({
   autoLand,
   onSkip,
   onSubmit,
+  stalksTotal,
   onReady,
 }: SliderCastingPromptProps): ReactElement {
+  const totalStalks = stalksTotal ?? max + 1
   const [committed, setCommitted] = useState<number | null>(null)
 
   const handleStoreCommit = useCallback((value: number) => {
@@ -419,7 +443,10 @@ export function SliderCastingPrompt({
   // Both cells render at a stable 2-column width — leading-space + glyph
   // during ticking, and padStart(2) on the numeric pick after commit — so the
   // centred readout never shifts laterally across the ticking → reveal
-  // transition or between (pick, max − pick) splits of differing digit counts.
+  // transition or between (pick, right) splits of differing digit counts.
+  // Right heap counted = `totalStalks - 1 - pick` (the `- 1` is the suspended
+  // stalk shown as the trailing `+ 1 suspended`); with the pick capped at the
+  // reachable ceiling this is always ≥ 1, so the remainder is never 0.
   const leftCell =
     committed === null
       ? ` ${BRAILLE_SPINNER[tickCount % BRAILLE_SPINNER.length]!}`
@@ -427,8 +454,8 @@ export function SliderCastingPrompt({
   const rightCell =
     committed === null
       ? ` ${reverseBrailleGlyph(tickCount)}`
-      : String(max - committed).padStart(2, ' ')
-  const readout = `Stalks: ${max + 1} | Left Heap: ${leftCell} | Right Heap: ${rightCell} + 1 suspended`
+      : String(totalStalks - 1 - committed).padStart(2, ' ')
+  const readout = `Stalks: ${totalStalks} | Left Heap: ${leftCell} | Right Heap: ${rightCell} + 1 suspended`
 
   const titleWidth = stringWidth(title)
   const barWidth = stringWidth(bar)

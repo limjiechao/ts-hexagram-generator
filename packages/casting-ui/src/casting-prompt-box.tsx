@@ -59,7 +59,22 @@ interface CastingPromptBoxProps {
   lineNumber: 1 | 2 | 3 | 4 | 5 | 6
   castIndex: 0 | 1 | 2
   min: number
+  /**
+   * The reachable pick ceiling: the cursor sweeps `[min, max]` and a typed
+   * value must satisfy `min ≤ v ≤ max`. The viewer passes `currentMax - 1`
+   * (one below the recorded `SplitRecord.max`) so the right heap always keeps a
+   * countable stalk after the suspension and the remainder is never 0; the
+   * recorded `max` is unchanged. `stalksTotal` carries the true stalk count for
+   * the slider readout.
+   */
   max: number
+  /**
+   * True total stalk count for the slider readout, decoupled from the reachable
+   * `max` (see `SliderInputProps.stalksTotal`). The viewer passes
+   * `currentMax + 1`. Defaults to `max + 1` for the slider when omitted; the
+   * number/manual branches don't use it.
+   */
+  stalksTotal?: number
   width: number
   inputMode: CastingInputMode
   // Number-mode plumbing — ignored when inputMode === 'slider'.
@@ -186,6 +201,7 @@ export function CastingPromptBox({
   castIndex,
   min,
   max,
+  stalksTotal,
   width,
   inputMode,
   buffer = '',
@@ -207,11 +223,12 @@ export function CastingPromptBox({
   onDraftChange,
 }: CastingPromptBoxProps): ReactElement {
   if (flowKind === 'manual') {
-    // Defensive default — the viewer threads `unpartedStalks` explicitly, but
-    // callers that omit it for `flowKind === 'manual'` get a sensible
-    // baseline (current round's unparted == max + 1). This matches the
-    // `useLineGenerator` invariant that `currentMax = unparted - 1`.
-    const unparted = unpartedStalks ?? max + 1
+    // Defensive default — the viewer threads `unpartedStalks` explicitly (so
+    // this fallback is dead in production), but callers that omit it for
+    // `flowKind === 'manual'` get a sensible baseline: the true stalk count
+    // `stalksTotal` if supplied, else `max + 1`. (`max` is the reachable pick
+    // ceiling, so `max + 1` is a best-effort lower bound only.)
+    const unparted = unpartedStalks ?? stalksTotal ?? max + 1
     return (
       <ManualCastingPrompt
         lineNumber={lineNumber}
@@ -235,6 +252,7 @@ export function CastingPromptBox({
         castIndex={castIndex}
         min={min}
         max={max}
+        stalksTotal={stalksTotal}
         width={width}
         tickMs={tickMs}
         horizontalOffset={horizontalOffset}

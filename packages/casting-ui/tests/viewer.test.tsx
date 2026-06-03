@@ -360,7 +360,10 @@ describe('ConsultationViewer (interactive flow)', () => {
     await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 1/6 · Cast 1/3')
-    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
+    // The pick ceiling is 47, not 48: the recorded max is 48 (= stalks - 1) but
+    // a pick of 48 would empty the right heap after the suspended stalk, giving
+    // a remainder of 0. The right heap reserves a second, countable stalk.
+    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 47')
     // Saved-path line still absent — casting hasn't completed.
     expect(frame).not.toContain('saved to')
     unmount()
@@ -422,14 +425,14 @@ describe('ConsultationViewer (interactive flow)', () => {
     await yieldMacrotask()
     stdin.write(ENTER)
     await yieldMacrotask()
-    // 99 is above the round-1 max of 48 — pressing Enter should surface the
-    // canonical error line and stay on the same cast.
+    // 99 is above the round-1 pick ceiling of 47 — pressing Enter should
+    // surface the canonical error line and stay on the same cast.
     stdin.write('99')
     await yieldMacrotask()
     stdin.write(ENTER)
     await yieldMacrotask()
     const frame = lastFrame() ?? ''
-    expect(frame).toContain('Pick a number from 1 to 48.')
+    expect(frame).toContain('Pick a number from 1 to 47.')
     expect(frame).toContain('Line 1/6 · Cast 1/3')
     unmount()
   })
@@ -437,9 +440,10 @@ describe('ConsultationViewer (interactive flow)', () => {
   it('advances the prompt to the next line with the correct max after the 3rd cast', async () => {
     // Regression: previously `currentMaxRef.current` was only reset by the
     // line-boundary `useEffect`, which fires after render — so the first frame
-    // after the 3rd cast displayed the stale 3rd-cast max (e.g. 1..31) under
+    // after the 3rd cast displayed the stale 3rd-cast max (e.g. 1..30) under
     // the new "Line 2 · 1st Cast" title. Validate that the synchronous reset
-    // in `submitSplit` brings the prompt back to 1..48 on the new line.
+    // in `submitSplit` brings the prompt back to 1..47 on the new line (the
+    // pick ceiling, one below the recorded round-1 max of 48).
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
@@ -464,7 +468,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     await yieldMacrotask()
     const frame = lastFrame() ?? ''
     expect(frame).toContain('Line 2/6 · Cast 1/3')
-    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 48')
+    expect(frame).toContain('Divide the stalks. Pick a number from 1 to 47')
     // And the previous line's intermediate max must not linger in the frame.
     expect(frame).not.toContain('Pick a number from 1 to 31')
     unmount()
@@ -1311,7 +1315,7 @@ describe('ConsultationViewer (slider mode)', () => {
       'Line 1/6 · Cast 1/3: — Press SPACE to part the stalks',
     )
     // No typed-number prompt anywhere on the frame.
-    expect(frame).not.toContain('Pick a number from 1 to 48')
+    expect(frame).not.toContain('Pick a number from 1 to 47')
     unmount()
   })
 
