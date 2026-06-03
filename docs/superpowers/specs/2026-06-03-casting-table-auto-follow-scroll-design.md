@@ -60,37 +60,50 @@ state currently lives privately inside `ConsultationReadout` (`offsetsRef`):
 
 ## Design (Approach A)
 
-### 1. Geometry helper — pure, co-located with `castingSection`
+### 1. Geometry helper — pure, **co-located inside `output-sections.ts`** with named constants
 
 A pure function maps the active line index to the content-row of that line's
-**last data row** (the cast-1 row), which is the row to pin near the viewport
-bottom.
+**last data row** (the cast-1 / block-bottom row), the row to pin near the
+viewport bottom. It is defined **in `output-sections.ts`, next to
+`castingSection`**, and expressed via **named layout constants** that the
+renderer's own row assembly references, so the two can't drift apart unnoticed.
+
+The actual casting-tab content-row layout was verified against
+`castingSection(null)` — note the `CASTING:` title line and the blank line are
+part of the tab content (not stripped), so the header is **5 rows**, not 3:
 
 ```ts
-// in @hexagram/readout (near output-sections.ts castingSection)
+// in packages/readout/src/output-sections.ts (with castingSection)
 //
-// Casting section content-row layout (0-based), top-first:
-//   0  banner (heap labels)
-//   1  header
-//   2  header rule
-//   3..6   line 6 block: cast3, cast2, cast1, blockRule
-//   7..10  line 5 block
-//   11..14 line 4 block
-//   15..18 line 3 block
-//   19..22 line 2 block
-//   23..25 line 1 block: cast3, cast2, cast1   (no trailing blockRule)
+// Casting section content-row layout (0-based), top-first — 28 rows total:
+//   0  "CASTING:" title line          ── header (5 rows) ──
+//   1  (blank)
+//   2  左Left / 右Right banner
+//   3  爻Line 變Cast … column header
+//   4  ═╪═ header rule
+//   5..8   line 6 block: cast3 (⇒6, labeled), cast2, cast1, blockRule
+//   9..12  line 5 block
+//   13..16 line 4 block
+//   17..20 line 3 block
+//   21..24 line 2 block
+//   25..27 line 1 block: cast3 (⇒1), cast2, cast1   (no trailing blockRule)
 //
 // lineIndex: 0 => line 1 (bottom), 5 => line 6 (top)
+export const CASTING_HEADER_ROWS = 5 // title, blank, banner, header, rule
+export const CASTING_ROWS_PER_BLOCK = 4 // cast3, cast2, cast1, blockRule
+export const CAST1_OFFSET_IN_BLOCK = 2 // cast-1 row, relative to block top
+
 export function castingTableActiveRow(lineIndex: number): number {
-  const firstRow = 3 + (5 - lineIndex) * 4 // cast-3 row of the block
-  return firstRow + 2 // cast-1 row (last data row) of the block
+  const blockTop = CASTING_HEADER_ROWS + (5 - lineIndex) * CASTING_ROWS_PER_BLOCK
+  return blockTop + CAST1_OFFSET_IN_BLOCK
 }
-// line 1 (idx 0) -> 25 ; line 6 (idx 5) -> 5
+// line 1 (idx 0) -> 27 ; line 6 (idx 5) -> 7
 ```
 
 This is expressed in the casting section's own **content-row** space (rows
-0–25). The breather translation is the readout's job (§3), so the helper never
-needs to know about padding.
+0–27). The breather translation is the readout's job (§3), so the helper never
+needs to know about padding. A **consistency test** (see § Testing) renders
+`castingSection` and asserts these constants still describe its output.
 
 ### 2. Viewer wiring — `packages/casting-ui/src/viewer.tsx`
 
@@ -108,72 +121,87 @@ const autoScrollTarget =
 `row` depends only on `lineIndex` (constant across a line's three casts), so it
 changes exactly **once per line**.
 
-### 3. Readout apply-effect — `packages/readout/src/consultation-readout.tsx`
+### 3. Readout apply — render-phase ref guard — `packages/readout/src/consultation-readout.tsx`
 
-New optional prop:
+New optional prop. `align` is narrowed to the single variant the feature uses —
+no speculative `top`/`center` arms:
 
 ```ts
 readonly autoScrollTarget?: {
   readonly row: number // content-row space (pre-breather)
-  readonly align: 'top' | 'center' | 'bottom'
+  readonly align: 'bottom'
 } | null
 ```
 
-A `useEffect` applies it to the **active** tab's offset:
+Applied with a **render-phase ref guard**, mirroring the existing
+`lastResetTokenRef` mechanism that already resets `castingHorizontalOffsetRef`
+when `castingPromptPan.resetToken` changes (consultation-readout.tsx:248–259).
+This runs *during render*, before `offset` is computed from `offsetsRef`, so the
+new offset lands on the **first** paint of a line change — no post-commit effect,
+no `forceRender`, no `eslint-disable`, no one-frame flash:
 
 ```ts
-useEffect(() => {
-  if (autoScrollTarget == null) return
-  const windowedRow = autoScrollTarget.row + 1 // one leading breather row
-  const BOTTOM_MARGIN = 1 // keep the active line off the very edge
-  let target: number
-  switch (autoScrollTarget.align) {
-    case 'bottom':
-      target = windowedRow - (viewportHeight - 1 - BOTTOM_MARGIN)
-      break
-    case 'center':
-      target = windowedRow - Math.floor(viewportHeight / 2)
-      break
-    case 'top':
-    default:
-      target = windowedRow
+const lastAutoScrollRowRef = useRef<number>(-1)
+if (autoScrollTarget != null) {
+  if (autoScrollTarget.row !== lastAutoScrollRowRef.current) {
+    const windowedRow = autoScrollTarget.row + 1 // one leading breather row
+    const BOTTOM_MARGIN = 1 // keep the active line off the very edge
+    // align: 'bottom' — seat the active row at visible position
+    // (viewportHeight - 1 - MARGIN), clamped so a tiny viewport (≤ MARGIN+1
+    // rows) never overshoots and pushes the active row off the bottom.
+    const fromBottom = clamp(
+      viewportHeight - 1 - BOTTOM_MARGIN,
+      0,
+      viewportHeight - 1,
+    )
+    const target = windowedRow - fromBottom
+    offsetsRef.current[activeIndex] = clamp(target, 0, maxOffset)
+    lastAutoScrollRowRef.current = autoScrollTarget.row
   }
-  offsetsRef.current[activeIndex] = clamp(target, 0, maxOffset)
-  forceRender()
-  // eslint-disable-next-line react-hooks/exhaustive-deps -- value-keyed below
-}, [autoScrollTarget?.row, autoScrollTarget?.align, viewportHeight, maxOffset, activeIndex])
+} else {
+  // Reset so re-entry into a casting flow re-pins from scratch.
+  lastAutoScrollRowRef.current = -1
+}
+// `offset` is then computed from `offsetsRef` as today and picks up the
+// write in the same frame.
 ```
 
 Notes:
-- The effect keys on the **primitive fields** (`row`, `align`) plus
-  `viewportHeight`/`maxOffset`/`activeIndex`, so identity churn on the
-  `autoScrollTarget` object from re-renders does **not** re-fire it. It runs
-  on line change and on viewport resize only.
-- `clamp` and `maxOffset` already exist in this component; the effect reuses
-  them, so line 1 clamps to the bottom (`maxOffset`) and line 6 clamps to the
-  top (`0`) automatically.
+- The guard keys on `autoScrollTarget.row` only. Because the row is identical
+  across a line's three casts (it is a function of `lineIndex`), the write fires
+  exactly **once per line** — a manual scroll within a line is not clobbered
+  (see § "User-override coexistence").
+- This is intentionally **not** re-applied on viewport resize. The existing
+  `offset = clamp(offsetsRef[...], 0, maxOffset)` already re-clamps every render,
+  so a resize keeps the offset valid without forcibly re-pinning (which would
+  discard a mid-line manual scroll). Resize re-pin is a deliberate non-goal.
+- `clamp`/`maxOffset`/`offsetsRef`/`viewportHeight` all already exist in this
+  component. Line 1 clamps to the bottom (`maxOffset`); line 6 clamps to the top
+  (`0`).
 - The breather translation (`+ 1`) lives here, so the viewer/helper stay in
-  clean content-row space. Only `bottom` is used today; `top`/`center` are
-  defined for completeness and future reuse.
+  clean content-row space. `align` is `'bottom'`-only; widen the union and add
+  the branch if a second alignment is ever genuinely needed.
 
 ### 4. User-override coexistence — free, by construction
 
-Because the effect fires **once per line** (the anchor row is identical across a
-line's three casts), a manual scroll (↑/↓/PgUp/PgDn/g/G) within a line is **not**
-overridden — the effect doesn't re-run until the line advances, at which point it
-re-pins. No override flag or extra state is needed.
+Because the render-phase guard fires **once per line** (the anchor row is
+identical across a line's three casts), a manual scroll (↑/↓/PgUp/PgDn/g/G)
+within a line is **not** overridden — the guard does not re-write until the line
+advances, at which point it re-pins. No override flag or extra state is needed.
 
-A viewport resize mid-line re-fires the effect and re-pins; this is an
-acceptable, expected re-pin trigger.
+A viewport resize mid-line does **not** re-pin: the existing per-render
+`clamp(offsetsRef[...], 0, maxOffset)` keeps the offset valid, but the guard only
+re-writes when `autoScrollTarget.row` changes. This preserves a mid-line manual
+scroll across a resize.
 
 ### 5. Mode transitions
 
 - Entering `casting` (line 1): `autoScrollTarget` goes from `null` → line-1
   anchor, firing the initial pin to the bottom of the table.
 - Each subsequent line advance: `row` changes, re-pins.
-- `casting` → `computing`/`done`: `autoScrollTarget` becomes `null`; the effect
-  early-returns and the offset is left as-is. `done` scrolling stays
-  user-driven (non-goal to reset).
+- `casting` → `computing`/`done`: `autoScrollTarget` becomes `null`; the guard
+  resets `lastAutoScrollRowRef` to `-1` and leaves the offset as-is. `done`
+  scrolling stays user-driven (non-goal to reset).
 
 ## Data flow
 
@@ -185,11 +213,13 @@ viewer.tsx
         autoScrollTarget={ row, align:'bottom' }  (prop, casting mode only)
                        │
                        ▼
-consultation-readout.tsx
-   useEffect ─► windowedRow = row + 1
-            ─► target = windowedRow - (viewportHeight - 1 - MARGIN)
-            ─► offsetsRef[activeIndex] = clamp(target, 0, maxOffset)
-            ─► forceRender()
+consultation-readout.tsx  (render phase, guarded by lastAutoScrollRowRef)
+   if row changed ─► windowedRow = row + 1
+                  ─► fromBottom = clamp(viewportHeight-1-MARGIN, 0, viewportHeight-1)
+                  ─► offsetsRef[activeIndex] = clamp(windowedRow - fromBottom, 0, maxOffset)
+                       │
+                       ▼
+   offset = clamp(offsetsRef[activeIndex], 0, maxOffset)   (same frame)
                        │
                        ▼
         existing windowing: rowsWithBreathers.slice(offset, offset+viewportHeight)
@@ -197,9 +227,14 @@ consultation-readout.tsx
 
 ## Error / edge handling
 
-- **Short viewport (manual, 22-row prompt box):** viewport may be 3–6 rows.
-  Bottom-align + clamp keeps the active line's last data row visible at/near the
-  bottom; the trailing breather provides natural bottom padding at the extreme.
+- **Short viewport (manual, 22-row prompt box):** the table viewport is
+  `termRows − ~30`, so it can collapse to 1 row on a ~30-row terminal. The
+  `fromBottom = clamp(viewportHeight − 1 − BOTTOM_MARGIN, 0, viewportHeight − 1)`
+  guard keeps the anchored row (the active line's **cast-1 / block-bottom** row)
+  on-screen even at `viewportHeight === 1`, where it overshoots without the
+  clamp. When the viewport is shorter than the 3-row line block, the block bottom
+  wins and the labeled `⇒N` (cast-3) row may be clipped above the fold — accepted
+  (the user can still hand-scroll); we do **not** special-case the identity row.
 - **Tall viewport:** line 6 clamps to offset `0` (top); lower lines sit
   progressively lower — the intended "accumulate above" behavior.
 - **`autoScrollTarget == null`:** effect no-ops (random pre-`casting`, computing,
@@ -211,34 +246,57 @@ consultation-readout.tsx
 ## Testing
 
 1. **Unit — geometry** (`@hexagram/readout`): `castingTableActiveRow(lineIndex)`
-   for all six lines, locked against the documented layout
-   (`3 + (5-idx)*4 + 2`): idx0→25, idx1→21, idx2→17, idx3→13, idx4→9, idx5→5.
-2. **Unit — offset formula:** given `(windowedRow, viewportHeight, maxOffset,
-   align:'bottom', BOTTOM_MARGIN)`, assert the clamped offset, including:
+   for all six lines, locked against the verified layout
+   (`7 + (5-idx)*4`): idx0→27, idx1→23, idx2→19, idx3→15, idx4→11, idx5→7.
+2. **Consistency / contract test** (`@hexagram/readout`): render
+   `castingSection(null)`, split into rows, and for each line locate its cast-1
+   row by structure (the `蓍Stalks` value column / `⇒N` label two rows above),
+   then assert that index equals `castingTableActiveRow(lineIndex)`. This fails
+   loudly if `castingSection`'s header height, block height, or ordering ever
+   changes — the single guard against the constants in §1 drifting from the
+   renderer.
+3. **Unit — offset formula:** given `(windowedRow, viewportHeight, maxOffset,
+   BOTTOM_MARGIN)`, assert the clamped offset (the `fromBottom`-clamped
+   bottom-align), including:
    - line 1 on a short viewport → clamps to `maxOffset` (bottom shown),
-   - line 6 on a tall viewport → clamps to `0` (top shown).
+   - line 6 on a tall viewport → clamps to `0` (top shown),
+   - `viewportHeight === 1` → the active row itself is visible (no overshoot).
    Extract the pure offset computation so it is testable without rendering.
-3. **Integration** (`packages/casting-ui/tests/viewer.test.tsx`): drive a manual
-   flow and a slider flow at a short terminal height; after advancing to lines 1,
-   4, and 6, assert the rendered frame contains the active line's row label/glyph
-   (e.g. the `⇒N` marker and the line label for that line). Reuse the existing
-   ink-testing-library harness and the readiness/`onReady` pattern already used
-   by viewer tests for keystroke timing.
+4. **Readout-level render test — PRIMARY behavioral check**
+   (`@hexagram/readout`): render `ConsultationReadout` directly with a fixed
+   `autoScrollTarget={{ row, align: 'bottom' }}`, a locked partial casting, and a
+   deliberately **short terminal** so the 28-row table overflows the viewport.
+   Assert the visible window both **contains** the active line's labeled `⇒N`
+   row **and excludes** a row from the opposite end of the table (so the test
+   proves it actually scrolled, not merely that everything fit). No flow, no
+   timers, no `useInput` — deterministic. Cover at least line 1 (pins to bottom)
+   and line 6 (clamps to top).
+5. **Viewer integration — minimal wiring check**
+   (`packages/casting-ui/tests/viewer.test.tsx`): drive the **manual flow only**,
+   advance past **one** line boundary, and assert the active line's label is in
+   the rendered frame — just enough to prove the viewer feeds `autoScrollTarget`
+   end-to-end. Reuse the existing ink-testing-library harness and the
+   readiness/`onReady` pattern. Deliberately **not** a two-flow × three-line
+   matrix — the deterministic readout-level test (4) carries the behavioral load.
 
 Tests assert on row labels/markers and offsets, **not** on ANSI colour, so they
 are unaffected by the turbo colour-piping pitfall.
 
 ## Files
 
-- `packages/readout/src/output-sections.ts` (or a sibling pure module) — add
-  `castingTableActiveRow` + export.
-- `packages/readout/src/consultation-readout.tsx` — add `autoScrollTarget` prop,
-  the apply-effect, and an extracted pure offset helper for testing.
+- `packages/readout/src/output-sections.ts` — add the `CASTING_HEADER_ROWS` /
+  `CASTING_ROWS_PER_BLOCK` / `CAST1_OFFSET_IN_BLOCK` constants and
+  `castingTableActiveRow`, co-located with `castingSection`; have the renderer's
+  row assembly reference the same constants where practical.
+- `packages/readout/src/consultation-readout.tsx` — add the `autoScrollTarget`
+  prop, the render-phase ref guard (`lastAutoScrollRowRef`), and an extracted
+  pure offset helper for testing.
 - `packages/casting-ui/src/viewer.tsx` — compute and pass `autoScrollTarget`
   during `casting`.
-- `packages/readout/src/index.ts` / package exports — export the new helper if
-  it lives in a new module.
-- Tests: readout unit tests + `packages/casting-ui/tests/viewer.test.tsx`.
+- `packages/readout/src/index.ts` — export `castingTableActiveRow` (the viewer
+  imports it from `@hexagram/readout`).
+- Tests: readout unit + consistency tests (geometry, contract, offset) +
+  `packages/casting-ui/tests/viewer.test.tsx` integration.
 
 ## Docs
 
