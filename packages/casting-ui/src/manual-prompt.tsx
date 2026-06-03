@@ -5,21 +5,27 @@ import stringWidth from 'string-width'
 
 import {
   bottomStripRow,
-  DIAGRAM_WIDTH,
+  type BottomStripArgs,
+} from './manual-diagram-bottom-strip.js'
+import {
   flowFooterRows,
   flowHeaderRows,
+  type MissingColor,
+} from './manual-diagram-flow.js'
+import { twoHeapDiagramRows } from './manual-diagram-heap-cards.js'
+import {
   focusedInputBoxRows,
+  questionPanelRows,
+  stepDotsRow,
+} from './manual-diagram-right-pane.js'
+import {
+  DIAGRAM_WIDTH,
   MANUAL_BODY_GAP,
   MANUAL_FIELD_ORDER,
   MANUAL_NATURAL_BODY_WIDTH,
   manualTitleRow,
-  questionPanelRows,
-  stepDotsRow,
-  twoHeapDiagramRows,
-  type BottomStripArgs,
   type ManualDiagramState,
   type ManualFocusedField,
-  type MissingColor,
 } from './manual-diagram.js'
 import {
   computeManualRoundResult,
