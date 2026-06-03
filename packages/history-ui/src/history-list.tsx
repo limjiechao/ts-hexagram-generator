@@ -2,19 +2,10 @@ import path from 'node:path'
 import process from 'node:process'
 
 import {
-  BOLD_GREY,
-  BOLD_RED,
-  BOLD_WHITE,
   computeInnerCols,
-  DEFAULT_FG,
   FOOTER_HEIGHT,
-  NORMAL,
-  NORMAL_GREY,
-  padEndToWidth,
   ScreenShell,
   ScrollbarTrack,
-  truncateEnd,
-  truncateStart,
 } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
@@ -27,20 +18,11 @@ import {
 } from 'react'
 
 import { DeleteConfirmModal } from './delete-confirm-modal.js'
-import {
-  focusIndexOf,
-  reducer,
-  rowPath,
-  type ListRow,
-  type NavGeometry,
-} from './history-list-state.js'
-import {
-  buildTitle,
-  deleteIdentity,
-  entryHeadLineParts,
-  summarizeHexParts,
-  TIMESTAMP_PREFIX_WIDTH,
-} from './history-list-transforms.js'
+import { renderHistoryListFooter } from './history-list-footer.js'
+import { createHistoryListInputHandler } from './history-list-input.js'
+import { renderHistoryListRows } from './history-list-rows.js'
+import { focusIndexOf, reducer, type ListRow } from './history-list-state.js'
+import { buildTitle, deleteIdentity } from './history-list-transforms.js'
 import type { HistoryEntry, UnreadableEntry } from './history-scan.js'
 import { resolveRowWindow } from './row-window.js'
 
@@ -232,123 +214,19 @@ export function HistoryList({
     state.windowStart,
   )
 
-  useInput((input, key) => {
-    // ── Modal-open branch: this handler is fully frozen. ───────────────────
-    // While the confirm modal is open, `<DeleteConfirmModal>` (built on
-    // viewer-core's `<ConfirmModal>`) owns a `useInput` of its own and
-    // resolves Y/N/Esc. Ink dispatches every keypress to ALL mounted
-    // `useInput` hooks, so this one must early-return to a pure no-op — that
-    // freezes list nav/filter exactly as before and leaves the modal's
-    // handler the sole actor on the keypress.
-    if (state.confirmingDelete !== null) return
-
-    // ── Ctrl+D: open the delete confirm modal for the focused row. ─────────
-    // Placed before the filterMode branch so it fires in both modes; the
-    // filter input guards typing with `!key.ctrl`, so there is no collision.
-    if (key.ctrl && input === 'd') {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      const row = listRows[focusIndex]
-      if (row != null) dispatch({ type: 'deleteRequest', path: rowPath(row) })
-      return
-    }
-
-    if (state.filterMode) {
-      if (key.escape) {
-        // Escape with typed text clears it but keeps the filter row open;
-        // Escape on an empty filter row closes the row. Either way the
-        // keypress is consumed here so it never reaches an app-level exit.
-        dispatch({
-          type: state.filter.length > 0 ? 'filterClear' : 'filterExit',
-        })
-        return
-      }
-      if (key.return) {
-        const row = listRows[focusIndex]
-        if (row?.kind === 'entry') onPick(row.entry)
-        return
-      }
-      // Arrow / page keys still navigate the focused row while filtering —
-      // they carry no character input, so they never collide with typing.
-      const filterGeom: NavGeometry = {
-        listRows,
-        windowHeight,
-        currentIndex: focusIndex,
-      }
-      if (key.upArrow) {
-        dispatch({ type: 'up', ...filterGeom })
-        return
-      }
-      if (key.downArrow) {
-        dispatch({ type: 'down', ...filterGeom })
-        return
-      }
-      if (key.pageUp) {
-        dispatch({ type: 'pageUp', ...filterGeom })
-        return
-      }
-      if (key.pageDown) {
-        dispatch({ type: 'pageDown', ...filterGeom })
-        return
-      }
-      if (key.backspace || key.delete) {
-        dispatch({ type: 'filterChange', value: state.filter.slice(0, -1) })
-        return
-      }
-      if (input.length > 0 && !key.ctrl && !key.meta) {
-        dispatch({ type: 'filterChange', value: state.filter + input })
-        return
-      }
-      return
-    }
-    if (key.escape) {
-      onExit()
-      return
-    }
-    if (input === '/') {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'filterEnter' })
-      return
-    }
-    const geom: NavGeometry = {
+  useInput(
+    createHistoryListInputHandler({
+      state,
+      dispatch,
       listRows,
+      focusIndex,
       windowHeight,
-      currentIndex: focusIndex,
-    }
-    if (key.upArrow) {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'up', ...geom })
-    } else if (key.downArrow) {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'down', ...geom })
-    } else if (key.pageUp) {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'pageUp', ...geom })
-    } else if (key.pageDown) {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'pageDown', ...geom })
-    } else if (input === 'g') {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'first', ...geom })
-    } else if (input === 'G') {
-      setCannotOpenStatus(null)
-      setInternalDeleteStatus(null)
-      dispatch({ type: 'last', ...geom })
-    } else if (key.return) {
-      const row = listRows[focusIndex]
-      if (row?.kind === 'entry') {
-        onPick(row.entry)
-      } else if (row?.kind === 'unreadable') {
-        setCannotOpenStatus(`Cannot open — ${row.item.reason}`)
-      }
-    }
-  })
+      onPick,
+      onExit,
+      setCannotOpenStatus,
+      setInternalDeleteStatus,
+    }),
+  )
 
   // ── onReady witness signal ────────────────────────────────────────────────
   // Fires after this component's `useInput` registration above has bound to
@@ -428,75 +306,21 @@ export function HistoryList({
 
   const visibleRows = listRows.slice(win.start, win.end)
 
-  // Key hint line (top line of footer). While the filter row is open, Escape
-  // clears typed text (when present) or closes the row (when empty) — the hint
-  // names whichever action the next Escape press will take.
-  let hintLine: string
-  if (!state.filterMode) {
-    // The trailing `ESC <exitLabel>` names the top-level Escape destination —
-    // "quit" standalone, or whatever the host (`HistoryApp`) injected.
-    hintLine = ` ↑/↓ nav · PgUp/PgDn page · g/G first/last · Enter load · / filter · ^D delete · ESC ${exitLabel}`
-  } else if (state.filter.length > 0) {
-    hintLine = ' Esc clear filter · Enter load · ^D delete'
-  } else {
-    hintLine = ' Esc close filter · Enter load · ^D delete'
-  }
-
-  // Scroll position status — counted in consultations, not display lines.
-  // The count is always shown so a filtered result set still reveals its size.
-  // When the list overflows, the ▲/▼ arrows render at the footer's normal dim;
-  // when everything fits (nothing to scroll) they are greyed so the absence of
-  // scrolling reads at a glance. DEFAULT_FG (not NORMAL) ends the grey run so
-  // the surrounding `dimColor` wrapper stays intact.
-  const totalConsultations = listRows.length
-  const scrollRange = `${win.start + 1}–${win.end} of ${totalConsultations}`
-  const scrollStatus =
-    totalConsultations > windowHeight
-      ? `▲ ${scrollRange} ▼   `
-      : `${NORMAL_GREY}▲${DEFAULT_FG} ${scrollRange} ${NORMAL_GREY}▼${DEFAULT_FG}   `
-
-  const statusLine1 = truncateEnd(
-    `${scrollStatus}${hintLine.trimStart()}`,
+  const footerNode = renderHistoryListFooter({
+    filterMode: state.filterMode,
+    filter: state.filter,
+    exitLabel,
+    winStart: win.start,
+    winEnd: win.end,
+    windowHeight,
+    totalConsultations: listRows.length,
+    listRows,
+    focusIndex,
     innerCols,
-  )
-
-  // Bottom line: focused file path (relative to cwd), or a status override.
-  const focusedRow = listRows[focusIndex]
-  let focusedPath = ''
-  if (focusedRow != null) {
-    focusedPath = path.relative(process.cwd(), rowPath(focusedRow))
-  }
-
-  // Footer bottom-line priority: cannotOpenStatus (highest) → internal delete
-  // status → statusLine prop → focused path. Start from the lowest tier and
-  // let each higher tier override; `statusLine` may itself be null, in which
-  // case `bottomLineRaw` falls through to the focused path.
-  let effectiveStatusLine: { text: string; tone: 'dim' | 'error' } | null =
-    statusLine
-  if (internalDeleteStatus !== null) {
-    effectiveStatusLine = internalDeleteStatus
-  }
-  if (cannotOpenStatus !== null) {
-    effectiveStatusLine = { text: cannotOpenStatus, tone: 'error' }
-  }
-
-  const bottomLineRaw =
-    effectiveStatusLine === null ? focusedPath : effectiveStatusLine.text
-
-  const bottomLine = truncateStart(bottomLineRaw, innerCols)
-
-  const footerNode = (
-    <Box flexDirection="column" flexShrink={0}>
-      <Text dimColor>{` ${statusLine1}`}</Text>
-      {effectiveStatusLine === null ? (
-        <Text>{`${BOLD_GREY} ${bottomLine}${NORMAL}`}</Text>
-      ) : (
-        <Text dimColor>
-          {`${effectiveStatusLine.tone === 'error' ? BOLD_RED : BOLD_GREY} ${bottomLine}${NORMAL}`}
-        </Text>
-      )}
-    </Box>
-  )
+    statusLine,
+    internalDeleteStatus,
+    cannotOpenStatus,
+  })
 
   // Every row is exactly two display lines. Truncation and padding are done
   // by *display width* (wide CJK glyphs count as two columns) so a line never
@@ -504,88 +328,18 @@ export function HistoryList({
   // `flexShrink={0}` keeps each row at its natural two-line height — if the
   // window maths ever overcount, the shell's `overflow: hidden` clips the
   // excess cleanly instead of flexbox squashing rows into each other.
-  const indent = ' '.repeat(TIMESTAMP_PREFIX_WIDTH)
-  const contentNode = (
-    <Box flexDirection="column">
-      {visibleRows.map((row, index) => {
-        const absoluteIndex = win.start + index
-        const isFocused = absoluteIndex === focusIndex
-        if (row.kind === 'unreadable') {
-          return (
-            <Box key={row.item.path} flexDirection="column" flexShrink={0}>
-              <Text inverse={isFocused}>
-                {`${BOLD_RED}${truncateEnd(`[unreadable — ${row.item.reason}]`, innerCols)}${NORMAL}`}
-              </Text>
-              <Text inverse={isFocused} dimColor>
-                {indent +
-                  truncateEnd(
-                    row.item.path,
-                    innerCols - TIMESTAMP_PREFIX_WIDTH,
-                  )}
-              </Text>
-            </Box>
-          )
-        }
-
-        // Readable entry row.
-        const headParts = entryHeadLineParts(row.entry, innerCols)
-        const hexParts = summarizeHexParts(row.entry.envelope.hexagram)
-
-        if (isFocused) {
-          // Focused row: full-width plain bold inverse bar — no per-segment
-          // color. Both lines are truncated then padded to the inner width so
-          // the inverse highlight spans edge to edge without wrapping.
-          const headLine = padEndToWidth(
-            truncateEnd(headParts.prefix + headParts.query, innerCols),
-            innerCols,
-          )
-          const summaryLine = padEndToWidth(
-            truncateEnd(
-              `${indent}${hexParts.standingText}${hexParts.movingSegment ?? ''}`,
-              innerCols,
-            ),
-            innerCols,
-          )
-          return (
-            <Box key={row.entry.path} flexDirection="column" flexShrink={0}>
-              <Text bold inverse>
-                {headLine}
-              </Text>
-              <Text bold inverse>
-                {summaryLine}
-              </Text>
-            </Box>
-          )
-        }
-
-        // Unfocused row: palette-colored segments. The moving segment rides in
-        // BOLD_RED; truncateEnd is ANSI-aware so embedded SGR codes survive a
-        // (rare) truncation.
-        const summaryLine =
-          hexParts.movingSegment === null
-            ? truncateEnd(`${indent}${hexParts.standingText}`, innerCols)
-            : truncateEnd(
-                `${indent}${hexParts.standingText}${BOLD_RED}${hexParts.movingSegment}${NORMAL}`,
-                innerCols,
-              )
-        return (
-          <Box key={row.entry.path} flexDirection="column" flexShrink={0}>
-            {/* Line 1: dim timestamp prefix + bold-white query */}
-            <Text>
-              {`${NORMAL_GREY}${headParts.prefix}${NORMAL}${BOLD_WHITE}${headParts.query}${NORMAL}`}
-            </Text>
-            {/* Line 2: default-weight standing name + BOLD_RED moving segment */}
-            <Text>{summaryLine}</Text>
-          </Box>
-        )
-      })}
-    </Box>
-  )
+  const contentNode = renderHistoryListRows({
+    visibleRows,
+    winStart: win.start,
+    focusIndex,
+    innerCols,
+  })
 
   // Scrollbar geometry is in display-line units (1 consultation = 2 lines), so
   // the track spans the full content height. `windowHeight` is consultations,
   // hence the ×2 — passing it directly would render a half-height track.
   // Footer counters and windowing stay in consultation units.
+  const totalConsultations = listRows.length
   const scrollbarNode = (
     <ScrollbarTrack
       offset={win.start * 2}
