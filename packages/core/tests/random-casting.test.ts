@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { deriveSplit } from '../src/casting-derivation'
+import { assertSelectablePick, deriveSplit } from '../src/casting-derivation'
 import {
   generateRandomConsultation,
   generateRandomHexagram,
@@ -154,4 +154,25 @@ describe('rng distribution (slow)', () => {
       console.table(report)
     },
   )
+})
+
+// S3 lock-in: every RNG-drawn pick must satisfy the core's never-zero guard, so
+// the random flow — which now routes each pick through `performCast`
+// (`assertSelectablePick`) in the viewer's reducer — can never surface a thrown
+// RangeError to the user. `SplitRecord.max` is the recorded max for that round;
+// the pick must stay in `[1, selectablePickMax(max)]`. Mirrors the manual
+// flow's "manual 'ok' picks satisfy the core never-zero guard" property.
+describe('random picks satisfy the core never-zero guard', () => {
+  test('every plan pick passes assertSelectablePick across 200 consultations', () => {
+    for (let i = 0; i < 200; i += 1) {
+      const { casting } = generateRandomConsultation()
+      for (const line of casting) {
+        for (const split of line) {
+          expect(() =>
+            assertSelectablePick(split.max, split.pick),
+          ).not.toThrow()
+        }
+      }
+    }
+  })
 })
