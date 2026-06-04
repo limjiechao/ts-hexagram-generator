@@ -6,6 +6,7 @@ export default defineConfig({
     './src/casting-derivation.ts',
     './src/crypto-random.ts',
     './src/getters.ts',
+    './src/line-semantics.ts',
     './src/models/hexagrams.ts',
     './src/random-casting.ts',
     './src/models/trigrams.ts',
