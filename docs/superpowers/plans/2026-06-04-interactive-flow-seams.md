@@ -4,7 +4,7 @@
 
 **Goal:** Close the remaining legibility seams in the interactive consultation flow by **unifying the per-line casting algorithm into the pure reducer** (deleting the imperative line-generator hook), plus an additive lock-in test for the random flow — cohering with the manual-flow seam work already on `origin/main`.
 
-**Architecture:** `performCast`/`maxPickFor` are *pure* step functions, so the per-line `LineState` that today lives in a React `useRef` inside `useLineGenerator` can live directly in the reducer's `FlowState`. Moving it there makes the reducer the single owner of the casting algorithm: it derives the recorded `max` and resolved `Line` itself instead of trusting a hook to pre-compute and dispatch them. This collapses the two seams the manual work left open for the interactive flow — **S2** (two state machines synced by convention) and **S4** (the Ctrl+R ref-before-dispatch ordering handshake, which becomes a single pure dispatch) — and structurally closes **S3** (the random pick now flows through `performCast`'s `assertSelectablePick` guard like every other cast). No observable behavior changes: determinism of `performCast` guarantees byte-identity, locked by the existing `viewer.test.tsx` manual/interactive equality test.
+**Architecture:** `performCast`/`maxPickFor` are _pure_ step functions, so the per-line `LineState` that today lives in a React `useRef` inside `useLineGenerator` can live directly in the reducer's `FlowState`. Moving it there makes the reducer the single owner of the casting algorithm: it derives the recorded `max` and resolved `Line` itself instead of trusting a hook to pre-compute and dispatch them. This collapses the two seams the manual work left open for the interactive flow — **S2** (two state machines synced by convention) and **S4** (the Ctrl+R ref-before-dispatch ordering handshake, which becomes a single pure dispatch) — and structurally closes **S3** (the random pick now flows through `performCast`'s `assertSelectablePick` guard like every other cast). No observable behavior changes: determinism of `performCast` guarantees byte-identity, locked by the existing `viewer.test.tsx` manual/interactive equality test.
 
 **Tech Stack:** TypeScript (ESM, NodeNext, `isolatedDeclarations`), pnpm workspaces + Turborepo, Vitest (`cross-env FORCE_COLOR=1 vitest run`), `tsc --noEmit` for `type:check`. Source files use explicit `.js` import specifiers; test files import from `../src/<module>` (no extension).
 
@@ -12,27 +12,28 @@
 
 ## Context
 
-A cold-read theory-reconstruction (4 independent agents, cleared context) of the interactive consultation flow surfaced 8 seams. Since then, `origin/main` advanced 9 commits with a **manual-flow seam resolution** (`docs/superpowers/plans/2026-06-04-manual-flow-seams.md`) built on an explicit doctrine: *every fix additive — lock-in test, pure helper, compile-time guard, or comment — zero runtime behavior change.* That work resolved 6 of the 8 interactive seams as a side effect (it centralized the never-zero-remainder pick rule into `selectablePickMax`/`assertSelectablePick` and made `performCast`'s assertion load-bearing), and even corrected the "single source of truth" comment to admit *"two layers enforce this rule, by design — there is no single owner."*
+A cold-read theory-reconstruction (4 independent agents, cleared context) of the interactive consultation flow surfaced 8 seams. Since then, `origin/main` advanced 9 commits with a **manual-flow seam resolution** (`docs/superpowers/plans/2026-06-04-manual-flow-seams.md`) built on an explicit doctrine: _every fix additive — lock-in test, pure helper, compile-time guard, or comment — zero runtime behavior change._ That work resolved 6 of the 8 interactive seams as a side effect (it centralized the never-zero-remainder pick rule into `selectablePickMax`/`assertSelectablePick` and made `performCast`'s assertion load-bearing), and even corrected the "single source of truth" comment to admit _"two layers enforce this rule, by design — there is no single owner."_
 
 Re-scored against `origin/main` (the manual commits provably did **not** touch `use-line-generator.ts` or `viewer.tsx`):
 
-| Seam | Verdict | Disposition |
-|---|---|---|
-| S1 pick-ceiling ownership | ✅ resolved by `b88914a` | — |
-| V1 assert intent / V2 `currentMax` shadow / V3 spinner intent | ✅ resolved (V2 was a cold-read misread: hook value is renamed `interactiveMax`, no shadow) | — |
-| **S2** two state machines (hook ref vs reducer) | ⚠️ **open** | **Task 1** |
-| **S4** Ctrl+R ref-before-dispatch handshake | ⚠️ open (manual-only infra) | **dissolved by Task 1** |
-| **S3** random pick bypasses `performCast` | ◑ clamped at generation, but never asserted like manual got | **structurally closed by Task 1 + Task 2 lock-in** |
-| **S5** plan lifetime | ✅ already pinned (existing tests assert `castingPlan === null`) | **preserved in Task 1** |
+| Seam                                                          | Verdict                                                                                     | Disposition                                        |
+| ------------------------------------------------------------- | ------------------------------------------------------------------------------------------- | -------------------------------------------------- |
+| S1 pick-ceiling ownership                                     | ✅ resolved by `b88914a`                                                                    | —                                                  |
+| V1 assert intent / V2 `currentMax` shadow / V3 spinner intent | ✅ resolved (V2 was a cold-read misread: hook value is renamed `interactiveMax`, no shadow) | —                                                  |
+| **S2** two state machines (hook ref vs reducer)               | ⚠️ **open**                                                                                 | **Task 1**                                         |
+| **S4** Ctrl+R ref-before-dispatch handshake                   | ⚠️ open (manual-only infra)                                                                 | **dissolved by Task 1**                            |
+| **S3** random pick bypasses `performCast`                     | ◑ clamped at generation, but never asserted like manual got                                 | **structurally closed by Task 1 + Task 2 lock-in** |
+| **S5** plan lifetime                                          | ✅ already pinned (existing tests assert `castingPlan === null`)                            | **preserved in Task 1**                            |
 
 The user chose **structural unification** for S2 (a deliberate divergence from the manual flow's additive treatment — justified because `performCast` is pure and the change is byte-identical) and the **full additive sweep**. Outcome: one less stateful substrate, one pure state machine, and the manual flow benefits identically (it shares the same reducer + `handleCastSubmit` path).
 
-**Branch:** Develop on `claude/theory-reconstruction-walkthrough-ZlbVJ`. It currently sits at `06e3070` (origin/main's *old* head) with no unique commits, so it fast-forwards cleanly to `origin/main` (`311c995`).
+**Branch:** Develop on `claude/theory-reconstruction-walkthrough-ZlbVJ`. It currently sits at `06e3070` (origin/main's _old_ head) with no unique commits, so it fast-forwards cleanly to `origin/main` (`311c995`).
 
 **Coherence checks for every task:**
+
 - Single Vitest file: `pnpm --filter @hexagram/casting-ui test -- <filename-substring>`
 - Package type-check: `pnpm --filter @hexagram/casting-ui type:check`
-- Never edit a byte-locked fixture/snapshot to make a test pass. If a *pre-existing* `viewer.test.tsx` assertion fails, STOP — the refactor changed behavior it must not.
+- Never edit a byte-locked fixture/snapshot to make a test pass. If a _pre-existing_ `viewer.test.tsx` assertion fails, STOP — the refactor changed behavior it must not.
 
 ---
 
@@ -75,6 +76,7 @@ of the interactive consultation flow, building on the manual-flow seam work."
 The interactive flow currently keeps `LineState` + the "current selectable max" in two `useRef`s inside `useLineGenerator`, advanced imperatively on each `submitSplit` and dispatched into the reducer as `{ pick, max, line? }`. The reducer just records what it is handed. This is two state machines kept in lockstep by convention (S2), and the manual Ctrl+R rewind needs a documented ref-reset-before-dispatch ordering (S4). Make the reducer the single owner: hold `LineState` in `FlowState`, derive `max`/`line` via `performCast`, and reduce the action to `{ pick }`. The hook disappears.
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/viewer-flow.ts` (state, action, reducer, new `recordedMaxFor` helper)
 - Modify: `packages/casting-ui/src/viewer.tsx` (drop the hook; rewire `currentMax`, `handleCastSubmit`, `randomSplitAction`, Ctrl+R)
 - Delete: `packages/casting-ui/src/use-line-generator.ts`
@@ -82,7 +84,7 @@ The interactive flow currently keeps `LineState` + the "current selectable max" 
 - Modify: `packages/casting-ui/tests/viewer-flow.test.ts` (real plan fixture; drop `max`/`line` from dispatches; add lineState-sync + rewind tests)
 - Modify: `packages/casting-ui/src/manual-prompt.tsx` + `packages/casting-ui/src/manual-validation.ts` (retarget stale `use-line-generator` comments to the reducer)
 
-- [ ] **Step 1: Rewrite the reducer test fixture as a *real* (internally consistent) plan**
+- [ ] **Step 1: Rewrite the reducer test fixture as a _real_ (internally consistent) plan**
 
 In `packages/casting-ui/tests/viewer-flow.test.ts`, replace the `STUB_HEXAGRAM` / `STUB_CASTING` / `STUB_PLAN` declarations (around lines 21–27) with a builder that derives each `max` and `Line` from `performCast`, so replaying its picks through the reducer reproduces it exactly:
 
@@ -195,27 +197,27 @@ describe('flowReducer — splitCommitted advance path', () => {
 In the `describe('flowReducer — playbackSkipped', ...)` block, the `'produces a state byte-identical to eighteen splitCommitteds'` test must dispatch `{ pick }` only:
 
 ```ts
-  it('produces a state byte-identical to eighteen splitCommitteds', () => {
-    const base: FlowState = {
-      ...initialFlowState('random', null, null),
-      mode: 'casting',
-      castingPlan: PLAN,
+it('produces a state byte-identical to eighteen splitCommitteds', () => {
+  const base: FlowState = {
+    ...initialFlowState('random', null, null),
+    mode: 'casting',
+    castingPlan: PLAN,
+  }
+  let played: FlowState = base
+  for (let lineIndex = 0; lineIndex < 6; lineIndex += 1) {
+    for (let castIndex = 0; castIndex < 3; castIndex += 1) {
+      played = flowReducer(played, {
+        type: 'splitCommitted',
+        pick: PLAN.casting[lineIndex][castIndex].pick,
+      })
     }
-    let played: FlowState = base
-    for (let lineIndex = 0; lineIndex < 6; lineIndex += 1) {
-      for (let castIndex = 0; castIndex < 3; castIndex += 1) {
-        played = flowReducer(played, {
-          type: 'splitCommitted',
-          pick: PLAN.casting[lineIndex][castIndex].pick,
-        })
-      }
-    }
-    const skipped = flowReducer(base, { type: 'playbackSkipped' })
-    expect(skipped.mode).toBe(played.mode)
-    expect(skipped.partialCasting).toEqual(played.partialCasting)
-    expect(skipped.completedLines).toEqual(played.completedLines)
-    expect(skipped.castingPlan).toBe(played.castingPlan)
-  })
+  }
+  const skipped = flowReducer(base, { type: 'playbackSkipped' })
+  expect(skipped.mode).toBe(played.mode)
+  expect(skipped.partialCasting).toEqual(played.partialCasting)
+  expect(skipped.completedLines).toEqual(played.completedLines)
+  expect(skipped.castingPlan).toBe(played.castingPlan)
+})
 ```
 
 The other `playbackSkipped` assertions (`next.partialCasting).toEqual(PLAN.casting)`, the fresh-array `not.toBe` checks, `next.castingPlan).toBeNull()`) stay as-is with `STUB_*`→`PLAN`.
@@ -384,13 +386,13 @@ export function recordedMaxFor(lineState: LineState): number {
 (g) In `case 'lineRewound':`, add `lineState: initialLineState,` to the returned object (the rewind now resets the algorithm purely). Replace the stale action doc comment (lines ~70–78, the "The viewer calls `rewindCurrentLine()` … first (sync ref reset)" paragraph) with:
 
 ```ts
-  // Manual-flow rewind. Resets the slot pointer AND `lineState` in one pure
-  // step — no imperative ref to reset first (the per-line algorithm now lives
-  // in `lineState`). Mid-line rewinds clear the current line's casts;
-  // post-line-completion rewinds drop back to the previous line. No-op outside
-  // `mode === 'casting'`, when `flowKind !== 'manual'`, or at line 0 cast 0.
-  // Reads `castingPlan` nowhere and relies on the invariant that a manual flow
-  // never carries one (see "manual flow carries no casting plan" in the tests).
+// Manual-flow rewind. Resets the slot pointer AND `lineState` in one pure
+// step — no imperative ref to reset first (the per-line algorithm now lives
+// in `lineState`). Mid-line rewinds clear the current line's casts;
+// post-line-completion rewinds drop back to the previous line. No-op outside
+// `mode === 'casting'`, when `flowKind !== 'manual'`, or at line 0 cast 0.
+// Reads `castingPlan` nowhere and relies on the invariant that a manual flow
+// never carries one (see "manual flow carries no casting plan" in the tests).
 ```
 
 (h) In `case 'playbackSkipped':`, add `lineState: initialLineState,` to the returned object (it jumps to `computing`; keep the field clean).
@@ -410,60 +412,60 @@ In `packages/casting-ui/src/viewer.tsx`:
 (c) Replace the Ctrl+R handler (lines ~214–237) — drop the ordering comment and the `rewindCurrentLine()` call:
 
 ```tsx
-  // Manual-flow Ctrl+R rewind. One pure dispatch resets both the slot and the
-  // per-line algorithm (`lineState`) in the reducer — no ref to reset first.
-  // Gated to `mode === 'casting' && flowKind === 'manual'`.
-  useInput(
-    (input, key) => {
-      if (key.ctrl && input === 'r') {
-        dispatch({ type: 'lineRewound' })
-        return
-      }
-      if (input === '?') {
-        setHelpOpen(true)
-      }
-    },
-    {
-      isActive:
-        state.mode === 'casting' && state.flowKind === 'manual' && !helpOpen,
-    },
-  )
+// Manual-flow Ctrl+R rewind. One pure dispatch resets both the slot and the
+// per-line algorithm (`lineState`) in the reducer — no ref to reset first.
+// Gated to `mode === 'casting' && flowKind === 'manual'`.
+useInput(
+  (input, key) => {
+    if (key.ctrl && input === 'r') {
+      dispatch({ type: 'lineRewound' })
+      return
+    }
+    if (input === '?') {
+      setHelpOpen(true)
+    }
+  },
+  {
+    isActive:
+      state.mode === 'casting' && state.flowKind === 'manual' && !helpOpen,
+  },
+)
 ```
 
 (d) Replace the `currentMax` derivation (lines ~242–245) — interactive reads the reducer's `lineState` instead of the deleted hook:
 
 ```tsx
-  // The current cast's selectable range. The interactive/manual flows derive
-  // it from the reducer's `lineState`; the random flow reads the predetermined
-  // plan's `SplitRecord.max` (which equals what `lineState` would derive).
-  const currentMax =
-    state.castingPlan === null
-      ? recordedMaxFor(state.lineState)
-      : state.castingPlan.casting[state.lineIndex][state.castIndex].max
+// The current cast's selectable range. The interactive/manual flows derive
+// it from the reducer's `lineState`; the random flow reads the predetermined
+// plan's `SplitRecord.max` (which equals what `lineState` would derive).
+const currentMax =
+  state.castingPlan === null
+    ? recordedMaxFor(state.lineState)
+    : state.castingPlan.casting[state.lineIndex][state.castIndex].max
 ```
 
 (e) Simplify `randomSplitAction` (lines ~287–292) — the reducer derives `max`/`line`, so it forwards only the pick:
 
 ```tsx
-  // The random flow's `splitCommitted` for the current slot — the plan's pick;
-  // the reducer derives `max` and the resolved line itself. Shared by the
-  // slider's `onSubmit` and the number mode's per-cast timer.
-  const randomSplitAction = (plan: CastingPlan): FlowAction => ({
-    type: 'splitCommitted',
-    pick: plan.casting[state.lineIndex][state.castIndex].pick,
-  })
+// The random flow's `splitCommitted` for the current slot — the plan's pick;
+// the reducer derives `max` and the resolved line itself. Shared by the
+// slider's `onSubmit` and the number mode's per-cast timer.
+const randomSplitAction = (plan: CastingPlan): FlowAction => ({
+  type: 'splitCommitted',
+  pick: plan.casting[state.lineIndex][state.castIndex].pick,
+})
 ```
 
 (f) In `handleCastSubmit` (lines ~300–306), replace `submitSplit(pick)` with `dispatch({ type: 'splitCommitted', pick })`:
 
 ```tsx
-  const handleCastSubmit = (pick: number): void => {
-    if (state.castingPlan === null) {
-      dispatch({ type: 'splitCommitted', pick })
-      return
-    }
-    dispatch(randomSplitAction(state.castingPlan))
+const handleCastSubmit = (pick: number): void => {
+  if (state.castingPlan === null) {
+    dispatch({ type: 'splitCommitted', pick })
+    return
   }
+  dispatch(randomSplitAction(state.castingPlan))
+}
 ```
 
 - [ ] **Step 8: Retarget the stale `use-line-generator` comments in the manual modules**
@@ -501,9 +503,10 @@ test is the regression gate."
 
 ### Task 2: Lock the random flow's picks to the core never-zero guard (S3, additive)
 
-Mirrors manual Task 2 (`manual "ok" picks satisfy the core never-zero guard`). After Task 1 the random pick passes through `performCast`'s `assertSelectablePick`, but the property that the RNG *never* draws a pick that would trip it (so a user never sees a thrown `RangeError`) deserves its own lock-in — the existing test only checks `deriveSplit` remainders, not the core guard directly.
+Mirrors manual Task 2 (`manual "ok" picks satisfy the core never-zero guard`). After Task 1 the random pick passes through `performCast`'s `assertSelectablePick`, but the property that the RNG _never_ draws a pick that would trip it (so a user never sees a thrown `RangeError`) deserves its own lock-in — the existing test only checks `deriveSplit` remainders, not the core guard directly.
 
 **Files:**
+
 - Test: `packages/core/tests/random-casting.test.ts` (append a `describe` block)
 
 - [ ] **Step 1: Write the property test**
@@ -557,6 +560,7 @@ flow's never-zero property test."
 Moving `LineState` into the reducer and deleting the hook is architecturally significant — it changes the rewindable-core design (ADR-0006) and the manual-flow rewind mechanism (ADR-0011), and strands their references to `use-line-generator.ts`. Record it, the same way `b88914a` amended ADR-0006 when it centralized the pick rule.
 
 **Files:**
+
 - Modify: `docs/adr/0006-casting-algorithm-rewindable-core-and-randomness.md`
 - Modify: `docs/adr/0011-manual-casting-flow-design.md` (the `use-line-generator.ts` reference at line ~100)
 - Modify: `CLAUDE.md` (the architecture section's `use-line-generator` mentions, if any survive)
@@ -614,6 +618,7 @@ Run: `pnpm hexagram-manual` — cast a line, press **Ctrl+R** mid-line and after
 ```bash
 git push -u origin claude/theory-reconstruction-walkthrough-ZlbVJ
 ```
+
 (Retry on network error with exponential backoff: 2s, 4s, 8s, 16s. Do NOT open a PR unless explicitly asked.)
 
 ---

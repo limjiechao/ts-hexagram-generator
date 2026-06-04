@@ -92,5 +92,26 @@ conservation, and the saved file are untouched.
   `selectablePickMax`.
 - `packages/casting-ui/src/viewer.tsx`, `src/interactive-flow.ts` — slider/typed
   and plain Inquirer prompts cap the pick at `selectablePickMax`.
+- `packages/casting-ui/src/viewer-flow.ts` — `splitCommitted` runs `performCast`
+  over `FlowState.lineState` (the per-line algorithm's single owner).
 - `packages/consultation-file/src/legacy-converter.ts` — replay guards each
   recorded pick with `assertSelectablePick`.
+
+## Amendment — 2026-06-04: the reducer owns the per-line `LineState`
+
+The viewer originally drove `performCast` from an imperative React hook
+(`use-line-generator.ts`) that held the per-line `LineState` and the running
+selectable max in `useRef`s, dispatching pre-computed `{ pick, max, line }` into
+the flow reducer. That was two state machines kept in lockstep by convention,
+and the manual Ctrl+R rewind needed a ref-reset-**before**-dispatch ordering to
+keep the next render's max correct.
+
+Because `performCast`/`maxPickFor` are pure, the per-line state now lives in the
+reducer itself (`FlowState.lineState`, advanced inside the `splitCommitted`
+case). The reducer is the **single owner** of the casting algorithm: it derives
+the recorded `max` and the resolved `Line` from just `{ pick }`; `lineRewound`
+resets the algorithm in one pure dispatch (no ordering handshake); and the random
+flow's pick now passes through `performCast`'s `assertSelectablePick` guard like
+every other cast. The `useLineGenerator` hook is deleted. The change is
+byte-identical — the manual≡interactive saved-output test
+(`packages/casting-ui/tests/viewer.test.tsx`) is the regression gate.

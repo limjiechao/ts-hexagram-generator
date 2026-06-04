@@ -438,12 +438,13 @@ describe('ConsultationViewer (interactive flow)', () => {
   })
 
   it('advances the prompt to the next line with the correct max after the 3rd cast', async () => {
-    // Regression: previously `currentMaxRef.current` was only reset by the
-    // line-boundary `useEffect`, which fires after render — so the first frame
-    // after the 3rd cast displayed the stale 3rd-cast max (e.g. 1..30) under
-    // the new "Line 2 · 1st Cast" title. Validate that the synchronous reset
-    // in `submitSplit` brings the prompt back to 1..47 on the new line (the
-    // pick ceiling, one below the recorded round-1 max of 48).
+    // Regression: an earlier design reset the running max from a line-boundary
+    // `useEffect` that fired after render, so the first frame after the 3rd cast
+    // showed the stale 3rd-cast max (e.g. 1..30) under the new "Line 2 · 1st
+    // Cast" title. Now `splitCommitted` advances the reducer's `lineState`
+    // synchronously, so the very next render derives the new line's max via
+    // `recordedMaxFor`. Validate the prompt is back to 1..47 on the new line
+    // (the pick ceiling, one below the recorded round-1 max of 48).
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
     )
