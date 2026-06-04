@@ -3,18 +3,21 @@
 // unit-tested) without an Ink render. No React, no Ink — only its inputs.
 
 /**
- * Closed-form "next unparted" and "set-aside this round" from the user's
- * pick. Mirrors `@hexagram/core`'s `fourOperations` pipeline — `partTheStalks
- * → suspendOneFromTheRight → sortInto4s → setAside` — which suspends one
- * stalk from the right heap on EVERY round (see `packages/core/src/index.ts`
- * lines 156–167), not only the first.
+ * Closed-form "next unparted" and "set-aside this round" from the user's pick.
  *
- * Historical note: an earlier version of this helper conditionally skipped
- * the suspension on rounds 2/3. That was a transcription bug — the core
- * pipeline pipes `suspendOneFromTheRight` unconditionally, and the
- * `byte-identity` test downstream depends on these numbers matching the
- * interactive flow. The `castIndex` parameter is retained for signature
- * stability (other callers / tests may pass it) but is no longer consulted.
+ * DISPLAY ONLY. This drives the manual prompt's "→ next cast: N unparted"
+ * reveal row. The AUTHORITATIVE next-round state comes from `performCast`
+ * (`@hexagram/core`) via `submitSplit` in `use-line-generator.ts` — that is
+ * the algorithm of record that produces the saved Line/hexagram. These two
+ * paths compute the same number for two different reasons; their agreement is
+ * locked by `manual-validation.test.tsx` ("computeManualRoundResult ≡
+ * performCast"). If you change either path, that test guards the seam.
+ *
+ * Mirrors `fourOperations` — `partTheStalks → suspendOneFromTheRight →
+ * sortInto4s → setAside` — which suspends one stalk from the right heap on
+ * EVERY round (see `packages/core/src/index.ts`), not only the first. The
+ * `_castIndex` parameter is retained for signature/call-site stability but is
+ * NOT consulted: the result depends only on `pick` and `unparted`.
  */
 export function computeManualRoundResult(
   pick: number,

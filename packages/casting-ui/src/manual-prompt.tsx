@@ -312,6 +312,12 @@ export function ManualCastingPrompt({
       }
       // First Enter: commit only when the validator passes.
       if (validation.kind !== 'ok') return
+      // `validation.pick` is the LEFT-heap total (`4·pilesL + remL`); the core
+      // pipeline consumes that same number as `partStalksAtIndex` (the cut
+      // point) — they coincide because the left-heap size IS the partition
+      // index. `result.next` here is DISPLAY ONLY (the reveal row); the
+      // authoritative advance happens when `onSubmit(pick)` reaches
+      // `performCast` in `use-line-generator.ts`.
       const result = computeManualRoundResult(
         validation.pick,
         castIndex,

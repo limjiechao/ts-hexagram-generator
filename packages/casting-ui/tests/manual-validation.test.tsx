@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest'
 
-import { validateManualInput } from '../src/manual-validation'
+import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
+
+import { computeManualRoundResult, validateManualInput } from '../src/manual-validation'
 
 // ── validateManualInput (pure) ───────────────────────────────────────────────
 
@@ -176,5 +178,30 @@ describe('validateManualInput', () => {
     expect(result.unparted).toBe(40)
     expect(result.leftHeapTotal).toBe(22)
     expect(result.rightHeapTotal).toBe(19)
+  })
+})
+
+// Seam 1 lock-in: the display-only closed form MUST agree with the
+// authoritative `performCast` pipeline for every selectable pick. `next` is
+// the next round's unparted count, which equals `maxPickFor(after) + 1`.
+describe('computeManualRoundResult ≡ performCast (next-round count)', () => {
+  it('agrees for every selectable pick at cast 0 (49 unparted)', () => {
+    const s0 = initialLineState
+    const unparted = maxPickFor(s0) + 1
+    for (let pick = 1; pick <= maxPickFor(s0) - 1; pick++) {
+      expect(computeManualRoundResult(pick, 0, unparted).next).toBe(
+        maxPickFor(performCast(s0, pick)) + 1,
+      )
+    }
+  })
+
+  it('agrees for every selectable pick at cast 1 (post-round-1 unparted)', () => {
+    const s1 = performCast(initialLineState, 25) // any valid first pick
+    const unparted = maxPickFor(s1) + 1
+    for (let pick = 1; pick <= maxPickFor(s1) - 1; pick++) {
+      expect(computeManualRoundResult(pick, 1, unparted).next).toBe(
+        maxPickFor(performCast(s1, pick)) + 1,
+      )
+    }
   })
 })
