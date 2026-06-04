@@ -4,22 +4,23 @@
 
 **Goal:** Close the eight legibility seams found in a cold-read theory-reconstruction of the manual-consultation flow, by converting invariants currently carried in comments/conventions/tests-elsewhere into code the type system or a local test enforces.
 
-**Architecture:** Seven of the eight seams are the same shape — a *correct* invariant enforced only by convention. None is a live bug; every fix is additive (a lock-in test, a pure helper, a compile-time assertion, or a clarifying comment) and changes **no runtime behavior**. Existing tests must stay green throughout. Each seam becomes one focused commit.
+**Architecture:** Seven of the eight seams are the same shape — a _correct_ invariant enforced only by convention. None is a live bug; every fix is additive (a lock-in test, a pure helper, a compile-time assertion, or a clarifying comment) and changes **no runtime behavior**. Existing tests must stay green throughout. Each seam becomes one focused commit.
 
 **Tech Stack:** TypeScript (ESM, NodeNext), pnpm workspaces + Turborepo, Vitest (`cross-env FORCE_COLOR=1 vitest run`), `tsc --noEmit` for `type:check`. All source files use explicit `.js` import specifiers; test files import from `../src/<module>` (no extension) and use `describe`/`it`/`expect` from `vitest`.
 
 **Seam → Task map:**
 
-| Seam | Title | Fix kind | Task |
-|---|---|---|---|
-| 1 | Dual arithmetic, no structural link | lock-in test + comments | Task 1 |
-| 3 | Triple ownership of never-zero-remainder | property test + comment | Task 2 |
-| 4 | One priority list, two render surfaces | pure helper + test + wire-in | Task 3 |
-| 7 | `MANUAL_FIELD_ORDER` magic array | compile-time type guard | Task 4 |
-| 8 | `castingPlan` nullability invariant | reducer test + comment | Task 5 |
-| 2, 5, 6 | Right-heap role / hollow error field / dwell ownership | doc comments | Task 6 |
+| Seam    | Title                                                  | Fix kind                     | Task   |
+| ------- | ------------------------------------------------------ | ---------------------------- | ------ |
+| 1       | Dual arithmetic, no structural link                    | lock-in test + comments      | Task 1 |
+| 3       | Triple ownership of never-zero-remainder               | property test + comment      | Task 2 |
+| 4       | One priority list, two render surfaces                 | pure helper + test + wire-in | Task 3 |
+| 7       | `MANUAL_FIELD_ORDER` magic array                       | compile-time type guard      | Task 4 |
+| 8       | `castingPlan` nullability invariant                    | reducer test + comment       | Task 5 |
+| 2, 5, 6 | Right-heap role / hollow error field / dwell ownership | doc comments                 | Task 6 |
 
 **Conventions for every task below:**
+
 - Run a single Vitest file with: `pnpm --filter @hexagram/casting-ui test -- <filename-substring>`
 - Run package type-check with: `pnpm --filter @hexagram/casting-ui type:check`
 - Never edit a fixture or snapshot to make a test pass. If a pre-existing test fails after a change, STOP — the change altered behavior it should not have.
@@ -31,6 +32,7 @@
 `computeManualRoundResult` (closed-form, display-only) and `performCast` (the algorithm of record) compute the same next-round stalk count by two independent code paths, kept in agreement only by a downstream byte-identity test. This task adds a **direct** equivalence test and clarifying comments so the relationship is local and explicit.
 
 **Files:**
+
 - Test: `packages/casting-ui/tests/manual-validation.test.tsx` (append a `describe` block)
 - Modify: `packages/casting-ui/src/manual-validation.ts:5-18` (doc comment on `computeManualRoundResult`)
 - Modify: `packages/casting-ui/src/manual-prompt.tsx:315-323` (comment at the call site)
@@ -72,7 +74,7 @@ describe('computeManualRoundResult ≡ performCast (next-round count)', () => {
 - [ ] **Step 2: Run the test to confirm it passes immediately**
 
 Run: `pnpm --filter @hexagram/casting-ui test -- manual-validation`
-Expected: PASS. (This is a *lock-in* test — it should pass against current code; it fails only if the two paths ever diverge.) If it FAILS now, STOP: the two implementations already disagree and that is a real bug to report, not to patch around.
+Expected: PASS. (This is a _lock-in_ test — it should pass against current code; it fails only if the two paths ever diverge.) If it FAILS now, STOP: the two implementations already disagree and that is a real bug to report, not to patch around.
 
 - [ ] **Step 3: Replace the `computeManualRoundResult` doc comment**
 
@@ -103,12 +105,12 @@ In `packages/casting-ui/src/manual-validation.ts`, replace the existing block co
 In `packages/casting-ui/src/manual-prompt.tsx`, the `key.return` first-Enter branch computes `result` from `computeManualRoundResult` (around line 315). Insert this comment immediately above the `const result = computeManualRoundResult(` line:
 
 ```tsx
-      // `validation.pick` is the LEFT-heap total (`4·pilesL + remL`); the core
-      // pipeline consumes that same number as `partStalksAtIndex` (the cut
-      // point) — they coincide because the left-heap size IS the partition
-      // index. `result.next` here is DISPLAY ONLY (the reveal row); the
-      // authoritative advance happens when `onSubmit(pick)` reaches
-      // `performCast` in `use-line-generator.ts`.
+// `validation.pick` is the LEFT-heap total (`4·pilesL + remL`); the core
+// pipeline consumes that same number as `partStalksAtIndex` (the cut
+// point) — they coincide because the left-heap size IS the partition
+// index. `result.next` here is DISPLAY ONLY (the reveal row); the
+// authoritative advance happens when `onSubmit(pick)` reaches
+// `performCast` in `use-line-generator.ts`.
 ```
 
 - [ ] **Step 5: Re-run the test and type-check**
@@ -134,9 +136,10 @@ authoritative, so the seam is local and self-guarding."
 
 ### Task 2: Prove every valid manual input yields a core-legal pick (Seam 3)
 
-The never-zero-remainder rule is enforced in three places. `selectablePickMax` claims to be "the single source of truth," yet the manual validator derives the same `[1, M-1]` range *structurally* and never routes through it; `performCast`'s `assertSelectablePick` is the runtime backstop. This task encodes the cross-layer agreement as a property test and softens the over-broad ownership comment.
+The never-zero-remainder rule is enforced in three places. `selectablePickMax` claims to be "the single source of truth," yet the manual validator derives the same `[1, M-1]` range _structurally_ and never routes through it; `performCast`'s `assertSelectablePick` is the runtime backstop. This task encodes the cross-layer agreement as a property test and softens the over-broad ownership comment.
 
 **Files:**
+
 - Test: `packages/casting-ui/tests/manual-validation.test.tsx` (append a `describe` block)
 - Modify: `packages/core/src/casting-derivation.ts:12-31` (the `selectablePickMax` doc comment)
 
@@ -226,6 +229,7 @@ test locking the manual derivation to the core guard and correct the comment."
 The knowledge "conservation → MISSING gauge; zero-remainder/suspended-sum → strip text; incomplete/ok → no surface" currently lives implicitly across the bottom-strip type, the `missingColor` logic, and the strip-branch logic. This task lifts it into one pure, tested function and routes the gauge decision through it (no behavior change).
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/manual-validation.ts` (add `manualFeedbackSurface` after the `ManualValidationResult` type, ends at line 76)
 - Test: `packages/casting-ui/tests/manual-validation.test.tsx` (append a `describe` block)
 - Modify: `packages/casting-ui/src/manual-prompt.tsx:30-34` (import) and `:479-484` (gauge logic)
@@ -314,26 +318,26 @@ import {
 Then replace the `missingColor` block (currently lines 479–484):
 
 ```tsx
-  let missingColor: MissingColor = 'neutral'
-  if (committed !== null || validation.kind === 'ok') {
-    missingColor = 'green'
-  } else if (validation.kind === 'conservation') {
-    missingColor = 'red'
-  }
+let missingColor: MissingColor = 'neutral'
+if (committed !== null || validation.kind === 'ok') {
+  missingColor = 'green'
+} else if (validation.kind === 'conservation') {
+  missingColor = 'red'
+}
 ```
 
 with:
 
 ```tsx
-  // The MISSING gauge is the ONLY surface for conservation (Seam 4): red iff
-  // the validator routes the current outcome to the gauge. Routing is sourced
-  // from `manualFeedbackSurface` so the strip and gauge can never disagree.
-  let missingColor: MissingColor = 'neutral'
-  if (committed !== null || validation.kind === 'ok') {
-    missingColor = 'green'
-  } else if (manualFeedbackSurface(validation.kind) === 'gauge') {
-    missingColor = 'red'
-  }
+// The MISSING gauge is the ONLY surface for conservation (Seam 4): red iff
+// the validator routes the current outcome to the gauge. Routing is sourced
+// from `manualFeedbackSurface` so the strip and gauge can never disagree.
+let missingColor: MissingColor = 'neutral'
+if (committed !== null || validation.kind === 'ok') {
+  missingColor = 'green'
+} else if (manualFeedbackSurface(validation.kind) === 'gauge') {
+  missingColor = 'red'
+}
 ```
 
 - [ ] **Step 6: Confirm no behavior change — run the full casting-ui suite**
@@ -362,6 +366,7 @@ decision through it. No behavior change."
 The `ManualFocusedField` union and the `MANUAL_FIELD_ORDER` array must enumerate the same members, but nothing enforces it — adding a field to the union without the array silently breaks Tab-cycling and the step counter with no type error. This task adds a compile-time assertion.
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/manual-diagram.ts` (insert after `MANUAL_FIELD_ORDER`, line 23)
 
 - [ ] **Step 1: Add the compile-time guard**
@@ -430,6 +435,7 @@ type-check if the union gains a member the array omits."
 `lineRewound` never null-checks `castingPlan`; it relies on the unstated invariant that a manual flow never has a plan (established only at the `querySubmit` call site). This task pins the invariant with a reducer test and documents the reliance.
 
 **Files:**
+
 - Test: `packages/casting-ui/tests/viewer-flow.test.ts` (append)
 - Modify: `packages/casting-ui/src/viewer-flow.ts:72-78` (the `lineRewound` action doc comment)
 
@@ -465,9 +471,9 @@ Expected: PASS. If it FAILS, STOP — a manual `querySubmit` is setting a plan, 
 In `packages/casting-ui/src/viewer-flow.ts`, the `lineRewound` action variant carries a block comment (currently lines 72–78). Append one sentence to the end of that comment, before the closing `*/`:
 
 ```ts
-  // This branch reads `castingPlan` nowhere and relies on the invariant that a
-  // manual flow never carries one (a plan is set only by the random flow's
-  // `querySubmit`; see "manual flow carries no casting plan" in the tests).
+// This branch reads `castingPlan` nowhere and relies on the invariant that a
+// manual flow never carries one (a plan is set only by the random flow's
+// `querySubmit`; see "manual flow carries no casting plan" in the tests).
 ```
 
 - [ ] **Step 4: Type-check and re-run**
@@ -495,6 +501,7 @@ rewind path's safety is no longer an unstated assumption."
 Three seams are pure legibility gaps with nothing to test — the code is correct, the WHY is just missing. One focused docs commit closes them.
 
 **Files:**
+
 - Modify: `packages/casting-ui/src/manual-validation.ts` (Seam 2 — near the `rightHeapTotal` computation, ~line 98)
 - Modify: `packages/casting-ui/src/viewer-flow.ts:38-39` (Seam 5 — the `error` field)
 - Modify: `packages/casting-ui/src/manual-prompt.tsx:380-383` (Seam 6 — the reveal-dwell effect comment)
@@ -504,10 +511,10 @@ Three seams are pure legibility gaps with nothing to test — the code is correc
 In `packages/casting-ui/src/manual-validation.ts`, immediately above the line `const rightHeapTotal = 4 * pilesR + remR` (around line 98), insert:
 
 ```ts
-  // The pick is the LEFT-heap total alone (below). The right heap is NOT a
-  // generator input — it is a transcription CROSS-CHECK: requiring all four
-  // hand-counted numbers lets conservation + suspended-sum catch a miscount.
-  // The two heap cards look symmetric, but only the left drives the cast.
+// The pick is the LEFT-heap total alone (below). The right heap is NOT a
+// generator input — it is a transcription CROSS-CHECK: requiring all four
+// hand-counted numbers lets conservation + suspended-sum catch a miscount.
+// The two heap cards look symmetric, but only the left drives the cast.
 ```
 
 - [ ] **Step 2: Seam 5 — mark the `error` field as input-mode scaffolding**
@@ -515,12 +522,12 @@ In `packages/casting-ui/src/manual-validation.ts`, immediately above the line `c
 In `packages/casting-ui/src/viewer-flow.ts`, the `FlowState` interface has `castingBuffer: string` and `error: string | null` (lines 38–39). Replace the `error` line with a commented version:
 
 ```ts
-  castingBuffer: string
-  // Slider/number input-mode error channel (set via the `castingError` action
-  // from `<CastingPromptBox onError>`). UNUSED by the manual flow, which owns
-  // its own validation feedback inside `<ManualCastingPrompt>` (strip + gauge)
-  // and never dispatches `castingError`. Do not wire this into manual rendering.
-  error: string | null
+castingBuffer: string
+// Slider/number input-mode error channel (set via the `castingError` action
+// from `<CastingPromptBox onError>`). UNUSED by the manual flow, which owns
+// its own validation feedback inside `<ManualCastingPrompt>` (strip + gauge)
+// and never dispatches `castingError`. Do not wire this into manual rendering.
+error: string | null
 ```
 
 - [ ] **Step 3: Seam 6 — clarify dwell-timer ownership**
@@ -528,12 +535,12 @@ In `packages/casting-ui/src/viewer-flow.ts`, the `FlowState` interface has `cast
 In `packages/casting-ui/src/manual-prompt.tsx`, the reveal-dwell `useEffect` carries a comment block (currently lines 380–383). Replace it with:
 
 ```tsx
-  // Reveal-dwell timer. The `committed` STATE — not this timer — owns the
-  // reveal lifecycle: the skip-to-advance Enter path fires `onSubmit` directly
-  // and lets this effect's cleanup clear the pending timer on unmount. The
-  // parent only PARAMETERISES the duration via `manualRevealMs` (0 fires
-  // synchronously for tests); it cannot cancel the dwell except by unmounting
-  // the component. Do not add a `cancelled` flag keyed off the timer.
+// Reveal-dwell timer. The `committed` STATE — not this timer — owns the
+// reveal lifecycle: the skip-to-advance Enter path fires `onSubmit` directly
+// and lets this effect's cleanup clear the pending timer on unmount. The
+// parent only PARAMETERISES the duration via `manualRevealMs` (0 fires
+// synchronously for tests); it cannot cancel the dwell except by unmounting
+// the component. Do not add a `cancelled` flag keyed off the timer.
 ```
 
 - [ ] **Step 4: Verify nothing broke (comments only)**
@@ -574,6 +581,7 @@ Expected: all clean. If `format:check` flags any edited file, run `pnpm format:f
 ```bash
 git push -u origin claude/stoic-darwin-CYrKY
 ```
+
 (Retry on network error with exponential backoff: 2s, 4s, 8s, 16s. Do NOT open a PR unless explicitly asked.)
 
 ---
