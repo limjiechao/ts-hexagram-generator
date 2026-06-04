@@ -286,8 +286,8 @@ export function performCast<P extends AdvanceableLineState['phase']>(
 // 0th-cast state from the args, perform three casts, yielding the
 // most-recent round's `FourOperationsResult` between picks, and return
 // the resolved Line. Existing consumers (random-casting, interactive-flow,
-// legacy-converter, use-line-generator) see the same generator interface
-// and `assertIsFourOperationsResult` continues to typecheck each yielded
+// legacy-converter) see the same generator interface and
+// `assertIsFourOperationsResult` continues to typecheck each yielded
 // payload.
 export const makeLineGenerator = function* (roundOneArguments: {
   unpartedStalks: number[]

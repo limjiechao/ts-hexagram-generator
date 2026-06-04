@@ -41,9 +41,11 @@ shows `Press Enter to commit` once valid; on commit it turns bold-green
 **Two-line rewind window.** `Ctrl+R` rewinds the most-recently-completed line:
 mid-line it wipes the current line; immediately after a line completes it drops back
 to that line. This is a deliberate two-line lookback, not unlimited undo — expressed
-as the reducer's `lineRewound` action and the hook's `rewindCurrentLine()` op, which
-are the single source of truth. It is built directly on the pure, rebuildable
-`LineState` from [ADR-0006](0006-casting-algorithm-rewindable-core-and-randomness.md).
+as the reducer's `lineRewound` action, the single source of truth (it resets both the
+slot pointer and the per-line `LineState` in one pure dispatch). It is built directly
+on the pure, rebuildable `LineState` from
+[ADR-0006](0006-casting-algorithm-rewindable-core-and-randomness.md), which now lives
+in the flow reducer (see that ADR's 2026-06-04 amendment).
 
 **No provenance field.** A manual reading saves through the _same_ path and the
 _same_ schema as interactive/random — there is no "cast method" field. A Phase-7
@@ -96,7 +98,7 @@ On terminals wider than the natural body width, the body block (diagram + right 
 - `packages/casting-ui/src/manual-diagram.ts` — the pure row-builders.
 - `packages/casting-ui/src/manual-validation.ts` — the validation tiers.
 - `packages/casting-ui/src/casting-prompt-box.tsx` — `CastingPromptBox` dispatch + `getCastingPromptHeight`.
-- `packages/casting-ui/src/viewer-flow.ts` — `lineRewound` action.
-- `packages/casting-ui/src/use-line-generator.ts` — `rewindCurrentLine()` op.
+- `packages/casting-ui/src/viewer-flow.ts` — `lineRewound` action (resets the
+  slot pointer and `FlowState.lineState`; the per-line algorithm's single owner).
 - `packages/casting-ui/tests/viewer.test.tsx` — manual≡interactive byte-identity test.
 - `apps/cli/src/manual.ts` — non-TTY guard + the row floor.
