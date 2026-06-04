@@ -5,7 +5,9 @@
 
 import { describe, expect, it } from 'vitest'
 
-import { deriveBannerLine, lineColors, polarityOf } from '../src/banner-lines'
+import { polarityOf } from '@hexagram/core/line-semantics'
+
+import { deriveBannerLine, lineColors } from '../src/banner-lines'
 import {
   BOLD_GREY,
   BOLD_RED,
