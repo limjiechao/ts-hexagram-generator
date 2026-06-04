@@ -2,9 +2,9 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Eliminate four small duplications — the twice-encoded TTY/env policy, five near-identical `parse*Ms` flag parsers, the hardcoded `consultations/` path in four places, and the hand-rolled non-TTY refusal message at four bins — by introducing one `classifyEnv` policy module, one generic `parseIntFlag`, and one `defaultConsultationsDir()` export, with no behaviour change.
+**Goal:** Eliminate four small duplications — the twice-encoded TTY/env policy, five near-identical `parse*Ms` flag parsers, the hardcoded `consultations/` path in four places, and the hand-rolled non-TTY refusal at four sites — by introducing one `classifyEnv` policy module, one generic `parseIntFlag`, and one `defaultConsultationsDir()` export, with no behaviour change. ALL FOUR refusal sites end this slice deriving their interactivity decision from `classifyEnv` (the single env policy): the two true bins (`history`, `manual`) via the exiting `refuseIfNonInteractive(binName)`, and the two run-entries (`run-hexagram.tsx`, `run-playground-app.ts`) via `classifyEnv(env).interactive` feeding their existing boolean-return contract — no site keeps a hand-rolled `isTTY && !NO_COLOR && !CI` copy.
 
-**Architecture:** A single environment-policy module (`cli/viewer-core/src/env-policy.ts`) computes `{ interactive, forceNumeric }` from a `{ isTTY, NO_COLOR, CI }` snapshot; both the old `isInteractiveEnv` consumers and `shouldForceNumericForAccessibility` derive from it, and a generic `refuseIfNonInteractive(binName)` prints the exact existing refusal and exits 1. The five `parse*Ms` bodies collapse to one `parseIntFlag(argv, name, fallback)` with per-flag clamps kept at the call site. `@hexagram/consultation-file` gains `defaultConsultationsDir()` that the three external `consultations/` callers import.
+**Architecture:** A single environment-policy module (`cli/viewer-core/src/env-policy.ts`) computes `{ interactive, forceNumeric }` from a `{ isTTY, NO_COLOR, CI }` snapshot; every interactivity decision in the CLI derives from it. `isInteractiveEnv` and `shouldForceNumericForAccessibility` delegate to it; the exiting `refuseIfNonInteractive(binName)` prints the exact existing refusal and exits 1 for the two true bins; and the two run-entries (`runHexagram`, `runPlaygroundApp`) keep their `Promise<boolean>` contract but compute the gate via `classifyEnv(env).interactive` from an injected env snapshot (defaulting to the live `process` reading) instead of re-implementing the predicate. The five `parse*Ms` bodies collapse to one `parseIntFlag(argv, name, fallback)` with per-flag defaults kept at the call site. `@hexagram/consultation-file` gains `defaultConsultationsDir()` that the three external `consultations/` callers import.
 
 **Tech Stack:** TypeScript, vitest, tsdown, pnpm workspaces
 
@@ -610,28 +610,32 @@ export function defaultConsultationsDir(): string {
 
 ---
 
-## Task 4 — Replace the hand-rolled non-TTY refusals with `refuseIfNonInteractive`
+## Task 4 — Route ALL FOUR non-TTY refusals through `classifyEnv`
 
-Four bins/run-entries hand-roll the same refusal (`stderr.write(...)` + exit/return). Swap each for `refuseIfNonInteractive(binName)`. Two of them (`run-hexagram.tsx`, `run-playground-app.ts`) currently RETURN a boolean rather than exiting — see the behaviour note below.
+Four sites hand-roll the same `isTTY && !NO_COLOR && !CI` interactivity decision. Two are BINS that exit inline → they adopt the exiting `refuseIfNonInteractive(binName)`. Two are RUN-ENTRIES that return a boolean → they keep that contract but now COMPUTE the gate via `classifyEnv(env).interactive` instead of via `isInteractiveEnv()` / a private copy. After this task, no site re-derives the predicate independently — every interactivity decision flows from `classifyEnv` (the reviewer's single-source requirement).
 
 **Files:**
 - `cli/cli/src/history.ts` (EDIT — folded into Task 3's edit of this file)
 - `cli/cli/src/manual.ts` (EDIT)
-- `cli/shell/src/run-hexagram.tsx` (EDIT)
-- `cli/playground-ui/src/run-playground-app.ts` (EDIT)
+- `cli/shell/src/run-hexagram.tsx` (EDIT — derive gate from `classifyEnv`, keep `Promise<boolean>`)
+- `cli/shell/tests/run-hexagram.test.tsx` (NEW — pin the boolean contract via an injected snapshot)
+- `cli/playground-ui/src/run-playground-app.ts` (EDIT — derive gate from `classifyEnv`, keep `Promise<boolean>`)
+- `cli/playground-ui/tests/run-playground-app.test.ts` (NEW — pin the boolean contract via an injected snapshot)
 
 ### Behaviour note — exit vs. return (READ FIRST)
 
 `refuseIfNonInteractive` writes the message and calls `process.exit(1)` directly. Two current sites instead set a boolean the caller maps to an exit code:
-- `runHexagram()` returns `false` on refusal; its bin does `process.exit(success ? 0 : 1)`.
-- `runPlaygroundApp()` returns `false` on refusal; its bin does the same.
+- `runHexagram()` returns `false` on refusal; its bin (`cli/cli/src/hexagram.ts`) does `process.exit(cleanQuit ? 0 : 1)`.
+- `runPlaygroundApp()` returns `false` on refusal; its bin (`cli/cli/src/playground.ts`) does `process.exit(ok ? 0 : 1)`.
 
-The OBSERVABLE behaviour (stderr message + exit code 1) is identical whether the refusal exits inline or bubbles a `false`. But these two functions are documented as "never calls `process.exit()` itself, keeping it focused and unit-testable", and there are unit tests that assert the `false` return. **Do NOT regress that contract.** Therefore:
+The OBSERVABLE behaviour (stderr message + exit code 1) is identical whether the refusal exits inline or bubbles a `false`. These two functions are documented as "never calls `process.exit()` itself, keeping it focused and unit-testable", and that boolean contract is consumed by their bins. **Do NOT regress that contract — do NOT make them exit.** Therefore:
 
 - `history.ts` and `manual.ts` are BINS that already `process.exit(1)` inline → swap to `refuseIfNonInteractive(...)` directly (it exits for them).
-- `runHexagram()` and `runPlaygroundApp()` are RUN-ENTRIES that return a boolean → they should NOT adopt the exiting helper. Instead, replace their hand-rolled `NO_COLOR/CI` reading with `classifyEnv(...).interactive` and keep the `return false` + stderr-write shape, OR keep using `isInteractiveEnv()` (already delegates to `classifyEnv` after Task 1) and only de-duplicate the MESSAGE STRING. The minimal, contract-preserving move: keep `isInteractiveEnv()` and leave the `NON_INTERACTIVE_MESSAGE` constant — the message is already a named constant in both files, so the "hand-rolled message" duplication there is mild. **Decision: do NOT touch `run-hexagram.tsx` / `run-playground-app.ts` in this slice** — converting them to the exiting helper would break their unit-tested boolean contract, and that is out of scope. Only the two true bins (history, manual) adopt `refuseIfNonInteractive`.
+- `runHexagram()` and `runPlaygroundApp()` are RUN-ENTRIES → they KEEP `return false` + the `stderr.write(NON_INTERACTIVE_MESSAGE)` shape and the `NON_INTERACTIVE_MESSAGE` constant (each owns its own bin-specific string — `hexagram` vs `hexagram-playground`). The ONLY change is the PREDICATE: today each calls `isInteractiveEnv()` (a viewer-core wrapper that re-reads `process` internally and exposes no injectable snapshot). Replace that with a direct `classifyEnv(env).interactive` read so (a) the dependency on the single policy is explicit at the call site, and (b) the run-entry takes an injectable `env` snapshot, making the boolean refusal unit-testable without touching the real `process`.
 
-  > This narrows the task to the two bins that genuinely exit inline. If a reviewer wants the run-entries unified too, that is a follow-up requiring a non-exiting variant (`isRefused(binName): boolean`) — out of scope here.
+  > Why `classifyEnv` directly and not just `isInteractiveEnv()`? `isInteractiveEnv()` (after Task 1) does delegate to `classifyEnv`, so the predicate is already single-source TRANSITIVELY. But it hard-reads the live `process` and returns only a boolean — there's no seam to inject a snapshot, so the refusal branch can't be unit-tested in isolation, and the dependency on the policy is hidden behind a wrapper. Reading `classifyEnv` directly with an injected `env` makes the single source visible AND testable. This is the reviewer's decision: all four sites derive from `classifyEnv`, two via the exiting helper, two via `classifyEnv().interactive` feeding the boolean contract.
+
+  > **No existing test breaks.** A grep of the current tree (`runHexagram(` / `runPlaygroundApp(` under `**/*.test.*`) finds NO test that calls either run-entry and asserts its boolean — the contract is consumed by the bins but was never unit-pinned. So this task ADDS the missing focused tests (the new `.test` files above) that drive `classifyEnv` via the injected snapshot, rather than updating tests that assert env behaviour (there are none). The only refusal test that exists today is `manual.test.ts`, whose stderr-substring assertions are the oracle for the `manual.ts` swap below.
 
 ### Steps
 
@@ -680,9 +684,228 @@ The OBSERVABLE behaviour (stderr message + exit code 1) is identical whether the
   - Expected: the three `toContain('hexagram-manual requires an interactive terminal')` assertions in `manual.test.ts` pass. (Test path post-reorg: `cli/cli/tests/manual.test.ts`.)
   - If a `history` bin test exists, run it too: `pnpm --filter @hexagram/bin test`.
 
-- [ ] Type-check: `pnpm --filter @hexagram/bin type:check` — expected: exit 0.
+- [ ] Type-check the bins: `pnpm --filter @hexagram/bin type:check` — expected: exit 0.
 
 - [ ] **Commit:** `refactor(cli): route history/manual non-TTY refusals through refuseIfNonInteractive`
+
+---
+
+### `runHexagram()` — derive the gate from `classifyEnv` (TDD)
+
+`runHexagram()` keeps its `Promise<boolean>` contract (the `hexagram` bin maps it to an exit code) but must compute the interactivity gate from `classifyEnv` instead of `isInteractiveEnv()`, with an injectable `env` snapshot so the refusal branch is unit-testable. The `NON_INTERACTIVE_MESSAGE` constant and the `return false` + stderr-write shape are unchanged.
+
+- [ ] Write the contract-pinning test FIRST (red — the function does not yet accept an `env` arg). Create `cli/shell/tests/run-hexagram.test.tsx`:
+
+```ts
+import process from 'node:process'
+
+import { describe, expect, test, vi } from 'vitest'
+
+import { runHexagram } from '../src/run-hexagram.js'
+
+describe('runHexagram non-interactive refusal', () => {
+  test('returns false and writes the exact refusal for a non-TTY snapshot', async () => {
+    const writes: string[] = []
+    const stderr = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation((chunk: string | Uint8Array) => {
+        writes.push(String(chunk))
+        return true
+      })
+
+    // Injected snapshot — no render happens, so this never mounts Ink.
+    const result = await runHexagram({
+      isTTY: false,
+      NO_COLOR: undefined,
+      CI: undefined,
+    })
+
+    expect(result).toBe(false)
+    expect(writes).toEqual(['hexagram requires an interactive terminal\n'])
+    stderr.mockRestore()
+  })
+
+  test('NO_COLOR set non-empty is refused even on a TTY', async () => {
+    const stderr = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(() => true)
+    const result = await runHexagram({
+      isTTY: true,
+      NO_COLOR: '1',
+      CI: undefined,
+    })
+    expect(result).toBe(false)
+    stderr.mockRestore()
+  })
+})
+```
+
+  > The interactive (`true`-returning) path renders Ink and awaits a user quit, so it is NOT unit-tested here — only the refusal branch is, exactly as the manual/history bin tests only assert their refusal. Driving `classifyEnv` via the injected snapshot is what makes this branch reachable without a real non-TTY `process`.
+
+- [ ] Run: `pnpm --filter @hexagram/shell test -- run-hexagram` — expected RED (the call `runHexagram({ ... })` is a type/arity error; the function currently takes no args).
+
+- [ ] Edit `cli/shell/src/run-hexagram.tsx` (green). Swap the import and the gate; keep everything else:
+
+  BEFORE:
+  ```ts
+  import process from 'node:process'
+
+  import {
+    resolveCastBounceMs,
+    resolveCastRevealMs,
+    resolveInputMode,
+    resolveSliderSweepMs,
+    resolveWrapWidth,
+  } from '@hexagram/casting-ui'
+  import { isInteractiveEnv } from '@hexagram/viewer-core'
+  import { render } from 'ink'
+  ...
+  export async function runHexagram(): Promise<boolean> {
+    if (!isInteractiveEnv()) {
+      process.stderr.write(NON_INTERACTIVE_MESSAGE)
+      return false
+    }
+  ```
+  AFTER:
+  ```ts
+  import process from 'node:process'
+
+  import {
+    resolveCastBounceMs,
+    resolveCastRevealMs,
+    resolveInputMode,
+    resolveSliderSweepMs,
+    resolveWrapWidth,
+  } from '@hexagram/casting-ui'
+  import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
+  import { render } from 'ink'
+  ...
+  export async function runHexagram(
+    env: EnvSnapshot = {
+      isTTY: Boolean(process.stdout.isTTY),
+      NO_COLOR: process.env.NO_COLOR,
+      CI: process.env.CI,
+    },
+  ): Promise<boolean> {
+    // The interactivity gate is the single env policy (`classifyEnv`), not a
+    // local re-read. `env` defaults to the live `process` snapshot in
+    // production; tests inject a snapshot to exercise the refusal branch.
+    if (!classifyEnv(env).interactive) {
+      process.stderr.write(NON_INTERACTIVE_MESSAGE)
+      return false
+    }
+  ```
+  - The `hexagram` bin (`cli/cli/src/hexagram.ts`) calls `runHexagram()` with no args — the default snapshot keeps that call site unchanged, so the bin and its `process.exit(cleanQuit ? 0 : 1)` mapping still work verbatim.
+  - Keep the `NON_INTERACTIVE_MESSAGE` constant and the module-level doc comment. Update the doc comment's "refuses non-interactive environments by signalling a boolean" line only if you want — note that the gate now comes from `classifyEnv`; do not expand scope.
+  - `@hexagram/shell` already depends on `@hexagram/viewer-core` (the old `isInteractiveEnv` import came from it), so `classifyEnv` / `EnvSnapshot` resolve with no `package.json` change.
+
+- [ ] Run: `pnpm --filter @hexagram/shell test -- run-hexagram` — expected GREEN (both refusal cases pass).
+
+- [ ] Type-check: `pnpm --filter @hexagram/shell type:check` — expected exit 0.
+
+- [ ] **Commit:** `refactor(shell): derive runHexagram TTY gate from classifyEnv (injectable snapshot)`
+
+---
+
+### `runPlaygroundApp()` — derive the gate from `classifyEnv` (TDD)
+
+Identical treatment to `runHexagram()`: keep the `Promise<boolean>` contract and the `hexagram-playground` message, swap the predicate to `classifyEnv(env).interactive`, add an injectable `env` default.
+
+- [ ] Write the contract-pinning test FIRST (red). Create `cli/playground-ui/tests/run-playground-app.test.ts`:
+
+```ts
+import process from 'node:process'
+
+import { describe, expect, test, vi } from 'vitest'
+
+import { runPlaygroundApp } from '../src/run-playground-app.js'
+
+describe('runPlaygroundApp non-interactive refusal', () => {
+  test('returns false and writes the exact refusal for a non-TTY snapshot', async () => {
+    const writes: string[] = []
+    const stderr = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation((chunk: string | Uint8Array) => {
+        writes.push(String(chunk))
+        return true
+      })
+
+    const result = await runPlaygroundApp({
+      isTTY: false,
+      NO_COLOR: undefined,
+      CI: undefined,
+    })
+
+    expect(result).toBe(false)
+    expect(writes).toEqual([
+      'hexagram-playground requires an interactive terminal\n',
+    ])
+    stderr.mockRestore()
+  })
+
+  test('CI set non-empty is refused even on a TTY', async () => {
+    const stderr = vi
+      .spyOn(process.stderr, 'write')
+      .mockImplementation(() => true)
+    const result = await runPlaygroundApp({
+      isTTY: true,
+      NO_COLOR: undefined,
+      CI: 'true',
+    })
+    expect(result).toBe(false)
+    stderr.mockRestore()
+  })
+})
+```
+
+- [ ] Run: `pnpm --filter @hexagram/playground-ui test -- run-playground-app` — expected RED (arity/type error on the injected snapshot).
+
+- [ ] Edit `cli/playground-ui/src/run-playground-app.ts` (green):
+
+  BEFORE:
+  ```ts
+  import process from 'node:process'
+
+  import { isInteractiveEnv } from '@hexagram/viewer-core'
+  import { render } from 'ink'
+  import { createElement } from 'react'
+  ...
+  export async function runPlaygroundApp(): Promise<boolean> {
+    if (!isInteractiveEnv()) {
+      process.stderr.write(NON_INTERACTIVE_MESSAGE)
+      return false
+    }
+  ```
+  AFTER:
+  ```ts
+  import process from 'node:process'
+
+  import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
+  import { render } from 'ink'
+  import { createElement } from 'react'
+  ...
+  export async function runPlaygroundApp(
+    env: EnvSnapshot = {
+      isTTY: Boolean(process.stdout.isTTY),
+      NO_COLOR: process.env.NO_COLOR,
+      CI: process.env.CI,
+    },
+  ): Promise<boolean> {
+    // Gate from the single env policy; `env` defaults to the live `process`
+    // snapshot and is injected by tests to reach the refusal branch.
+    if (!classifyEnv(env).interactive) {
+      process.stderr.write(NON_INTERACTIVE_MESSAGE)
+      return false
+    }
+  ```
+  - The `playground` bin (`cli/cli/src/playground.ts`) calls `runPlaygroundApp()` with no args — the default snapshot preserves that call site and its `process.exit(ok ? 0 : 1)` mapping unchanged.
+  - Keep `NON_INTERACTIVE_MESSAGE` and the doc comment. `@hexagram/playground-ui` already depends on `@hexagram/viewer-core` (it imported `isInteractiveEnv` from it), so no `package.json` change.
+
+- [ ] Run: `pnpm --filter @hexagram/playground-ui test -- run-playground-app` — expected GREEN.
+
+- [ ] Type-check: `pnpm --filter @hexagram/playground-ui type:check` — expected exit 0.
+
+- [ ] **Commit:** `refactor(playground-ui): derive runPlaygroundApp TTY gate from classifyEnv (injectable snapshot)`
 
 ---
 
@@ -772,10 +995,13 @@ describe('shouldForceNumericForAccessibility', () => {
 - [ ] Full test suite: `pnpm test` — expected: all green (includes the slow 1M-iteration `rng distribution` block — ~40 s; budget for it). To skip it locally while iterating: `pnpm --filter @hexagram/core test -- -t '^(?!rng distribution \(slow\))'` then `pnpm test` once before the final commit.
 - [ ] `pnpm type:check` — expected: all packages exit 0.
 - [ ] `pnpm lint:check && pnpm format:check` — expected: clean. Run `pnpm lint:fix && pnpm format:fix` if needed, then re-check.
-- [ ] Sanity grep — confirm the leaks are gone: there should be NO remaining `path.join(process.cwd(), 'consultations')` outside `defaultConsultationsDir`, and NO remaining inline `requires an interactive terminal` literal at the history/manual bins (the string now lives ONLY in `env-policy.ts`'s `refuseIfNonInteractive` and the run-entry constants in `run-hexagram.tsx` / `run-playground-app.ts`, which this slice intentionally left).
+- [ ] Sanity grep — confirm the leaks are gone:
+  - NO remaining `path.join(process.cwd(), 'consultations')` outside `defaultConsultationsDir`.
+  - NO remaining hand-rolled interactivity predicate (`isTTY && !` … `NO_COLOR` … `CI`) outside `classifyEnv` — grep `process.stdout.isTTY` and confirm the only readers are `env-policy.ts`'s `refuseIfNonInteractive`, `run-utils.ts`'s `isInteractiveEnv`, and the two run-entries' default `env` snapshots (each of which immediately passes the snapshot to `classifyEnv` — no site re-implements the AND/NOT logic).
+  - The four refusal MESSAGE literals are each owned by exactly one place: `refuseIfNonInteractive` writes the history/manual strings from its `binName` arg; `NON_INTERACTIVE_MESSAGE` in `run-hexagram.tsx` / `run-playground-app.ts` owns those two bin-specific strings. No inline `requires an interactive terminal` literal remains at the history/manual bins.
 
 ## Notes / scope boundaries
 
-- **Out of scope (by decision in Task 4):** unifying `runHexagram()` / `runPlaygroundApp()`'s boolean-returning refusal onto the exiting `refuseIfNonInteractive`. Their unit-tested "never calls `process.exit`" contract makes the exiting helper the wrong tool; a non-exiting variant is a separate follow-up.
+- **All four refusal sites now derive from `classifyEnv`** (the reviewer's decision): the two exiting bins via `refuseIfNonInteractive`, the two boolean-returning run-entries via `classifyEnv(env).interactive`. The run-entries keep their `Promise<boolean>` contract and their own `NON_INTERACTIVE_MESSAGE` constants — only the predicate (and an injectable `env` seam for testing) changed. No existing test asserted those run-entries' env behaviour, so Task 4 ADDS focused tests rather than rewriting any; the bins call them with no args (default snapshot) and are untouched.
 - **No per-flag clamp was found** among the five `parse*Ms` parsers — all share the identical `> 0` gate with no upper bound. `parseIntFlag`'s `> 0` gate is therefore the complete, faithful semantics; no clamp needs to live at a call site. (CLAUDE.md describes a `[30, 250]` tick clamp, but that is in `deriveTickMs`, not in any `parse*Ms` parser — leave `deriveTickMs` untouched.)
 - The `--wrap-width` floor in CLAUDE.md ("floored so the fixed-width diagrams are never broken") is applied downstream in `computeWrapWidth`/layout, NOT in `parseWrapWidth` — so it is unaffected by this refactor.
