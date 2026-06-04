@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
+import { assertSelectablePick } from '@hexagram/core/casting-derivation'
 
 import { computeManualRoundResult, validateManualInput } from '../src/manual-validation'
 
@@ -202,6 +203,37 @@ describe('computeManualRoundResult ≡ performCast (next-round count)', () => {
       expect(computeManualRoundResult(pick, 1, unparted).next).toBe(
         maxPickFor(performCast(s1, pick)) + 1,
       )
+    }
+  })
+})
+
+// Seam 3 lock-in: the manual validator owns its own range check (remainders
+// constrained to 1..4 by construction). Prove that any input it accepts
+// produces a pick the core algorithm also accepts — i.e. the structurally
+// derived range never escapes `assertSelectablePick`'s runtime guard.
+describe('manual "ok" picks satisfy the core never-zero guard', () => {
+  it('every accepted input has a pick the core accepts', () => {
+    const unparted = 49 // cast-0 stalk count
+    for (let pilesL = 0; pilesL <= Math.floor(unparted / 4); pilesL++) {
+      for (let remL = 1; remL <= 4; remL++) {
+        for (let pilesR = 0; pilesR <= Math.floor(unparted / 4); pilesR++) {
+          for (let remR = 1; remR <= 4; remR++) {
+            const result = validateManualInput({
+              pilesL,
+              remL,
+              pilesR,
+              remR,
+              unparted,
+              castIndex: 0,
+            })
+            if (result.kind !== 'ok') continue
+            // `unparted - 1` is the recorded SplitRecord.max for this round.
+            expect(() =>
+              assertSelectablePick(unparted - 1, result.pick),
+            ).not.toThrow()
+          }
+        }
+      }
     }
   })
 })

@@ -23,11 +23,14 @@ export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
  * is unchanged, so the readout's stalk count, conservation, and the saved file
  * are untouched.
  *
- * Every input flow clamps to this: the slider cursor and typed prompt (viewer),
- * the plain Inquirer prompt, and the RNG (`splitStalksRandomly`). The manual
- * flow's validator derives the same `[1, recordedMax − 1]` range structurally
- * (its remainders are constrained to 1..4 by construction). `performCast` — the
- * algorithm of record — enforces it at runtime via `assertSelectablePick`.
+ * Two layers enforce this rule, by design — there is no single owner: the
+ * slider, typed-prompt, plain Inquirer, and RNG flows CLAMP to this ceiling;
+ * the manual validator instead DERIVES the same `[1, recordedMax − 1]` range
+ * structurally (its remainders are constrained to 1..4 by construction, so it
+ * never calls `selectablePickMax`). `performCast` — the algorithm of record —
+ * is the runtime backstop for both via `assertSelectablePick`. The manual
+ * derivation's agreement with this guard is locked by `manual-validation.test`
+ * ("manual 'ok' picks satisfy the core never-zero guard").
  */
 export const selectablePickMax = (recordedMax: number): number =>
   recordedMax - 1
