@@ -45,7 +45,6 @@ import { MANUAL_GUIDE_LINES, MANUAL_GUIDE_TITLE } from './manual-guide.js'
 import { MANUAL_REVEAL_MS, type ManualDraft } from './manual-prompt.js'
 import { QueryEditor } from './query-editor.js'
 import { SLIDER_COMMIT_REVEAL_MS, sliderPromptTitle } from './slider-prompt.js'
-import { useLineGenerator } from './use-line-generator.js'
 import {
   DEFAULT_CAST_BOUNCE_MS,
   DEFAULT_CAST_REVEAL_MS,
@@ -58,6 +57,7 @@ import {
   EMPTY_SECTIONS,
   flowReducer,
   initialFlowState,
+  recordedMaxFor,
   type CastingPlan,
   type FlowAction,
   type FlowKind,
@@ -200,27 +200,15 @@ export function ConsultationViewer({
   // typing. Re-seeded into the prompt as `initialDraft` on remount.
   const manualDraftRef = useRef<ManualDraft | null>(null)
 
-  // The interactive line generator — drives the interactive casting flow.
-  // The random flow never consults `submitSplit`/`interactiveMax`; it reads
-  // its picks and selectable ranges straight from `state.castingPlan`. The
-  // hook is still called unconditionally (Rules of Hooks); for a random flow
-  // its `submitSplit` is simply never invoked.
-  const {
-    submitSplit,
-    rewindCurrentLine,
-    currentMax: interactiveMax,
-  } = useLineGenerator(state, dispatch)
-
   // Manual flow's Ctrl+R rewind. Gated to `mode === 'casting' && flowKind
-  // === 'manual'` so it never fires for interactive/random. The ref-mutation
-  // call MUST precede the reducer dispatch — `rewindCurrentLine()` resets
-  // `currentMaxRef.current` synchronously, so the next render (driven by
-  // `dispatch`) already reads the post-rewind max. See spec § "Ctrl+R
-  // handler location" and the use-line-generator hook test.
+  // === 'manual'` so it never fires for interactive/random. One pure dispatch
+  // resets both the slot pointer AND the per-line algorithm (`lineState`) in
+  // the reducer — there is no imperative ref to reset first (the old
+  // ref-before-dispatch ordering is gone). See spec § "Ctrl+R handler
+  // location" and the `lineRewound` reducer tests.
   useInput(
     (input, key) => {
       if (key.ctrl && input === 'r') {
-        rewindCurrentLine()
         dispatch({ type: 'lineRewound' })
         return
       }
@@ -236,12 +224,13 @@ export function ConsultationViewer({
     },
   )
 
-  // The current cast's selectable range. For the interactive flow it comes
-  // from the line generator; for the random flow it is read straight from the
-  // predetermined plan (`SplitRecord.max`).
+  // The current cast's selectable range. The interactive/manual flows derive
+  // it from the reducer's `lineState` (the single owner of the per-line
+  // algorithm); the random flow reads it straight from the predetermined plan
+  // (`SplitRecord.max`, which equals what `lineState` would derive).
   const currentMax =
     state.castingPlan === null
-      ? interactiveMax
+      ? recordedMaxFor(state.lineState)
       : state.castingPlan.casting[state.lineIndex][state.castIndex].max
 
   // The reachable pick ceiling — one below the recorded `SplitRecord.max`.
@@ -279,27 +268,23 @@ export function ConsultationViewer({
     [state.castingPlan, state.lineIndex, state.castIndex, castBounceMs],
   )
 
-  // Build the `splitCommitted` action for the random flow's current slot from
-  // the predetermined plan — the pick/max read straight from `SplitRecord`,
-  // and the plan's resolved hexagram line on the third cast. Shared by the
-  // slider's `onSubmit` and the number mode's per-cast timer so the two can
-  // never build divergent payloads. Caller must guarantee a non-null plan.
-  const randomSplitAction = (plan: CastingPlan): FlowAction => {
-    const { pick, max } = plan.casting[state.lineIndex][state.castIndex]
-    const line =
-      state.castIndex === 2 ? plan.hexagram[state.lineIndex] : undefined
-    return { type: 'splitCommitted', pick, max, line }
-  }
+  // Build the `splitCommitted` action for the random flow's current slot — the
+  // plan's pick for this slot. The reducer derives `max` and the resolved line
+  // itself via `performCast`. Shared by the slider's `onSubmit` and the number
+  // mode's per-cast timer. Caller must guarantee a non-null plan.
+  const randomSplitAction = (plan: CastingPlan): FlowAction => ({
+    type: 'splitCommitted',
+    pick: plan.casting[state.lineIndex][state.castIndex].pick,
+  })
 
-  // The casting prompt's `onSubmit`. For the interactive flow it threads
-  // through the line generator (`submitSplit`); for the random flow the pick
-  // is already known from the plan, so it dispatches `splitCommitted`
-  // directly — with the plan's resolved hexagram line on the third cast. The
-  // slider auto-land hands back the plan's pick anyway, so `randomSplitAction`
-  // is the single source of the payload for both casting input modes.
+  // The casting prompt's `onSubmit`. Both flows dispatch `splitCommitted` with
+  // a single `pick` — the reducer (the per-line algorithm's sole owner) runs
+  // `performCast` and derives `max` + the resolved line. The interactive/manual
+  // flows pass the user's pick; the random flow reads the plan's pick (the
+  // slider auto-land hands back that same pick anyway).
   const handleCastSubmit = (pick: number): void => {
     if (state.castingPlan === null) {
-      submitSplit(pick)
+      dispatch({ type: 'splitCommitted', pick })
       return
     }
     dispatch(randomSplitAction(state.castingPlan))

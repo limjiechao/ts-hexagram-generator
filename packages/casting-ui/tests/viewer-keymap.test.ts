@@ -1,3 +1,4 @@
+import { initialLineState } from '@hexagram/core'
 import { emptyPartialCastingRecord } from '@hexagram/core/types'
 import {
   ALWAYS,
@@ -35,6 +36,7 @@ function makeState(
     castIndex: 0,
     partialCasting: emptyPartialCastingRecord(),
     completedLines: [],
+    lineState: initialLineState,
     castingPlan: null,
     sections: null,
     savedPath: null,
