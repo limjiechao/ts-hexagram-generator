@@ -127,6 +127,10 @@ export function validateManualInput(args: {
     return { kind: 'zero-remainder', remL, remR }
   }
   const leftHeapTotal = 4 * pilesL + remL
+  // The pick is the LEFT-heap total alone (below). The right heap is NOT a
+  // generator input — it is a transcription CROSS-CHECK: requiring all four
+  // hand-counted numbers lets conservation + suspended-sum catch a miscount.
+  // The two heap cards look symmetric, but only the left drives the cast.
   const rightHeapTotal = 4 * pilesR + remR
   // Conservation: the four user-typed counts plus the 1 always-suspended
   // stalk must sum to the round's unparted count.
