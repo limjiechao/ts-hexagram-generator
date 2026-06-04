@@ -1,9 +1,12 @@
-import { describe, expect, it } from 'vitest'
-
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
 import { assertSelectablePick } from '@hexagram/core/casting-derivation'
+import { describe, expect, it } from 'vitest'
 
-import { computeManualRoundResult, manualFeedbackSurface, validateManualInput } from '../src/manual-validation'
+import {
+  computeManualRoundResult,
+  manualFeedbackSurface,
+  validateManualInput,
+} from '../src/manual-validation'
 
 // ── validateManualInput (pure) ───────────────────────────────────────────────
 
