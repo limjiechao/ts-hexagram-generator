@@ -15,12 +15,24 @@ export type ManualFocusedField = 'pilesL' | 'remL' | 'pilesR' | 'remR'
 // Forward Tab order for the four manual fields. Used by `manualTitleRow`,
 // the row-builder helpers, and the `useInput` Tab handler in
 // `<ManualCastingPrompt>`. Module-scope so all consumers stay in lockstep.
-export const MANUAL_FIELD_ORDER: readonly ManualFocusedField[] = [
+export const MANUAL_FIELD_ORDER = [
   'pilesL',
   'remL',
   'pilesR',
   'remR',
-] as const
+] as const satisfies readonly ManualFocusedField[]
+
+// Compile-time guard (Seam 7): every `ManualFocusedField` MUST appear in
+// `MANUAL_FIELD_ORDER`. If a member is added to the union but not the array,
+// `(typeof MANUAL_FIELD_ORDER)[number]` no longer covers the union, the
+// conditional resolves to `never`, and the assignment below fails `tsc`. The
+// reverse (no stray members) is guaranteed by the array's element type.
+type _AllManualFieldsOrdered =
+  ManualFocusedField extends (typeof MANUAL_FIELD_ORDER)[number] ? true : never
+// oxlint-disable-next-line no-underscore-dangle
+const _assertAllManualFieldsOrdered: _AllManualFieldsOrdered = true
+// eslint-disable-next-line no-void
+void _assertAllManualFieldsOrdered
 
 /**
  * Slim one-line manual-flow title: `Line N/6 · Cast C/3 · Step P/4`. The
