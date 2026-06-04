@@ -36,6 +36,10 @@ export interface FlowState {
   query: string
   queryBuffer: string
   castingBuffer: string
+  // Slider/number input-mode error channel (set via the `castingError` action
+  // from `<CastingPromptBox onError>`). UNUSED by the manual flow, which owns
+  // its own validation feedback inside `<ManualCastingPrompt>` (strip + gauge)
+  // and never dispatches `castingError`. Do not wire this into manual rendering.
   error: string | null
   lineIndex: 0 | 1 | 2 | 3 | 4 | 5
   castIndex: 0 | 1 | 2

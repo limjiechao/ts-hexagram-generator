@@ -384,10 +384,12 @@ export function ManualCastingPrompt({
     }
   })
 
-  // Reveal-dwell timer. Fires `onSubmit(pick)` after `manualRevealMs`
-  // milliseconds — or synchronously when the caller opts out with
-  // `manualRevealMs={0}`. The skip-to-advance Enter path above fires
-  // `onSubmit` directly and lets this cleanup run on unmount.
+  // Reveal-dwell timer. The `committed` STATE — not this timer — owns the
+  // reveal lifecycle: the skip-to-advance Enter path fires `onSubmit` directly
+  // and lets this effect's cleanup clear the pending timer on unmount. The
+  // parent only PARAMETERISES the duration via `manualRevealMs` (0 fires
+  // synchronously for tests); it cannot cancel the dwell except by unmounting
+  // the component. Do not add a `cancelled` flag keyed off the timer.
   useEffect(() => {
     if (committed === null) return
     if (manualRevealMs === 0) {
