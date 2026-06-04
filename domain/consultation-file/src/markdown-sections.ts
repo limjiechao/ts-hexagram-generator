@@ -4,6 +4,7 @@ import {
   getHexagramRecord,
   getTrigramRecord,
 } from '@hexagram/core/getters'
+import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
 
 // `✕` U+2715 — matches the home banner's and viewer-core's moving-yin glyph
@@ -25,10 +26,6 @@ const POSITION_LABELS = {
   5: '（五, 5th）',
   6: '（上, 6th）',
 } as const
-
-function isMovingLine(line: Line): boolean {
-  return line === 6 || line === 9
-}
 
 function visualWidth(text: string): number {
   let width = 0
