@@ -12,6 +12,7 @@
     "//#lint:fix": {
       "cache": false
     },
+    "//#boundaries:check": {},
     "build": {
       "dependsOn": ["^build"],
       "outputs": ["dist/**"]
