@@ -9,12 +9,9 @@
 // frame transition is deterministic given a seeded RNG and unit-testable
 // without rendering Ink.
 
+import { polarityOf } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import {
-  deriveBannerLine,
-  polarityOf,
-  type LineCells,
-} from '@hexagram/viewer-core'
+import { deriveBannerLine, type LineCells } from '@hexagram/viewer-core'
 
 /** An injected random source — returns a float in `[0, 1)`, like Math.random. */
 export type Rng = () => number
