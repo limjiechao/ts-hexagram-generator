@@ -29,6 +29,7 @@ import {
 } from './manual-diagram.js'
 import {
   computeManualRoundResult,
+  manualFeedbackSurface,
   parseManualBuffer,
   validateManualInput,
 } from './manual-validation.js'
@@ -482,10 +483,13 @@ export function ManualCastingPrompt({
   // wrong total, neutral mid-countdown (incomplete / suspended-sum / zero-rem).
   const counted = liveLeftTotal + liveRightTotal + 1
   const missing = unpartedStalks - counted
+  // The MISSING gauge is the ONLY surface for conservation (Seam 4): red iff
+  // the validator routes the current outcome to the gauge. Routing is sourced
+  // from `manualFeedbackSurface` so the strip and gauge can never disagree.
   let missingColor: MissingColor = 'neutral'
   if (committed !== null || validation.kind === 'ok') {
     missingColor = 'green'
-  } else if (validation.kind === 'conservation') {
+  } else if (manualFeedbackSurface(validation.kind) === 'gauge') {
     missingColor = 'red'
   }
   const flowFooter = flowFooterRows({ counted, missing, missingColor })

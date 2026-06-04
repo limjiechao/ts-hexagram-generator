@@ -78,6 +78,35 @@ export type ManualValidationResult =
       rightHeapTotal: number
     }
 
+/**
+ * Where each validator outcome surfaces in the manual prompt — the SINGLE
+ * statement of routing that was previously implicit across the render
+ * (`missingColor`, the strip-branch selector) and the bottom-strip type:
+ *
+ *   - 'gauge' — conservation: shown ONLY as the red MISSING gauge, never as
+ *     strip text (a counting error reads best as a number, not a sentence).
+ *   - 'strip' — zero-remainder / suspended-sum: rule violations shown as
+ *     BOLD_RED strip text.
+ *   - 'none'  — incomplete / ok: no error surface (mid-edit or commit-ready).
+ *
+ * The `switch` is exhaustive over `ManualValidationResult['kind']`, so adding a
+ * new outcome forces a routing decision here (the missing `case` fails `tsc`).
+ */
+export function manualFeedbackSurface(
+  kind: ManualValidationResult['kind'],
+): 'strip' | 'gauge' | 'none' {
+  switch (kind) {
+    case 'conservation':
+      return 'gauge'
+    case 'zero-remainder':
+    case 'suspended-sum':
+      return 'strip'
+    case 'incomplete':
+    case 'ok':
+      return 'none'
+  }
+}
+
 export function validateManualInput(args: {
   pilesL: number | null
   remL: number | null
