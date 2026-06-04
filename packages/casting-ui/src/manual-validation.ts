@@ -7,8 +7,9 @@
  *
  * DISPLAY ONLY. This drives the manual prompt's "→ next cast: N unparted"
  * reveal row. The AUTHORITATIVE next-round state comes from `performCast`
- * (`@hexagram/core`) via `submitSplit` in `use-line-generator.ts` — that is
- * the algorithm of record that produces the saved Line/hexagram. These two
+ * (`@hexagram/core`), run in the flow reducer (`viewer-flow.ts`'s
+ * `splitCommitted`) — that is the algorithm of record that produces the saved
+ * Line/hexagram from the `onSubmit(pick)` the prompt emits. These two
  * paths compute the same number for two different reasons; their agreement is
  * locked by `manual-validation.test.tsx` ("computeManualRoundResult ≡
  * performCast"). If you change either path, that test guards the seam.

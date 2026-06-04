@@ -318,7 +318,7 @@ export function ManualCastingPrompt({
       // point) — they coincide because the left-heap size IS the partition
       // index. `result.next` here is DISPLAY ONLY (the reveal row); the
       // authoritative advance happens when `onSubmit(pick)` reaches
-      // `performCast` in `use-line-generator.ts`.
+      // `performCast` in the flow reducer (`viewer-flow.ts`'s `splitCommitted`).
       const result = computeManualRoundResult(
         validation.pick,
         castIndex,

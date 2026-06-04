@@ -1,8 +1,10 @@
+import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
   type Hexagram,
   type Line,
+  type LineState,
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/core/types'
@@ -45,6 +47,11 @@ export interface FlowState {
   castIndex: 0 | 1 | 2
   partialCasting: PartialCastingRecord
   completedLines: Line[]
+  // The per-line algorithm state — the reducer is the SINGLE owner of casting:
+  // it advances this via the pure `performCast` and derives the recorded `max`
+  // and resolved `Line` itself. Reset to `initialLineState` after every 3rd
+  // cast and on `lineRewound`. Replaces the old `useLineGenerator` refs.
+  lineState: LineState
   // The predetermined plan for a random flow — stored on `querySubmit` and
   // read cast-by-cast during `casting`. `null` for an interactive flow.
   castingPlan: CastingPlan | null
@@ -61,7 +68,10 @@ export type FlowAction =
   | { type: 'querySubmit'; plan?: CastingPlan }
   | { type: 'castingBufferChange'; value: string }
   | { type: 'castingError'; message: string | null }
-  | { type: 'splitCommitted'; pick: number; max: number; line?: Line }
+  // The reducer derives the recorded `max` and resolved `Line` from `pick`
+  // via the pure `performCast` — the imperative shell no longer pre-computes
+  // them.
+  | { type: 'splitCommitted'; pick: number }
   // Random-playback skip — dispatched by the imperative shell when the user
   // presses SPACE during the random casting animation. Pure: it fills the
   // partial casting record and completed lines from the already-generated
@@ -73,12 +83,11 @@ export type FlowAction =
       savedPath: string
     }
   | { type: 'computeFailed'; error: Error }
-  // Manual-flow rewind. The viewer calls `rewindCurrentLine()` on the
-  // line-generator hook first (sync ref reset), then dispatches this action so
-  // the next render's `currentMax` already reflects the reset. Mid-line
-  // rewinds clear the current line's casts; post-line-completion rewinds drop
-  // back to the previous line. No-op outside `mode === 'casting'`, when
-  // `flowKind !== 'manual'`, or at line 0 cast 0.
+  // Manual-flow rewind. Resets the slot pointer AND `lineState` in one pure
+  // step — no imperative ref to reset first (the per-line algorithm now lives
+  // in `lineState`). Mid-line rewinds clear the current line's casts;
+  // post-line-completion rewinds drop back to the previous line. No-op outside
+  // `mode === 'casting'`, when `flowKind !== 'manual'`, or at line 0 cast 0.
   // This branch reads `castingPlan` nowhere and relies on the invariant that a
   // manual flow never carries one (a plan is set only by the random flow's
   // `querySubmit`; see "manual flow carries no casting plan" in the tests).
@@ -112,6 +121,19 @@ export const EMPTY_SECTIONS: ConsultationSections = {
   emerging: null,
 }
 
+/**
+ * The recorded `max` for the current cast (`stalks - 1` for this round).
+ * `lineState` is never in the resolved `'3rd-cast'` phase mid-casting (the
+ * reducer resets it after every 3rd cast), so the fallback to the round-1 max
+ * is unreachable in practice — it only satisfies `maxPickFor`'s advanceable
+ * input domain for the type checker.
+ */
+export function recordedMaxFor(lineState: LineState): number {
+  return lineState.phase === '3rd-cast'
+    ? maxPickFor(initialLineState)
+    : maxPickFor(lineState)
+}
+
 export function initialFlowState(
   flowKind: FlowKind,
   preBuiltSections: ConsultationSections | null,
@@ -130,6 +152,7 @@ export function initialFlowState(
     castIndex: 0,
     partialCasting: emptyPartialCastingRecord(),
     completedLines: [],
+    lineState: initialLineState,
     castingPlan: null,
     sections: preBuiltSections,
     savedPath: preBuiltSavedPath,
@@ -160,22 +183,34 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
     case 'castingError':
       return { ...state, error: action.message }
     case 'splitCommitted': {
-      // The split has already been validated and the line generator has been
-      // advanced (with the returned Line included when this was the third
-      // cast). The reducer just records it and advances the slot pointer.
-      const split: SplitRecord = { pick: action.pick, max: action.max }
+      // The reducer is the SINGLE owner of the per-line algorithm: it advances
+      // `lineState` through the pure `performCast` and derives the recorded
+      // `max` and resolved `Line` itself. The action carries only the pick.
+      const before = state.lineState
+      // Defensive: the reducer resets `lineState` after every 3rd cast, so a
+      // `splitCommitted` can never arrive on a resolved line (this also
+      // satisfies `performCast`/`maxPickFor`'s advanceable input domain).
+      if (before.phase === '3rd-cast') return state
+
+      const max = maxPickFor(before)
+      const after = performCast(before, action.pick)
+      const split: SplitRecord = { pick: action.pick, max }
+      const line = after.phase === '3rd-cast' ? after.line : undefined
+      const nextLineState: LineState =
+        after.phase === '3rd-cast' ? initialLineState : after
+
       const partialCasting = state.partialCasting.map(
-        (line, lineIndex) =>
+        (lineRow, lineIndex) =>
           (lineIndex === state.lineIndex
-            ? line.map((cast, castIndex) =>
+            ? lineRow.map((cast, castIndex) =>
                 castIndex === state.castIndex ? split : cast,
               )
-            : line) as PartialCastingRecord[number],
+            : lineRow) as PartialCastingRecord[number],
       ) as PartialCastingRecord
       const completedLines =
-        action.line === undefined
+        line === undefined
           ? state.completedLines
-          : [...state.completedLines, action.line]
+          : [...state.completedLines, line]
       // Advance to the next slot. Three casts per line; then the next line.
       const isLastCastOfLine = state.castIndex === 2
       const isLastLine = state.lineIndex === 5
@@ -185,6 +220,7 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
           mode: 'computing',
           partialCasting,
           completedLines,
+          lineState: initialLineState,
           castingBuffer: '',
           error: null,
           // The plan has served its purpose by `computing` — every cast has
@@ -203,6 +239,7 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         ...state,
         partialCasting,
         completedLines,
+        lineState: nextLineState,
         lineIndex: nextLineIndex,
         castIndex: nextCastIndex,
         castingBuffer: '',
@@ -244,6 +281,9 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         ...state,
         partialCasting,
         completedLines,
+        // Reset the per-line algorithm too — the rewound line is recast from
+        // scratch. One pure step, no ref to reset first (the old S4 seam).
+        lineState: initialLineState,
         lineIndex: targetLineIndex,
         castIndex: 0,
         castingBuffer: '',
@@ -273,6 +313,9 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         mode: 'computing',
         partialCasting: [...state.castingPlan.casting] as PartialCastingRecord,
         completedLines: [...state.castingPlan.hexagram],
+        // Casting is over; keep `lineState` clean rather than leaving the
+        // last mid-line state behind (it is never read past `computing`).
+        lineState: initialLineState,
         castingBuffer: '',
         error: null,
         // Clear the plan on the `computing` transition, consistent with the
