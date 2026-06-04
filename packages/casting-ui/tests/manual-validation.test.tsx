@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
 import { assertSelectablePick } from '@hexagram/core/casting-derivation'
 
-import { computeManualRoundResult, validateManualInput } from '../src/manual-validation'
+import { computeManualRoundResult, manualFeedbackSurface, validateManualInput } from '../src/manual-validation'
 
 // ── validateManualInput (pure) ───────────────────────────────────────────────
 
@@ -235,5 +235,20 @@ describe('manual "ok" picks satisfy the core never-zero guard', () => {
         }
       }
     }
+  })
+})
+
+// Seam 4: the single statement of where each validator outcome surfaces.
+describe('manualFeedbackSurface', () => {
+  it('routes conservation to the gauge', () => {
+    expect(manualFeedbackSurface('conservation')).toBe('gauge')
+  })
+  it('routes rule violations to the strip', () => {
+    expect(manualFeedbackSurface('zero-remainder')).toBe('strip')
+    expect(manualFeedbackSurface('suspended-sum')).toBe('strip')
+  })
+  it('routes mid-edit and commit-ready to no surface', () => {
+    expect(manualFeedbackSurface('incomplete')).toBe('none')
+    expect(manualFeedbackSurface('ok')).toBe('none')
   })
 })
