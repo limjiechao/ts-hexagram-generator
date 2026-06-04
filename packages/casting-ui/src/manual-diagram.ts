@@ -15,18 +15,22 @@ export type ManualFocusedField = 'pilesL' | 'remL' | 'pilesR' | 'remR'
 // Forward Tab order for the four manual fields. Used by `manualTitleRow`,
 // the row-builder helpers, and the `useInput` Tab handler in
 // `<ManualCastingPrompt>`. Module-scope so all consumers stay in lockstep.
-export const MANUAL_FIELD_ORDER = [
-  'pilesL',
-  'remL',
-  'pilesR',
-  'remR',
-] as const satisfies readonly ManualFocusedField[]
+//
+// The explicit literal-tuple annotation is load-bearing twice over: it gives
+// the exported const a syntactic type (required by `isolatedDeclarations`) AND
+// it pins `(typeof MANUAL_FIELD_ORDER)[number]` to the exact 4-member union so
+// the guard below stays live. A widening `readonly ManualFocusedField[]`
+// annotation would make the guard inert; a bare `as const` satisfies the guard
+// but trips `isolatedDeclarations`.
+export const MANUAL_FIELD_ORDER: readonly ['pilesL', 'remL', 'pilesR', 'remR'] =
+  ['pilesL', 'remL', 'pilesR', 'remR']
 
 // Compile-time guard (Seam 7): every `ManualFocusedField` MUST appear in
 // `MANUAL_FIELD_ORDER`. If a member is added to the union but not the array,
 // `(typeof MANUAL_FIELD_ORDER)[number]` no longer covers the union, the
 // conditional resolves to `never`, and the assignment below fails `tsc`. The
-// reverse (no stray members) is guaranteed by the array's element type.
+// reverse (no stray members) is guaranteed by the tuple annotation above,
+// whose fixed length rejects any extra element.
 type _AllManualFieldsOrdered =
   ManualFocusedField extends (typeof MANUAL_FIELD_ORDER)[number] ? true : never
 // oxlint-disable-next-line no-underscore-dangle
