@@ -1,6 +1,91 @@
 # AGENTS.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+Vendor-agnostic guidance to agents
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs are tracked as GitHub issues in `limjiechao/ts-hexagram-generator`, managed via the `gh` CLI. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Default canonical triage vocabulary — `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context — one `CONTEXT.md` + `docs/adr/` at the repo root. See `docs/agents/domain.md`. The architecture decisions are indexed in `docs/adr/README.md`.
+
+## Engineering Guidelines: Legible Change
+
+These rules exist so a reviewer can verify a change in one pass and a future
+maintainer can reconstruct WHY months later. You (the agent) write code
+effortlessly; humans pay the cost of reading it. Optimize for the reader.
+
+### 1. Design before build — the human owns the theory
+
+Before generating non-trivial code, state in 2–4 sentences: the intent, the
+approach, the key assumptions, and what you are deliberately NOT doing. If the
+task lacks a clear design and you are inventing one, STOP and ask the human to
+confirm the design first. (You average over millions of codebases; you cannot
+originate one coherent design vision — the human must supply it.)
+Rationale: a system must reflect one mind's design (Brooks, conceptual integrity).
+
+### 2. Small, single-intent diffs
+
+One change should do one thing. If a diff mixes refactor + feature + fix, split
+it. Target reviewability, not completeness. If a change exceeds ~400 lines or
+touches many unrelated files, propose a sequence of smaller changes instead.
+Rationale: reviewer cognitive load rises sharply with diff size; defect-finding
+drops off above ~400 LOC.
+
+### 3. Capture the WHY where it is cheapest — now
+
+Every commit message states why the change exists and what problem it solves,
+not just what changed. Add a comment ONLY for non-obvious rationale — the thing
+that was in your head but isn't in the code (constraints, trade-offs, why-not-X).
+Never comment what the code already says.
+Rationale: the program's real meaning is a theory humans must rebuild from your
+artifacts (Naur); you hold no persistent theory, so externalize it at generation.
+
+### 4. Locality and orthogonality
+
+Prefer changes that can be understood in isolation. Don't create dependencies
+that make one edit ripple across the system. If your change forces edits in
+several distant places, the design is wrong — surface that, don't paper over it.
+Rationale: orthogonality + low change-amplification = one-pass reviewability.
+
+### 5. DRY means knowledge, not characters
+
+Do not duplicate a piece of KNOWLEDGE (a rule, a decision, a format). Before
+adding code, search for an existing function/representation and reuse it. But do
+NOT abstract two things that merely look alike — duplicated code is fine when it
+encodes different knowledge. When unsure, leave it duplicated and flag it.
+Rationale: DRY is about single authoritative representation of knowledge
+(Hunt & Thomas); premature abstraction is its own legibility cost.
+
+### 6. No unrequested generality
+
+Build what was asked, simply. Do not add configuration, extension points,
+speculative abstractions, or "future-proofing" no one requested. Prefer the
+boring, conventional solution that behaves the way a reader expects.
+Rationale: the second-system effect (Brooks) — over-engineering is your default
+failure mode; least surprise (Hunt & Thomas) lowers reader load.
+
+### 7. Make it reversible; verify before you trust
+
+Prefer changes that are easy to undo. Always supply the means to verify
+correctness (a test, a command, a reproduction). If you cannot verify it, say so
+explicitly rather than presenting it as done.
+Rationale: reversibility + verification protect the human's ability to stay in
+control of a theory they did not write.
+
+### Boundary: judgment stays human
+
+These rules constrain you; they do not replace the engineer's judgment. When a
+rule conflicts with what clearly makes this codebase more maintainable, follow
+the local convention and say why. Do not follow these rules so literally that
+you suppress the local craft of this codebase.
 
 ## Repository layout
 
