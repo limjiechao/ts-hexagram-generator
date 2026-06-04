@@ -315,3 +315,19 @@ describe('flowReducer — lineRewound', () => {
     expect(next).toBe(state)
   })
 })
+
+// Seam 8: `lineRewound` (manual-only) never null-checks `castingPlan` — it
+// relies on the invariant that a manual flow never carries a plan. Pin that
+// invariant at the entry point so the rewind path's safety is guarded.
+describe('manual flow carries no casting plan', () => {
+  it('manual querySubmit enters casting with a null plan', () => {
+    const s = initialFlowState('manual', null, null)
+    const withQuery = flowReducer(s, {
+      type: 'queryChange',
+      value: 'a question',
+    })
+    const after = flowReducer(withQuery, { type: 'querySubmit' })
+    expect(after.mode).toBe('casting')
+    expect(after.castingPlan).toBeNull()
+  })
+})

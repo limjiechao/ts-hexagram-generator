@@ -75,6 +75,9 @@ export type FlowAction =
   // rewinds clear the current line's casts; post-line-completion rewinds drop
   // back to the previous line. No-op outside `mode === 'casting'`, when
   // `flowKind !== 'manual'`, or at line 0 cast 0.
+  // This branch reads `castingPlan` nowhere and relies on the invariant that a
+  // manual flow never carries one (a plan is set only by the random flow's
+  // `querySubmit`; see "manual flow carries no casting plan" in the tests).
   | { type: 'lineRewound' }
 
 // Use the same ANSI-pattern regex as `viewer-layout.ts` to avoid duplicating
