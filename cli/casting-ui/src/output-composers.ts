@@ -1,4 +1,5 @@
 import { getEmergingHexagram } from '@hexagram/core/getters'
+import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import {
   castingSection,
@@ -9,7 +10,6 @@ import {
   standingHexagramSection,
   transformationSection,
 } from '@hexagram/readout'
-import { isMovingLine } from '@hexagram/viewer-core'
 
 /**
  * Compose the full plain console output. Kept as a thin composer over the
