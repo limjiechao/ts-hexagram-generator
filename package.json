@@ -23,8 +23,8 @@
     "node": ">=24.6.0"
   },
   "scripts": {
-    "check:affected": "turbo run format:check lint:check type:check test build --affected --concurrency=100% --log-order=grouped",
-    "check:all": "turbo run format:check lint:check type:check test build --force --concurrency=100% --log-order=grouped",
+    "check:affected": "turbo run format:check lint:check boundaries:check type:check test build --affected --concurrency=100% --log-order=grouped",
+    "check:all": "turbo run format:check lint:check boundaries:check type:check test build --force --concurrency=100% --log-order=grouped",
     "format:check": "oxfmt --check",
     "format:fix": "oxfmt --write",
     "lint:check": "oxlint && eslint --cache .",
