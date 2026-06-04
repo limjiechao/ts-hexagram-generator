@@ -1,8 +1,8 @@
 # Package decomposition: docs/adr/0002-monorepo-structure-and-package-decomposition.md
 # Publishing & module strategy: docs/adr/0003-package-publishing-and-module-strategy.md
 packages:
-  - 'packages/*'
-  - 'apps/*'
+  - 'domain/*'
+  - 'cli/*'
 
 allowBuilds:
   esbuild: true
