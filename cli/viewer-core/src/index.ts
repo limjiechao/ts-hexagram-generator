@@ -11,7 +11,6 @@
 export {
   deriveBannerLine,
   lineColors,
-  polarityOf,
   type LineCells,
   type LinePolarity,
   type LineRole,
@@ -66,7 +65,6 @@ export {
   assertLine1ToLine6,
   isLine1ToLine6,
   isLineIndex,
-  isMovingLine,
 } from './utils-validators.js'
 
 // Viewer chrome — TabBar / FooterBar / QueryBox / scrolling primitives.

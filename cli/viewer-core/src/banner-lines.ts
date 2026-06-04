@@ -9,12 +9,12 @@
 // readout, the home banner, and the playground can all share one
 // glyph + role vocabulary without `playground-ui` depending on `shell`.
 
+import { type LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
 
 import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL_GREY } from './output-palette.js'
 
-/** A line's polarity: `yang` is solid, `yin` is broken. */
-export type LinePolarity = 'yang' | 'yin'
+export type { LinePolarity }
 
 /**
  * The colour role of an animated hexagram line — the shell maps this to
@@ -39,15 +39,6 @@ const YANG_STATIC = '━━━━━━━━━'
 const YANG_MOVING = '━━━━○━━━━'
 const YIN_STATIC = '━━━   ━━━'
 const YIN_MOVING = '━━━ ✕ ━━━'
-
-/**
- * Classify a casting `Line` value by polarity. Solid lines (7 young yang,
- * 9 moving yang) are `yang`; broken lines (8 young yin, 6 moving yin) are
- * `yin`.
- */
-export function polarityOf(line: Line): LinePolarity {
-  return line === 7 || line === 9 ? 'yang' : 'yin'
-}
 
 /** The colour role for a line, by its moving + pulse state. */
 function roleOf(moving: boolean, pulse: boolean): LineRole {

@@ -1,9 +1,3 @@
-import type { Line } from '@hexagram/core/types'
-
-export function isMovingLine(line: Line): line is Extract<Line, 6 | 9> {
-  return line === 6 || line === 9
-}
-
 type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
 export function isLineIndex(
   maybeLineIndex: unknown,
