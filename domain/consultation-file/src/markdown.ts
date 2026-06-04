@@ -1,4 +1,5 @@
-import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
+import { hasMovingLines } from '@hexagram/core/line-semantics'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 
 import {
   castingMarkdownSection,
@@ -8,10 +9,6 @@ import {
   standingHexagramMarkdownSection,
   transformationMarkdownSection,
 } from './markdown-sections.js'
-
-function hasMovingLines(hexagram: Hexagram): boolean {
-  return hexagram.some((line: Line) => line === 6 || line === 9)
-}
 
 /**
  * Compose the Markdown body for a consultation. The frontmatter envelope is
