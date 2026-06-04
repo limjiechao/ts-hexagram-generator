@@ -18,14 +18,12 @@ export {
 } from './playground-keymap.js'
 
 // Pure line helpers — exported so other tools (an alternative CLI, a web
-// adapter) can drive the same cycle/flip/derivation logic.
+// adapter) can drive the same derivation logic. The pure Line algebra
+// (cycle/flip/moving-index) now lives in @hexagram/core/line-semantics;
+// import it from there directly.
 export {
   buildPlaygroundDerivation,
-  cycleLineBackward,
-  cycleLineForward,
-  flipPolarity,
   INITIAL_HEXAGRAM,
-  movingLineIndices,
   setLineAt,
   type PlaygroundDerivation,
 } from './playground-lines.js'

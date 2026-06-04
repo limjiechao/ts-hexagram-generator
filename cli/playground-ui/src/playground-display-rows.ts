@@ -1,3 +1,4 @@
+import { isMovingLine, polarityOf } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
 import { MOVING_ARROW, STATIC_GAP } from '@hexagram/readout'
 import {
@@ -5,10 +6,8 @@ import {
   BOLD_RED,
   BOLD_WHITE,
   deriveBannerLine,
-  isMovingLine,
   NORMAL,
   NORMAL_GREY,
-  polarityOf,
 } from '@hexagram/viewer-core'
 
 import {
