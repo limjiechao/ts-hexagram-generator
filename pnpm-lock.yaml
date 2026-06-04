@@ -63,38 +63,14 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@24.12.4)(vite@6.3.5(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.29.3)(tsx@4.21.0)(yaml@2.9.0))
 
-  apps/cli:
-    dependencies:
-      '@hexagram/casting-ui':
-        specifier: workspace:*
-        version: link:../../packages/casting-ui
-      '@hexagram/consultation-file':
-        specifier: workspace:*
-        version: link:../../packages/consultation-file
-      '@hexagram/core':
-        specifier: workspace:*
-        version: link:../../packages/core
-      '@hexagram/history-ui':
-        specifier: workspace:*
-        version: link:../../packages/history-ui
-      '@hexagram/playground-ui':
-        specifier: workspace:*
-        version: link:../../packages/playground-ui
-      '@hexagram/shell':
-        specifier: workspace:*
-        version: link:../../packages/shell
-      '@hexagram/viewer-core':
-        specifier: workspace:*
-        version: link:../../packages/viewer-core
-
-  packages/casting-ui:
+  cli/casting-ui:
     dependencies:
       '@hexagram/consultation-file':
         specifier: workspace:*
-        version: link:../consultation-file
+        version: link:../../domain/consultation-file
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
@@ -130,35 +106,38 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
-  packages/consultation-file:
+  cli/cli:
     dependencies:
+      '@hexagram/casting-ui':
+        specifier: workspace:*
+        version: link:../casting-ui
+      '@hexagram/consultation-file':
+        specifier: workspace:*
+        version: link:../../domain/consultation-file
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
-      dayjs:
-        specifier: ^1.11.20
-        version: 1.11.20
-      gray-matter:
-        specifier: ^4.0.3
-        version: 4.0.3
-      js-yaml:
-        specifier: ^3.14.1
-        version: 3.14.2
-    devDependencies:
-      '@types/js-yaml':
-        specifier: ^3.12.10
-        version: 3.12.10
+        version: link:../../domain/core
+      '@hexagram/history-ui':
+        specifier: workspace:*
+        version: link:../history-ui
+      '@hexagram/playground-ui':
+        specifier: workspace:*
+        version: link:../playground-ui
+      '@hexagram/shell':
+        specifier: workspace:*
+        version: link:../shell
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../viewer-core
 
-  packages/core: {}
-
-  packages/history-ui:
+  cli/history-ui:
     dependencies:
       '@hexagram/consultation-file':
         specifier: workspace:*
-        version: link:../consultation-file
+        version: link:../../domain/consultation-file
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
@@ -182,14 +161,14 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
-  packages/playground-ui:
+  cli/playground-ui:
     dependencies:
       '@hexagram/consultation-file':
         specifier: workspace:*
-        version: link:../consultation-file
+        version: link:../../domain/consultation-file
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
@@ -216,11 +195,11 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
-  packages/readout:
+  cli/readout:
     dependencies:
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core
@@ -247,14 +226,14 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
-  packages/shell:
+  cli/shell:
     dependencies:
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../casting-ui
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       '@hexagram/history-ui':
         specifier: workspace:*
         version: link:../history-ui
@@ -281,13 +260,13 @@ importers:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
 
-  packages/test-utils: {}
+  cli/test-utils: {}
 
-  packages/viewer-core:
+  cli/viewer-core:
     dependencies:
       '@hexagram/core':
         specifier: workspace:*
-        version: link:../core
+        version: link:../../domain/core
       ink:
         specifier: ^7.0.3
         version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
@@ -313,6 +292,27 @@ importers:
       ink-testing-library:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
+
+  domain/consultation-file:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      dayjs:
+        specifier: ^1.11.20
+        version: 1.11.20
+      gray-matter:
+        specifier: ^4.0.3
+        version: 4.0.3
+      js-yaml:
+        specifier: ^3.14.1
+        version: 3.14.2
+    devDependencies:
+      '@types/js-yaml':
+        specifier: ^3.12.10
+        version: 3.12.10
+
+  domain/core: {}
 
 packages:
 
