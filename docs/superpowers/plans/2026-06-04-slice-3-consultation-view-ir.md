@@ -2,9 +2,11 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Introduce one medium-neutral "consultation view" intermediate representation (IR) — owned by a new `@hexagram/consultation-view` package — that holds the presentation vocabulary, the section order, and the emerging gate exactly once, and reduce the three parallel renderers (ANSI readout, Markdown body, the two divergent composers) to thin serializers over that IR while keeping every rendered byte identical.
+**Goal:** Introduce one medium-neutral "consultation view" intermediate representation (IR) — owned by a new `@hexagram/consultation-view` package — that holds the presentation vocabulary, the section order, and the emerging gate exactly once, and reduce the *four* parallel renderers (ANSI readout, Markdown body, the two divergent consultation composers, AND the playground's third copy of the diagram/identity stack) to thin serializers over that IR. Every rendered byte stays identical **except one deliberate, reviewed change**: the `--plain` console output adopts the single canonical IR section order, moving the LINES block to last so all surfaces agree (see decision (B) below).
 
-**Architecture:** Today the same presentation knowledge — the line-diagram glyph map, `POSITION_LABELS`, `LINE_LABELS`, the 12-column `LEDGER_COLUMNS` geometry, transformation geometry (`RIGHT_COLUMN`, `MOVING_ARROW`, `STATIC_GAP`), section order, and the no/one/multi-moving emerging gate — is reimplemented in `@hexagram/readout` (ANSI) and `@hexagram/consultation-file` (Markdown), with two divergent composer functions (`buildConsultationSections` and `consultationConsoleOutput`). This slice creates `@hexagram/consultation-view` (depending only on `@hexagram/core` and `@hexagram/text-layout`) that owns the vocabulary, a typed **IR** — a discriminated union of *section descriptors* whose payloads are pure data (no ANSI, no Markdown) — and **one** assembly function `buildConsultationView(query, hexagram, casting)` that produces the ordered section list and applies the emerging gate via `@hexagram/core/line-semantics`. Each renderer becomes a *serializer* of that IR: `cli/readout` walks the IR producing ANSI strings (the Ink `ConsultationReadout` component, scroll, and auto-follow are untouched — only the string building moves), `domain/consultation-file` walks the same IR producing Markdown, and the two composers collapse into one IR-driven path. The IR deliberately keeps *structural* knowledge (which sections, in what order, with what semantic rows/cells) central while leaving *medium formatting* (ANSI palette + `padToColumn` vs `text`-fenced Markdown) inside each serializer — that division is what makes byte-identity provable. The existing byte-identity fixtures are the regression gate.
+**Architecture:** Today the same presentation knowledge — the line-diagram glyph map, `POSITION_LABELS`, `LINE_LABELS`, the 12-column `LEDGER_COLUMNS` geometry, transformation geometry (`RIGHT_COLUMN`, `MOVING_ARROW`, `STATIC_GAP`), the hexagram identity stack (`#N 名（pinyin）` / Wilhelm-Baynes / `Upper:` / `Lower:` trigram rows), section order, and the no/one/multi-moving emerging gate — is reimplemented in **three** places: `@hexagram/readout` (ANSI), `@hexagram/consultation-file` (Markdown), and `@hexagram/playground-ui` (its own `playground-display-*` diagram + `identityRows`), with two divergent consultation composers (`buildConsultationSections` and `consultationConsoleOutput`). This slice creates `@hexagram/consultation-view` (depending only on `@hexagram/core` and `@hexagram/text-layout`) that owns the vocabulary, a typed **IR** — a discriminated union of *section descriptors* whose payloads are pure data (no ANSI, no Markdown) — and **one** assembly function `buildConsultationView(query, hexagram, casting)` that produces the ordered section list and applies the emerging gate via `@hexagram/core/line-semantics`. Each renderer becomes a *serializer* of that IR: `cli/readout` walks the IR producing ANSI strings (the Ink `ConsultationReadout` component, scroll, and auto-follow are untouched — only the string building moves), `domain/consultation-file` walks the same IR producing Markdown, the two consultation composers collapse into one IR-driven path, and `cli/playground-ui`'s display becomes a serializer of an IR **subset** (the hexagram-identity + diagram-row data — no casting ledger, no text sections) rather than its own third copy of the glyph map / position labels / identity geometry. The IR deliberately keeps *structural* knowledge (which sections, in what order, with what semantic rows/cells) central while leaving *medium formatting* (ANSI palette + `padToColumn` vs `text`-fenced Markdown vs the playground's chevron/pulse Ink rows) inside each serializer — that division is what makes byte-identity provable.
+
+**On "byte-identity" precision (decision B — harmonize, not preserve):** the section *order* across surfaces is NOT uniform today. The markdown body already emits LINES last (the canonical order). The Ink viewer groups sections into independent tab strings (LINES rides inside the `standing` tab; `emerging` is its own tab), so it has no LINES-vs-emerging linear ordering to break. Only the `--plain` console composer (`consultationConsoleOutput`) is the outlier: it emits LINES *before* the emerging diagram/text. This slice **harmonizes** that — the plain projector adopts the canonical IR order (LINES last) rather than reordering back to legacy. Consequently the plain fixtures change (an intended, reviewed behaviour change isolated in its own commit, Task 3d.3); the Ink and Markdown fixtures stay byte-for-byte identical. "Byte-identical" therefore applies fully to Ink + Markdown, and to the plain output's *content* — only the plain output's section *order* changes (the emerging/LINES swap). The existing fixtures are the regression gate; the one fixture set that legitimately changes is called out explicitly where it happens.
 
 **Tech Stack:** TypeScript, vitest, Ink, tsdown, pnpm workspaces
 
@@ -49,11 +51,17 @@ Post-reorg path map used throughout this plan:
 | **3a** | Scaffold `@hexagram/consultation-view`: vocabulary, IR types, `buildConsultationView` assembly, unit tests. Nothing else consumes it yet. | yes — new package builds + tests pass; no renderer touched |
 | **3b** | Cut `cli/readout` over to an IR→ANSI serializer. Byte-identity gate via `plain-output-*.txt` + `ink-sections-*.json`. | yes — readout serializes from IR; fixtures unchanged |
 | **3c** | Cut `domain/consultation-file` Markdown body over to an IR→Markdown serializer. Byte-identity gate via `md-body-*.md` + `md-file-*.md`. | yes — markdown serializes from IR; fixtures unchanged |
-| **3d** | Collapse `buildConsultationSections` (readout) and `consultationConsoleOutput` (casting-ui) into one IR-driven path; point playground vocabulary at consultation-view. | yes — one composer path; all fixtures unchanged |
+| **3d** | Collapse `buildConsultationSections` (readout) and `consultationConsoleOutput` (casting-ui) into one IR-driven path; delete the shims; then **harmonize the plain section order** (LINES last) in its own isolated commit. | yes — one composer path; Ink + Markdown fixtures unchanged; plain fixtures change ONCE (intended) in the dedicated harmonize commit |
+| **3e** | Cut `cli/playground-ui`'s display over to a consumer of the consultation-view IR: the hexagram-identity + diagram-row data come from a `@hexagram/consultation-view` sub-builder, and `playground-display-*` becomes a thin Ink serializer over that subset. The third copy of the glyph map / position labels / identity geometry is eliminated. | yes — playground's existing render tests are the regression gate; no fixture file involved |
 
 Each phase is a separate commit (often several). The **whole point** is that
 `pnpm generate-fixtures` produces a **no-op `git diff`** at every phase boundary
-from 3b onward. Any byte change is a regression, not a new ground truth.
+from 3b onward — **with one deliberate exception:** the dedicated
+"harmonize --plain section order" commit (Task 3d.3) intentionally regenerates
+`plain-output-*.txt` with the LINES-block move. That single diff is the only
+sanctioned byte change in the whole slice; every other byte change is a
+regression, not a new ground truth. The Ink (`ink-sections-*.json`) and Markdown
+(`md-body-*.md` / `md-file-*.md`) fixtures never change.
 
 ---
 
@@ -484,13 +492,26 @@ It mirrors the order baked into both current composers:
 >   (`linesNoMovingBlock`), which the ANSI side renders via a SEPARATE
 >   `hexagramTextSection`.
 >
-> These are NOT the same section list. The IR therefore carries the *full,
-> superset* ordered section list, and **each serializer projects the subset/order
-> it needs** (3b groups into tabs + console order; 3c re-orders LINES last and
-> folds the no-moving hexagram text into the LINES section). The assembly's job
-> is to produce every section once with correct data and the emerging gate; the
-> per-medium ordering quirks live in the serializers, documented there. Do NOT
-> try to make one linear order satisfy all three — that would change bytes.
+> These are NOT identical section streams today. The IR carries the *full,
+> superset* ordered section list in the **single canonical order** (LINES last —
+> the order markdown already uses), and **each serializer projects the
+> subset/order it needs**:
+> - **Markdown (3c)** already emits LINES last and folds the no-moving hexagram
+>   text into the LINES section → it consumes the canonical order directly.
+> - **Ink tabs (3b)** group sections into independent tab *strings* (LINES rides
+>   inside the `standing` tab; `emerging` is its own tab). Because the tabs are
+>   separate strings, there is no LINES-vs-emerging linear ordering to preserve —
+>   the tab grouping is order-neutral and stays byte-identical.
+> - **Plain console (3d)** is the ONE outlier: today it emits LINES *before* the
+>   emerging diagram/text. Per decision (B) we **harmonize** this — the plain
+>   projector adopts the canonical IR order (LINES last) rather than reordering
+>   back to legacy. This is the slice's single intended byte change, isolated in
+>   Task 3d.3.
+>
+> The assembly's job is to produce every section once with correct data, in the
+> canonical order, with the emerging gate applied. Do NOT bake the old plain
+> ordering quirk into the IR or the plain serializer — the harmonized order is
+> the target, and the regenerated plain fixture is the proof it landed cleanly.
 
 - [ ] Create `domain/consultation-view/src/ledger-geometry.ts` exposing the cast/line → row mapping + the auto-follow row math (moved out of `casting-ledger.ts` so the geometry is owned centrally; the ANSI serializer re-exports it for the viewer):
   ```ts
@@ -1237,16 +1258,18 @@ from `@hexagram/text-layout`. No ANSI; `LEDGER_GUTTER = ' │ '`.
 
 ---
 
-# Phase 3d — Collapse the two composers + point playground at the vocabulary
+# Phase 3d — Collapse the two composers + harmonize the plain section order
 
 **Intent:** Remove the divergence between `buildConsultationSections` (readout)
 and `consultationConsoleOutput` (casting-ui) by giving the console output its own
-IR projection, deleting the section-builder shims, and re-pointing the
-playground's three vocabulary imports at `@hexagram/consultation-view`.
+IR projection and deleting the section-builder shims. Then, in a **separate,
+clearly-labelled commit** (Task 3d.3), harmonize the `--plain` console section
+order to the single canonical IR order (LINES last), so all surfaces speak one
+order. That harmonize commit is the slice's only sanctioned byte change.
 
-**Deliberately NOT doing:** The full playground-display refactor (its own
-diagram/identity row rendering) is OUT OF SCOPE for this slice — see the
-scoped task 3d.3. This slice only re-points the *vocabulary* imports.
+**Deliberately NOT doing:** The full playground-display cutover is handled in its
+own Phase 3e (it is now IN scope for the slice — the third copy of the
+glyph/identity stack is eliminated there). Phase 3d touches no playground code.
 
 ## Task 3d.1 — `consultationConsoleOutput` projects the IR directly
 
@@ -1255,43 +1278,52 @@ scoped task 3d.3. This slice only re-points the *vocabulary* imports.
 - Create: `cli/readout/src/serialize-ansi.ts` — add `serializeConsoleOutput(view): string`
 - Modify: `cli/readout/src/index.ts` (export `serializeConsoleOutput`)
 
-The console output order is: `\n\n` + query, casting, transformation, standing
-HEXAGRAM, standing hexagram TEXT, [LINES if moving], [emerging HEXAGRAM, emerging
-hexagram TEXT] + `\n`. This is the linear ANSI section list — NOT grouped into
-tabs. Build it by walking `view.sections` and emitting each via its ANSI
-serializer, in the IR's own order, with the no-moving LINES section suppressed
-(the `linesBlock` returns `''` for no-moving in the ANSI path).
+In THIS task the console output keeps its **legacy** order so the structural
+cutover is a pure no-op against the fixtures (the order change is deferred to its
+own commit, Task 3d.3). The legacy order is: `\n\n` + query, casting,
+transformation, standing HEXAGRAM, standing hexagram TEXT, **[LINES if moving],
+[emerging HEXAGRAM, emerging hexagram TEXT]** + `\n` — i.e. LINES *before*
+emerging. Build it by walking `view.sections` but emitting them in that legacy
+order, with the no-moving LINES section suppressed (the LINES `text` serializer
+returns `''` for no-moving in the ANSI path).
 
-- [ ] Add `serializeConsoleOutput(view: ConsultationView): string` to `serialize-ansi.ts`:
+- [ ] Add `serializeConsoleOutput(view: ConsultationView): string` to `serialize-ansi.ts`. Project the IR into the **legacy plain order** (LINES before emerging) so this commit is byte-clean; index the sections by kind/role rather than relying on the IR's canonical list order:
   ```ts
   export function serializeConsoleOutput(view: ConsultationView): string {
-    const parts: string[] = []
-    for (const s of view.sections) {
-      switch (s.kind) {
-        case 'query': parts.push(serializeQueryAnsi(s)); break
-        case 'casting': parts.push(serializeCastingAnsi(s)); break
-        case 'transformation': parts.push(serializeTransformationAnsi(s)); break
-        case 'hexagram': parts.push(serializeHexagramAnsi(s)); break
-        case 'text': {
-          const out = serializeTextAnsi(s)
-          if (out !== '') parts.push(out) // no-moving LINES → '' (suppressed)
-          break
-        }
-      }
+    const byKind = view.sections
+    const query = byKind.find((s) => s.kind === 'query')!
+    const casting = byKind.find((s) => s.kind === 'casting')!
+    const transformation = byKind.find((s) => s.kind === 'transformation')!
+    const hexes = byKind.filter((s) => s.kind === 'hexagram') // [standing, (emerging?)]
+    const hexTexts = byKind.filter((s) => s.kind === 'text' && s.role === 'hexagram')
+    const linesSection = byKind.find((s) => s.kind === 'text' && s.role === 'lines')!
+
+    const parts: string[] = [
+      serializeQueryAnsi(query as QuerySection),
+      serializeCastingAnsi(casting as CastingSection),
+      serializeTransformationAnsi(transformation as TransformationSection),
+      serializeHexagramAnsi(hexes[0] as HexagramSection),   // standing diagram
+      serializeTextAnsi(hexTexts[0] as TextSection),        // standing hexagram text
+    ]
+    // LEGACY plain order: LINES (if any) BEFORE the emerging block.
+    const linesOut = serializeTextAnsi(linesSection as TextSection)
+    if (linesOut !== '') parts.push(linesOut) // no-moving → '' (suppressed)
+    if (view.hasMovingLines) {
+      parts.push(
+        serializeHexagramAnsi(hexes[1] as HexagramSection),  // emerging diagram
+        serializeTextAnsi(hexTexts[1] as TextSection),       // emerging hexagram text
+      )
     }
     return `\n\n${parts.join('\n\n')}\n`
   }
   ```
-  > **Order check:** the IR order is query, casting, transformation,
-  > hexagram:standing, text:hexagram, [hexagram:emerging, text:hexagram],
-  > text:lines. The current `consultationConsoleOutput` order is query, casting,
-  > transformation, standingHexagram, hexagramText(standing), [linesBlock],
-  > [emergingHexagram, hexagramText(emerging)]. **These differ:** the console
-  > puts LINES *before* emerging; the IR puts `text:lines` *last*. Resolve by
-  > emitting in the CONSOLE's order, not the IR list order — i.e. the console
-  > projector must reorder: …standing text, LINES (if moving), emerging diagram,
-  > emerging text. Implement the projector to match `plain-output-*.txt`
-  > exactly; the fixture gate is the arbiter. Do NOT assume list order suffices.
+  > **Why legacy order HERE:** decision (B) is to harmonize the plain order, but
+  > the harmonize is a reviewed *behaviour change* that must land in its own
+  > commit (3d.3) so a reviewer sees the order swap in isolation from the
+  > structural IR cutover. So Task 3d.1 reproduces the existing plain order
+  > exactly (clean fixture diff); Task 3d.3 then flips this projector to the
+  > canonical order. The `plain-output-*.txt` fixture gate is the arbiter at both
+  > steps — clean here, one intended swap there.
 - [ ] Rewrite `cli/casting-ui/src/output-composers.ts`:
   ```ts
   import { buildConsultationView } from '@hexagram/consultation-view'
@@ -1322,33 +1354,243 @@ serializer, in the IR's own order, with the no-moving LINES section suppressed
 - [ ] `pnpm --filter @hexagram/readout type:check && pnpm --filter @hexagram/readout test && pnpm --filter @hexagram/casting-ui test`. Expected: clean.
 - [ ] Commit: `readout: remove section-builder shims (IR is the only path)`.
 
-## Task 3d.3 — Point the playground vocabulary at consultation-view (scoped)
+## Task 3d.3 — Harmonize the `--plain` section order (LINES last) — ISOLATED behaviour change
+
+**Files:**
+- Modify: `cli/readout/src/serialize-ansi.ts` (`serializeConsoleOutput` only)
+- Regenerate: `cli/casting-ui/tests/fixtures/plain-output-*.txt`
+
+> **This is the slice's ONE sanctioned byte change.** Per decision (B) we
+> harmonize the plain console order to the single canonical IR order rather than
+> preserving the legacy quirk. Keeping it in its own commit lets a reviewer see
+> the section-order swap in isolation from the (byte-clean) structural cutover in
+> Task 3d.1. The intended diff: the LINES block moves from *before* the emerging
+> diagram/text to **after** it (matching the Ink viewer's tab grouping and the
+> saved `.md` body). Nothing else in the plain output changes.
+
+- [ ] Change `serializeConsoleOutput` to emit in the **canonical IR order** — walk `view.sections` in their natural order, with the no-moving LINES section suppressed (`''`):
+  ```ts
+  export function serializeConsoleOutput(view: ConsultationView): string {
+    const parts: string[] = []
+    for (const s of view.sections) {
+      switch (s.kind) {
+        case 'query': parts.push(serializeQueryAnsi(s)); break
+        case 'casting': parts.push(serializeCastingAnsi(s)); break
+        case 'transformation': parts.push(serializeTransformationAnsi(s)); break
+        case 'hexagram': parts.push(serializeHexagramAnsi(s)); break
+        case 'text': {
+          const out = serializeTextAnsi(s)
+          if (out !== '') parts.push(out) // no-moving LINES → '' (suppressed)
+          break
+        }
+      }
+    }
+    return `\n\n${parts.join('\n\n')}\n`
+  }
+  ```
+  > Now the projector is a straight walk of the IR's canonical order: query,
+  > casting, transformation, hexagram:standing, text:hexagram(standing),
+  > [hexagram:emerging, text:hexagram(emerging)], text:lines. The LINES block is
+  > last, exactly as markdown and the Ink `standing` tab already place it. The
+  > index-by-kind reordering from Task 3d.1 is deleted — this is simpler AND
+  > correct under the harmonized order.
+- [ ] **REGENERATE THE PLAIN FIXTURES (intended diff):**
+  ```bash
+  pnpm --filter @hexagram/casting-ui generate-fixtures
+  git diff -- cli/casting-ui/tests/fixtures/plain-output-one-moving.txt
+  git diff -- cli/casting-ui/tests/fixtures/plain-output-multi-moving.txt
+  ```
+  Expected: the ONLY change is the EMERGING block and the LINES block swapping
+  position in the moving cases (`plain-output-one-moving.txt`,
+  `plain-output-multi-moving.txt`). The no-moving and empty-query fixtures
+  (`plain-output-no-moving.txt`, `plain-output-empty-query.txt`) are UNCHANGED
+  (no emerging block → no swap). Inspect the diff and confirm it is *purely* the
+  section-order move — no content, whitespace, or glyph change inside any
+  section. If anything else moved, STOP: the serializer regressed.
+- [ ] **VERIFY Ink + Markdown stayed identical:**
+  ```bash
+  git status --porcelain -- cli/casting-ui/tests/fixtures/ink-sections-*.json
+  pnpm --filter @hexagram/consultation-file generate-fixtures
+  git status --porcelain -- domain/consultation-file/tests/fixtures
+  ```
+  Expected: BOTH empty. The Ink tab strings are order-neutral (LINES lives inside
+  the `standing` tab string regardless), and markdown already emitted LINES last,
+  so neither changes under harmonization.
+- [ ] Run the shipping fixture tests: `pnpm --filter @hexagram/casting-ui test -- output`. Expected: pass against the regenerated plain fixtures.
+- [ ] Commit (clearly labelled as the behaviour change): `casting-ui: harmonize --plain section order — LINES block now last (matches Ink + .md)`.
+
+**Phase 3d complete.** One consultation composer path; the section-builder shims
+are gone; the plain console now speaks the single canonical order. Ink + Markdown
+fixtures byte-unchanged; the plain fixtures carry exactly one reviewed diff (the
+LINES-block move).
+
+---
+
+# Phase 3e — Cut the playground display over to a consumer of the IR
+
+**Intent:** Eliminate the THIRD copy of the presentation knowledge. The
+playground's top-half display (`playground-display.ts` +
+`playground-display-rows.ts` + `playground-display-identity.ts`) independently
+rebuilds the hexagram-identity stack (`#N 名（pinyin）` / Wilhelm-Baynes /
+`Upper:` / `Lower:` trigram rows — `identityRows`), the side-by-side
+standing/emerging diagram rows, the `Standing Hexagram`/`Emerging Hexagram`
+header, and the `MOVING_ARROW`/`STATIC_GAP` gap geometry — duplicating exactly
+what `transformationSection` + the IR's `HexagramIdentity` + `DiagramLineRow`
+already encode. Make the playground a **consumer of a consultation-view IR
+subset**: the identity strings and diagram-row data come from
+`@hexagram/consultation-view`; `playground-display-*` keeps ONLY its
+playground-specific Ink presentation (focus chevron, pulse-driven colour, the
+4-state-explorer dim-ghost mirror, its own `padCellToWidth`/`TOP_HALF_WIDTH`
+geometry).
+
+**Why a SUBSET, not the whole `ConsultationView`:** the playground renders a
+live 4-state line explorer, not a saved consultation — it has no query, no
+casting ledger, no scripture/exegesis text sections, and it paints a *pulse* and
+a *dim-ghost emerging mirror* that the consultation document never shows. Forcing
+the whole document through it would be wrong. So consultation-view exposes a small
+named sub-builder for the two pieces the playground actually shares — the
+hexagram identity and the diagram rows — and the playground composes its Ink rows
+from those. The playground's existing render tests
+(`playground-display*.test.ts`, `top-half-width-invariant.test.ts`) are the
+regression gate; there is no fixture file for the playground.
+
+**Deliberately NOT doing:** Not changing the playground's geometry constants
+(`BAR_BLOCK_WIDTH`, `GAP_WIDTH`, `TOP_HALF_WIDTH`, `IDENTITY_DIVIDER_WIDTH`),
+its chevron/pulse/dim-ghost behaviour, or its Ink component tree. Only the
+*data* (identity strings, diagram line values + positions + moving flags) and
+the shared vocabulary (`POSITION_LABELS`, `MOVING_ARROW`, `STATIC_GAP`,
+`LINE_GLYPH` if duplicated) move to consultation-view.
+
+## Task 3e.1 — Expose the identity/diagram subset from consultation-view
+
+**Files:**
+- Modify: `domain/consultation-view/src/build-view.ts` (export `hexagramIdentity` + `hexagramDiagramRows`)
+- Modify: `domain/consultation-view/src/index.ts`
+- Create: `domain/consultation-view/tests/identity-subset.test.ts`
+
+The IR already computes both pieces internally (`identityOf`, `diagramRows`).
+Promote them to a clean public sub-builder so the playground can reuse them
+without going through `buildConsultationView` (which would force a query +
+casting it does not have).
+
+- [ ] In `build-view.ts`, export the two helpers under stable public names (keep the internal callers using them):
+  ```ts
+  /** Public sub-builder: the hexagram identity strings (no record traversal in consumers). */
+  export function hexagramIdentity(hexagram: Hexagram): HexagramIdentity {
+    return identityOf(hexagram)
+  }
+
+  /** Public sub-builder: the top-first diagram rows (line value, position, moving flag). */
+  export function hexagramDiagramRows(
+    hexagram: Hexagram,
+    movingFrom: Hexagram = hexagram,
+  ): readonly DiagramLineRow[] {
+    return diagramRows(hexagram, movingFrom)
+  }
+  ```
+  > **WHY a thin wrapper over the existing private functions:** `identityOf` /
+  > `diagramRows` already encode the EXACT field extraction the playground's
+  > `identityRows` duplicates (note the matching `capitalizeFirst` on the trigram
+  > pinyin). Exposing them — rather than copying — is the whole point of the
+  > slice. Keep the wrappers paper-thin so there is one authoritative extraction.
+- [ ] Export both from `domain/consultation-view/src/index.ts` alongside `buildConsultationView`.
+- [ ] Write `domain/consultation-view/tests/identity-subset.test.ts` asserting `hexagramIdentity` returns the four playground rows' source strings and `hexagramDiagramRows` returns 6 top-first rows with correct `moving` flags (pin against a known hexagram, e.g. `#9 小畜`, the playground width worst-case).
+- [ ] `pnpm --filter @hexagram/consultation-view test && pnpm --filter @hexagram/consultation-view build`. Expected: clean.
+- [ ] Commit: `consultation-view: expose hexagramIdentity + hexagramDiagramRows sub-builders`.
+
+## Task 3e.2 — Playground identity stack consumes `hexagramIdentity`
+
+**Files:**
+- Modify: `cli/playground-ui/src/playground-display-identity.ts`
+- Modify: `cli/playground-ui/package.json` (add `@hexagram/consultation-view` dep)
+
+The playground's `identityRows` builds four strings from
+`getHexagramRecord`/`getTrigramRecord` — character-for-character the same
+extraction as the IR's `HexagramIdentity` (same `capitalizeFirst`, same
+`#${wenwang} ${chinese}（${pinyin}）` / `Upper: …` / `Lower: …` shapes). Rebuild
+`identityRows` to compose those four strings from `hexagramIdentity(hexagram)`
+instead of re-querying the records.
+
+- [ ] Add `@hexagram/consultation-view` to `cli/playground-ui/package.json` deps; `pnpm install`.
+- [ ] Rewrite `identityRows` to read from `hexagramIdentity`:
+  ```ts
+  import { hexagramIdentity } from '@hexagram/consultation-view'
+  import type { Hexagram } from '@hexagram/core/types'
+
+  export function identityRows(
+    hexagram: Hexagram,
+  ): readonly [string, string, string, string] {
+    const id = hexagramIdentity(hexagram)
+    return [
+      `#${id.wenWang} ${id.chineseTraditional}（${id.pinyin}）`,
+      id.englishWilhelmBaynes,
+      `Upper: ${id.upperTrigramChinese} ${id.upperTrigramPinyin} (${id.upperTrigramEnglish})`,
+      `Lower: ${id.lowerTrigramChinese} ${id.lowerTrigramPinyin} (${id.lowerTrigramEnglish})`,
+    ] as const
+  }
+  ```
+  > **Byte check on the trigram English:** the playground's `identityRows`
+  > applies `capitalizeFirst` to `upperEnglish`/`lowerEnglish`, but the IR's
+  > `HexagramIdentity.upperTrigramEnglish` is the RAW `Imagery.English.WilhelmBaynes`
+  > (no capitalization — the ANSI/markdown transformation footer does not
+  > capitalize it). VERIFY this against the playground tests: if the playground
+  > needs the capitalized form, either (a) wrap with `capitalizeFirst` here, or
+  > (b) confirm the trigram imagery already starts capitalized. Read the actual
+  > strings and the existing `playground-display-identity` test before deleting
+  > the local `capitalizeFirst` import; keep whichever makes the playground tests
+  > pass. This is the one spot where the two extractions might legitimately
+  > differ — resolve it explicitly, do not assume parity.
+- [ ] Delete the now-unused `getHexagramRecord`/`getTrigramRecord` imports (and `capitalizeFirst` if the IR's strings already match).
+- [ ] `pnpm --filter @hexagram/playground-ui type:check && pnpm --filter @hexagram/playground-ui test`. Expected: the playground identity-stack render tests pass unchanged.
+- [ ] Commit: `playground-ui: identity stack consumes consultation-view hexagramIdentity`.
+
+## Task 3e.3 — Playground diagram rows + vocabulary consume the IR
 
 **Files:**
 - Modify: `cli/playground-ui/src/playground-display.ts`
 - Modify: `cli/playground-ui/src/playground-display-rows.ts`
-- Modify: `cli/playground-ui/package.json` (add `@hexagram/consultation-view` dep)
 
-The playground imports `POSITION_LABELS` (from `playground-display.ts`) and
-`MOVING_ARROW`, `STATIC_GAP` (from `playground-display-rows.ts`) — currently via
-`@hexagram/readout`. Re-point those three imports at
-`@hexagram/consultation-view` (their canonical home).
+The playground's `buildPlaygroundDisplay` iterates `5..0` building
+`buildLineRow` inputs from `standing[lineIndex]` / `emerging[lineIndex]` +
+`POSITION_LABELS`, and `buildLineRow` chooses `gap = MOVING_ARROW : STATIC_GAP`
+off `isMovingLine(standingLine)`. All of that is exactly the IR's
+`DiagramLineRow` data. Re-point the vocabulary imports and drive the row loop
+off `hexagramDiagramRows`.
 
-- [ ] Add `@hexagram/consultation-view` to `cli/playground-ui/package.json` deps; `pnpm install`.
-- [ ] Change the two import lines to pull `POSITION_LABELS`, `MOVING_ARROW`, `STATIC_GAP` from `@hexagram/consultation-view`.
-- [ ] Optionally re-point the playground's own `LINE_DIAGRAM`/glyph + `LINE_LABELS` (if any duplicate `LINE_GLYPH`) at consultation-view's `LINE_GLYPH`. Inspect `cli/playground-ui/src/playground-display-rows.ts` for a local glyph map; if present and byte-identical, swap it for `LINE_GLYPH`.
-- [ ] `pnpm --filter @hexagram/playground-ui type:check && pnpm --filter @hexagram/playground-ui test`. Expected: clean (playground render tests unchanged).
-- [ ] **OUT OF SCOPE flag (do NOT do here):** the playground's full diagram +
-  identity-row renderer (`playground-display-rows.ts` line builders,
-  `identityRows` in `playground-display-identity.ts`, `IDENTITY_DIVIDER_WIDTH`)
-  duplicates the transformation/identity layout. Folding that onto the IR's
-  `HexagramIdentity` + `DiagramLineRow` is a worthwhile follow-on but would
-  balloon this slice (the playground renders a *different* shape — a 4-state
-  explorer, not a saved consultation). Leave a tracking note: "follow-on:
-  migrate playground-display onto consultation-view IR identity/diagram rows".
-- [ ] Commit: `playground-ui: import presentation vocabulary from consultation-view`.
+- [ ] Re-point `POSITION_LABELS` (in `playground-display.ts`) and `MOVING_ARROW` / `STATIC_GAP` (in `playground-display-rows.ts`) from `@hexagram/readout` to `@hexagram/consultation-view` (their canonical home). If `playground-display-rows.ts` carries a local `LINE_GLYPH`-equivalent glyph map, swap it for the IR's `LINE_GLYPH`.
+- [ ] In `buildPlaygroundDisplay`, derive the per-line inputs from `hexagramDiagramRows(standing)` and `hexagramDiagramRows(emerging)` (the `line`, `position`, and `moving` fields) rather than indexing the raw `Hexagram` tuples and re-deriving `POSITION_LABELS[lineIndex+1]` / `isMovingLine` inline. Keep the playground's `focusIndex`, `pulse`, `hasMoving`, chevron, and dim-ghost logic exactly as-is — those are the playground-specific presentation the IR does NOT own.
+  > **Keep the moving flag source honest:** `buildLineRow` currently recomputes
+  > `isMovingLine(standingLine)`. The IR's `DiagramLineRow.moving` already carries
+  > this. Pass the IR row's `moving` through instead of recomputing, so the
+  > playground and the consultation transformation can never disagree about which
+  > line is moving. The pulse/colour choice stays in the playground.
+- [ ] `pnpm --filter @hexagram/playground-ui type:check && pnpm --filter @hexagram/playground-ui test`. Expected: `playground-display.test.ts`, `playground-display-rows.test.ts`, `top-half-width-invariant.test.ts` all pass unchanged — the rendered bytes are identical because the data source is the same extraction, just centralized.
+- [ ] Commit: `playground-ui: drive diagram rows + gap geometry from consultation-view IR`.
 
-## Task 3d.4 — Full-suite verification + ADR
+## Task 3e.4 — Confirm the third copy is gone
+
+**Files:**
+- (verification only)
+
+- [ ] Confirm the playground no longer queries hexagram/trigram records for display geometry, nor re-declares the vocabulary:
+  ```bash
+  grep -rn "getHexagramRecord\|getTrigramRecord\|POSITION_LABELS\s*=\|MOVING_ARROW\s*=\|STATIC_GAP\s*=\|LINE_GLYPH\s*=" cli/playground-ui/src
+  ```
+  Expected: no display-side record lookups and no local re-declarations of the shared vocabulary (any remaining record lookups belong to non-display modules like `playground-lines.ts` / `playground-state.ts` — confirm none are in `playground-display-*`).
+- [ ] `grep -rn "@hexagram/readout" cli/playground-ui/src` — expected: empty (the playground's only consultation-presentation dependency is now `@hexagram/consultation-view`; it no longer reaches into readout for vocabulary).
+- [ ] `pnpm --filter @hexagram/playground-ui test`. Expected: green.
+- [ ] Commit (if the grep surfaced any straggler import to clean up): `playground-ui: drop the last @hexagram/readout vocabulary import`.
+
+**Phase 3e complete.** The third copy of the glyph map / position labels /
+identity geometry is eliminated; the playground display is a thin Ink serializer
+over the consultation-view identity + diagram-row subset. Its existing render
+tests are green and unchanged.
+
+---
+
+# Phase 3f — Full-suite verification + ADR
+
+## Task 3f.1 — Full-suite verification + ADR
 
 **Files:**
 - Create: `docs/adr/0018-consultation-view-ir.md`
@@ -1363,46 +1605,62 @@ The playground imports `POSITION_LABELS` (from `playground-display.ts`) and
   pnpm test
   ```
   Expected: all green. (The slow `rng distribution` block in core runs ~40s; that is expected.)
-- [ ] **FINAL BYTE-IDENTITY GATE:** regenerate BOTH fixture sets and confirm a fully clean tree:
+- [ ] **FINAL FIXTURE GATE (one intended diff, already committed):** regenerate BOTH fixture sets and confirm the tree is clean — i.e. the only byte change in the whole slice (the harmonized plain order) is already committed, so a fresh regen now yields nothing:
   ```bash
   pnpm generate-fixtures
   pnpm --filter @hexagram/consultation-file generate-fixtures
   git status --porcelain -- '*/tests/fixtures'
   ```
-  Expected: **EMPTY** output. Every `plain-output-*.txt`, `ink-sections-*.json`, `md-body-*.md`, `md-file-*.md` is byte-for-byte the pre-slice ground truth. This is the proof that plain/Ink/Markdown output is unchanged.
-- [ ] Run the CI-contention stress check before opening the PR (Ink components moved indirectly via the readout serializer; cheap pass):
+  Expected: **EMPTY** output. `ink-sections-*.json`, `md-body-*.md`, `md-file-*.md` are byte-for-byte the pre-slice ground truth; `plain-output-*.txt` matches the post-harmonize ground truth committed in Task 3d.3. (If `plain-output-*.txt` shows further drift here, a serializer regressed AFTER the harmonize commit — STOP and bisect.)
+- [ ] Run the CI-contention stress check before opening the PR (Ink components moved indirectly via the readout serializer + the playground display; cheap pass):
   ```bash
   pnpm test:stress:once
   ```
   Expected: green across all four concurrent passes.
-- [ ] Write `docs/adr/0018-consultation-view-ir.md` (Accepted): the decision to centralize the consultation presentation vocabulary + section IR + single assembly in `@hexagram/consultation-view`, with the renderers as thin serializers; record the considered options (leave duplicated / subpath in readout / full IR package — chosen) and the consequence that the IR carries semantic structure while serializers own medium formatting (the seam that preserves byte-identity). Cross-link ADR-0016 (it superseded the "all consultation rendering has one home" claim — now the *vocabulary + structure* home is consultation-view; readout owns ANSI serialization + the Ink component).
-- [ ] Add the ADR-0018 row to `docs/adr/README.md` and update its status line for 0016 if appropriate (note the deepening, do not edit 0016 in place beyond a pointer).
-- [ ] Update the repository-layout list in `AGENTS.md` (and the mirrored note in `CLAUDE.md` if present) to include `domain/consultation-view` with its one-line description and its place in the DAG (`core` + `text-layout` → `consultation-view` → `readout` + `consultation-file`).
+- [ ] Write `docs/adr/0018-consultation-view-ir.md` (Accepted): the decision to centralize the consultation presentation vocabulary + section IR + single assembly in `@hexagram/consultation-view`, with the FOUR renderers (ANSI readout, Markdown body, the collapsed console composer, AND the playground display) as thin serializers; record the considered options (leave duplicated / subpath in readout / full IR package — chosen) and the consequence that the IR carries semantic structure while serializers own medium formatting (the seam that preserves byte-identity). Record the harmonize-plain-order decision and its consequence (plain `--plain` section order changed once, intentionally, to match Ink + `.md`). Note that the playground consumes only the identity/diagram **subset** of the IR. Cross-link ADR-0016 — this ADR DEEPENS it: 0016 claimed "all consultation rendering has one home"; 0018 records that the *vocabulary + structure + assembly* home is now `consultation-view`, with readout owning ANSI serialization + the Ink component. State the deepening relative to ADR-0016 explicitly.
+- [ ] Add the ADR-0018 row to `docs/adr/README.md` and note the deepening of 0016 (do not edit 0016 in place beyond a pointer to 0018).
+- [ ] Update the repository-layout list in `AGENTS.md` (and the mirrored note in `CLAUDE.md` if present) to include `domain/consultation-view` with its one-line description and its place in the DAG (`core` + `text-layout` → `consultation-view` → `readout` + `consultation-file` + `playground-ui`).
 - [ ] Commit: `docs: record consultation-view IR decision (ADR-0018) + layout`.
 
-**Phase 3d complete.** One IR, one assembly, one vocabulary; three thin
-serializers; every fixture byte-identical.
+**Phase 3f complete.** One IR, one assembly, one vocabulary; FOUR thin
+serializers (ANSI readout, Markdown body, console composer, playground display);
+Ink + Markdown fixtures byte-identical; plain fixtures carry exactly one
+reviewed, committed section-order change.
 
 ---
 
 ## Regression-gate summary (the contract of this slice)
 
-The slice succeeds iff, after every phase from 3b on, regenerating the fixtures
-yields **no `git diff`**:
+The slice has ONE sanctioned byte change: the harmonized `--plain` section order
+(LINES last), landed in Task 3d.3 with its own committed fixture regen. With that
+exception, regenerating the fixtures at every phase boundary from 3b on yields
+**no `git diff`**:
 
 ```bash
 pnpm generate-fixtures                                   # plain-output-*.txt + ink-sections-*.json
 pnpm --filter @hexagram/consultation-file generate-fixtures  # md-body-*.md + md-file-*.md
-git status --porcelain -- '*/tests/fixtures'             # MUST be empty
+git status --porcelain -- '*/tests/fixtures'             # MUST be empty (post-3d.3 ground truth)
 ```
 
 - **Plain (`--plain` console) output** is locked by `plain-output-*.txt` via
-  `output.test.ts`'s `consultationConsoleOutput` fixture-parity block.
+  `output.test.ts`'s `consultationConsoleOutput` fixture-parity block. These
+  fixtures change EXACTLY ONCE, in Task 3d.3 (the LINES block moves to last in
+  the moving cases — `plain-output-one-moving.txt`,
+  `plain-output-multi-moving.txt`; the no-moving / empty-query fixtures are
+  unaffected). After that commit they are stable ground truth.
 - **Ink viewer** tab strings are locked by `ink-sections-*.json` via
-  `output.test.ts`'s `buildConsultationSections` fixture-parity block.
+  `output.test.ts`'s `buildConsultationSections` fixture-parity block —
+  byte-identical throughout (tab grouping is order-neutral).
 - **Markdown saved file** (body + full file) is locked by `md-body-*.md` /
-  `md-file-*.md` via `consultation-file`'s `fixtures.test.ts`.
+  `md-file-*.md` via `consultation-file`'s `fixtures.test.ts` —
+  byte-identical throughout (markdown already emits LINES last).
+- **Playground display** has no fixture file; its standing regression gate is
+  `cli/playground-ui`'s render tests (`playground-display*.test.ts`,
+  `top-half-width-invariant.test.ts`), which stay green and unchanged through
+  Phase 3e (the data source moves to the IR but the rendered bytes do not).
 
-These three are the proof that plain, Ink, and Markdown output are unchanged.
-The per-phase temporary *parity tests* (serializer vs legacy builder) are a
-finer-grained scaffold that is deleted once the fixture gate stands alone.
+These are the proof that Ink + Markdown output are unchanged, that plain content
+is unchanged (only its section order is harmonized), and that the playground
+render is unchanged. The per-phase temporary *parity tests* (serializer vs legacy
+builder) are a finer-grained scaffold that is deleted once the fixture gate
+stands alone.

@@ -2,15 +2,19 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Make `@hexagram/core` the single authoritative home for `Line → Line` / boolean line algebra (moving-line predicate, moving-index extraction, polarity, polarity-flip, forward cycle) so a Next.js app can reuse it without touching any CLI package, and delete every scattered duplicate.
+**Goal:** Make `@hexagram/core` the single authoritative home for `Line → Line` / boolean line algebra (moving-line predicate, moving-index extraction, polarity, polarity-flip, forward/backward cycle) so a Next.js app can reuse it without touching any CLI package, and delete every scattered duplicate.
 
-**Architecture:** A new pure module `domain/core/src/line-semantics.ts` exports six functions over the `Line`/`Hexagram` vocabulary already defined in `@hexagram/core/types`. It is wired as the `@hexagram/core/line-semantics` subpath, mirroring exactly how `/getters` and `/casting-derivation` are exported (package.json `exports` block + `tsdown.config.ts` entry). Every current copy — `isMovingLine` (in `cli/viewer-core` and a private copy in `domain/consultation-file`), the inline `=== 6 || === 9` checks (`domain/consultation-file/src/markdown.ts`, `cli/history-ui/src/history-list-transforms.ts`), and `flipPolarity` / `cycleLineForward` / `polarityOf` / `movingLineIndices` (in `cli/playground-ui` and `cli/viewer-core/src/banner-lines.ts`) — is deleted and its imports repointed at the new subpath. Glyphs and labels stay where they are (those are Slice 3); only pure `Line`-algebra moves.
+**Architecture:** A new pure module `domain/core/src/line-semantics.ts` exports six functions over the `Line`/`Hexagram` vocabulary already defined in `@hexagram/core/types`. It is wired as the `@hexagram/core/line-semantics` subpath, mirroring exactly how `/getters` and `/casting-derivation` are exported (package.json `exports` block + `tsdown.config.ts` entry). Every current copy — `isMovingLine` (in `cli/viewer-core` and a private copy in `domain/consultation-file`), the inline `=== 6 || === 9` checks (`domain/consultation-file/src/markdown.ts`, `cli/history-ui/src/history-list-transforms.ts`), and `flipPolarity` / `cycleLineForward` / `cycleLineBackward` / `polarityOf` / `movingLineIndices` (in `cli/playground-ui` and `cli/viewer-core/src/banner-lines.ts`) — is deleted. **Every consumer is repointed DIRECTLY at `@hexagram/core/line-semantics`** — no barrel re-export passthrough. The `cli/viewer-core` barrel (`utils-validators.ts` / `banner-lines.ts`) and the `cli/playground-ui` barrel (`playground-lines.ts`) stop re-exporting these symbols entirely. Glyphs and labels stay where they are (those are Slice 3); only pure `Line`-algebra moves.
 
 **Tech Stack:** TypeScript, vitest, tsdown, pnpm workspaces
 
 > **Path note (post-Slice-0):** This plan assumes Slice 0 has merged the package move. `core` and `consultation-file` live under `domain/`; `viewer-core`, `readout`, `casting-ui`, `history-ui`, `playground-ui`, `shell` live under `cli/`. All file paths below use the post-Slice-0 layout (`domain/core/...`, `cli/viewer-core/...`). The `@hexagram/*` package names are unchanged, so all `import` specifiers and `pnpm --filter @hexagram/...` commands are identical to today.
 
-> **Scope decision — `cycleLineBackward` travels with `cycleLineForward`.** The brief lists `cycleLineForward` but not `cycleLineBackward`. They share one piece of knowledge: the `CYCLE_FORWARD = [7, 9, 8, 6]` total order. Splitting them would either duplicate that array across two packages or make `cli/playground-ui` re-derive the cycle — both violate "DRY means knowledge." So this plan moves **both** `cycleLineForward` and `cycleLineBackward` into `line-semantics.ts` (the backward step is `cycleLineForward`'s inverse over the same order) and re-exports `cycleLineBackward` alongside. The other shared decisions (subpath name `@hexagram/core/line-semantics`; the six named functions; glyphs/labels out of scope) are honoured exactly.
+> **Reviewer decision — FULL REPOINT, no barrel passthrough.** An earlier draft re-exported the moved functions through the existing barrels (`viewer-core`'s `utils-validators` / `banner-lines`, `playground-ui`'s `playground-lines`) so downstream files kept importing e.g. `isMovingLine` from `@hexagram/viewer-core`. **That passthrough is rejected.** Instead, *every* file that imports any of `{ isMovingLine, movingLineIndices, hasMovingLines, polarityOf, flipPolarity, cycleLineForward, cycleLineBackward }` imports it DIRECTLY from `@hexagram/core/line-semantics`, and the barrels REMOVE those re-exports. The list of import sites is enumerated concretely in the tasks below — there is no "and any other importers." Rationale: one authoritative import path per symbol (DRY-of-knowledge), no hidden indirection a reviewer must chase through a barrel, and the web adapter never has to learn that a CLI barrel happens to forward core's algebra.
+
+> **Scope decision — `cycleLineBackward` travels with `cycleLineForward`.** The brief lists `cycleLineForward` but not `cycleLineBackward`. They share one piece of knowledge: the `CYCLE_FORWARD = [7, 9, 8, 6]` total order. Splitting them would either duplicate that array across two packages or make `cli/playground-ui` re-derive the cycle — both violate "DRY means knowledge." So this plan moves **both** `cycleLineForward` and `cycleLineBackward` into `line-semantics.ts` (the backward step is `cycleLineForward`'s inverse over the same order). The other shared decisions (subpath name `@hexagram/core/line-semantics`; the named functions; glyphs/labels out of scope) are honoured exactly.
+
+> **Type note — `LinePolarity` travels with `polarityOf`.** `polarityOf`'s return type `LinePolarity = 'yang' | 'yin'` currently lives in `cli/viewer-core/src/banner-lines.ts`. Because `polarityOf` moves to core, its type moves with it — `line-semantics.ts` defines and exports `LinePolarity`. `banner-lines.ts` keeps `deriveBannerLine` (a glyph/render function — Slice 3 scope) and imports `type LinePolarity` from core for that signature; the viewer-core barrel re-exports `LinePolarity` from `banner-lines.js` as before (it is the polarity *type* the render layer uses, not one of the seven moved functions). No consumer imports `LinePolarity` as a value, so this is a pure type wiring with no behavioural surface.
 
 ---
 
@@ -343,9 +347,9 @@ EOF
 
 ---
 
-## Task 3: Repoint `cli/viewer-core` — delete its `isMovingLine`, keep the Line type only
+## Task 3: Repoint `cli/viewer-core` — delete its `isMovingLine` / `polarityOf` and STOP re-exporting them
 
-`viewer-core/src/utils-validators.ts` owns `isMovingLine`; `banner-lines.ts` owns `polarityOf`. Both move to core. The package's `index.ts` re-exports `isMovingLine` and `polarityOf`, and `output-composers.ts` / `output-sections.ts` (in `cli/readout`) import `isMovingLine` from `@hexagram/viewer-core`. To keep this slice small and avoid touching `cli/readout`, the `viewer-core` barrel re-exports `isMovingLine` and `polarityOf` from `@hexagram/core/line-semantics` (the barrel stays the same export surface; only the source changes).
+`cli/viewer-core/src/utils-validators.ts` owns `isMovingLine`; `cli/viewer-core/src/banner-lines.ts` owns `polarityOf` (and the `LinePolarity` type). Both functions move to core. The barrel (`index.ts`) currently re-exports `isMovingLine` (from `utils-validators.js`) and `polarityOf` (from `banner-lines.js`). **Both re-exports of these two functions are removed** — downstream consumers will import them directly from `@hexagram/core/line-semantics` in later tasks. `LinePolarity` (the *type*) travels to core but stays re-exported through `banner-lines.js` because `deriveBannerLine` (a glyph/render function, Slice 3 scope) keeps its signature.
 
 **Files:**
 - Modify: `cli/viewer-core/src/utils-validators.ts`
@@ -372,7 +376,7 @@ After (the `Line` import is now unused in this file — remove it):
 type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
 ```
 
-- [ ] In `cli/viewer-core/src/banner-lines.ts`, delete the local `polarityOf` and import it from core instead. The `LinePolarity` type also now lives in core, so import it too (it is used by `deriveBannerLine`'s parameter and the `LineCells` neighbours). Before (the import block + the function):
+- [ ] In `cli/viewer-core/src/banner-lines.ts`, delete the local `polarityOf` definition (orig. lines 48–50) and the local `LinePolarity` type definition (orig. lines 16–17), and import `type LinePolarity` from core (`deriveBannerLine`'s `polarity: LinePolarity` parameter still needs the type). `polarityOf` itself is NOT re-imported here — viewer-core no longer uses it internally; its consumers (shell, playground-display-rows) repoint directly to core. Before (import block + the type alias):
 
 ```ts
 import type { Line } from '@hexagram/core/types'
@@ -386,23 +390,48 @@ export type LinePolarity = 'yang' | 'yin'
 After:
 
 ```ts
-import { polarityOf, type LinePolarity } from '@hexagram/core/line-semantics'
+import { type LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
 
 import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL_GREY } from './output-palette.js'
 ```
 
-  > Note: `LinePolarity` is now re-exported from `banner-lines.ts` via `export type { LinePolarity }` further wiring — see the next sub-step. Keep the `re-export` so downstream `import { LinePolarity } from '@hexagram/viewer-core'` still resolves.
+  > Note: re-exporting `LinePolarity` from this file (so the barrel keeps `export { ..., type LinePolarity } from './banner-lines.js'`) requires the imported type be re-exported. A bare `import { type LinePolarity }` makes it locally visible but not re-exported. Add an explicit re-export line near the top of the file (see next sub-step) so `index.ts` is untouched.
 
-- [ ] Still in `banner-lines.ts`, delete the now-duplicate `polarityOf` function body (the `export function polarityOf(...) { ... }` block, originally lines 43–50) since it is imported from core. Then re-export it and the type so the `viewer-core` barrel and `cli/playground-ui` keep their existing import surface. Add near the imports or at the bottom of the file:
+- [ ] Still in `banner-lines.ts`, delete the now-duplicate `polarityOf` function body (the `export function polarityOf(...) { ... }` block, orig. lines 43–50). Then re-export the `LinePolarity` type so the barrel keeps it. Add after the import block:
 
 ```ts
-export { polarityOf, type LinePolarity }
+export type { LinePolarity }
 ```
 
-  > Rationale: `banner-lines.ts` previously *defined* `polarityOf` and `LinePolarity`; `index.ts` re-exports them from `./banner-lines.js`. Re-exporting the core versions through `banner-lines.ts` keeps `index.ts` and every `@hexagram/viewer-core` consumer untouched in this slice.
+  > Rationale: `banner-lines.ts` previously *defined* `polarityOf` and `LinePolarity`; the barrel re-exported both from `./banner-lines.js`. After this slice `banner-lines.ts` no longer defines or re-exports `polarityOf` (that is a clean delete — the barrel drops it), but it still surfaces `LinePolarity` for `deriveBannerLine`'s render-layer consumers.
 
-- [ ] In `cli/viewer-core/src/index.ts`, change the `isMovingLine` re-export source. Currently `isMovingLine` is re-exported from `./utils-validators.js` (lines 64–70). Move it to the `banner-lines.js` re-export block or add a dedicated core re-export. Simplest: re-export `isMovingLine` directly from core. Before:
+- [ ] In `cli/viewer-core/src/index.ts`, **delete** the `isMovingLine` re-export from the validators block, and **delete** `polarityOf` from the banner-lines re-export block. The barrel no longer forwards either function. Before (banner-lines re-export, lines 11–18):
+
+```ts
+export {
+  deriveBannerLine,
+  lineColors,
+  polarityOf,
+  type LineCells,
+  type LinePolarity,
+  type LineRole,
+} from './banner-lines.js'
+```
+
+After (drop `polarityOf`; keep `LinePolarity` and the glyph/render exports):
+
+```ts
+export {
+  deriveBannerLine,
+  lineColors,
+  type LineCells,
+  type LinePolarity,
+  type LineRole,
+} from './banner-lines.js'
+```
+
+  And before (validators re-export, lines 64–70):
 
 ```ts
 // Pure validators / type guards shared by the renderers.
@@ -414,7 +443,7 @@ export {
 } from './utils-validators.js'
 ```
 
-After:
+After (drop `isMovingLine` — it is no longer defined here):
 
 ```ts
 // Pure validators / type guards shared by the renderers.
@@ -423,32 +452,29 @@ export {
   isLine1ToLine6,
   isLineIndex,
 } from './utils-validators.js'
-
-// Line semantics now live in @hexagram/core; re-exported here so existing
-// @hexagram/viewer-core consumers (readout, playground-ui) keep one import.
-export { isMovingLine } from '@hexagram/core/line-semantics'
 ```
 
-- [ ] Run viewer-core's tests and type-check (`banner-lines.test.ts` exercises `polarityOf` through the barrel/module):
+- [ ] Run viewer-core's tests and type-check. NOTE: `cli/viewer-core/tests/banner-lines.test.ts` imports `polarityOf` (it tests the polarity classifier). Because `polarityOf` no longer lives in this package, repoint that test's import to core. In `cli/viewer-core/tests/banner-lines.test.ts`, change the `polarityOf` import source from the local module to `@hexagram/core/line-semantics` (verify the exact current import line — it imports from `../src/banner-lines` or `@hexagram/viewer-core`; repoint just the `polarityOf` symbol to `@hexagram/core/line-semantics`, leaving `deriveBannerLine` / `lineColors` / types on the local import). Then run:
 
 ```bash
 pnpm --filter @hexagram/viewer-core test
 pnpm --filter @hexagram/viewer-core type:check
 ```
 
-Expected output: all tests pass; type-check exits 0. (No source changes were needed in `cli/readout` because it imports `isMovingLine` from `@hexagram/viewer-core`, which still resolves.)
+Expected output: all tests pass; type-check exits 0.
 
 - [ ] Commit:
 
 ```bash
-git add cli/viewer-core/src/utils-validators.ts cli/viewer-core/src/banner-lines.ts cli/viewer-core/src/index.ts
+git add cli/viewer-core/src/utils-validators.ts cli/viewer-core/src/banner-lines.ts cli/viewer-core/src/index.ts cli/viewer-core/tests/banner-lines.test.ts
 git commit -m "$(cat <<'EOF'
-viewer-core: source isMovingLine/polarityOf from @hexagram/core
+viewer-core: delete isMovingLine/polarityOf, stop re-exporting them
 
-Delete viewer-core's local copies of the moving-line predicate and the
-polarity classifier; re-export the core versions through the same barrel
-so readout/playground-ui consumers are unchanged. viewer-core now imports
-@hexagram/core for the Line type and these semantics only.
+Remove viewer-core's local copies of the moving-line predicate and the
+polarity classifier, and remove their barrel re-exports — consumers now
+import both directly from @hexagram/core/line-semantics (no passthrough).
+The LinePolarity type travels to core but stays re-exported via banner-lines
+for deriveBannerLine's render-layer signature.
 
 https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
 EOF
@@ -457,16 +483,239 @@ EOF
 
 ---
 
-## Task 4: Repoint `cli/playground-ui` — delete its line-algebra copies
+## Task 4: Repoint `cli/readout` — import `isMovingLine` directly from core
 
-`playground-lines.ts` owns `cycleLineForward`, `cycleLineBackward`, `flipPolarity`, `movingLineIndices` and imports `isMovingLine` from `@hexagram/viewer-core`. All four move to core. `setLineAt`, `INITIAL_HEXAGRAM`, `buildPlaygroundDerivation`, and the `PlaygroundDerivation` type stay (they are playground-specific, not pure Line algebra). The package re-exports the four moved functions through `playground-lines.ts` so `index.ts`, `playground-state.ts`, and the test files keep importing from `./playground-lines.js`.
+`cli/readout` imports `isMovingLine` from `@hexagram/viewer-core` in two files. Now that the barrel no longer re-exports it, both must import directly from `@hexagram/core/line-semantics`.
 
 **Files:**
-- Modify: `cli/playground-ui/src/playground-lines.ts`
+- Modify: `cli/readout/src/output-composers.ts`
+- Modify: `cli/readout/src/output-sections.ts`
 
 Steps:
 
-- [ ] In `cli/playground-ui/src/playground-lines.ts`, replace the four moved function definitions and the `viewer-core` `isMovingLine` import with imports + re-exports from core. Before (imports, lines 13–15):
+- [ ] In `cli/readout/src/output-composers.ts`, repoint the `isMovingLine` import (orig. line 7). Before:
+
+```ts
+import { isMovingLine } from '@hexagram/viewer-core'
+```
+
+After (insert the core import in alphabetical order with the other `@hexagram/core/*` imports near the top — it sorts before `@hexagram/core/types`):
+
+```ts
+import { isMovingLine } from '@hexagram/core/line-semantics'
+```
+
+  > Note: the file's other named imports from `@hexagram/viewer-core` (if any in the same statement) stay; only `isMovingLine` moves. Here `isMovingLine` is its own single-symbol import, so the whole line is replaced.
+
+- [ ] In `cli/readout/src/output-sections.ts`, `isMovingLine` is one symbol inside the multi-line `@hexagram/viewer-core` import block (orig. lines 7–16, with `isMovingLine` on line 13). Remove it from that block and add a dedicated core import. Before:
+
+```ts
+import {
+  getEmergingHexagram,
+  getHexagramRecord,
+  getTrigramRecord,
+} from '@hexagram/core/getters'
+import type { Hexagram, Line } from '@hexagram/core/types'
+import {
+  assertLine1ToLine6,
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  isLineIndex,
+  isMovingLine,
+  NORMAL,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
+```
+
+After (drop `isMovingLine` from the viewer-core block; add the core import alphabetically — `@hexagram/core/line-semantics` sorts after `/getters` and before `/types`):
+
+```ts
+import {
+  getEmergingHexagram,
+  getHexagramRecord,
+  getTrigramRecord,
+} from '@hexagram/core/getters'
+import { isMovingLine } from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+import {
+  assertLine1ToLine6,
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  isLineIndex,
+  NORMAL,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
+```
+
+- [ ] Run readout's tests and type-check:
+
+```bash
+pnpm --filter @hexagram/readout test
+pnpm --filter @hexagram/readout type:check
+```
+
+Expected output: all tests pass; type-check exits 0.
+
+- [ ] Commit:
+
+```bash
+git add cli/readout/src/output-composers.ts cli/readout/src/output-sections.ts
+git commit -m "$(cat <<'EOF'
+readout: import isMovingLine directly from @hexagram/core
+
+Repoint both readout output composers off the viewer-core barrel
+(which no longer re-exports it) onto @hexagram/core/line-semantics.
+
+https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
+EOF
+)"
+```
+
+---
+
+## Task 5: Repoint `cli/casting-ui` — import `isMovingLine` directly from core
+
+`cli/casting-ui/src/output-composers.ts` imports `isMovingLine` from `@hexagram/viewer-core`.
+
+**Files:**
+- Modify: `cli/casting-ui/src/output-composers.ts`
+
+Steps:
+
+- [ ] In `cli/casting-ui/src/output-composers.ts`, repoint the `isMovingLine` import (orig. line 12). Before (the relevant import lines):
+
+```ts
+import { getEmergingHexagram } from '@hexagram/core/getters'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
+import {
+  castingSection,
+  emergingHexagramSection,
+  hexagramTextSection,
+  linesBlock,
+  querySection,
+  standingHexagramSection,
+  transformationSection,
+} from '@hexagram/readout'
+import { isMovingLine } from '@hexagram/viewer-core'
+```
+
+After (move the `isMovingLine` import to core, alphabetically after `/getters` and before `/types`; drop the now-unneeded `@hexagram/viewer-core` import line):
+
+```ts
+import { getEmergingHexagram } from '@hexagram/core/getters'
+import { isMovingLine } from '@hexagram/core/line-semantics'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
+import {
+  castingSection,
+  emergingHexagramSection,
+  hexagramTextSection,
+  linesBlock,
+  querySection,
+  standingHexagramSection,
+  transformationSection,
+} from '@hexagram/readout'
+```
+
+  > Note: confirm `@hexagram/viewer-core` is not imported for any other symbol in this file before deleting the whole line. From the current source it imports only `isMovingLine`, so the line is removed entirely.
+
+- [ ] Run casting-ui's tests and type-check (the `--plain` output fixtures exercise `isMovingLine` through `consultationConsoleOutput`; behaviour is unchanged so fixtures pass):
+
+```bash
+pnpm --filter @hexagram/casting-ui test
+pnpm --filter @hexagram/casting-ui type:check
+```
+
+Expected output: all tests pass (including the plain-output fixtures); type-check exits 0. If a fixture fails, STOP — behaviour drifted; do not regenerate fixtures to paper over it.
+
+- [ ] Commit:
+
+```bash
+git add cli/casting-ui/src/output-composers.ts
+git commit -m "$(cat <<'EOF'
+casting-ui: import isMovingLine directly from @hexagram/core
+
+Repoint the plain-output composer off the viewer-core barrel onto
+@hexagram/core/line-semantics. Plain output is byte-identical (fixtures
+unchanged).
+
+https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
+EOF
+)"
+```
+
+---
+
+## Task 6: Repoint `cli/shell` — import `polarityOf` directly from core
+
+`cli/shell/src/banner-state.ts` imports `polarityOf` from `@hexagram/viewer-core` (alongside `deriveBannerLine` and the `LineCells` type, which stay on viewer-core — they are glyph/render exports).
+
+**Files:**
+- Modify: `cli/shell/src/banner-state.ts`
+
+Steps:
+
+- [ ] In `cli/shell/src/banner-state.ts`, remove `polarityOf` from the `@hexagram/viewer-core` import block (orig. lines 13–17) and add a dedicated core import. Before:
+
+```ts
+import type { Hexagram, Line } from '@hexagram/core/types'
+import {
+  deriveBannerLine,
+  polarityOf,
+  type LineCells,
+} from '@hexagram/viewer-core'
+```
+
+After (drop `polarityOf` from the viewer-core block; add the core import alphabetically before `@hexagram/core/types`):
+
+```ts
+import { polarityOf } from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+import { deriveBannerLine, type LineCells } from '@hexagram/viewer-core'
+```
+
+- [ ] Run shell's tests and type-check:
+
+```bash
+pnpm --filter @hexagram/shell test
+pnpm --filter @hexagram/shell type:check
+```
+
+Expected output: all tests pass; type-check exits 0.
+
+- [ ] Commit:
+
+```bash
+git add cli/shell/src/banner-state.ts
+git commit -m "$(cat <<'EOF'
+shell: import polarityOf directly from @hexagram/core
+
+Repoint the banner state machine's polarity classifier off the viewer-core
+barrel onto @hexagram/core/line-semantics. deriveBannerLine and LineCells
+stay on viewer-core (glyph/render layer).
+
+https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
+EOF
+)"
+```
+
+---
+
+## Task 7: Repoint `cli/playground-ui` — delete its line-algebra copies and STOP re-exporting them
+
+`cli/playground-ui/src/playground-lines.ts` defines `cycleLineForward`, `cycleLineBackward`, `flipPolarity`, `movingLineIndices` (and the `CYCLE_FORWARD` const) and imports `isMovingLine` from `@hexagram/viewer-core`. All four functions (and `isMovingLine`'s usage) move to / source from core. `setLineAt`, `INITIAL_HEXAGRAM`, `buildPlaygroundDerivation`, and the `PlaygroundDerivation` type stay (playground-specific, not pure Line algebra). The barrel currently forwards the four moved functions; that passthrough is **removed**. Every in-package consumer (`playground-state.ts`, `playground-display-rows.ts`, `index.ts`) and the test files import the moved functions DIRECTLY from `@hexagram/core/line-semantics`.
+
+**Files:**
+- Modify: `cli/playground-ui/src/playground-lines.ts`
+- Modify: `cli/playground-ui/src/playground-state.ts`
+- Modify: `cli/playground-ui/src/playground-display-rows.ts`
+- Modify: `cli/playground-ui/src/index.ts`
+- Modify: `cli/playground-ui/tests/playground-lines.test.ts`
+
+Steps:
+
+- [ ] In `cli/playground-ui/src/playground-lines.ts`, delete the `viewer-core` `isMovingLine` import (orig. line 15) and the four function definitions now living in core — `cycleLineForward` (orig. ~lines 26–34), `cycleLineBackward` (orig. ~36–47), `flipPolarity` (orig. ~52–66), `movingLineIndices` (orig. ~69–78) — along with the `CYCLE_FORWARD` const (orig. ~line 20) which now lives in core. Replace the imports so the file imports `isMovingLine` and `movingLineIndices` from core (the surviving `buildPlaygroundDerivation` calls `movingLineIndices`). The barrel/state/tests no longer import the moved functions from this module, so it re-exports NOTHING new. Before (imports, orig. lines 13–15):
 
 ```ts
 import { getEmergingHexagram } from '@hexagram/core/getters'
@@ -478,29 +727,145 @@ After:
 
 ```ts
 import { getEmergingHexagram } from '@hexagram/core/getters'
+import { movingLineIndices } from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+```
+
+  > Note: `isMovingLine` is dropped from this file's imports entirely — the only caller of `isMovingLine` here was the local `movingLineIndices`, which is now deleted (core's version uses core's `isMovingLine` internally). `buildPlaygroundDerivation` keeps calling `movingLineIndices` — now the core import. `Line` is still imported because `setLineAt`'s `next: Line` parameter uses it; keep the `@hexagram/core/types` import. Do NOT add any `export { ... }` re-export of the moved functions — the passthrough is removed.
+
+- [ ] In `cli/playground-ui/src/playground-state.ts`, repoint the three moved functions it imports. The reducer imports `cycleLineBackward`, `cycleLineForward`, `flipPolarity` from `./playground-lines.js` alongside `INITIAL_HEXAGRAM`, `setLineAt` (orig. import block lines 34–40). Split that: the three moved functions come from core; `INITIAL_HEXAGRAM` and `setLineAt` stay on the local module. Before:
+
+```ts
+import type { Hexagram, Line } from '@hexagram/core/types'
+
 import {
   cycleLineBackward,
   cycleLineForward,
   flipPolarity,
-  isMovingLine,
-  movingLineIndices,
-} from '@hexagram/core/line-semantics'
-import type { Hexagram, Line } from '@hexagram/core/types'
+  INITIAL_HEXAGRAM,
+  setLineAt,
+} from './playground-lines.js'
 ```
 
-- [ ] Delete the four function definitions now living in core: `cycleLineForward` (orig. lines 28–33), `cycleLineBackward` (orig. 39–46), `flipPolarity` (orig. 54–65), and `movingLineIndices` (orig. 71–77), along with the `CYCLE_FORWARD` const (orig. 21) which now lives in core. Keep `INITIAL_HEXAGRAM`, `setLineAt`, `buildPlaygroundDerivation`, and `PlaygroundDerivation`. `buildPlaygroundDerivation` still calls `movingLineIndices` — now the imported one.
-
-- [ ] Re-export the four moved functions so `index.ts`, `playground-state.ts`, and the tests keep importing from `./playground-lines.js`. Add after the imports:
+After:
 
 ```ts
-// Pure Line algebra now lives in @hexagram/core/line-semantics; re-exported
-// so playground-state, the barrel, and the unit tests keep one import path.
-export { cycleLineBackward, cycleLineForward, flipPolarity, movingLineIndices }
+import {
+  cycleLineBackward,
+  cycleLineForward,
+  flipPolarity,
+} from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+
+import { INITIAL_HEXAGRAM, setLineAt } from './playground-lines.js'
 ```
 
-  > Note: `Line` is still imported because `setLineAt`'s `next: Line` parameter uses it; keep the `@hexagram/core/types` import.
+- [ ] In `cli/playground-ui/src/playground-display-rows.ts`, repoint `isMovingLine` and `polarityOf` — both are currently inside the `@hexagram/viewer-core` import block (orig. lines 3–12, `isMovingLine` on line 8, `polarityOf` on line 11). Remove them from that block and import both from core. Before:
 
-- [ ] Run playground-ui's tests and type-check. `playground-lines.test.ts` imports all four from `../src/playground-lines` (re-export keeps it green); `playground-state.test.ts` and `playground-keymap.test.ts` exercise the reducer path:
+```ts
+import type { Hexagram, Line } from '@hexagram/core/types'
+import { MOVING_ARROW, STATIC_GAP } from '@hexagram/readout'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  deriveBannerLine,
+  isMovingLine,
+  NORMAL,
+  NORMAL_GREY,
+  polarityOf,
+} from '@hexagram/viewer-core'
+```
+
+After (drop `isMovingLine` and `polarityOf` from the viewer-core block; add the core import alphabetically before `@hexagram/core/types`):
+
+```ts
+import { isMovingLine, polarityOf } from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+import { MOVING_ARROW, STATIC_GAP } from '@hexagram/readout'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  deriveBannerLine,
+  NORMAL,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
+```
+
+- [ ] In `cli/playground-ui/src/index.ts`, the barrel re-exports `cycleLineBackward`, `cycleLineForward`, `flipPolarity`, `movingLineIndices` from `./playground-lines.js` (orig. lines 22–31). Those four no longer live in `playground-lines.js`, so **remove them from this re-export block**. Keep `buildPlaygroundDerivation`, `INITIAL_HEXAGRAM`, `setLineAt`, `PlaygroundDerivation` (still defined locally). Before:
+
+```ts
+// Pure line helpers — exported so other tools (an alternative CLI, a web
+// adapter) can drive the same cycle/flip/derivation logic.
+export {
+  buildPlaygroundDerivation,
+  cycleLineBackward,
+  cycleLineForward,
+  flipPolarity,
+  INITIAL_HEXAGRAM,
+  movingLineIndices,
+  setLineAt,
+  type PlaygroundDerivation,
+} from './playground-lines.js'
+```
+
+After:
+
+```ts
+// Pure line helpers — exported so other tools (an alternative CLI, a web
+// adapter) can drive the same derivation logic. The pure Line algebra
+// (cycle/flip/moving-index) now lives in @hexagram/core/line-semantics;
+// import it from there directly.
+export {
+  buildPlaygroundDerivation,
+  INITIAL_HEXAGRAM,
+  setLineAt,
+  type PlaygroundDerivation,
+} from './playground-lines.js'
+```
+
+  > Note: this is a public-API surface change for `@hexagram/playground-ui` — it no longer forwards core's Line algebra. That is intentional: the web adapter and any other consumer import those from `@hexagram/core/line-semantics`, the authoritative home. No in-repo consumer imports these four from `@hexagram/playground-ui` (verify with the whole-repo grep in Task 9).
+
+- [ ] In `cli/playground-ui/tests/playground-lines.test.ts`, repoint the four moved functions to core. The test imports `buildPlaygroundDerivation`, `cycleLineBackward`, `cycleLineForward`, `flipPolarity`, `INITIAL_HEXAGRAM`, `movingLineIndices`, `setLineAt` from `../src/playground-lines` (orig. lines 7–15). Split: the four moved functions from core; `buildPlaygroundDerivation`, `INITIAL_HEXAGRAM`, `setLineAt` stay local. Before:
+
+```ts
+import type { Hexagram } from '@hexagram/core/types'
+import { describe, expect, it } from 'vitest'
+
+import {
+  buildPlaygroundDerivation,
+  cycleLineBackward,
+  cycleLineForward,
+  flipPolarity,
+  INITIAL_HEXAGRAM,
+  movingLineIndices,
+  setLineAt,
+} from '../src/playground-lines'
+```
+
+After:
+
+```ts
+import {
+  cycleLineBackward,
+  cycleLineForward,
+  flipPolarity,
+  movingLineIndices,
+} from '@hexagram/core/line-semantics'
+import type { Hexagram } from '@hexagram/core/types'
+import { describe, expect, it } from 'vitest'
+
+import {
+  buildPlaygroundDerivation,
+  INITIAL_HEXAGRAM,
+  setLineAt,
+} from '../src/playground-lines'
+```
+
+  > Note: the cycle/flip/movingLineIndices behaviour these blocks assert is now also covered by `domain/core/tests/line-semantics.test.ts` (Task 1). Keeping the playground tests pointed at core verifies the repoint resolves; they may be trimmed in a later cleanup, but leave them here so this slice stays a pure move with no test-coverage loss. `playground-state.test.ts` and `playground-keymap.test.ts` exercise the reducer's `'flipPolarity'` *action* (not the function import) and need no change.
+
+- [ ] Run playground-ui's tests and type-check:
 
 ```bash
 pnpm --filter @hexagram/playground-ui test
@@ -512,15 +877,16 @@ Expected output: all tests pass; type-check exits 0.
 - [ ] Commit:
 
 ```bash
-git add cli/playground-ui/src/playground-lines.ts
+git add cli/playground-ui/src/playground-lines.ts cli/playground-ui/src/playground-state.ts cli/playground-ui/src/playground-display-rows.ts cli/playground-ui/src/index.ts cli/playground-ui/tests/playground-lines.test.ts
 git commit -m "$(cat <<'EOF'
-playground-ui: source line algebra from @hexagram/core
+playground-ui: source line algebra directly from @hexagram/core
 
 Delete playground-ui's copies of cycleLineForward/Backward, flipPolarity,
-and movingLineIndices (and the CYCLE_FORWARD order they shared); import and
-re-export the core versions through playground-lines so the reducer, barrel,
-and tests keep their import path. Playground-specific helpers (setLineAt,
-buildPlaygroundDerivation, INITIAL_HEXAGRAM) stay.
+and movingLineIndices (and the CYCLE_FORWARD order they shared); repoint
+the reducer, display rows, barrel, and unit tests directly at
+@hexagram/core/line-semantics — no passthrough through playground-lines.
+The barrel no longer forwards the Line algebra. Playground-specific helpers
+(setLineAt, buildPlaygroundDerivation, INITIAL_HEXAGRAM) stay.
 
 https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
 EOF
@@ -529,9 +895,9 @@ EOF
 
 ---
 
-## Task 5: Repoint `domain/consultation-file` — delete the private `isMovingLine` and inline `hasMovingLines`
+## Task 8: Repoint `domain/consultation-file` — delete the private `isMovingLine` and inline `hasMovingLines`
 
-`markdown-sections.ts` has a private `isMovingLine` (lines 29–31, returns `boolean`). `markdown.ts` has a private `hasMovingLines` with an inline `=== 6 || === 9` (lines 12–14). Both are replaced by core imports.
+`domain/consultation-file/src/markdown-sections.ts` has a private `isMovingLine` (returns `boolean`). `domain/consultation-file/src/markdown.ts` has a private `hasMovingLines` with an inline `=== 6 || === 9`. Both are replaced by direct core imports.
 
 **Files:**
 - Modify: `domain/consultation-file/src/markdown-sections.ts`
@@ -539,7 +905,7 @@ EOF
 
 Steps:
 
-- [ ] In `domain/consultation-file/src/markdown-sections.ts`, delete the private `isMovingLine` (lines 29–31) and import it from core. Add to the imports near the top (after the existing `@hexagram/core/getters` import block); the file already imports types from `@hexagram/core/types`. Add:
+- [ ] In `domain/consultation-file/src/markdown-sections.ts`, delete the private `isMovingLine` (orig. lines ~29–31) and import it from core. Add to the imports near the top (the file already imports types from `@hexagram/core/types` and from `@hexagram/core/getters`); insert the new import alphabetically — `@hexagram/core/line-semantics` sorts after `/getters` and before `/types`:
 
 ```ts
 import { isMovingLine } from '@hexagram/core/line-semantics'
@@ -555,7 +921,7 @@ function isMovingLine(line: Line): boolean {
 
   > Note: the core `isMovingLine` narrows to `Extract<Line, 6 | 9>`; existing call sites use it as a boolean (`.filter`, `.findIndex`, ternary) and as `isMovingLine(s as Line)`. All remain valid — a type guard is callable wherever a `boolean` predicate is expected. The `Line` type import in this file is still used elsewhere (`LINE_DIAGRAM` cast, `key` typing), so keep it.
 
-- [ ] In `domain/consultation-file/src/markdown.ts`, delete the private `hasMovingLines` (lines 12–14) and import it from core. Before:
+- [ ] In `domain/consultation-file/src/markdown.ts`, delete the private `hasMovingLines` (orig. lines ~12–14) and import it from core. Before:
 
 ```ts
 import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
@@ -609,7 +975,7 @@ git commit -m "$(cat <<'EOF'
 consultation-file: source moving-line predicates from @hexagram/core
 
 Delete the private isMovingLine copy and the inline `=== 6 || === 9`
-hasMovingLines check; import both from @hexagram/core/line-semantics.
+hasMovingLines check; import both directly from @hexagram/core/line-semantics.
 Rendered markdown body is byte-identical (fixtures unchanged).
 
 https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
@@ -619,16 +985,16 @@ EOF
 
 ---
 
-## Task 6: Repoint `cli/history-ui` — delete the inline `=== 6 || === 9`
+## Task 9: Repoint `cli/history-ui` — delete the inline `=== 6 || === 9`
 
-`history-list-transforms.ts` has an inline `hexagram.some((line) => line === 6 || line === 9)` (line 33) inside `summarizeHexParts`.
+`cli/history-ui/src/history-list-transforms.ts` has an inline `hexagram.some((line) => line === 6 || line === 9)` inside `summarizeHexParts`.
 
 **Files:**
 - Modify: `cli/history-ui/src/history-list-transforms.ts`
 
 Steps:
 
-- [ ] In `cli/history-ui/src/history-list-transforms.ts`, import `hasMovingLines` from core and use it. Before (imports, lines 4–6, and the inline check on line 33):
+- [ ] In `cli/history-ui/src/history-list-transforms.ts`, import `hasMovingLines` directly from core and use it. Before (imports, orig. lines 4–6, and the inline check on line ~33):
 
 ```ts
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
@@ -636,7 +1002,7 @@ import type { Hexagram } from '@hexagram/core/types'
 import { truncateEnd } from '@hexagram/viewer-core'
 ```
 
-After:
+After (add the core import alphabetically after `/getters` and before `/types`):
 
 ```ts
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
@@ -684,21 +1050,29 @@ EOF
 
 ---
 
-## Task 7: Whole-repo verification
+## Task 10: Whole-repo verification
 
-Confirm nothing else still hand-rolls the moving-line rule or the moved functions, and the whole build/test/type pipeline is green.
+Confirm nothing else still hand-rolls the moving-line rule or the moved functions, no consumer still imports them from a CLI barrel, and the whole build/test/type pipeline is green.
 
 **Files:** none (verification only)
 
 Steps:
 
-- [ ] Search for any remaining hand-rolled moving-line checks or stray local definitions. Expected: the only `=== 6 || === 9` left is the test-only checks in `cli/playground-ui/tests/playground-display.test.ts` and `cli/casting-ui/scripts/generate-fixtures.ts` (a build script that mirrors the readout's own gate; out of scope — it is not a production import path and is not in the brief's list), plus `domain/core/src/types.ts`'s `isLine` (a different rule — value-is-a-Line, not is-moving). Run:
+- [ ] Confirm NO file still imports any of the seven moved symbols from a CLI barrel (`@hexagram/viewer-core` or `@hexagram/playground-ui`). Every import of these must now come from `@hexagram/core/line-semantics`. Run:
 
 ```bash
-pnpm exec rg -n "=== 6 \|\| .*=== 9|=== 9 \|\| .*=== 6" packages domain cli 2>/dev/null || rg -n "=== 6 \|\| .*=== 9|=== 9 \|\| .*=== 6"
+pnpm exec rg -n "import .*\b(isMovingLine|movingLineIndices|hasMovingLines|polarityOf|flipPolarity|cycleLineForward|cycleLineBackward)\b.*from '@hexagram/(viewer-core|playground-ui)'" .
 ```
 
-  Confirm no NEW production source (non-test, non-script) match remains. If `generate-fixtures.ts` still matches, that is acceptable for this slice; note it for a follow-up but do not expand scope here.
+  Expected: NO matches. If any line matches, repoint it to `@hexagram/core/line-semantics` before proceeding.
+
+- [ ] Search for any remaining hand-rolled moving-line checks or stray local definitions. Run:
+
+```bash
+pnpm exec rg -n "=== 6 \|\| .*=== 9|=== 9 \|\| .*=== 6" domain cli 2>/dev/null || rg -n "=== 6 \|\| .*=== 9|=== 9 \|\| .*=== 6"
+```
+
+  Expected: the only remaining matches are the test-only checks in `cli/playground-ui/tests/playground-display.test.ts` and `cli/casting-ui/scripts/generate-fixtures.ts` (a build script that mirrors the readout's own gate; out of scope — it is not a production import path and is not in the brief's list), plus `domain/core/src/types.ts`'s `isLine` (a different rule — value-is-a-Line, not is-moving). Confirm no NEW production source (non-test, non-script) match remains. If `generate-fixtures.ts` still matches, that is acceptable for this slice; note it for a follow-up but do not expand scope here.
 
 - [ ] Confirm there is exactly one definition of each moved function (in core):
 
@@ -706,7 +1080,7 @@ pnpm exec rg -n "=== 6 \|\| .*=== 9|=== 9 \|\| .*=== 6" packages domain cli 2>/d
 pnpm exec rg -n "export function (isMovingLine|movingLineIndices|hasMovingLines|polarityOf|flipPolarity|cycleLineForward|cycleLineBackward)" .
 ```
 
-  Expected: each name appears once, all in `domain/core/src/line-semantics.ts`. (Re-exports via `export { ... }` are not `export function` and won't match.)
+  Expected: each name appears once, all in `domain/core/src/line-semantics.ts`.
 
 - [ ] Run the full pipeline (type-check, then lint, then the whole test suite). Note the `@hexagram/core` slow distribution test (~40 s) runs here by design:
 
@@ -718,7 +1092,7 @@ pnpm test
 
 Expected output: all three exit 0; every package's tests green; no unused-import or unresolved-import lint errors.
 
-- [ ] If lint flags an unused `Line`/`Hexagram` import left behind in any touched file, remove it and re-run `pnpm lint:check`. Then commit any cleanup:
+- [ ] If lint flags an unused `Line`/`Hexagram` import (or an unused `@hexagram/viewer-core` import line) left behind in any touched file, remove it and re-run `pnpm lint:check`. Then commit any cleanup:
 
 ```bash
 git add -A
@@ -726,7 +1100,7 @@ git commit -m "$(cat <<'EOF'
 core: tidy imports after hoisting line semantics
 
 Remove imports left unused once the duplicated Line algebra was deleted
-from the UI packages.
+from the UI packages and consumers were repointed at core.
 
 https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf
 EOF
@@ -747,7 +1121,10 @@ Expected output: both files exist.
 ## Done criteria
 
 - `@hexagram/core/line-semantics` exists, is exported (package.json + tsdown), and is unit-tested for all seven functions.
-- These duplicate/inline copies are deleted and repointed at core: `isMovingLine` in `cli/viewer-core/src/utils-validators.ts`; the private `isMovingLine` in `domain/consultation-file/src/markdown-sections.ts`; the inline `=== 6 || === 9` in `domain/consultation-file/src/markdown.ts` (`hasMovingLines`) and `cli/history-ui/src/history-list-transforms.ts`; and `polarityOf` / `flipPolarity` / `cycleLineForward` / `cycleLineBackward` / `movingLineIndices` across `cli/playground-ui/src/playground-lines.ts` and `cli/viewer-core/src/banner-lines.ts`.
-- `cli/viewer-core` still imports `@hexagram/core` for the `Line` type (and now re-exports core's `isMovingLine`/`polarityOf` through its barrel for downstream consumers).
+- These duplicate/inline copies are deleted: `isMovingLine` in `cli/viewer-core/src/utils-validators.ts`; the private `isMovingLine` in `domain/consultation-file/src/markdown-sections.ts`; the inline `=== 6 || === 9` in `domain/consultation-file/src/markdown.ts` (`hasMovingLines`) and `cli/history-ui/src/history-list-transforms.ts`; and `polarityOf` / `flipPolarity` / `cycleLineForward` / `cycleLineBackward` / `movingLineIndices` across `cli/playground-ui/src/playground-lines.ts` and `cli/viewer-core/src/banner-lines.ts`.
+- **Every consumer imports the moved symbols DIRECTLY from `@hexagram/core/line-semantics`** — no barrel passthrough. The repointed import sites are: `cli/readout/src/output-composers.ts` (`isMovingLine`), `cli/readout/src/output-sections.ts` (`isMovingLine`), `cli/casting-ui/src/output-composers.ts` (`isMovingLine`), `cli/shell/src/banner-state.ts` (`polarityOf`), `cli/playground-ui/src/playground-lines.ts` (`movingLineIndices`), `cli/playground-ui/src/playground-state.ts` (`cycleLineBackward` / `cycleLineForward` / `flipPolarity`), `cli/playground-ui/src/playground-display-rows.ts` (`isMovingLine` / `polarityOf`), `cli/playground-ui/tests/playground-lines.test.ts` (`cycleLineBackward` / `cycleLineForward` / `flipPolarity` / `movingLineIndices`), `cli/viewer-core/tests/banner-lines.test.ts` (`polarityOf`), `domain/consultation-file/src/markdown-sections.ts` (`isMovingLine`), `domain/consultation-file/src/markdown.ts` (`hasMovingLines`), `cli/history-ui/src/history-list-transforms.ts` (`hasMovingLines`).
+- The barrels NO LONGER re-export these symbols: `cli/viewer-core/src/index.ts` drops `isMovingLine` (from the validators block) and `polarityOf` (from the banner-lines block); `cli/playground-ui/src/index.ts` drops `cycleLineBackward` / `cycleLineForward` / `flipPolarity` / `movingLineIndices`; `cli/viewer-core/src/banner-lines.ts` no longer re-exports `polarityOf` (it keeps re-exporting the `LinePolarity` *type* for `deriveBannerLine`).
+- `cli/viewer-core` still imports `@hexagram/core` for the `Line` type and `type LinePolarity` (for `deriveBannerLine`'s signature) only.
 - Glyphs and labels are untouched (Slice 3).
+- No file imports any of the seven moved symbols from `@hexagram/viewer-core` or `@hexagram/playground-ui` (verified by the Task 10 grep).
 - `pnpm type:check`, `pnpm lint:check`, `pnpm test` all pass.

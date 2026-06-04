@@ -69,17 +69,17 @@ cli/                            # medium-bound — thin serializers of the domai
 
 ---
 
-## Task 1 — Create the new ADR (0018)
+## Task 1 — Create the new ADR (0019)
 
-**Files:** `docs/adr/0018-domain-cli-boundary.md` (new)
+**Files:** `docs/adr/0019-domain-cli-boundary.md` (new)
 
-The next free ADR number is **0018** (current highest is 0017; confirm with the verification grep in Task 6). Match the house style observed in `docs/adr/0001`, `0002`, `0011`, `0016`, `0017`: a `Status:` / `Date:` header pair (not the `- Status:` bullet form of the generic Nygard template), a prose decision opening, then `## Considered options`, `## Consequences`, `## Where it's enforced`.
+The next free ADR number is **0019**. Slice 3 (which executes BEFORE this slice) already created **ADR-0018** (`docs/adr/0018-consultation-view-ir.md`, the consultation-view IR decision), so after Slice 3 lands the highest existing ADR is 0018 and the next free number is 0019. Confirm with the verification grep in Task 6. Match the house style observed in `docs/adr/0001`, `0002`, `0011`, `0016`, `0017`, `0018`: a `Status:` / `Date:` header pair (not the `- Status:` bullet form of the generic Nygard template), a prose decision opening, then `## Considered options`, `## Consequences`, `## Where it's enforced`.
 
-- [ ] Confirm `0018` is free: `ls docs/adr/ | grep -E '^0018'` returns nothing.
-- [ ] Create `docs/adr/0018-domain-cli-boundary.md` with the full content below.
-- [ ] Commit: `docs(adr): add ADR-0018 recording the domain/cli boundary`.
+- [ ] Confirm `0019` is free AND that `0018` already exists (authored by Slice 3): `ls docs/adr/ | grep -E '^0019'` returns nothing, and `ls docs/adr/0018-consultation-view-ir.md` prints the path. Do **not** create or overwrite `0018` — it is Slice 3's consultation-view IR ADR.
+- [ ] Create `docs/adr/0019-domain-cli-boundary.md` with the full content below.
+- [ ] Commit: `docs(adr): add ADR-0019 recording the domain/cli boundary`.
 
-### Full content of `docs/adr/0018-domain-cli-boundary.md`
+### Full content of `docs/adr/0019-domain-cli-boundary.md`
 
 ```markdown
 # The boundary is domain vs CLI, not computation vs rendering
@@ -195,9 +195,18 @@ letting the renderers become thin.
 **Files:** `docs/adr/0016-readout-renderer-extraction.md` (edit)
 
 The supersede convention (per `docs/adr/README.md` Conventions and the worked example in
-ADR-0017's opening): change the `Status:` line to `Superseded by 0018`, and add a short
+ADR-0017's opening): change the `Status:` line to `Superseded by 0019`, and add a short
 superseded-note at the top correcting the two false claims. Do **not** rewrite the body —
 ADRs are append-only; the historical reasoning stays.
+
+> COORDINATION NOTE: Slice 3 has **already** added a "deepened by [ADR-0018]" pointer to
+> ADR-0016 (the consultation-view IR deepens 0016's "one home for rendering" claim). When
+> this slice runs, ADR-0016 therefore *already contains* a 0018 pointer near the top. Edit
+> 0016 **additively**: set its `Status:` to `Superseded by 0019` and add the superseded-note
+> below, WITHOUT removing or rewriting the existing Slice-3 deepening pointer to 0018. The
+> "Before" snippets below show only the header/status lines you are changing; if the file as
+> it sits on disk has the Slice-3 0018 deepening blockquote between the `Date:` line and the
+> body, leave that blockquote in place and insert the supersede note alongside it.
 
 - [ ] Edit the status line.
 
@@ -209,26 +218,32 @@ ADRs are append-only; the historical reasoning stays.
   Date: 2026-05-29
   ```
 
-  **After:**
+  **After** (set the `Status:` line; keep the Slice-3 `deepened by [ADR-0018]` blockquote that
+  is already present, and add the supersede note below it):
   ```
   # Readout renderer extracted from viewer-core
 
-  Status: Superseded by 0018
+  Status: Superseded by 0019
   Date: 2026-05-29
 
-  > **Superseded by [ADR-0018](0018-domain-cli-boundary.md) (2026-06-04).** This ADR
+  > **Superseded by [ADR-0019](0019-domain-cli-boundary.md) (2026-06-04).** This ADR
   > framed the boundary as computation vs rendering and made two claims that did not hold:
   > (1) that `viewer-core` "no longer depends on `@hexagram/core` at all" — it carried
   > `isMovingLine` (domain line semantics) and re-acquired the `core` dependency under
   > [ADR-0017](0017-types-folded-into-core.md); and (2) that "all consultation rendering …
   > now has one home" — rendering had three homes (the ANSI sections, the markdown body,
   > and geometry constants leaking into `playground-ui`), reconciled by byte-identity
-  > fixtures rather than by structure. ADR-0018 redraws the boundary as domain (medium-
+  > fixtures rather than by structure. ADR-0019 redraws the boundary as domain (medium-
   > neutral) vs CLI (medium-bound) and moves the presentation knowledge into a medium-
   > neutral IR. The reasoning below is preserved as the record of that earlier step.
   ```
 
-- [ ] Commit: `docs(adr): supersede ADR-0016 with ADR-0018; correct its two stale claims`.
+  > IMPLEMENTER NOTE: The `deepened by [ADR-0018](0018-consultation-view-ir.md)` pointer that
+  > Slice 3 added to this file stays. The supersede note above and that deepening pointer
+  > coexist — 0018 deepened one of 0016's claims; 0019 supersedes the whole framing. Do not
+  > delete the 0018 pointer.
+
+- [ ] Commit: `docs(adr): supersede ADR-0016 with ADR-0019; correct its two stale claims`.
 
 ---
 
@@ -236,23 +251,34 @@ ADRs are append-only; the historical reasoning stays.
 
 **Files:** `docs/adr/README.md` (edit)
 
-- [ ] Add the 0018 row and flip 0016's status in the index table.
+- [ ] Add the 0019 boundary row and flip 0016's status in the index table.
 
-  **Before:**
+  > COORDINATION NOTE: Slice 3 already added the `0018 | Consultation-view IR` row to this
+  > index as part of its own task. Do **not** add or duplicate a 0018 row here — it is
+  > expected to already be present. This slice adds only the 0019 boundary row and flips
+  > 0016 to `Superseded by 0019`. The "Before" snippet below assumes the 0018 IR row is
+  > already in place (added by Slice 3); preserve it.
+
+  **Before** (the 0018 IR row is already present, added by Slice 3):
   ```
   | 0016 | Readout renderer extracted from viewer-core         | Accepted |
   | 0017 | Type vocabulary folded into core                    | Accepted |
+  | 0018 | Consultation-view IR                                | Accepted |
   ```
 
   **After:**
   ```
-  | 0016 | Readout renderer extracted from viewer-core         | Superseded by 0018 |
+  | 0016 | Readout renderer extracted from viewer-core         | Superseded by 0019 |
   | 0017 | Type vocabulary folded into core                    | Accepted |
-  | 0018 | The boundary is domain vs CLI, not computation vs rendering | Accepted |
+  | 0018 | Consultation-view IR                                | Accepted |
+  | 0019 | The boundary is domain vs CLI, not computation vs rendering | Accepted |
   ```
 
+  The final index must show BOTH 0018 (consultation-view IR, from Slice 3) and 0019
+  (domain/cli boundary, this slice), plus 0016 marked `Superseded by 0019`.
+
 - [ ] Update the `Config → ADR reverse map` row for `pnpm-workspace.yaml` so it reflects the
-  `domain/*` + `cli/*` globs decision now living in 0018.
+  `domain/*` + `cli/*` globs decision now living in 0019.
 
   **Before:**
   ```
@@ -261,10 +287,10 @@ ADRs are append-only; the historical reasoning stays.
 
   **After:**
   ```
-  | `pnpm-workspace.yaml`          | yes      | 0002, 0003, 0018                                                      |
+  | `pnpm-workspace.yaml`          | yes      | 0002, 0003, 0019                                                      |
   ```
 
-- [ ] Commit: `docs(adr): index ADR-0018 and mark ADR-0016 superseded`.
+- [ ] Commit: `docs(adr): index ADR-0019 and mark ADR-0016 superseded`.
 
 ---
 
@@ -272,7 +298,7 @@ ADRs are append-only; the historical reasoning stays.
 
 **Files:** `docs/adr/0002-monorepo-structure-and-package-decomposition.md` (edit)
 
-ADR-0002 is the canonical package-decomposition record. ADR-0018 deliberately does **not**
+ADR-0002 is the canonical package-decomposition record. ADR-0019 deliberately does **not**
 rewrite it (the decomposition *rules* are unchanged). Add a one-line forward-pointer so a
 reader of 0002 learns the buckets were renamed and the boundary recast, without editing the
 historical body. Use the same superseded/amended-by phrasing 0002 already uses for 0017.
@@ -296,11 +322,11 @@ historical body. Use the same superseded/amended-by phrasing 0002 already uses f
   Status: Accepted
   Date: 2026-05-29
 
-  > **Amended by [ADR-0018](0018-domain-cli-boundary.md) (2026-06-04).** The package
+  > **Amended by [ADR-0019](0019-domain-cli-boundary.md) (2026-06-04).** The package
   > decomposition *rules* below (one concern per package; depend only downward) still hold,
   > but the two top-level buckets are now `domain/*` (medium-neutral) and `cli/*`
   > (medium-bound) — not `packages/*` and `apps/*` — and the presentation knowledge that
-  > this ADR left in the UI packages now lives below the UI line. See ADR-0018 for the
+  > this ADR left in the UI packages now lives below the UI line. See ADR-0019 for the
   > boundary and the current package map.
 
   The project is a Turborepo + pnpm-workspaces monorepo.
@@ -312,7 +338,7 @@ historical body. Use the same superseded/amended-by phrasing 0002 already uses f
 > *prose* docs (AGENTS/CLAUDE/CONTEXT/README), **not** the historical ADR bodies, which
 > are append-only by policy.
 
-- [ ] Commit: `docs(adr): point ADR-0002 at ADR-0018 for the renamed buckets`.
+- [ ] Commit: `docs(adr): point ADR-0002 at ADR-0019 for the renamed buckets`.
 
 ---
 
@@ -362,7 +388,7 @@ exact lines, then apply the edits.
 
   **After:**
   ```
-  This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under two top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, presentation IR); `cli/*` holds the medium-bound terminal layer (chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a build-failing lint error. See `docs/adr/0018-domain-cli-boundary.md`.
+  This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under two top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, presentation IR); `cli/*` holds the medium-bound terminal layer (chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a build-failing lint error. See `docs/adr/0019-domain-cli-boundary.md`.
 
   ```
   ts-hexagram-generator/             # workspace root (private)
@@ -397,7 +423,7 @@ exact lines, then apply the edits.
 
   **After:**
   ```
-  The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; the domain-vs-CLI boundary that names the two buckets is `docs/adr/0018-domain-cli-boundary.md`. See `docs/adr/` for the full set of architecture decisions.
+  The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; the domain-vs-CLI boundary that names the two buckets is `docs/adr/0019-domain-cli-boundary.md`. See `docs/adr/` for the full set of architecture decisions.
   ```
 
 > IMPLEMENTER NOTE — `## Architecture` section path references in AGENTS.md (lines ~203–313)
@@ -447,7 +473,7 @@ CLAUDE.md itself has no independent `packages/*` / `apps/*` references.
   `consultation-file`, `text-layout`, `consultation-view`) and the medium-bound
   `cli/*` packages (`viewer-core`, `readout`, `casting-ui`, `history-ui`,
   `playground-ui`, `shell`, `test-utils`, and the `cli` bins package `@hexagram/bin`).
-  See `docs/adr/0018-domain-cli-boundary.md` for the boundary.
+  See `docs/adr/0019-domain-cli-boundary.md` for the boundary.
   ```
 
 ### 5e — README.md "Monorepo layout"
@@ -463,7 +489,7 @@ CLAUDE.md itself has no independent `packages/*` / `apps/*` references.
 
   **After:**
   ```
-  The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under two top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR) and `cli/*` (medium-bound — terminal chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a lint error; see [docs/adr/0018](docs/adr/0018-domain-cli-boundary.md).
+  The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under two top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR) and `cli/*` (medium-bound — terminal chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a lint error; see [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
   ```
 
 - [ ] Add `@hexagram/text-layout` and `@hexagram/consultation-view` rows to the package
@@ -557,31 +583,35 @@ These are the slice's "tests". Each is an exact command with the expected output
   ```
   **Expected:** no output (exit code 1).
 
-- [ ] **The new ADR exists and is numbered 0018.**
+- [ ] **The new boundary ADR exists and is numbered 0019** (and Slice 3's 0018 IR ADR is
+  present, untouched).
   ```bash
-  ls docs/adr/0018-domain-cli-boundary.md
+  ls docs/adr/0019-domain-cli-boundary.md docs/adr/0018-consultation-view-ir.md
   ```
-  **Expected:** the path prints (file exists).
+  **Expected:** both paths print (this slice's boundary ADR is 0019; Slice 3's IR ADR is 0018).
 
-- [ ] **The new ADR is linked from the index.**
+- [ ] **The new boundary ADR is linked from the index.**
   ```bash
-  rg -n '0018' docs/adr/README.md
+  rg -n '0019' docs/adr/README.md
   ```
   **Expected:** at least two hits — the index-table row and the `pnpm-workspace.yaml`
-  reverse-map row.
+  reverse-map row. (The pre-existing `0018` IR row, added by Slice 3, is separate and must
+  remain — confirm both 0018 and 0019 index rows are present.)
 
 - [ ] **ADR-0016 is marked superseded everywhere it has a status.**
   ```bash
-  rg -n 'Superseded by 0018' docs/adr/0016-readout-renderer-extraction.md docs/adr/README.md
+  rg -n 'Superseded by 0019' docs/adr/0016-readout-renderer-extraction.md docs/adr/README.md
   ```
   **Expected:** one hit in the ADR file (its `Status:` line) and one in the index table.
 
 - [ ] **ADR-0016's body no longer asserts the two false claims unqualified** — i.e. the
   superseded-note precedes them. Eyeball, plus confirm the note is present:
   ```bash
-  rg -n 'Superseded by \[ADR-0018\]' docs/adr/0016-readout-renderer-extraction.md
+  rg -n 'Superseded by \[ADR-0019\]' docs/adr/0016-readout-renderer-extraction.md
   ```
-  **Expected:** one hit (the blockquote note near the top).
+  **Expected:** one hit (the supersede blockquote near the top). Note: the Slice-3
+  `deepened by [ADR-0018]` pointer is also expected to be present in this file — it is
+  legitimate and must NOT be removed by this slice.
 
 - [ ] **The new buckets are named in the structural docs.**
   ```bash
@@ -589,9 +619,10 @@ These are the slice's "tests". Each is an exact command with the expected output
   ```
   **Expected:** at least one hit in each file.
 
-- [ ] **No accidental forward-reference to a non-existent ADR.**
+- [ ] **No accidental forward-reference to a non-existent ADR.** (0018 and 0019 both legitimately
+  exist after Slice 3 + this slice, so this checks only for *higher* unwritten numbers.)
   ```bash
-  rg -no '0019|0020' docs/adr/ || true
+  rg -no '0020|0021' docs/adr/ || true
   ```
   **Expected:** no output.
 

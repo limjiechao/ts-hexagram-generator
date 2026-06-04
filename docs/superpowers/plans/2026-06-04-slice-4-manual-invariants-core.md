@@ -4,7 +4,7 @@
 
 **Goal:** Move the pure manual-consultation I Ching invariants (conservation, never-zero remainder, suspended-sum residue) into `@hexagram/core` as domain knowledge with one home, and eliminate the deliberate `computeManualRoundResult ≡ performCast` duplicate so there is exactly one next-state computation.
 
-**Architecture:** A new pure `validateManualSplit(...)` in `domain/core/src/manual-validation.ts` (exported at the subpath `@hexagram/core/manual-validation`) encodes the four-invariant priority order and reuses the existing `neverZeroMod4` from `casting-derivation.ts` rather than re-hand-rolling `((n-1)%4)+1`. `cli/casting-ui/src/manual-validation.ts` keeps ONLY UI concerns — buffer parsing (`parseManualBuffer`) and feedback routing (`manualFeedbackSurface`) — and re-exports the core validator's result type so `manual-prompt.tsx` consumes it unchanged. `computeManualRoundResult` is deleted: the prompt's `→ next cast: N unparted` reveal is fed by `performCast` (the algorithm of record) run once in the prompt, matching the flow reducer's authoritative advance.
+**Architecture:** A new pure `validateManualSplit(...)` in `domain/core/src/manual-validation.ts` (exported at the subpath `@hexagram/core/manual-validation`) encodes the four-invariant priority order and reuses the existing `neverZeroMod4` from `casting-derivation.ts` rather than re-hand-rolling `((n-1)%4)+1`. `cli/casting-ui/src/manual-validation.ts` keeps ONLY UI concerns — buffer parsing (`parseManualBuffer`) and feedback routing (`manualFeedbackSurface`). It does NOT re-export the core validator. Instead, every casting-ui call site is FULLY REPOINTED to import `validateManualSplit` and `ManualSplitValidation` directly from `@hexagram/core/manual-validation` under core's canonical names. `computeManualRoundResult` is deleted: the prompt's `→ next cast: N unparted` reveal is fed by `performCast` (the algorithm of record) run once in the prompt, matching the flow reducer's authoritative advance.
 
 **Tech Stack:** TypeScript, vitest, Ink, tsdown, pnpm workspaces
 
@@ -19,11 +19,14 @@
 | `packages/core/src/manual-validation.ts` (new) | `domain/core/src/manual-validation.ts` |
 | `packages/core/src/casting-derivation.ts` | `domain/core/src/casting-derivation.ts` |
 | `packages/core/src/index.ts` | `domain/core/src/index.ts` |
+| `packages/core/src/types.ts` | `domain/core/src/types.ts` |
 | `packages/core/tsdown.config.ts` | `domain/core/tsdown.config.ts` |
 | `packages/core/package.json` | `domain/core/package.json` |
 | `packages/core/tests/manual-validation.test.ts` (new) | `domain/core/tests/manual-validation.test.ts` |
 | `packages/casting-ui/src/manual-validation.ts` | `cli/casting-ui/src/manual-validation.ts` |
 | `packages/casting-ui/src/manual-prompt.tsx` | `cli/casting-ui/src/manual-prompt.tsx` |
+| `packages/casting-ui/src/casting-prompt-box.tsx` | `cli/casting-ui/src/casting-prompt-box.tsx` |
+| `packages/casting-ui/src/viewer.tsx` | `cli/casting-ui/src/viewer.tsx` |
 | `packages/casting-ui/src/viewer-flow.ts` | `cli/casting-ui/src/viewer-flow.ts` |
 | `packages/casting-ui/tests/manual-validation.test.tsx` | `cli/casting-ui/tests/manual-validation.test.tsx` |
 | `packages/casting-ui/tests/viewer.test.tsx` | `cli/casting-ui/tests/viewer.test.tsx` |
@@ -33,11 +36,12 @@ If the post-reorg directories do not exist on the branch you are on (Slices 0–
 **Shared decisions (do NOT deviate):**
 
 - Core subpath is exactly `@hexagram/core/manual-validation`.
+- Result type is `ManualSplitValidation` (a discriminated union on `kind`: `incomplete | zero-remainder | conservation | suspended-sum | ok`); the function is `validateManualSplit`.
 - Reuse the existing `neverZeroMod4` and `selectablePickMax` from `casting-derivation.ts`. Do NOT duplicate or re-hand-roll `((n-1)%4)+1`.
 - Preserve the four-invariant priority order: **incomplete → zero-remainder → conservation → suspended-sum → ok**.
 - Preserve the exact residue sets: cast 1 (`castIndex === 0`) expects `{5, 9}`; casts 2/3 (`castIndex === 1 | 2`) expect `{4, 8}`.
-- Preserve every exact user-facing message / `expectedLabel` (`'5 or 9'` / `'4 or 8'`).
-- Saved output must stay byte-identical (the manual≡interactive test in `viewer.test.tsx`).
+- Preserve every exact user-facing message / `expectedLabel` (`'5 or 9'` / `'4 or 8'`) and every render behaviour. Saved output must stay byte-identical (the manual≡interactive test in `viewer.test.tsx`).
+- **FULL REPOINT, no passthrough shim.** casting-ui MUST NOT re-export the core validator under old local names. Every consumer imports `validateManualSplit` / `ManualSplitValidation` directly from `@hexagram/core/manual-validation` and is renamed at the call site explicitly.
 
 **Regression gate (must stay green at every commit):**
 
@@ -48,13 +52,30 @@ pnpm --filter @hexagram/core type:check
 pnpm --filter @hexagram/casting-ui type:check
 ```
 
-The two load-bearing tests are the manual-validation suite and the byte-identity test at `cli/casting-ui/tests/viewer.test.tsx:1858` (`it('manual flow saves byte-identical to interactive ...')`).
+The two load-bearing tests are the manual-validation suite and the byte-identity test at `cli/casting-ui/tests/viewer.test.tsx` (`it('manual flow saves byte-identical to interactive ...')`).
+
+---
+
+## Call-site inventory (the FULL REPOINT scope)
+
+Grepped from the CURRENT codebase (`packages/casting-ui/...`). Every reference to `validateManualInput`, `ManualValidationResult`, or `computeManualRoundResult` is listed here as a concrete before/after edit. The decision is: **delete the casting-ui validator body + type, point every consumer at `@hexagram/core/manual-validation`, and rename to the canonical names** — no aliasing to old names purely to avoid edits.
+
+| File | Current references | After |
+| --- | --- | --- |
+| `cli/casting-ui/src/manual-validation.ts` | DEFINES `validateManualInput` (L111), `ManualValidationResult` type (L54), `manualFeedbackSurface` (L96–98 — params typed `ManualValidationResult['kind']`), `parseManualBuffer` (L171), `computeManualRoundResult` (L23) | DELETE `validateManualInput`, `ManualValidationResult`, `computeManualRoundResult`. KEEP `parseManualBuffer` + `manualFeedbackSurface`, with `manualFeedbackSurface`'s param retyped to `ManualSplitValidation['kind']` (imported `type`-only from core). NO re-export of the core validator. |
+| `cli/casting-ui/src/manual-prompt.tsx` | imports `computeManualRoundResult`, `validateManualInput` (+ `manualFeedbackSurface`, `parseManualBuffer`) from `./manual-validation.js` (L30–35); calls `validateManualInput({...})` (L234); calls `computeManualRoundResult(validation.pick, castIndex, unpartedStalks)` (L322) | Import `validateManualSplit` + types `ManualSplitValidation`/`AdvanceableLineState` from core; keep `manualFeedbackSurface`/`parseManualBuffer` from `./manual-validation.js`. Rename the L234 call `validateManualInput(` → `validateManualSplit(`. Replace the L322 `computeManualRoundResult` block with `performCast` + `maxPickFor` (Task 4). |
+| `cli/casting-ui/tests/manual-validation.test.tsx` | imports `computeManualRoundResult`, `manualFeedbackSurface`, `validateManualInput` from `../src/manual-validation` (L5–9); `describe('validateManualInput', …)` (L13) + many `validateManualInput({...})` calls; `describe('computeManualRoundResult ≡ performCast …', …)` (L191) with `computeManualRoundResult(...)` calls (L196, L206) | Import `validateManualSplit` from `@hexagram/core/manual-validation`; keep `manualFeedbackSurface` from `../src/manual-validation`. DELETE the `computeManualRoundResult` import + its entire `describe` block. Rename `describe('validateManualInput', …)` → `describe('validateManualSplit', …)` and every `validateManualInput(` → `validateManualSplit(`. (The exhaustive validator cases now live in core's own suite — Task 1; here keep only the casting-ui-relevant surface: `manualFeedbackSurface` routing + any property test that exercises `validateManualSplit` against the never-zero guard.) |
+| `cli/casting-ui/tests/viewer.test.tsx` | L1911 — COMMENT only: "Decomposition pinned by `computeManualRoundResult`" | Reword the comment to reference `performCast` (the now-single source). No code change. |
+| `cli/casting-ui/src/casting-prompt-box.tsx` | renders `<ManualCastingPrompt …>` (L233) — does NOT pass `lineState` today | Thread a new `lineState` prop down to `<ManualCastingPrompt>` (Task 4). |
+| `cli/casting-ui/src/viewer.tsx` | renders `<CastingPromptBox …>` (L590) with `unpartedStalks={currentMax + 1}` (L603); `state.lineState` is the reducer-owned per-line state (L233 `recordedMaxFor(state.lineState)`) | Pass `lineState={state.lineState}` alongside `unpartedStalks` (Task 4). |
+
+There are NO other references — `viewer-flow.ts` consumes the validator indirectly (it owns `lineState` and runs `performCast` in `splitCommitted`) and imports neither the validator function nor its type, so it needs no edit beyond what Task 4 threads through props.
 
 ---
 
 ## Decisions baked into this plan
 
-1. **Result type — discriminated union, renamed.** The core export is `validateManualSplit(...)` returning `ManualSplitValidation` (a discriminated union on `kind`). It is identical in shape to the current `ManualValidationResult`:
+1. **Result type — discriminated union, canonical name everywhere.** The core export is `validateManualSplit(...)` returning `ManualSplitValidation` (a discriminated union on `kind`). It is identical in shape to the current `ManualValidationResult`:
 
    ```ts
    export type ManualSplitValidation =
@@ -82,13 +103,13 @@ The two load-bearing tests are the manual-validation suite and the byte-identity
        }
    ```
 
-   `cli/casting-ui/src/manual-validation.ts` re-exports both the function and the type so `manual-prompt.tsx` keeps importing `validateManualInput` / `ManualValidationResult` from its own package (one local rename alias, no churn in the component). Rationale: `manual-prompt.tsx` references `ManualValidationResult` only via the `validation.kind` narrowing and the field reads (`validation.remL`, etc.); keeping the local alias means the component diff is zero.
+   **No passthrough shim.** `cli/casting-ui/src/manual-validation.ts` does NOT re-export `validateManualSplit` or `ManualSplitValidation`. Every casting-ui consumer (the prompt, the manual-validation test) imports them DIRECTLY from `@hexagram/core/manual-validation` using the canonical names. The old local names `validateManualInput` / `ManualValidationResult` are RETIRED — call sites are renamed explicitly to `validateManualSplit` / `ManualSplitValidation`. Rationale (reviewer decision): a passthrough re-export hides the dependency edge and leaves a dead alias whose only purpose is to keep a diff small; an explicit repoint makes the package boundary legible — a reader sees the I Ching invariants are imported from core, not from a sibling UI module.
 
-2. **`computeManualRoundResult` is DELETED.** The prompt's reveal row (`→ next cast: N unparted`) reads the next-round unparted count from `performCast`, the algorithm of record, run once in the prompt's Enter handler. `next = maxPickFor(after) + 1` where `after = performCast(beforeState, pick)`. This collapses the two next-state computations into one and removes the Seam-1 "≡" lock-in test (it tested two paths agreeing; there is now only one path). The byte-identity test remains the end-to-end guarantee that manual and interactive produce the same saved file.
+2. **`computeManualRoundResult` is DELETED.** The prompt's reveal row (`→ next cast: N unparted`) reads the next-round unparted count from `performCast`, the algorithm of record, run once in the prompt's Enter handler. `next = maxPickFor(after) + 1` where `after = performCast(lineState, pick)`. This collapses the two next-state computations into one and removes the Seam-1 "≡" lock-in test (it tested two paths agreeing; there is now only one path). The byte-identity test remains the end-to-end guarantee that manual and interactive produce the same saved file.
 
-   To run `performCast` in the prompt we need the current `LineState`. The prompt today receives only `unpartedStalks: number` + `castIndex`. We pass the live `lineState` down from the viewer (it already lives in `flowReducer`'s `state.lineState`) as a new prop `lineState: AdvanceableLineState`. The prompt computes `next` from `maxPickFor(performCast(lineState, pick)) + 1`. This is DISPLAY ONLY in the prompt; the authoritative advance still happens in the reducer's `splitCommitted`. Both now call the SAME `performCast` — there is one computation, invoked in two places for two presentation purposes, not two re-implementations.
+   To run `performCast` in the prompt we need the current `LineState`. The prompt today receives only `unpartedStalks: number` + `castIndex`. We pass the live `lineState` down from the viewer (it already lives in `flowReducer`'s `state.lineState`) as a new prop `lineState: AdvanceableLineState`, threaded `viewer.tsx → casting-prompt-box.tsx → manual-prompt.tsx`. The prompt computes `next` from `maxPickFor(performCast(lineState, pick)) + 1`. This is DISPLAY ONLY in the prompt; the authoritative advance still happens in the reducer's `splitCommitted`. Both now call the SAME `performCast` — there is one computation, invoked in two places for two presentation purposes, not two re-implementations.
 
-3. **What stays in `cli/casting-ui/src/manual-validation.ts`:** `parseManualBuffer` (buffer→int, pure UI input parsing) and `manualFeedbackSurface` (UI routing: gauge / strip / none). Both are UI-layer knowledge (how a digit buffer and a render surface behave), not I Ching domain rules.
+3. **What stays in `cli/casting-ui/src/manual-validation.ts`:** `parseManualBuffer` (buffer→int, pure UI input parsing) and `manualFeedbackSurface` (UI routing: gauge / strip / none). Both are UI-layer knowledge (how a digit buffer and a render surface behave), not I Ching domain rules. `manualFeedbackSurface` is retyped to operate on `ManualSplitValidation['kind']` (a `type`-only import from core) so adding a new core outcome still forces a routing decision here (the missing `case` fails `tsc`).
 
 ---
 
@@ -98,13 +119,12 @@ The two load-bearing tests are the manual-validation suite and the byte-identity
 - `domain/core/tests/manual-validation.test.ts` (new)
 - `domain/core/src/manual-validation.ts` (new)
 
-The core validator is pure and has NO React/Ink imports. Build it test-first, one invariant per red→green cycle, reusing `neverZeroMod4` only where a remainder must be derived (it is NOT needed here — the user TYPES the remainders — but import it nowhere it would be redundant; this validator validates typed remainders, it does not derive them). Conservation/suspended-sum are pure arithmetic on the four typed numbers.
+The core validator is pure and has NO React/Ink imports. Build it test-first, one invariant per red→green cycle. It validates TYPED remainders (the user hand-counts them), so it does NOT derive remainders and does NOT call `neverZeroMod4`; conservation/suspended-sum are pure arithmetic on the four typed numbers. The never-zero authority (`neverZeroMod4`, used by `deriveSplit` / `selectablePickMax` in `casting-derivation.ts`) is what this validator's `[1, unparted-1]` guarantee is proven against by the `assertSelectablePick` property test below.
 
 - [ ] Write the failing test file `domain/core/tests/manual-validation.test.ts`. Port every case from the current `packages/casting-ui/tests/manual-validation.test.tsx` `describe('validateManualInput', ...)` block verbatim, renamed to `validateManualSplit`:
 
   ```ts
   import { describe, expect, it } from 'vitest'
-  import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
   import { assertSelectablePick } from '@hexagram/core/casting-derivation'
   import { validateManualSplit } from '../src/manual-validation.js'
 
@@ -407,7 +427,7 @@ The core validator is pure and has NO React/Ink imports. Build it test-first, on
   }
   ```
 
-  > Note on `neverZeroMod4`: the validator does NOT derive remainders (the user types them), so `neverZeroMod4` is not called here. It IS already used by `deriveSplit` / `selectablePickMax` in `casting-derivation.ts`, which is the never-zero authority this validator's `[1, unparted-1]` guarantee is proven against by the `assertSelectablePick` property test above. Do NOT add a redundant `neverZeroMod4` import to this file.
+  > Note on `neverZeroMod4`: the validator does NOT derive remainders (the user types them), so `neverZeroMod4` is not called here. It IS already used by `deriveSplit` / `selectablePickMax` in `casting-derivation.ts`, which is the never-zero authority this validator's `[1, unparted-1]` guarantee is proven against by the `assertSelectablePick` property test above. Do NOT add a redundant `neverZeroMod4` import to this file, and do NOT re-hand-roll `((n-1)%4)+1` anywhere in it.
 
 - [ ] Run the test, confirm it PASSES:
   ```bash
@@ -494,31 +514,25 @@ https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf"
 
 ---
 
-## Task 3 — Re-point casting-ui's validator at core; delete `computeManualRoundResult`
+## Task 3 — Strip casting-ui's validator to UI-routing only; delete `computeManualRoundResult`
 
 **Files:**
 - `cli/casting-ui/src/manual-validation.ts` (becomes UI-routing only)
 - `cli/casting-ui/tests/manual-validation.test.tsx`
 
-The casting-ui file now keeps ONLY `parseManualBuffer` (UI input parsing) and `manualFeedbackSurface` (UI routing), and RE-EXPORTS the core validator + its type under the existing local names so `manual-prompt.tsx` needs no import-path churn.
+The casting-ui file now keeps ONLY `parseManualBuffer` (UI input parsing) and `manualFeedbackSurface` (UI routing). It does NOT define `validateManualInput`/`ManualValidationResult` and does NOT re-export the core validator — every consumer repoints directly at `@hexagram/core/manual-validation` (Task 4 handles the prompt). `manualFeedbackSurface`'s param is retyped to `ManualSplitValidation['kind']` via a `type`-only core import.
 
 - [ ] Rewrite `cli/casting-ui/src/manual-validation.ts` to:
 
   ```ts
   // UI-layer manual-flow helpers. The I Ching INVARIANTS live in
   // `@hexagram/core/manual-validation` (validateManualSplit); this module owns
-  // only the casting-ui concerns: parsing a digit buffer, and routing the
-  // validator's outcome to a render surface. Re-exported under the prompt's
-  // existing local names so the component consumes one stable import.
+  // ONLY the casting-ui concerns: parsing a digit buffer, and routing the
+  // validator's outcome to a render surface. It does NOT re-export the core
+  // validator — consumers import validateManualSplit / ManualSplitValidation
+  // straight from core, so the package boundary stays legible.
 
-  import {
-    validateManualSplit,
-    type ManualSplitValidation,
-  } from '@hexagram/core/manual-validation'
-
-  // Local alias preserves the prompt's existing call site and narrowing.
-  export const validateManualInput = validateManualSplit
-  export type ManualValidationResult = ManualSplitValidation
+  import type { ManualSplitValidation } from '@hexagram/core/manual-validation'
 
   /**
    * Where each validator outcome surfaces in the manual prompt — the SINGLE
@@ -531,11 +545,12 @@ The casting-ui file now keeps ONLY `parseManualBuffer` (UI input parsing) and `m
    *     BOLD_RED strip text.
    *   - 'none'  — incomplete / ok: no error surface (mid-edit or commit-ready).
    *
-   * The `switch` is exhaustive over `ManualValidationResult['kind']`, so adding a
-   * new outcome forces a routing decision here (the missing `case` fails `tsc`).
+   * The `switch` is exhaustive over `ManualSplitValidation['kind']`, so adding a
+   * new core outcome forces a routing decision here (the missing `case` fails
+   * `tsc`).
    */
   export function manualFeedbackSurface(
-    kind: ManualValidationResult['kind'],
+    kind: ManualSplitValidation['kind'],
   ): 'strip' | 'gauge' | 'none' {
     switch (kind) {
       case 'conservation':
@@ -559,37 +574,53 @@ The casting-ui file now keeps ONLY `parseManualBuffer` (UI input parsing) and `m
   }
   ```
 
-  `computeManualRoundResult` is GONE from this file (no export, no definition).
+  `computeManualRoundResult`, `validateManualInput`, and the `ManualValidationResult` type are GONE from this file (no export, no definition, no re-export alias).
 
 - [ ] Update `cli/casting-ui/tests/manual-validation.test.tsx`:
-  - DELETE the entire `describe('computeManualRoundResult ≡ performCast (next-round count)', ...)` block — there is no second next-state computation to lock against any more (its single-source guarantee is now structural: the prompt calls `performCast` directly).
-  - DELETE the `computeManualRoundResult` import.
-  - KEEP `describe('validateManualInput', ...)`, `describe('manual "ok" picks satisfy the core never-zero guard', ...)`, and `describe('manualFeedbackSurface', ...)` — they still test the casting-ui re-export surface (`validateManualInput` / `manualFeedbackSurface` resolve through the package's own module). These guard that the UI package's public helpers behave, even though the validator body now lives in core.
-  - Leave the `assertSelectablePick` / `performCast` imports as-is (still used by the surviving property test).
+  - Change the import block: import `validateManualSplit` from `@hexagram/core/manual-validation`, and keep `manualFeedbackSurface` from `../src/manual-validation`. DELETE the `computeManualRoundResult` import (and the `validateManualInput` import — it no longer exists in this package).
+
+    Before:
+    ```ts
+    import {
+      computeManualRoundResult,
+      manualFeedbackSurface,
+      validateManualInput,
+    } from '../src/manual-validation'
+    ```
+    After:
+    ```ts
+    import { validateManualSplit } from '@hexagram/core/manual-validation'
+
+    import { manualFeedbackSurface } from '../src/manual-validation'
+    ```
+
+  - DELETE the entire `describe('computeManualRoundResult ≡ performCast (next-round count)', ...)` block (L191) — there is no second next-state computation to lock against any more (its single-source guarantee is now structural: the prompt calls `performCast` directly). Drop the now-unused `initialLineState` / `maxPickFor` / `performCast` import from `@hexagram/core` if that block was their only consumer; keep `assertSelectablePick` if the surviving property test still uses it.
+  - Rename `describe('validateManualInput', ...)` → `describe('validateManualSplit', ...)` and every `validateManualInput(` call inside it to `validateManualSplit(`. These cases now duplicate core's own suite (Task 1) — TRIM this casting-ui copy to the minimum that proves the package's public surface still works end-to-end: keep the `manualFeedbackSurface` routing `describe` and ONE smoke case that calls `validateManualSplit` through the core specifier (the bulk invariant coverage is core's responsibility now). Do not leave a verbatim 200-line duplicate of core's suite in the UI package.
 
 - [ ] Run the casting-ui manual-validation test:
   ```bash
   pnpm --filter @hexagram/casting-ui test -- manual-validation
   ```
-  Expected: green; the `computeManualRoundResult` describe is gone and the rest pass through the re-exported `validateManualInput`.
+  Expected: green; the `computeManualRoundResult` describe is gone and the survivors resolve `validateManualSplit` through `@hexagram/core/manual-validation`.
 
-- [ ] Type-check (will still FAIL until Task 4 — `manual-prompt.tsx` still imports `computeManualRoundResult`):
+- [ ] Type-check (will still FAIL until Task 4 — `manual-prompt.tsx` still imports `computeManualRoundResult` / `validateManualInput` from `./manual-validation.js`):
   ```bash
   pnpm --filter @hexagram/casting-ui type:check
   ```
-  Expected: error in `manual-prompt.tsx` — `computeManualRoundResult` has no exported member. This is expected; Task 4 fixes it. (Do NOT commit a broken type-check — fold Task 3 + Task 4 into one commit, or stage Task 3 and commit only after Task 4 is green.)
+  Expected: errors in `manual-prompt.tsx` — `computeManualRoundResult` and `validateManualInput` have no exported member. This is expected; Task 4 fixes it. (Do NOT commit a broken type-check — fold Task 3 + Task 4 into one commit, or stage Task 3 and commit only after Task 4 is green.)
 
 ---
 
-## Task 4 — Feed the prompt's reveal from `performCast` (single computation)
+## Task 4 — Repoint the prompt at core; feed the reveal from `performCast`
 
 **Files:**
 - `cli/casting-ui/src/manual-prompt.tsx`
-- (caller) `cli/casting-ui/src/viewer.tsx` — wherever `<ManualCastingPrompt>` is rendered, to pass the new `lineState` prop. Confirm the exact file/line by grepping for `ManualCastingPrompt` / `CastingPromptBox` dispatch.
+- `cli/casting-ui/src/casting-prompt-box.tsx` (the `<ManualCastingPrompt>` dispatch — add the new `lineState` prop)
+- `cli/casting-ui/src/viewer.tsx` (the `<CastingPromptBox>` render — pass `lineState={state.lineState}`)
 
-The prompt currently calls `computeManualRoundResult(validation.pick, castIndex, unpartedStalks)` to get `next` for the green reveal. Replace it with the algorithm of record: `performCast(lineState, pick)` then `next = maxPickFor(after) + 1`. `lineState` is already owned by the flow reducer; pass it down.
+Two changes land together here: (a) the prompt imports `validateManualSplit` directly from core under its canonical name, renaming the L234 call from `validateManualInput`; (b) the reveal row reads from `performCast` instead of the deleted `computeManualRoundResult`. The `lineState` prop is threaded `viewer.tsx → casting-prompt-box.tsx → manual-prompt.tsx`.
 
-- [ ] In `cli/casting-ui/src/manual-prompt.tsx`, update imports — drop `computeManualRoundResult`, add the core step API and the `AdvanceableLineState` type:
+- [ ] In `cli/casting-ui/src/manual-prompt.tsx`, update imports — drop `computeManualRoundResult` and `validateManualInput` from `./manual-validation.js`; import `validateManualSplit` + its type from core, add the core step API and the `AdvanceableLineState` type. Keep `manualFeedbackSurface` / `parseManualBuffer` local:
 
   Before:
   ```ts
@@ -603,16 +634,46 @@ The prompt currently calls `computeManualRoundResult(validation.pick, castIndex,
   After:
   ```ts
   import { maxPickFor, performCast } from '@hexagram/core'
+  import {
+    validateManualSplit,
+    type ManualSplitValidation,
+  } from '@hexagram/core/manual-validation'
   import type { AdvanceableLineState } from '@hexagram/core/types'
 
   import {
     manualFeedbackSurface,
     parseManualBuffer,
-    validateManualInput,
   } from './manual-validation.js'
   ```
 
-  > Verify `AdvanceableLineState` is exported from `@hexagram/core/types` (it is referenced by `maxPickFor`'s signature in `domain/core/src/index.ts`). If the type is not re-exported at the `./types` subpath, import it from wherever `maxPickFor` sources it and adjust this line.
+  > Import only what the file uses: if `ManualSplitValidation` is never referenced by name in `manual-prompt.tsx` (the component narrows on `validation.kind` inline), drop the `type ManualSplitValidation` import — do not add an unused import to satisfy the plan. Grep `ManualValidationResult` in the current file first; today it is referenced ONLY through the `validateManualInput` return value's narrowing, so the type import is likely unnecessary.
+
+  > **EXECUTION-TIME FACT-CHECK (flagged):** Verify `AdvanceableLineState` is exported from `@hexagram/core/types` (it is referenced by `maxPickFor`'s signature in `domain/core/src/index.ts`, and `packages/core/src/types.ts` defines `export type AdvanceableLineState`). If `domain/core/src/types.ts` does NOT re-export it at the `./types` subpath, import it from wherever `maxPickFor` sources it and adjust this line. Do not assume — confirm the export at execution time.
+
+- [ ] Rename the validator call (current L234) from `validateManualInput` to `validateManualSplit`:
+
+  Before:
+  ```ts
+  const validation = validateManualInput({
+    pilesL,
+    remL,
+    pilesR,
+    remR,
+    unparted: unpartedStalks,
+    castIndex,
+  })
+  ```
+  After:
+  ```ts
+  const validation = validateManualSplit({
+    pilesL,
+    remL,
+    pilesR,
+    remR,
+    unparted: unpartedStalks,
+    castIndex,
+  })
+  ```
 
 - [ ] Add the `lineState` prop to `ManualCastingPromptProps`:
   ```ts
@@ -638,9 +699,9 @@ The prompt currently calls `computeManualRoundResult(validation.pick, castIndex,
     onDraftChange?: (draft: ManualDraft) => void
   }
   ```
-  Add `lineState` to the destructured params in the function signature.
+  Add `lineState` to the destructured params in the `ManualCastingPrompt({ ... })` function signature (current L187).
 
-- [ ] Replace the Enter-commit body that called `computeManualRoundResult`:
+- [ ] Replace the Enter-commit body that called `computeManualRoundResult` (current L322):
 
   Before:
   ```ts
@@ -683,20 +744,21 @@ The prompt currently calls `computeManualRoundResult(validation.pick, castIndex,
         return
   ```
 
-  > `performCast` on a `'2nd-cast'` input returns the resolved `'3rd-cast'` state, which has NO `unparted` and is OUTSIDE `maxPickFor`'s `AdvanceableLineState` domain. On the third cast there is no "next cast", but the reveal row still renders `committed.next`. Check what the third cast currently shows: `computeManualRoundResult` returns `next` from its closed form regardless of cast. To preserve the EXACT current third-cast reveal value, compute `next` defensively:
+  > **EXECUTION-TIME FACT-CHECK (flagged) — third-cast reveal value.** `performCast` on a `'2nd-cast'` input returns the resolved `'3rd-cast'` state, which has NO `unparted` and is OUTSIDE `maxPickFor`'s `AdvanceableLineState` domain. On the third cast there is no "next cast", but the reveal row still renders `committed.next`. BEFORE writing this line, verify what the OLD code displayed on cast 3: read the current `computeManualRoundResult` math (`packages/casting-ui/src/manual-validation.ts` L23–36 — `_castIndex` is ignored, so it returns a `next` from `pick` + `unparted` regardless of cast) against a 3rd-cast `unparted`, and confirm against the bottom-strip `resolved` branch rendering. The byte-identity test does NOT cover the transient reveal text, so use the `manual-prompt.test.tsx` reveal-row assertions as the oracle. If a third-cast reveal test exists and expects a specific number, match it exactly with a defensive form, e.g.:
   >
   > ```ts
   > const after = performCast(lineState, validation.pick)
   > const next = after.phase === '3rd-cast' ? 0 : maxPickFor(after) + 1
   > ```
   >
-  > BUT first verify what the old code displayed on cast 3 by reading the current `computeManualRoundResult` math against a 3rd-cast `unparted`, and confirm against the bottom-strip `resolved` branch rendering. The byte-identity test does not cover the transient reveal text, so use the `manual-prompt.test.tsx` reveal-row assertions as the oracle. If a third-cast reveal test exists and expects a specific number, match it exactly; if the third cast never shows a "next cast" row, gate the reveal text on `castIndex !== 2`. RESOLVE this before writing the line — do not guess.
+  > If the third cast never shows a "next cast" row, gate the reveal text on `castIndex !== 2` instead. RESOLVE this from the test oracle before writing the line — do not guess. The first two casts MUST equal `maxPickFor(after)+1`, which the old Seam-1 test already proved equal to the closed form.
 
-- [ ] Update the caller (`cli/casting-ui/src/viewer.tsx` or the `<CastingPromptBox>` manual dispatch in `casting-prompt-box.tsx`) to pass `lineState`. The reducer already holds it as `state.lineState`; thread it through the prompt-box props the same way `unpartedStalks` / `castIndex` are passed. Confirm with:
+- [ ] Thread `lineState` through the caller chain. In `cli/casting-ui/src/casting-prompt-box.tsx`, add `lineState` to `CastingPromptBoxProps` and forward it to `<ManualCastingPrompt>` (current dispatch at L233), alongside `unpartedStalks`. Then in `cli/casting-ui/src/viewer.tsx`, pass `lineState={state.lineState}` on the `<CastingPromptBox>` render (current L590, next to `unpartedStalks={currentMax + 1}` at L603). The reducer already owns `state.lineState` (it's read at L233 via `recordedMaxFor(state.lineState)`).
+
+  `state.lineState` is typed `LineState`; narrow/assert it to `AdvanceableLineState` at the call site if `tsc` rejects the wider type (mid-casting it is never `'3rd-cast'` — the reducer resets after each line; the same narrowing `recordedMaxFor` relies on). Confirm the exact prop wiring with:
   ```bash
-  rg -n "ManualCastingPrompt|unpartedStalks=" cli/casting-ui/src/
+  rg -n "ManualCastingPrompt|unpartedStalks=|state.lineState" cli/casting-ui/src/
   ```
-  and add `lineState={state.lineState}` (or the equivalent prop name) alongside `unpartedStalks`. `state.lineState` is `LineState`; narrow/assert it to `AdvanceableLineState` at the call site if needed (mid-casting it is never `'3rd-cast'` — the reducer resets after each line; the same narrowing `recordedMaxFor` relies on).
 
 - [ ] Type-check casting-ui (now expected GREEN):
   ```bash
@@ -708,22 +770,22 @@ The prompt currently calls `computeManualRoundResult(validation.pick, castIndex,
   ```bash
   pnpm --filter @hexagram/casting-ui test -- manual-prompt
   ```
-  Expected: green. If a reveal-row assertion fails, the `next` value differs from the old closed form — reconcile per the third-cast note above (the first two casts MUST match `maxPickFor(after)+1`, which the old Seam-1 test already proved equal to the closed form).
+  Expected: green. If a reveal-row assertion fails, the `next` value differs from the old closed form — reconcile per the third-cast fact-check above (the first two casts MUST match `maxPickFor(after)+1`).
 
 - [ ] Commit Tasks 3 + 4 together (they must land as one green change):
   ```bash
-  git add cli/casting-ui/src/manual-validation.ts cli/casting-ui/src/manual-prompt.tsx cli/casting-ui/src/viewer.tsx cli/casting-ui/src/casting-prompt-box.tsx cli/casting-ui/tests/manual-validation.test.tsx
-  git commit -m "Delete computeManualRoundResult; read next-round count from performCast
+  git add cli/casting-ui/src/manual-validation.ts cli/casting-ui/src/manual-prompt.tsx cli/casting-ui/src/casting-prompt-box.tsx cli/casting-ui/src/viewer.tsx cli/casting-ui/tests/manual-validation.test.tsx
+  git commit -m "Repoint manual prompt at @hexagram/core/manual-validation; drop computeManualRoundResult
 
-The manual prompt no longer re-implements the round arithmetic for its
-reveal row — it runs the algorithm of record (performCast) directly and
-reads maxPickFor(after)+1, the SAME computation the flow reducer uses to
-advance. casting-ui's manual-validation.ts is now UI-routing only
-(parseManualBuffer + manualFeedbackSurface) and re-exports the core
-validateManualSplit under the prompt's existing local names. Removes the
-deliberate computeManualRoundResult≡performCast duplicate and its
-lock-in test; the manual≡interactive byte-identity test remains the
-end-to-end guarantee.
+The manual prompt now imports validateManualSplit directly from core
+under its canonical name (no passthrough re-export through the casting-ui
+module). casting-ui's manual-validation.ts is UI-routing only
+(parseManualBuffer + manualFeedbackSurface). The reveal row no longer
+re-implements the round arithmetic — it runs the algorithm of record
+(performCast) directly and reads maxPickFor(after)+1, the SAME
+computation the flow reducer uses to advance. Removes the deliberate
+computeManualRoundResult≡performCast duplicate and its lock-in test; the
+manual≡interactive byte-identity test remains the end-to-end guarantee.
 
 https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf"
   ```
@@ -751,17 +813,23 @@ https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf"
   ```
   Expected: all green. (Core's slow `rng distribution` test is unaffected by this slice but still runs under `pnpm --filter @hexagram/core test`; it is ~40s by design.)
 
-- [ ] Grep to confirm `computeManualRoundResult` is fully gone (no dangling references in src, tests, or docs):
+- [ ] Grep to confirm `computeManualRoundResult`, `validateManualInput`, and `ManualValidationResult` are fully gone (no dangling references or passthrough aliases in src, tests, or docs):
   ```bash
-  rg -n "computeManualRoundResult"
+  rg -n "computeManualRoundResult|validateManualInput|ManualValidationResult"
   ```
-  Expected: NO matches (or only in this plan / a CHANGELOG if one is kept). If a doc/comment elsewhere references it, update that reference to point at `performCast` + `@hexagram/core/manual-validation`.
+  Expected: NO matches in `cli/` or `domain/` source/tests (or only in this plan / a CHANGELOG if one is kept). If a doc/comment elsewhere references them, update that reference to point at `validateManualSplit` + `performCast` + `@hexagram/core/manual-validation`. The `cli/casting-ui/tests/viewer.test.tsx` L1911 comment ("Decomposition pinned by `computeManualRoundResult`") MUST be reworded to reference `performCast`.
 
-- [ ] Confirm the core invariants are importable from the package public API (the Next.js-reuse goal):
+- [ ] Confirm casting-ui does NOT re-export the core validator (no passthrough shim survived):
+  ```bash
+  rg -n "validateManualSplit|ManualSplitValidation" cli/casting-ui/src/manual-validation.ts
+  ```
+  Expected: ONLY the `import type { ManualSplitValidation }` line used by `manualFeedbackSurface`'s param — NO `export const validateManualInput = …`, NO `export { validateManualSplit }`, NO `export type ManualValidationResult = …`.
+
+- [ ] Confirm the core invariants are importable from the package public API and every consumer reaches them through the subpath (the Next.js-reuse goal + full-repoint check):
   ```bash
   rg -n "from '@hexagram/core/manual-validation'" domain/ cli/
   ```
-  Expected: the casting-ui re-export module (and the core subpath test) import it; no deep relative reaches into `domain/core/src/manual-validation.ts` from outside the core package.
+  Expected: `manual-prompt.tsx`, the casting-ui `manual-validation.ts` (type-only), the casting-ui manual-validation test, and the core subpath test all import through the specifier; no deep relative reaches into `domain/core/src/manual-validation.ts` from outside the core package.
 
 - [ ] If your team runs the contention scripts before merging a reducer/Ink change, do a stress pass:
   ```bash
@@ -774,6 +842,6 @@ https://claude.ai/code/session_013psvyKdKysvpzsYwcwFSMf"
 ## Done criteria
 
 - `@hexagram/core/manual-validation` exports `validateManualSplit` + `ManualSplitValidation`, with the four-invariant priority order and `{5,9}`/`{4,8}` residues, TDD'd per invariant.
-- `cli/casting-ui/src/manual-validation.ts` is UI-routing only (`parseManualBuffer`, `manualFeedbackSurface`) + a thin re-export of the core validator under the prompt's existing names.
-- `computeManualRoundResult` is deleted; the prompt's `→ next cast: N unparted` reveal is computed from `performCast` (`maxPickFor(after)+1`) — one next-state computation, invoked authoritatively in the reducer and for-display in the prompt.
+- `cli/casting-ui/src/manual-validation.ts` is UI-routing only (`parseManualBuffer`, `manualFeedbackSurface`). It does NOT re-export the core validator — every casting-ui consumer (prompt, test) imports `validateManualSplit` / `ManualSplitValidation` directly from `@hexagram/core/manual-validation` under the canonical names; the old `validateManualInput` / `ManualValidationResult` names are retired.
+- `computeManualRoundResult` is deleted; the prompt's `→ next cast: N unparted` reveal is computed from `performCast` (`maxPickFor(after)+1`) — one next-state computation, invoked authoritatively in the reducer and for-display in the prompt, with `lineState` threaded `viewer.tsx → casting-prompt-box.tsx → manual-prompt.tsx`.
 - The manual≡interactive byte-identity test and the manual-validation suite are green; saved output is byte-identical.
