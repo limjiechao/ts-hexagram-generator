@@ -29,15 +29,14 @@
 //   - `saveError` — the error message from the last failed save, cleared on
 //     any subsequent mutation.
 
-import type { Hexagram, Line } from '@hexagram/core/types'
-
 import {
   cycleLineBackward,
   cycleLineForward,
   flipPolarity,
-  INITIAL_HEXAGRAM,
-  setLineAt,
-} from './playground-lines.js'
+} from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+
+import { INITIAL_HEXAGRAM, setLineAt } from './playground-lines.js'
 
 /** Whether the bottom-strip save-query editor is open. */
 export type PlaygroundMode = 'idle' | 'saving'
