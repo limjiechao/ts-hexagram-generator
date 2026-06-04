@@ -3,6 +3,7 @@ import {
   getHexagramRecord,
   getTrigramRecord,
 } from '@hexagram/core/getters'
+import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
 import {
   assertLine1ToLine6,
@@ -10,7 +11,6 @@ import {
   BOLD_RED,
   BOLD_WHITE,
   isLineIndex,
-  isMovingLine,
   NORMAL,
   NORMAL_GREY,
 } from '@hexagram/viewer-core'
