@@ -25,6 +25,11 @@
       "types": "./dist/getters.d.mts",
       "import": "./dist/getters.mjs"
     },
+    "./line-semantics": {
+      "source": "./src/line-semantics.ts",
+      "types": "./dist/line-semantics.d.mts",
+      "import": "./dist/line-semantics.mjs"
+    },
     "./hexagrams": {
       "source": "./src/models/hexagrams.ts",
       "types": "./dist/models/hexagrams.d.mts",
