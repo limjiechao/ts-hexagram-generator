@@ -1,15 +1,30 @@
 import {
+  buildConsultationView,
   CAST1_OFFSET_IN_BLOCK,
+  type CastingSection,
   castingTableActiveRow,
   castingTableFollowRow,
 } from '@hexagram/consultation-view'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
+  type Hexagram,
+  type PartialCastingRecord,
 } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { castingSection } from '../src/section-shims.js'
+import { serializeCastingAnsi } from '../src/serialize-ansi.js'
+
+// The casting-ledger ANSI rendering is the IR serializer applied to the
+// casting section of a view (a static placeholder hexagram drives the
+// discarded sections).
+const PLACEHOLDER: Hexagram = [7, 7, 7, 7, 7, 7]
+const castingSection = (casting: PartialCastingRecord | null): string =>
+  serializeCastingAnsi(
+    buildConsultationView('', PLACEHOLDER, casting).sections.find(
+      (s) => s.kind === 'casting',
+    )! as CastingSection,
+  )
 
 // oxlint-disable-next-line no-control-regex
 const SGR_PATTERN = /\u001B\[[0-9;]*m/g
