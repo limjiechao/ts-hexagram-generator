@@ -125,46 +125,6 @@
   [0m(Exegesis)
   [1;97mLXIV. (The trigram representing) water and that for fire above it form Wei Žî. The superior man, in accordance with this, carefully discriminates among (the qualities of) things, and the (different) positions they (naturally) occupy.
 
-[1;90mLINES:
-[0m(One moving line)
-
-[90m[Traditional Chinese]
-
-  [0m(Scripture)
-  [1;97m初六：濡其尾，吝。
-
-  [0m(Exegesis)
-  [1;97m濡其尾，亦不知極也。
-
-[90m[Simplified Chinese]
-
-  [0m(Scripture)
-  [1;97m初六：濡其尾，吝。
-
-  [0m(Exegesis)
-  [1;97m濡其尾，亦不知极也。
-
-[90m[English, Wilhelm-Baynes]
-
-  [0m(Scripture)
-  [1;97mSix at the beginning means:
-  He gets his tail in the water.
-  Humiliating.
-
-  [0m(Exegesis)
-  [1;97mSix at the beginning:
-  a) He gets his tail in the water.
-  Humiliating.
-  b) “He gets his tail in the water.” For he cannot take the end into view.
-
-[90m[English, James Legge]
-
-  [0m(Scripture)
-  [1;97m1. The first SIX, divided, shows its subject (like a fox) whose tail gets immersed. There will be occasion for regret.
-
-  [0m(Exegesis)
-  [1;97m1. 'His tail gets immersed:'--this is the very height of ignorance.
-
 
 [1;90mEMERGING HEXAGRAM 38:
 
@@ -235,3 +195,43 @@
 
   [0m(Exegesis)
   [1;97mXXXVIII. (The trigram representing) fire above, and that for (the waters of) a marsh below, form Khwei. The superior man, in accordance with this, where there is a general agreement, yet admits diversity.
+
+[1;90mLINES:
+[0m(One moving line)
+
+[90m[Traditional Chinese]
+
+  [0m(Scripture)
+  [1;97m初六：濡其尾，吝。
+
+  [0m(Exegesis)
+  [1;97m濡其尾，亦不知極也。
+
+[90m[Simplified Chinese]
+
+  [0m(Scripture)
+  [1;97m初六：濡其尾，吝。
+
+  [0m(Exegesis)
+  [1;97m濡其尾，亦不知极也。
+
+[90m[English, Wilhelm-Baynes]
+
+  [0m(Scripture)
+  [1;97mSix at the beginning means:
+  He gets his tail in the water.
+  Humiliating.
+
+  [0m(Exegesis)
+  [1;97mSix at the beginning:
+  a) He gets his tail in the water.
+  Humiliating.
+  b) “He gets his tail in the water.” For he cannot take the end into view.
+
+[90m[English, James Legge]
+
+  [0m(Scripture)
+  [1;97m1. The first SIX, divided, shows its subject (like a fox) whose tail gets immersed. There will be occasion for regret.
+
+  [0m(Exegesis)
+  [1;97m1. 'His tail gets immersed:'--this is the very height of ignorance.

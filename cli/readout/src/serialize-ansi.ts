@@ -360,40 +360,34 @@ export function serializeConsultationTabs(
   }
 }
 
-// Plain-console projection of the IR. Task 3d.1 keeps the LEGACY plain order
-// (LINES before the emerging block) so the structural cutover is byte-clean;
-// Task 3d.3 flips this to the canonical IR order (LINES last) as the slice's
-// one sanctioned behaviour change.
+// Plain-console projection of the IR — a straight walk of the IR's CANONICAL
+// section order (query, casting, transformation, standing diagram + text,
+// [emerging diagram + text], LINES). LINES is last, matching the Ink `standing`
+// tab grouping and the saved `.md` body. This is the slice's one sanctioned
+// behaviour change: the legacy plain output emitted LINES *before* the emerging
+// block; harmonizing it here makes every surface speak one order.
 export function serializeConsoleOutput(view: ConsultationView): string {
-  const ss = view.sections
-  const query = ss.find((s) => s.kind === 'query')! as QuerySection
-  const casting = ss.find((s) => s.kind === 'casting')! as CastingSection
-  const transformation = ss.find(
-    (s) => s.kind === 'transformation',
-  )! as TransformationSection
-  const hexes = ss.filter((s) => s.kind === 'hexagram') as HexagramSection[]
-  const hexTexts = ss.filter(
-    (s) => s.kind === 'text' && s.role === 'hexagram',
-  ) as TextSection[]
-  const lines = ss.find(
-    (s) => s.kind === 'text' && s.role === 'lines',
-  )! as TextSection
-
-  const parts: string[] = [
-    serializeQueryAnsi(query),
-    serializeCastingAnsi(casting),
-    serializeTransformationAnsi(transformation),
-    serializeHexagramAnsi(hexes[0]!),
-    serializeTextAnsi(hexTexts[0]!),
-  ]
-  // LEGACY plain order: LINES (if any) BEFORE the emerging block.
-  const linesOut = serializeTextAnsi(lines)
-  if (linesOut !== '') parts.push(linesOut)
-  if (view.hasMovingLines) {
-    parts.push(
-      serializeHexagramAnsi(hexes[1]!),
-      serializeTextAnsi(hexTexts[1]!),
-    )
+  const parts: string[] = []
+  for (const s of view.sections) {
+    switch (s.kind) {
+      case 'query':
+        parts.push(serializeQueryAnsi(s))
+        break
+      case 'casting':
+        parts.push(serializeCastingAnsi(s))
+        break
+      case 'transformation':
+        parts.push(serializeTransformationAnsi(s))
+        break
+      case 'hexagram':
+        parts.push(serializeHexagramAnsi(s))
+        break
+      case 'text': {
+        const out = serializeTextAnsi(s)
+        if (out !== '') parts.push(out) // no-moving LINES → '' (suppressed)
+        break
+      }
+    }
   }
   return `\n\n${parts.join('\n\n')}\n`
 }
