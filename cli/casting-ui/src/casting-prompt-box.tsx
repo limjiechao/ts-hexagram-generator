@@ -1,3 +1,5 @@
+import { initialLineState } from '@hexagram/core'
+import type { AdvanceableLineState } from '@hexagram/core/types'
 import { BOLD_RED, NORMAL } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
@@ -147,6 +149,13 @@ interface CastingPromptBoxProps {
    */
   unpartedStalks?: number
   /**
+   * The per-line algorithm state, forwarded to `<ManualCastingPrompt>` so it
+   * can run `performCast` for the next-round reveal. Required (in practice)
+   * when `flowKind === 'manual'`; ignored by the interactive branch. Optional
+   * here so interactive callers need not supply it.
+   */
+  lineState?: AdvanceableLineState
+  /**
    * Test-only manual-flow focus witness — fires whenever the focused field
    * cycles between `pilesL`, `remL`, `pilesR`, `remR`. Production callers
    * omit it; tests gate Tab→digit pairs on the callback to bypass Ink's
@@ -218,6 +227,7 @@ export function CastingPromptBox({
   flowKind = 'interactive',
   manualRevealMs = MANUAL_REVEAL_MS,
   unpartedStalks,
+  lineState,
   onFocusedFieldChange,
   initialDraft,
   onDraftChange,
@@ -229,12 +239,16 @@ export function CastingPromptBox({
     // `stalksTotal` if supplied, else `max + 1`. (`max` is the reachable pick
     // ceiling, so `max + 1` is a best-effort lower bound only.)
     const unparted = unpartedStalks ?? stalksTotal ?? max + 1
+    // Defensive default mirrors `unparted` above — the viewer always threads the
+    // reducer-owned `state.lineState`, so this fallback is dead in production.
+    const manualLineState = lineState ?? initialLineState
     return (
       <ManualCastingPrompt
         lineNumber={lineNumber}
         castIndex={castIndex}
         width={width}
         unpartedStalks={unparted}
+        lineState={manualLineState}
         manualRevealMs={manualRevealMs}
         horizontalOffset={horizontalOffset}
         onSubmit={onSubmit}

@@ -2,6 +2,7 @@ import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import { selectablePickMax } from '@hexagram/core/casting-derivation'
 import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
+  type AdvanceableLineState,
   assertIsCastingRecord,
   assertIsHexagram,
   type CastingRecord,
@@ -601,6 +602,11 @@ export function ConsultationViewer({
       flowKind={state.flowKind}
       manualRevealMs={manualRevealMs}
       unpartedStalks={currentMax + 1}
+      // Mid-casting `state.lineState` is always advanceable (the reducer resets
+      // to initialLineState after each line; a line in flight is 0th/1st/2nd
+      // cast), so this assert never narrows away a real '3rd-cast'. Same
+      // narrowing `recordedMaxFor(state.lineState)` above relies on.
+      lineState={state.lineState as AdvanceableLineState}
       tickMs={deriveTickMs(sliderSweepMs, reachablePickMax)}
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}

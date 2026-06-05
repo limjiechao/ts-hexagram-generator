@@ -1908,7 +1908,7 @@ describe('ConsultationViewer (manual flow)', () => {
     // the reveal dwell; `onManualPromptReady` is the per-cast mount witness
     // and `onManualFocusedFieldChange` is the per-field focus witness — the
     // two together let us write digits and Tabs without ever racing the
-    // bind-race window. Decomposition pinned by `computeManualRoundResult`:
+    // bind-race window. Decomposition pinned by `performCast`:
     //   (24, 49) → (5, 4, 5, 4)
     //   (20, 40) → (4, 4, 4, 3)
     //   (16, 32) → (3, 4, 3, 3)

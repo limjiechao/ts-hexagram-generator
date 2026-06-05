@@ -1,3 +1,4 @@
+import { initialLineState, performCast } from '@hexagram/core'
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
@@ -38,12 +39,19 @@ describe('CastingPromptBox (manual flow)', () => {
   // (max = 39, the maximum legal pick is max). Tests opt out of the post-
   // commit reveal dwell with `manualRevealMs={0}` unless they specifically
   // want to observe the reveal text.
+  // A '1st-cast' line state with 40 unparted stalks (49 → pick 24 → 40),
+  // matching baseProps' castIndex 1 / unparted 40. The prompt runs
+  // `performCast(lineState, pick)` for the reveal; the round-1 reveal test
+  // overrides this with `initialLineState` (the '0th-cast', 49-stalk state).
+  const lineStateUnparted40 = performCast(initialLineState, 24)
+
   const baseProps = {
     lineNumber: 3 as const,
     castIndex: 1 as const,
     min: 1,
     max: 39,
     unpartedStalks: 40,
+    lineState: lineStateUnparted40,
     // 100 cols: natural body width 95 + 2 borders = 97; 100 gives the
     // bottom strip room to land both `… 40 stalks accounted` and the
     // `Shift+Tab: back to fix` hint without horizontal pan.
@@ -567,6 +575,7 @@ describe('CastingPromptBox (manual flow)', () => {
         castIndex={0}
         max={48}
         unpartedStalks={49}
+        lineState={initialLineState}
         manualRevealMs={150}
         onSubmit={onSubmit}
         onReady={onReady}
