@@ -16,17 +16,21 @@ type PositionKey = keyof typeof POSITION_LABELS
 export type DecorateCell = (text: string) => string
 
 /** One half of a transformation row: `indent + value + "  " + glyph + "  " +
- *  position`. The value and glyph cells pass through `decorate`; the position
- *  label never does (matches both legacy serializers). */
+ *  position`. The value and glyph cells pass through `decorate`. The position
+ *  label passes through `decoratePosition`, which defaults to identity — so
+ *  every existing caller (the consultation serializers, which never colour
+ *  position) emits byte-identical output, while the playground can inject its
+ *  ghost-mirror position colour through the same skeleton. */
 export function transformationHalfRow(
   cell: { line: Line; position: PositionKey },
   indent: string,
   decorate: DecorateCell,
+  decoratePosition: DecorateCell = (text) => text,
 ): string {
   return (
     `${indent}${decorate(String(cell.line))}` +
     `  ${decorate(LINE_GLYPH[cell.line])}` +
-    `  ${POSITION_LABELS[cell.position]}`
+    `  ${decoratePosition(POSITION_LABELS[cell.position])}`
   )
 }
 

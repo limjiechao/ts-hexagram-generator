@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 
 import {
   hexagramDiagramRowStrings,
+  transformationHalfRow,
   transformationRow,
 } from '../src/diagram-template.js'
 import { MOVING_ARROW, STATIC_GAP } from '../src/vocabulary.js'
@@ -31,6 +32,23 @@ describe('transformationRow', () => {
     const wrap = (t: string): string => `<${t}>`
     expect(transformationRow(standing, emerging, wrap, wrap)).toBe(
       `  <9>  <━━━━○━━━━>  （三, 3rd）${MOVING_ARROW}<8>  <━━━   ━━━>  （三, 3rd）`,
+    )
+  })
+
+  it('transformationHalfRow decorates the position cell when given a fourth callback', () => {
+    const cell = { line: 8, position: 3 } as const
+    const wrapCell = (t: string): string => `<${t}>`
+    const wrapPos = (t: string): string => `[${t}]`
+    expect(transformationHalfRow(cell, '  ', wrapCell, wrapPos)).toBe(
+      `  <8>  <━━━   ━━━>  [（三, 3rd）]`,
+    )
+  })
+
+  it('transformationHalfRow leaves the position cell undecorated by default', () => {
+    const cell = { line: 8, position: 3 } as const
+    const id = (t: string): string => t
+    expect(transformationHalfRow(cell, '  ', id)).toBe(
+      `  8  ━━━   ━━━  （三, 3rd）`,
     )
   })
 })
