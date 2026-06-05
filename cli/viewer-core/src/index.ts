@@ -27,6 +27,15 @@ export {
 // Editor primitives shared by every in-Ink single-line text editor.
 export { Cursor, isGlobalExitKey } from './editor-primitives.js'
 
+// Environment policy — the single reading of TTY / NO_COLOR / CI that both the
+// interactive gate and the force-numeric heuristic derive from.
+export {
+  classifyEnv,
+  refuseIfNonInteractive,
+  type EnvPolicy,
+  type EnvSnapshot,
+} from './env-policy.js'
+
 // Generic full-screen scrollable help overlay — title + windowed body + footer
 // hint, framed in the viewer-core chrome. Owns its own input handling.
 export { HelpOverlay, type HelpOverlayProps } from './help-overlay.js'
@@ -49,15 +58,6 @@ export {
   WHITE,
   YELLOW,
 } from './output-palette.js'
-
-// Environment policy — the single reading of TTY / NO_COLOR / CI that both the
-// interactive gate and the force-numeric heuristic derive from.
-export {
-  classifyEnv,
-  refuseIfNonInteractive,
-  type EnvPolicy,
-  type EnvSnapshot,
-} from './env-policy.js'
 
 // TTY-and-environment guard shared by every Ink-only bin's run entry.
 export { isInteractiveEnv } from './run-utils.js'
