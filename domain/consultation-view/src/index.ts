@@ -1,4 +1,8 @@
-export { buildConsultationView } from './build-view.js'
+export {
+  buildConsultationView,
+  hexagramDiagramRows,
+  hexagramIdentity,
+} from './build-view.js'
 export * from './ir.js'
 export {
   buildLedgerRows,
