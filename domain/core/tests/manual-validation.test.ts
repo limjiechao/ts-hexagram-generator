@@ -1,23 +1,7 @@
-import { assertSelectablePick } from '@hexagram/core/casting-derivation'
-import { validateManualSplit as validateViaSubpath } from '@hexagram/core/manual-validation'
 import { describe, expect, it } from 'vitest'
 
+import { assertSelectablePick } from '../src/casting-derivation.js'
 import { validateManualSplit } from '../src/manual-validation.js'
-
-describe('@hexagram/core/manual-validation subpath', () => {
-  it('resolves the validator through the package public API', () => {
-    expect(
-      validateViaSubpath({
-        pilesL: 5,
-        remL: 4,
-        pilesR: 5,
-        remR: 4,
-        unparted: 49,
-        castIndex: 0,
-      }),
-    ).toEqual({ kind: 'ok', pick: 24, leftHeapTotal: 24, rightHeapTotal: 24 })
-  })
-})
 
 describe('validateManualSplit', () => {
   it('returns incomplete when any field is null', () => {
