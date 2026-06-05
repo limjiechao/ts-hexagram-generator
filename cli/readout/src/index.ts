@@ -1,16 +1,9 @@
 // @hexagram/readout — the Consultation Readout renderer: the tabbed,
-// scrollable readout component plus the per-section ANSI string builders that
-// turn a consultation into per-tab strings. Depends on @hexagram/viewer-core
-// for the generic chrome (ScreenShell, TabBar, palette, layout maths) and on
+// scrollable readout component plus the IR→ANSI serializers that turn a
+// consultation view into per-tab strings. Depends on @hexagram/viewer-core
+// for the generic chrome (ScreenShell, TabBar, palette, layout maths),
+// @hexagram/consultation-view for the medium-neutral IR + vocabulary, and
 // @hexagram/core/getters for the derived hexagram data it renders.
-
-// Casting ledger table builder + the casting-table row geometry helpers that
-// drive the readout's auto-follow scroll.
-export {
-  castingSection,
-  castingTableActiveRow,
-  castingTableFollowRow,
-} from './casting-ledger.js'
 
 // Tabbed scrollable consultation readout — the generic chrome engine wired to
 // consultation sections; serves both the casting-flow view and standalone
@@ -29,17 +22,27 @@ export {
   type ConsultationSections,
 } from './output-composers.js'
 
-// Section builders — the per-section ANSI string renderers, plus the shared
-// geometry constants (position labels, inter-column connector / gap) that
-// downstream renderers like the playground reuse for byte-identical layout.
+// TEMPORARY section-builder shims (removed in Phase 3d) — the legacy per-section
+// builder names, routed through the IR serializers, kept until casting-ui's
+// console composer collapses onto the IR.
 export {
+  castingSection,
   emergingHexagramSection,
   hexagramTextSection,
   linesBlock,
-  MOVING_ARROW,
-  POSITION_LABELS,
   querySection,
   standingHexagramSection,
-  STATIC_GAP,
   transformationSection,
-} from './output-sections.js'
+} from './section-shims.js'
+
+// Casting-table row geometry helpers + shared layout vocabulary, re-exported
+// from their canonical home (@hexagram/consultation-view) so existing
+// downstream importers (the viewer's auto-follow scroll; the playground's
+// diagram geometry) keep resolving them via @hexagram/readout.
+export {
+  castingTableActiveRow,
+  castingTableFollowRow,
+  MOVING_ARROW,
+  POSITION_LABELS,
+  STATIC_GAP,
+} from '@hexagram/consultation-view'
