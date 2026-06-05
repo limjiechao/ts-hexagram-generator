@@ -71,6 +71,9 @@ importers:
       '@hexagram/consultation-file':
         specifier: workspace:*
         version: link:../../domain/consultation-file
+      '@hexagram/consultation-view':
+        specifier: workspace:*
+        version: link:../../domain/consultation-view
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core

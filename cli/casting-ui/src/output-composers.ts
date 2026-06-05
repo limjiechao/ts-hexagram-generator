@@ -1,43 +1,16 @@
-import { getEmergingHexagram } from '@hexagram/core/getters'
-import { isMovingLine } from '@hexagram/core/line-semantics'
+import { buildConsultationView } from '@hexagram/consultation-view'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
-import {
-  castingSection,
-  emergingHexagramSection,
-  hexagramTextSection,
-  linesBlock,
-  querySection,
-  standingHexagramSection,
-  transformationSection,
-} from '@hexagram/readout'
+import { serializeConsoleOutput } from '@hexagram/readout'
 
 /**
- * Compose the full plain console output. Kept as a thin composer over the
- * same section builders that feed `buildConsultationSections`, so the
- * `--plain` output (and the saved file) stays byte-identical.
+ * Compose the full plain console output by projecting the medium-neutral
+ * consultation-view IR. One composer path: the same IR + serializers that feed
+ * the Ink viewer and the saved `.md` file drive the `--plain` output too.
  */
 export function consultationConsoleOutput(
   query: string,
   hexagram: Hexagram,
   casting: CastingRecord,
 ): string {
-  const movingLines = hexagram.filter(isMovingLine)
-  const standingLines = linesBlock(hexagram)
-
-  const sections = [
-    querySection(query),
-    castingSection(casting),
-    transformationSection(hexagram),
-    standingHexagramSection(hexagram),
-    hexagramTextSection(hexagram),
-    ...(standingLines ? [standingLines] : []),
-    ...(movingLines.length > 0
-      ? [
-          emergingHexagramSection(hexagram),
-          hexagramTextSection(getEmergingHexagram(hexagram)),
-        ]
-      : []),
-  ]
-
-  return `\n\n${sections.join('\n\n')}\n`
+  return serializeConsoleOutput(buildConsultationView(query, hexagram, casting))
 }

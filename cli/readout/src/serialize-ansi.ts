@@ -359,3 +359,41 @@ export function serializeConsultationTabs(
     emerging,
   }
 }
+
+// Plain-console projection of the IR. Task 3d.1 keeps the LEGACY plain order
+// (LINES before the emerging block) so the structural cutover is byte-clean;
+// Task 3d.3 flips this to the canonical IR order (LINES last) as the slice's
+// one sanctioned behaviour change.
+export function serializeConsoleOutput(view: ConsultationView): string {
+  const ss = view.sections
+  const query = ss.find((s) => s.kind === 'query')! as QuerySection
+  const casting = ss.find((s) => s.kind === 'casting')! as CastingSection
+  const transformation = ss.find(
+    (s) => s.kind === 'transformation',
+  )! as TransformationSection
+  const hexes = ss.filter((s) => s.kind === 'hexagram') as HexagramSection[]
+  const hexTexts = ss.filter(
+    (s) => s.kind === 'text' && s.role === 'hexagram',
+  ) as TextSection[]
+  const lines = ss.find(
+    (s) => s.kind === 'text' && s.role === 'lines',
+  )! as TextSection
+
+  const parts: string[] = [
+    serializeQueryAnsi(query),
+    serializeCastingAnsi(casting),
+    serializeTransformationAnsi(transformation),
+    serializeHexagramAnsi(hexes[0]!),
+    serializeTextAnsi(hexTexts[0]!),
+  ]
+  // LEGACY plain order: LINES (if any) BEFORE the emerging block.
+  const linesOut = serializeTextAnsi(lines)
+  if (linesOut !== '') parts.push(linesOut)
+  if (view.hasMovingLines) {
+    parts.push(
+      serializeHexagramAnsi(hexes[1]!),
+      serializeTextAnsi(hexTexts[1]!),
+    )
+  }
+  return `\n\n${parts.join('\n\n')}\n`
+}
