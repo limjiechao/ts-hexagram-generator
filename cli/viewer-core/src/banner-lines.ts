@@ -9,6 +9,7 @@
 // readout, the home banner, and the playground can all share one
 // glyph + role vocabulary without `playground-ui` depending on `shell`.
 
+import { LINE_GLYPH } from '@hexagram/consultation-view'
 import type { LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
 
@@ -34,12 +35,6 @@ export interface LineCells {
   readonly role: LineRole
 }
 
-// Fixed-width (9-column) bar glyphs. `━` U+2501, `○` U+25CB, `✕` U+2715.
-const YANG_STATIC = '━━━━━━━━━'
-const YANG_MOVING = '━━━━○━━━━'
-const YIN_STATIC = '━━━   ━━━'
-const YIN_MOVING = '━━━ ✕ ━━━'
-
 /** The colour role for a line, by its moving + pulse state. */
 function roleOf(moving: boolean, pulse: boolean): LineRole {
   if (!moving) return 'static'
@@ -61,13 +56,13 @@ export function deriveBannerLine(
 
   if (polarity === 'yang') {
     return {
-      bar: moving ? YANG_MOVING : YANG_STATIC,
+      bar: moving ? LINE_GLYPH[9] : LINE_GLYPH[7],
       value: moving ? 9 : 7,
       role,
     }
   }
   return {
-    bar: moving ? YIN_MOVING : YIN_STATIC,
+    bar: moving ? LINE_GLYPH[6] : LINE_GLYPH[8],
     value: moving ? 6 : 8,
     role,
   }
