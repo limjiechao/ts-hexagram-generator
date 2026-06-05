@@ -1,4 +1,9 @@
-import { BOLD_GREEN, BOLD_RED, NORMAL, terminalWidth } from '@hexagram/viewer-core'
+import {
+  BOLD_GREEN,
+  BOLD_RED,
+  NORMAL,
+  terminalWidth,
+} from '@hexagram/viewer-core'
 
 import {
   DIAGRAM_WIDTH,

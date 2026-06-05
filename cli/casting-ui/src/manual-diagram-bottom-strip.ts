@@ -1,4 +1,9 @@
-import { BOLD_GREEN, BOLD_RED, NORMAL, terminalWidth } from '@hexagram/viewer-core'
+import {
+  BOLD_GREEN,
+  BOLD_RED,
+  NORMAL,
+  terminalWidth,
+} from '@hexagram/viewer-core'
 
 // Bottom-strip error-branch discriminant. The strip's `error` branch wraps
 // these args; they are flat-extended into BottomStripArgs below. Conservation

@@ -610,7 +610,8 @@ export function ManualCastingPrompt({
   // slice by horizontalOffset for the viewer's `<` / `>` narrow-terminal pan.
   const allRows = [centeredTitleRow, '', ...bodyRows, '', stripRow]
   const slicedRows = allRows.map((row) => {
-    const padded = row + ' '.repeat(Math.max(0, renderWidth - terminalWidth(row)))
+    const padded =
+      row + ' '.repeat(Math.max(0, renderWidth - terminalWidth(row)))
     return sliceAnsi(
       padded,
       horizontalOffset,

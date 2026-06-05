@@ -11,19 +11,19 @@
 // [emerging diagram], LINES — exactly the legacy markdownConsultationBody order.
 
 import {
+  hexagramDiagramRowStrings,
+  LEDGER_COLUMNS,
+  LINE_LABELS,
+  RIGHT_COLUMN,
+  transformationRow,
   type CastingSection,
   type ConsultationView,
-  hexagramDiagramRowStrings,
   type HexagramSection,
-  LEDGER_COLUMNS,
   type LedgerRow,
-  LINE_LABELS,
   type QuerySection,
-  RIGHT_COLUMN,
   type TextSection,
   type TextVariant,
   type TransformationSection,
-  transformationRow,
 } from '@hexagram/consultation-view'
 import {
   centerVisual,
@@ -140,7 +140,12 @@ export function serializeTransformationMarkdown(
   const header = `${padToColumn('  Standing', RIGHT_COLUMN)}Emerging`
   const lineRows = rows
     .map(({ standing: s, emerging: e }) =>
-      transformationRow(s, e, (t) => t, (t) => t),
+      transformationRow(
+        s,
+        e,
+        (t) => t,
+        (t) => t,
+      ),
     )
     .join('\n')
   const footer1 = `${padToColumn(
@@ -163,9 +168,11 @@ ${footer2}
 }
 
 function hexagramDiagramBlockMarkdown(section: HexagramSection): string {
-  return hexagramDiagramRowStrings(section.rows, section.identity, (chunk) => chunk).join(
-    '\n',
-  )
+  return hexagramDiagramRowStrings(
+    section.rows,
+    section.identity,
+    (chunk) => chunk,
+  ).join('\n')
 }
 
 export function serializeHexagramMarkdown(section: HexagramSection): string {

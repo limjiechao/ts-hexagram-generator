@@ -2,9 +2,9 @@ import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import { selectablePickMax } from '@hexagram/core/casting-derivation'
 import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
-  type AdvanceableLineState,
   assertIsCastingRecord,
   assertIsHexagram,
+  type AdvanceableLineState,
   type CastingRecord,
   type Hexagram,
 } from '@hexagram/core/types'
