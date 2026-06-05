@@ -203,6 +203,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../../domain/text-layout
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core
@@ -4184,7 +4187,7 @@ snapshots:
       eslint: 10.3.0(jiti@2.7.0)
       json-stable-stringify-without-jsonify: 1.0.1
       lodash.merge: 4.6.2
-      semver: 7.8.0
+      semver: 7.8.1
       typescript: 6.0.3
     transitivePeerDependencies:
       - supports-color
