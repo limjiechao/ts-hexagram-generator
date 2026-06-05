@@ -40,16 +40,29 @@ function identityOf(hexagram: Hexagram): HexagramIdentity {
     pinyin: String(Metadata.Pronunciation.Pinyin),
     englishWilhelmBaynes: String(Name.English.WilhelmBaynes),
     englishLegge: String(Name.English.Legge),
-    upperTrigramChinese: String(upper.Imagery.Chinese.Traditional),
-    upperTrigramEnglish: String(upper.Imagery.English.WilhelmBaynes),
-    lowerTrigramChinese: String(lower.Imagery.Chinese.Traditional),
-    lowerTrigramEnglish: String(lower.Imagery.English.WilhelmBaynes),
+    // Identity-stack fields: trigram NAME (Chinese) + capitalized pinyin +
+    // capitalized English imagery — exactly what the transformation footer and
+    // the playground identity stack render.
+    upperTrigramChinese: String(upper.Name.Chinese.Traditional),
+    upperTrigramEnglish: capitalizeFirst(
+      String(upper.Imagery.English.WilhelmBaynes),
+    ),
+    lowerTrigramChinese: String(lower.Name.Chinese.Traditional),
+    lowerTrigramEnglish: capitalizeFirst(
+      String(lower.Imagery.English.WilhelmBaynes),
+    ),
     upperTrigramPinyin: capitalizeFirst(
       String(upper.Metadata.Pronunciation.Pinyin),
     ),
     lowerTrigramPinyin: capitalizeFirst(
       String(lower.Metadata.Pronunciation.Pinyin),
     ),
+    // Diagram-brace fields: trigram IMAGERY (Chinese) + RAW English imagery —
+    // what the hexagram-section `（上卦）` / `（下卦）` braces render.
+    upperTrigramImageryChinese: String(upper.Imagery.Chinese.Traditional),
+    upperTrigramImageryEnglish: String(upper.Imagery.English.WilhelmBaynes),
+    lowerTrigramImageryChinese: String(lower.Imagery.Chinese.Traditional),
+    lowerTrigramImageryEnglish: String(lower.Imagery.English.WilhelmBaynes),
   }
 }
 

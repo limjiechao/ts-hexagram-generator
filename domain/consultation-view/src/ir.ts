@@ -45,13 +45,24 @@ export interface HexagramIdentity {
   readonly pinyin: string
   readonly englishWilhelmBaynes: string
   readonly englishLegge: string
+  // Identity-stack trigram fields (the `Upper: 名 Pinyin (English)` rows shared
+  // by the transformation footer AND the playground identity stack): the
+  // trigram NAME in Chinese, the capitalized pinyin, and the capitalized
+  // English imagery.
   readonly upperTrigramChinese: string
   readonly upperTrigramEnglish: string
   readonly lowerTrigramChinese: string
   readonly lowerTrigramEnglish: string
-  /** Identity-stack rows (#N 名（pinyin）/ English / Upper: / Lower:). */
   readonly upperTrigramPinyin: string
   readonly lowerTrigramPinyin: string
+  // Diagram-brace trigram fields (the hexagram-section `（上卦）` / `（下卦）`
+  // braces): the trigram IMAGERY in Chinese and the RAW (uncapitalized)
+  // English imagery. Distinct from the identity-stack fields above — the two
+  // render surfaces deliberately show different trigram strings.
+  readonly upperTrigramImageryChinese: string
+  readonly upperTrigramImageryEnglish: string
+  readonly lowerTrigramImageryChinese: string
+  readonly lowerTrigramImageryEnglish: string
 }
 
 /** TRANSFORMATION: two diagrams side by side + the paired identity footer. */
