@@ -1,39 +1,19 @@
-import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
+import { hexagramIdentity } from '@hexagram/consultation-view'
 import type { Hexagram } from '@hexagram/core/types'
 
-import { capitalizeFirst } from './playground-display-text.js'
-
+// The four identity-stack rows are composed from the consultation-view IR's
+// HexagramIdentity — the single authoritative extraction (same Name-Chinese +
+// capitalized pinyin + capitalized English imagery the consultation
+// transformation footer renders), so the playground and the consultation can
+// never disagree about the identity strings.
 export function identityRows(
   hexagram: Hexagram,
 ): readonly [string, string, string, string] {
-  const record = getHexagramRecord(hexagram)
-  // The template-literal types on `WenWang`, `Chinese.Traditional`, and
-  // `Pinyin` produce a 64-way union when composed inside a single template;
-  // `String(...)` collapses each to `string` and keeps tsc's checker tractable.
-  const wenwang = String(record.Metadata.Order.WenWang)
-  const chinese = String(record.Name.Chinese.Traditional)
-  const pinyin = String(record.Metadata.Pronunciation.Pinyin)
-  const english = String(record.Name.English.WilhelmBaynes)
-  const upperTrigram = getTrigramRecord(record.Metadata.Trigram.Upper)
-  const lowerTrigram = getTrigramRecord(record.Metadata.Trigram.Lower)
-  const upperChinese = String(upperTrigram.Name.Chinese.Traditional)
-  const lowerChinese = String(lowerTrigram.Name.Chinese.Traditional)
-  const upperPinyin = capitalizeFirst(
-    String(upperTrigram.Metadata.Pronunciation.Pinyin),
-  )
-  const lowerPinyin = capitalizeFirst(
-    String(lowerTrigram.Metadata.Pronunciation.Pinyin),
-  )
-  const upperEnglish = capitalizeFirst(
-    String(upperTrigram.Imagery.English.WilhelmBaynes),
-  )
-  const lowerEnglish = capitalizeFirst(
-    String(lowerTrigram.Imagery.English.WilhelmBaynes),
-  )
+  const id = hexagramIdentity(hexagram)
   return [
-    `#${wenwang} ${chinese}（${pinyin}）`,
-    english,
-    `Upper: ${upperChinese} ${upperPinyin} (${upperEnglish})`,
-    `Lower: ${lowerChinese} ${lowerPinyin} (${lowerEnglish})`,
+    `#${id.wenWang} ${id.chineseTraditional}（${id.pinyin}）`,
+    id.englishWilhelmBaynes,
+    `Upper: ${id.upperTrigramChinese} ${id.upperTrigramPinyin} (${id.upperTrigramEnglish})`,
+    `Lower: ${id.lowerTrigramChinese} ${id.lowerTrigramPinyin} (${id.lowerTrigramEnglish})`,
   ] as const
 }
