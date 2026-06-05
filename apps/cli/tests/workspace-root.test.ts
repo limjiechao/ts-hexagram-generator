@@ -1,5 +1,5 @@
 import path from 'node:path'
-import { pathToFileURL } from 'node:url'
+import { fileURLToPath, pathToFileURL } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
@@ -19,8 +19,10 @@ import {
 
 // This test file lives at `<repo-root>/apps/cli/tests/`; the repo root is two
 // directories up from `src/` (where the resolver's own module lives at runtime)
-// and three up from here.
-const thisDir = path.dirname(new URL(import.meta.url).pathname)
+// and three up from here. Use `fileURLToPath` (NOT `new URL(...).pathname`,
+// which yields a malformed `/D:/...` drive path on Windows) so the base path is
+// correct cross-platform.
+const thisDir = path.dirname(fileURLToPath(import.meta.url))
 const expectedRoot = path.resolve(thisDir, '..', '..', '..')
 
 describe('workspace-root resolver', () => {
