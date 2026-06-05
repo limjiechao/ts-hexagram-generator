@@ -160,6 +160,19 @@ function linesSection(hexagram: Hexagram): TextSection {
   return { kind: 'text', role: 'lines', variant: 'multi', variants: [] }
 }
 
+/** Public sub-builder: the hexagram identity strings (no record traversal in consumers). */
+export function hexagramIdentity(hexagram: Hexagram): HexagramIdentity {
+  return identityOf(hexagram)
+}
+
+/** Public sub-builder: the top-first diagram rows (line value, position, moving flag). */
+export function hexagramDiagramRows(
+  hexagram: Hexagram,
+  movingFrom: Hexagram = hexagram,
+): readonly DiagramLineRow[] {
+  return diagramRows(hexagram, movingFrom)
+}
+
 export function buildConsultationView(
   query: string,
   hexagram: Hexagram,
