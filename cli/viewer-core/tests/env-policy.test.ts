@@ -39,10 +39,12 @@ describe('classifyEnv', () => {
   })
 
   test('forceNumeric ignores isTTY (heuristic is env-only)', () => {
-    expect(classifyEnv({ isTTY: false, NO_COLOR: '1', CI: undefined })).toEqual({
-      interactive: false,
-      forceNumeric: true,
-    })
+    expect(classifyEnv({ isTTY: false, NO_COLOR: '1', CI: undefined })).toEqual(
+      {
+        interactive: false,
+        forceNumeric: true,
+      },
+    )
   })
 })
 
@@ -57,7 +59,7 @@ describe('refuseIfNonInteractive', () => {
       })
     const exit = vi
       .spyOn(process, 'exit')
-      .mockImplementation((() => undefined) as never)
+      .mockImplementation((() => {}) as never)
 
     refuseIfNonInteractive('hexagram-history')
 
@@ -79,7 +81,7 @@ describe('refuseIfNonInteractive', () => {
       })
     const exit = vi
       .spyOn(process, 'exit')
-      .mockImplementation((() => undefined) as never)
+      .mockImplementation((() => {}) as never)
 
     refuseIfNonInteractive('hexagram')
 

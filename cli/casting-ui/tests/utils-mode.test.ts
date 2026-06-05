@@ -29,9 +29,9 @@ describe('parseIntFlag', () => {
   })
 
   test('reads the equals form --flag=<n>', () => {
-    expect(parseIntFlag(['--cast-reveal-ms=900'], '--cast-reveal-ms', 700)).toBe(
-      900,
-    )
+    expect(
+      parseIntFlag(['--cast-reveal-ms=900'], '--cast-reveal-ms', 700),
+    ).toBe(900)
   })
 
   test('falls back when the flag is absent', () => {
@@ -45,15 +45,15 @@ describe('parseIntFlag', () => {
   })
 
   test('falls back on a zero value (must be a positive integer)', () => {
-    expect(parseIntFlag(['--cast-reveal-ms', '0'], '--cast-reveal-ms', 700)).toBe(
-      700,
-    )
+    expect(
+      parseIntFlag(['--cast-reveal-ms', '0'], '--cast-reveal-ms', 700),
+    ).toBe(700)
   })
 
   test('falls back on a negative / signed value (regex rejects the sign)', () => {
-    expect(parseIntFlag(['--cast-reveal-ms', '-5'], '--cast-reveal-ms', 700)).toBe(
-      700,
-    )
+    expect(
+      parseIntFlag(['--cast-reveal-ms', '-5'], '--cast-reveal-ms', 700),
+    ).toBe(700)
   })
 
   test('falls back on a decimal value (regex rejects the dot)', () => {
