@@ -17,14 +17,16 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 
 ## Monorepo layout
 
-The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private; published packages live under `packages/*` and CLI bins under `apps/*`.
+The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under two top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR) and `cli/*` (medium-bound — terminal chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a lint error; see [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
 
 | Package                       | Description                                                                                                                                                                                                                               |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `@hexagram/core`              | The domain type vocabulary (`Line`, `Hexagram`, `CastingRecord`, `LineState` + assertions, at `./types`), the yarrow-stalk algorithm, RNG-driven generators, hexagram/trigram lookups, and the canonical 64-hexagram + 8-trigram records. |
-| `@hexagram/consultation-file` | The saved-reading file format (Markdown + YAML frontmatter), renderers, and the legacy `.txt` converter.                                                                                                                                  |
+| `@hexagram/consultation-file` | The saved-reading file format (Markdown + YAML frontmatter), the Markdown-body serializer of the view IR, and the legacy `.txt` converter.                                                                                                |
+| `@hexagram/text-layout`       | `visualWidth` + glyph/column maths shared by the serializers — no divination meaning.                                                                                                                                                     |
+| `@hexagram/consultation-view` | The medium-neutral Consultation-view IR (presentation vocabulary, section order, ledger geometry) that `readout` (ANSI) and the markdown body renderer both serialize.                                                                    |
 | `@hexagram/viewer-core`       | Generic terminal-UI building blocks shared by the UIs (the `ScreenShell`, palette, chrome, keymap, layout maths, line glyphs) — no divination knowledge.                                                                                  |
-| `@hexagram/readout`           | The Consultation Readout renderer: the `ConsultationReadout` component + the per-section ANSI string builders.                                                                                                                            |
+| `@hexagram/readout`           | The ANSI serializer of the Consultation-view IR: the `ConsultationReadout` component + the per-section ANSI string builders.                                                                                                              |
 | `@hexagram/casting-ui`        | The casting Viewer (Ink tabbed viewer + interactive/manual flows), plus the `--plain` Inquirer flow and console renderers.                                                                                                                |
 | `@hexagram/history-ui`        | The Ink browser for past consultations.                                                                                                                                                                                                   |
 | `@hexagram/playground-ui`     | The Ink interactive 4-state line explorer.                                                                                                                                                                                                |
@@ -90,9 +92,9 @@ In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap
 
 Pass `--slider-sweep-ms <n>` (default 1800) to set the end-to-end sweep duration of the interactive bouncing slider; the per-cast tick is derived so each sweep takes the same time regardless of stalk count.
 
-### Option 1 — `pnpm link --global` from `apps/cli` (live development)
+### Option 1 — `pnpm link --global` from `cli/cli` (live development)
 
-Creates a symlink from the global pnpm bin directory to `apps/cli/dist/`. Edits in any workspace package are picked up by the next `pnpm build` — no reinstall.
+Creates a symlink from the global pnpm bin directory to `cli/cli/dist/`. Edits in any workspace package are picked up by the next `pnpm build` — no reinstall.
 
 ```bash
 pnpm install
@@ -114,7 +116,7 @@ Copies the built `@hexagram/bin` package (plus its workspace dependencies) into 
 ```bash
 pnpm install
 pnpm build
-pnpm add -g "$PWD/apps/cli"
+pnpm add -g "$PWD/cli/cli"
 
 hexagram-random
 ```
@@ -132,6 +134,8 @@ pnpm build
 # private @hexagram/test-utils, which is dev-only).
 pnpm --filter @hexagram/core              pack
 pnpm --filter @hexagram/consultation-file pack
+pnpm --filter @hexagram/text-layout       pack
+pnpm --filter @hexagram/consultation-view pack
 pnpm --filter @hexagram/viewer-core       pack
 pnpm --filter @hexagram/readout           pack
 pnpm --filter @hexagram/casting-ui        pack
@@ -142,7 +146,7 @@ pnpm --filter @hexagram/bin               pack
 
 # Install the CLI tarball globally; pnpm resolves the workspace deps from
 # the same store (or use --offline against the just-packed tarballs).
-pnpm add -g ./apps/cli/hexagram-cli-0.0.0.tgz
+pnpm add -g ./cli/cli/hexagram-cli-0.0.0.tgz
 
 hexagram-random
 ```
@@ -153,8 +157,8 @@ If you'd rather use npm:
 
 ```bash
 npm link                                 # in any workspace package → global symlink
-npm install -g ./apps/cli                # install a copy from the workspace path
-npm install -g ./apps/cli/hexagram-cli-0.0.0.tgz   # install from a packed tarball
+npm install -g ./cli/cli                # install a copy from the workspace path
+npm install -g ./cli/cli/hexagram-cli-0.0.0.tgz   # install from a packed tarball
 ```
 
 ### Verify & troubleshoot

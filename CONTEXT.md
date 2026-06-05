@@ -2,10 +2,12 @@
 
 A monorepo for casting _I Ching_ hexagrams — by traditional yarrow-stalk
 divination or random generation — and browsing past readings. This glossary
-covers the whole single-context repo: the `packages/*` libraries (`core`
-— which also owns the type vocabulary at `./types` —, `consultation-file`,
-`viewer-core`, `readout`, `casting-ui`, `history-ui`, `playground-ui`, `shell`,
-`test-utils`) and the `apps/cli` bins (`@hexagram/bin`).
+covers the whole single-context repo across both buckets: the medium-neutral
+`domain/*` libraries (`core` — which also owns the type vocabulary at `./types` —,
+`consultation-file`, `text-layout`, `consultation-view`) and the medium-bound
+`cli/*` packages (`viewer-core`, `readout`, `casting-ui`, `history-ui`,
+`playground-ui`, `shell`, `test-utils`, and the `cli` bins package `@hexagram/bin`).
+See `docs/adr/0019-domain-cli-boundary.md` for the boundary.
 
 ## Language
 

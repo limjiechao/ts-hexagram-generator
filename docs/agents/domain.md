@@ -2,7 +2,7 @@
 
 How the engineering skills should consume this repo's domain documentation when exploring the codebase.
 
-This is a **single-context** repo: one `CONTEXT.md` and one `docs/adr/` directory at the repo root cover the whole monorepo. All packages (`types`, `core`, `consultation-file`, `viewer-core`, `casting-ui`, `history-ui`, `playground-ui`, `shell`, `test-utils`) and the `apps/cli` bins share the same divination domain vocabulary.
+This is a **single-context** repo: one `CONTEXT.md` and one `docs/adr/` directory at the repo root cover the whole monorepo. All packages — the `domain/*` libraries (`core`, `consultation-file`, `text-layout`, `consultation-view`) and the `cli/*` packages (`viewer-core`, `readout`, `casting-ui`, `history-ui`, `playground-ui`, `shell`, `test-utils`, `cli`) — share the same divination domain vocabulary.
 
 ## Before exploring, read these
 
@@ -27,8 +27,8 @@ Single-context repo:
 ├── docs/adr/
 │   ├── 0001-some-decision.md
 │   └── 0002-another-decision.md
-├── packages/
-└── apps/
+├── domain/
+└── cli/
 ```
 
 ## Use the glossary's vocabulary
