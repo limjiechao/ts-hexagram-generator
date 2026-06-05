@@ -1,0 +1,27 @@
+{
+  "name": "@hexagram/consultation-view",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Medium-neutral consultation view IR: the presentation vocabulary, the section IR, and the single assembly that builds it from (query, hexagram, casting)",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": ["dist"],
+  "publishConfig": { "access": "public" },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/core": "workspace:*",
+    "@hexagram/text-layout": "workspace:*"
+  },
+  "devDependencies": {}
+}
