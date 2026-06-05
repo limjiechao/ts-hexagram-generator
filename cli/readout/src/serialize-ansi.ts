@@ -5,24 +5,29 @@
 // plain-output-*.txt + ink-sections-*.json fixtures (see the slice plan).
 
 import {
-  type CastingSection,
-  type HexagramIdentity,
-  type HexagramSection,
   LEDGER_COLUMNS,
-  type LedgerRow,
   LINE_GLYPH,
   LINE_LABELS,
   MOVING_ARROW,
   POSITION_LABELS,
-  type QuerySection,
   RIGHT_COLUMN,
   STATIC_GAP,
+  TRIGRAM_DIVIDER_WIDTH,
+  type CastingSection,
+  type ConsultationView,
+  type HexagramIdentity,
+  type HexagramSection,
+  type LedgerRow,
+  type QuerySection,
   type TextSection,
   type TextVariant,
   type TransformationSection,
-  TRIGRAM_DIVIDER_WIDTH,
 } from '@hexagram/consultation-view'
-import { centerVisual, padStartVisual, padToColumn } from '@hexagram/text-layout'
+import {
+  centerVisual,
+  padStartVisual,
+  padToColumn,
+} from '@hexagram/text-layout'
 import {
   BOLD_CYAN,
   BOLD_GREY,
@@ -34,6 +39,8 @@ import {
   PLACEHOLDER_GREY,
   YELLOW,
 } from '@hexagram/viewer-core'
+
+import type { ConsultationSections } from './output-composers.js'
 
 const LEDGER_INDENT = '   '
 // The inter-cell gutter `│` is painted NORMAL_GREY (matching the rule rows) so
@@ -57,7 +64,11 @@ ${NORMAL}Casting not recorded
   // Banner row: the 左Left / 右Right banners each span their sub-columns plus
   // the interior 3-col gutters between them.
   const leftSpan =
-    colWidth('leftHeap') + 3 + colWidth('leftPiles') + 3 + colWidth('leftRemainder')
+    colWidth('leftHeap') +
+    3 +
+    colWidth('leftPiles') +
+    3 +
+    colWidth('leftRemainder')
   const rightSpan =
     colWidth('rightHeap') +
     3 +
@@ -134,7 +145,9 @@ ${NORMAL}Casting not recorded
   }
 
   const body = section.rows
-    .map((row) => (row.trailingRule ? `${dataRow(row)}\n${blockRule}` : dataRow(row)))
+    .map((row) =>
+      row.trailingRule ? `${dataRow(row)}\n${blockRule}` : dataRow(row),
+    )
     .join('\n')
 
   return `
@@ -303,4 +316,46 @@ ${NORMAL}
 ${NORMAL}(One moving line)
 
 ${section.variants.map(textVariantBlockAnsi).join('\n\n')}`
+}
+
+// Compose the four viewer tab strings from the IR, matching the legacy
+// buildConsultationSections grouping exactly: the LINES text section rides
+// inside the `standing` tab string (it is '' when static); `emerging` is null
+// when there are no moving lines.
+export function serializeConsultationTabs(
+  view: ConsultationView,
+): ConsultationSections {
+  const ss = view.sections
+  const query = ss.find((s) => s.kind === 'query')! as QuerySection
+  const casting = ss.find((s) => s.kind === 'casting')! as CastingSection
+  const transformation = ss.find(
+    (s) => s.kind === 'transformation',
+  )! as TransformationSection
+  const hexes = ss.filter((s) => s.kind === 'hexagram') as HexagramSection[]
+  const hexTexts = ss.filter(
+    (s) => s.kind === 'text' && s.role === 'hexagram',
+  ) as TextSection[]
+  const lines = ss.find(
+    (s) => s.kind === 'text' && s.role === 'lines',
+  )! as TextSection
+
+  const linesOut = serializeTextAnsi(lines)
+  const standing = [
+    serializeHexagramAnsi(hexes[0]!),
+    serializeTextAnsi(hexTexts[0]!),
+    ...(linesOut ? [linesOut] : []),
+  ]
+    .join('\n\n')
+    .trim()
+  const emerging = view.hasMovingLines
+    ? `${serializeHexagramAnsi(hexes[1]!)}\n\n${serializeTextAnsi(hexTexts[1]!)}`.trim()
+    : null
+
+  return {
+    query: serializeQueryAnsi(query),
+    casting: serializeCastingAnsi(casting),
+    transformation: serializeTransformationAnsi(transformation),
+    standing,
+    emerging,
+  }
 }
