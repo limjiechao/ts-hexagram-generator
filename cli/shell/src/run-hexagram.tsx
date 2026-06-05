@@ -18,7 +18,7 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
 } from '@hexagram/casting-ui'
-import { isInteractiveEnv } from '@hexagram/viewer-core'
+import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
 import { render } from 'ink'
 
 import { resolveBannerIntervalMs } from './banner-flag.js'
@@ -49,8 +49,16 @@ const NON_INTERACTIVE_MESSAGE = 'hexagram requires an interactive terminal\n'
  *     built-in instakill),
  *   - awaits `waitUntilExit()` so it resolves only when the user quits.
  */
-export async function runHexagram(): Promise<boolean> {
-  if (!isInteractiveEnv()) {
+export async function runHexagram(env?: EnvSnapshot): Promise<boolean> {
+  // The interactivity gate is the single env policy (`classifyEnv`), not a
+  // local re-read. `env` defaults to the live `process` snapshot in
+  // production; tests inject a snapshot to exercise the refusal branch.
+  const snapshot: EnvSnapshot = env ?? {
+    isTTY: Boolean(process.stdout.isTTY),
+    NO_COLOR: process.env.NO_COLOR,
+    CI: process.env.CI,
+  }
+  if (!classifyEnv(snapshot).interactive) {
     process.stderr.write(NON_INTERACTIVE_MESSAGE)
     return false
   }
