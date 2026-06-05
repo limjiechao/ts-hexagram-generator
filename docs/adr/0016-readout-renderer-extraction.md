@@ -1,7 +1,19 @@
 # Readout renderer extracted from viewer-core
 
-Status: Accepted
+Status: Superseded by 0019
 Date: 2026-05-29
+
+> **Superseded by [ADR-0019](0019-domain-cli-boundary.md) (2026-06-04).** This ADR
+> framed the boundary as computation vs rendering and made two claims that did not hold:
+> (1) that `viewer-core` "no longer depends on `@hexagram/core` at all" — it carried
+> `isMovingLine` (domain line semantics) and re-acquired the `core` dependency under
+> [ADR-0017](0017-types-folded-into-core.md); and (2) that "all consultation rendering …
+> now has one home" — rendering had three homes (the ANSI sections, the markdown body,
+> and geometry constants leaking into `playground-ui`), reconciled by byte-identity
+> fixtures rather than by structure. ADR-0019 redraws the boundary as domain (medium-
+> neutral) vs CLI (medium-bound) and moves the presentation knowledge into a medium-
+> neutral IR (recorded in [ADR-0018](0018-consultation-view-ir.md)). The reasoning below
+> is preserved as the record of that earlier step.
 
 The Consultation **Readout** renderer now lives in its own package,
 `@hexagram/readout`, split out of `@hexagram/viewer-core`. `viewer-core`
