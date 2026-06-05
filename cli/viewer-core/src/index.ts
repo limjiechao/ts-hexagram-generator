@@ -50,6 +50,15 @@ export {
   YELLOW,
 } from './output-palette.js'
 
+// Environment policy — the single reading of TTY / NO_COLOR / CI that both the
+// interactive gate and the force-numeric heuristic derive from.
+export {
+  classifyEnv,
+  refuseIfNonInteractive,
+  type EnvPolicy,
+  type EnvSnapshot,
+} from './env-policy.js'
+
 // TTY-and-environment guard shared by every Ink-only bin's run entry.
 export { isInteractiveEnv } from './run-utils.js'
 

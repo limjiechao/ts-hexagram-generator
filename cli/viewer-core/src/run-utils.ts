@@ -6,16 +6,18 @@
 
 import process from 'node:process'
 
+import { classifyEnv } from './env-policy.js'
+
 /**
  * Whether the current process environment is interactive enough to run an
  * Ink alternate-screen UI. Refuses on a non-TTY stdout, on `NO_COLOR` per
- * https://no-color.org/, and on `CI`. Pure — only reads `process.stdout`
- * and `process.env`, so a caller can guard a `render(...)` call cleanly.
+ * https://no-color.org/, and on `CI`. Delegates to the single env policy
+ * (`classifyEnv`); reads `process.stdout` / `process.env` for the snapshot.
  */
 export function isInteractiveEnv(): boolean {
-  const isTty = Boolean(process.stdout.isTTY)
-  const noColor =
-    process.env.NO_COLOR !== undefined && process.env.NO_COLOR !== ''
-  const ci = process.env.CI !== undefined && process.env.CI !== ''
-  return isTty && !noColor && !ci
+  return classifyEnv({
+    isTTY: Boolean(process.stdout.isTTY),
+    NO_COLOR: process.env.NO_COLOR,
+    CI: process.env.CI,
+  }).interactive
 }
