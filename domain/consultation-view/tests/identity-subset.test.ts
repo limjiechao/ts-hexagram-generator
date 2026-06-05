@@ -10,7 +10,9 @@ describe('hexagramIdentity', () => {
     expect(id.upperTrigramChinese.length).toBeGreaterThan(0)
     expect(id.lowerTrigramChinese.length).toBeGreaterThan(0)
     // pinyin + English imagery are capitalized for the identity-stack rows.
-    expect(id.upperTrigramPinyin[0]).toBe(id.upperTrigramPinyin[0]?.toUpperCase())
+    expect(id.upperTrigramPinyin[0]).toBe(
+      id.upperTrigramPinyin[0]?.toUpperCase(),
+    )
     expect(id.upperTrigramEnglish[0]).toBe(
       id.upperTrigramEnglish[0]?.toUpperCase(),
     )
