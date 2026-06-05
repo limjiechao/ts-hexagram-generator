@@ -3,6 +3,13 @@
 Status: Accepted
 Date: 2026-05-29
 
+> **Amended by [ADR-0019](0019-domain-cli-boundary.md) (2026-06-04).** The package
+> decomposition _rules_ below (one concern per package; depend only downward) still hold,
+> but the two top-level buckets are now `domain/*` (medium-neutral) and `cli/*`
+> (medium-bound) — not `packages/*` and `apps/*` — and the presentation knowledge that
+> this ADR left in the UI packages now lives below the UI line. See ADR-0019 for the
+> boundary and the current package map.
+
 The project is a Turborepo + pnpm-workspaces monorepo. Published libraries live
 under `packages/*`; the CLI lives under `apps/*` as the private `@hexagram/bin`.
 The work is split into nine packages along a strict dependency DAG:
