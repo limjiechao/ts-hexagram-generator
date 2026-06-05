@@ -27,7 +27,11 @@ import {
   type TextVariant,
   type TransformationSection,
 } from '@hexagram/consultation-view'
-import { centerVisual, padStartVisual, padToColumn } from '@hexagram/text-layout'
+import {
+  centerVisual,
+  padStartVisual,
+  padToColumn,
+} from '@hexagram/text-layout'
 
 const LEDGER_INDENT = '   '
 const LEDGER_GUTTER = ' │ '
@@ -41,7 +45,11 @@ export function serializeCastingMarkdown(section: CastingSection): string {
   const blank = (key: string): string => ' '.repeat(colWidth(key))
 
   const leftSpan =
-    colWidth('leftHeap') + 3 + colWidth('leftPiles') + 3 + colWidth('leftRemainder')
+    colWidth('leftHeap') +
+    3 +
+    colWidth('leftPiles') +
+    3 +
+    colWidth('leftRemainder')
   const rightSpan =
     colWidth('rightHeap') +
     3 +
