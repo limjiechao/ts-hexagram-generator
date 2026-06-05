@@ -24,6 +24,7 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
+    "@hexagram/consultation-view": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/text-layout": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
