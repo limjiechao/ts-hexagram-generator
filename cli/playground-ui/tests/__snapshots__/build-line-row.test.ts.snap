@@ -1,0 +1,11 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`buildLineRow output is stable across the input matrix > moving + focused + hasMoving matches the locked snapshot 1`] = `"› [1;91m9[0m  [1;91m━━━━○━━━━[0m  （三, 3rd）─────────────────▶ [1;97m8[0m  [1;97m━━━   ━━━[0m  [0m（三, 3rd）[0m                 "`;
+
+exports[`buildLineRow output is stable across the input matrix > moving + unfocused + hasMoving matches the locked snapshot 1`] = `"  [1;91m9[0m  [1;91m━━━━○━━━━[0m  （三, 3rd）─────────────────▶ [1;97m8[0m  [1;97m━━━   ━━━[0m  [0m（三, 3rd）[0m                 "`;
+
+exports[`buildLineRow output is stable across the input matrix > static + focused + ghost (no moving) matches the locked snapshot 1`] = `"› [1;97m7[0m  [1;97m━━━━━━━━━[0m  （三, 3rd）                   [90m7[0m  [90m━━━━━━━━━[0m  [90m（三, 3rd）[0m                 "`;
+
+exports[`buildLineRow output is stable across the input matrix > static + focused + hasMoving matches the locked snapshot 1`] = `"› [1;97m7[0m  [1;97m━━━━━━━━━[0m  （三, 3rd）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  [0m（三, 3rd）[0m                 "`;
+
+exports[`buildLineRow output is stable across the input matrix > static + unfocused + ghost (no moving) matches the locked snapshot 1`] = `"  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （三, 3rd）                   [90m7[0m  [90m━━━━━━━━━[0m  [90m（三, 3rd）[0m                 "`;
