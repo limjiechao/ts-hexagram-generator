@@ -94,10 +94,12 @@ This is a **Turborepo + pnpm-workspaces monorepo**. The root is private; publish
 ```
 ts-hexagram-generator/         # workspace root (private)
 ├── packages/
-│   ├── core/                  # @hexagram/core — type vocabulary (./types), algorithm, random, getters, hexagram/trigram records
-│   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), renderers, legacy converter
+│   ├── core/                  # @hexagram/core — type vocabulary (./types), algorithm, random, getters, hexagram/trigram records, line-semantics
+│   ├── text-layout/           # @hexagram/text-layout — CJK-aware column width + padding/centring helpers (domain; no UI)
+│   ├── consultation-view/     # @hexagram/consultation-view — medium-neutral consultation IR + presentation vocabulary + buildConsultationView (domain; no UI)
+│   ├── consultation-file/     # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), IR→Markdown serializer, legacy converter
 │   ├── viewer-core/           # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout, line glyphs)
-│   ├── readout/               # @hexagram/readout — Consultation Readout renderer (ConsultationReadout + per-section ANSI string builders)
+│   ├── readout/               # @hexagram/readout — Consultation Readout renderer (ConsultationReadout + IR→ANSI serializers)
 │   ├── casting-ui/            # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
 │   ├── history-ui/            # @hexagram/history-ui — Ink history browser
 │   ├── playground-ui/         # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
@@ -107,7 +109,7 @@ ts-hexagram-generator/         # workspace root (private)
     └── cli/                   # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins
 ```
 
-The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; see `docs/adr/` for the full set of architecture decisions.
+The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; see `docs/adr/` for the full set of architecture decisions. The consultation presentation IR — `@hexagram/core` + `@hexagram/text-layout` → `@hexagram/consultation-view` → `@hexagram/readout` + `@hexagram/consultation-file` + `@hexagram/playground-ui`, each a thin serializer of the shared IR — is recorded in `docs/adr/0018-consultation-view-ir.md`.
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
 

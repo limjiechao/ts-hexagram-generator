@@ -30,6 +30,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0015 | Data hygiene                                        | Accepted |
 | 0016 | Readout renderer extracted from viewer-core         | Accepted |
 | 0017 | Type vocabulary folded into core                    | Accepted |
+| 0018 | Consultation view IR + renderer collapse            | Accepted |
 
 ## Template
 
