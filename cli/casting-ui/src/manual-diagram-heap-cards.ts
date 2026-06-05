@@ -1,4 +1,9 @@
-import { BOLD_GREEN, BOLD_WHITE, NORMAL, terminalWidth } from '@hexagram/viewer-core'
+import {
+  BOLD_GREEN,
+  BOLD_WHITE,
+  NORMAL,
+  terminalWidth,
+} from '@hexagram/viewer-core'
 
 import {
   HEAP_CARD_INTERIOR,

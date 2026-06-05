@@ -5,8 +5,8 @@ export {
 } from './build-view.js'
 export {
   hexagramDiagramRowStrings,
-  transformationRow,
   transformationHalfRow,
+  transformationRow,
   type DecorateCell,
   type DecorateRow,
   type DiagramImagery,

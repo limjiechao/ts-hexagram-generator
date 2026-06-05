@@ -22,7 +22,9 @@ describe('defaultConsultationsDir', () => {
   it('tracks process.cwd()', () => {
     const fake = path.join(path.sep, 'tmp', 'fake-cwd')
     const cwd = vi.spyOn(process, 'cwd').mockReturnValue(fake)
-    expect(defaultConsultationsDir()).toBe(path.join(fake, CONSULTATIONS_DIR_NAME))
+    expect(defaultConsultationsDir()).toBe(
+      path.join(fake, CONSULTATIONS_DIR_NAME),
+    )
     cwd.mockRestore()
   })
 })
