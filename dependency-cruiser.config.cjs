@@ -9,10 +9,12 @@
 // guard has coverage over the whole tree — the single forbidden edge below is
 // still just domain -> cli.
 //
-// Today there are ZERO domain -> cli edges (core depends on nothing;
-// consultation-file depends on core only), so this rule passes green on
-// introduction. It is a DRIFT GUARD that fails the build the moment a
-// future change inverts the arrow — not a detector of a current leak.
+// Today there are ZERO domain -> cli edges: every domain package depends only
+// on other domain packages (core/text-layout are leaves; consultation-view ->
+// {core, text-layout}; consultation-file -> {core, consultation-view,
+// text-layout}). So this rule passes green on introduction. It is a DRIFT
+// GUARD that fails the build the moment a future change inverts the arrow —
+// not a detector of a current leak.
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
   forbidden: [
