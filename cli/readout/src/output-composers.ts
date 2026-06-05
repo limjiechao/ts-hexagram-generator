@@ -1,20 +1,18 @@
-import { getEmergingHexagram } from '@hexagram/core/getters'
-import { isMovingLine } from '@hexagram/core/line-semantics'
+import {
+  buildConsultationView,
+  type CastingSection,
+} from '@hexagram/consultation-view'
 import type {
   CastingRecord,
   Hexagram,
   PartialCastingRecord,
 } from '@hexagram/core/types'
 
-import { castingSection } from './casting-ledger.js'
 import {
-  emergingHexagramSection,
-  hexagramTextSection,
-  linesBlock,
-  querySection,
-  standingHexagramSection,
-  transformationSection,
-} from './output-sections.js'
+  serializeCastingAnsi,
+  serializeConsultationTabs,
+  serializeQueryAnsi,
+} from './serialize-ansi.js'
 
 /**
  * The consultation broken into its presentational sections, each a
@@ -38,6 +36,8 @@ export interface ConsultationSections {
 /**
  * Build the consultation's presentational sections. This is the
  * content-generation layer shared by the plain output and the Ink viewer.
+ * It delegates to the medium-neutral consultation-view IR and serializes the
+ * tab strings from it.
  *
  * `casting` is `null` for a consultation with no recorded casting (e.g. one
  * migrated from a pre-CASTING legacy `.txt`); the casting tab then renders a
@@ -48,25 +48,9 @@ export function buildConsultationSections(
   hexagram: Hexagram,
   casting: CastingRecord | null,
 ): ConsultationSections {
-  const movingLines = hexagram.filter(isMovingLine)
-  const standingLines = linesBlock(hexagram)
-
-  return {
-    query: querySection(query),
-    casting: castingSection(casting),
-    transformation: transformationSection(hexagram),
-    standing: [
-      standingHexagramSection(hexagram),
-      hexagramTextSection(hexagram),
-      ...(standingLines ? [standingLines] : []),
-    ]
-      .join('\n\n')
-      .trim(),
-    emerging:
-      movingLines.length > 0
-        ? `${emergingHexagramSection(hexagram)}\n\n${hexagramTextSection(getEmergingHexagram(hexagram))}`.trim()
-        : null,
-  }
+  return serializeConsultationTabs(
+    buildConsultationView(query, hexagram, casting),
+  )
 }
 
 /**
@@ -80,8 +64,13 @@ export function buildPartialCastingSections(
   query: string,
   casting: PartialCastingRecord,
 ): Pick<ConsultationSections, 'query' | 'casting'> {
+  // The partial flow has no hexagram yet; a static placeholder feeds the
+  // (discarded) downstream sections while we serialize only query + casting.
+  const view = buildConsultationView(query, [7, 7, 7, 7, 7, 7], casting)
   return {
-    query: querySection(query),
-    casting: castingSection(casting),
+    query: serializeQueryAnsi({ kind: 'query', query }),
+    casting: serializeCastingAnsi(
+      view.sections.find((s) => s.kind === 'casting')! as CastingSection,
+    ),
   }
 }
