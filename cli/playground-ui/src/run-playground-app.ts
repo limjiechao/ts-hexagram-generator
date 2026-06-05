@@ -6,7 +6,7 @@
 
 import process from 'node:process'
 
-import { isInteractiveEnv } from '@hexagram/viewer-core'
+import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
 import { render } from 'ink'
 import { createElement } from 'react'
 
@@ -28,8 +28,15 @@ const NON_INTERACTIVE_MESSAGE =
  * playground screen owns Ctrl+C (currently as a quit, but the
  * compose-friendly wiring leaves room for a future discard-confirm).
  */
-export async function runPlaygroundApp(): Promise<boolean> {
-  if (!isInteractiveEnv()) {
+export async function runPlaygroundApp(env?: EnvSnapshot): Promise<boolean> {
+  // Gate from the single env policy; `env` defaults to the live `process`
+  // snapshot and is injected by tests to reach the refusal branch.
+  const snapshot: EnvSnapshot = env ?? {
+    isTTY: Boolean(process.stdout.isTTY),
+    NO_COLOR: process.env.NO_COLOR,
+    CI: process.env.CI,
+  }
+  if (!classifyEnv(snapshot).interactive) {
     process.stderr.write(NON_INTERACTIVE_MESSAGE)
     return false
   }
