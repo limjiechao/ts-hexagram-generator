@@ -13,12 +13,11 @@
 import {
   type CastingSection,
   type ConsultationView,
+  hexagramDiagramRowStrings,
   type HexagramSection,
   LEDGER_COLUMNS,
   type LedgerRow,
-  LINE_GLYPH,
   LINE_LABELS,
-  POSITION_LABELS,
   type QuerySection,
   RIGHT_COLUMN,
   type TextSection,
@@ -164,17 +163,9 @@ ${footer2}
 }
 
 function hexagramDiagramBlockMarkdown(section: HexagramSection): string {
-  const id = section.identity
-  // rows are top-first: [pos6, pos5, pos4, pos3, pos2, pos1].
-  const [r6, r5, r4, r3, r2, r1] = section.rows
-  return [
-    `  ${r6!.line}  ${LINE_GLYPH[r6!.line]}  ${POSITION_LABELS[6]}──┐`,
-    `  ${r5!.line}  ${LINE_GLYPH[r5!.line]}  ${POSITION_LABELS[5]}──┼── ${id.upperTrigramImageryChinese}（上卦）`,
-    `  ${r4!.line}  ${LINE_GLYPH[r4!.line]}  ${POSITION_LABELS[4]}──┘   ${id.upperTrigramImageryEnglish} (upper trigram)`,
-    `  ${r3!.line}  ${LINE_GLYPH[r3!.line]}  ${POSITION_LABELS[3]}──┐`,
-    `  ${r2!.line}  ${LINE_GLYPH[r2!.line]}  ${POSITION_LABELS[2]}──┼── ${id.lowerTrigramImageryChinese}（下卦）`,
-    `  ${r1!.line}  ${LINE_GLYPH[r1!.line]}  ${POSITION_LABELS[1]}──┘   ${id.lowerTrigramImageryEnglish} (lower trigram)`,
-  ].join('\n')
+  return hexagramDiagramRowStrings(section.rows, section.identity, (chunk) => chunk).join(
+    '\n',
+  )
 }
 
 export function serializeHexagramMarkdown(section: HexagramSection): string {

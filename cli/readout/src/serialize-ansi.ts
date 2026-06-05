@@ -5,10 +5,9 @@
 // plain-output-*.txt + ink-sections-*.json fixtures (see the slice plan).
 
 import {
+  hexagramDiagramRowStrings,
   LEDGER_COLUMNS,
-  LINE_GLYPH,
   LINE_LABELS,
-  POSITION_LABELS,
   RIGHT_COLUMN,
   TRIGRAM_DIVIDER_WIDTH,
   transformationRow,
@@ -245,17 +244,18 @@ export function serializeHexagramAnsi(section: HexagramSection): string {
   // rows are top-first: [pos6, pos5, pos4, pos3, pos2, pos1].
   const [r6, r5, r4, r3, r2, r1] = section.rows
 
+  const diagram = hexagramDiagramRowStrings(
+    section.rows,
+    id,
+    (chunk, row) => `${colorOf(row.moving)}${chunk}${NORMAL}`,
+  ).join('\n')
+
   return `
 ${BOLD_GREY}${label} HEXAGRAM ${section.wenWang}:
 
 ${NORMAL}(Line at bottom is first)
 
-  ${colorOf(r6!.moving)}${r6!.line}  ${LINE_GLYPH[r6!.line]}  ${NORMAL}${POSITION_LABELS[6]}──┐
-  ${colorOf(r5!.moving)}${r5!.line}  ${LINE_GLYPH[r5!.line]}  ${NORMAL}${POSITION_LABELS[5]}──┼── ${id.upperTrigramImageryChinese}（上卦）
-  ${colorOf(r4!.moving)}${r4!.line}  ${LINE_GLYPH[r4!.line]}  ${NORMAL}${POSITION_LABELS[4]}──┘   ${id.upperTrigramImageryEnglish} (upper trigram)
-  ${colorOf(r3!.moving)}${r3!.line}  ${LINE_GLYPH[r3!.line]}  ${NORMAL}${POSITION_LABELS[3]}──┐
-  ${colorOf(r2!.moving)}${r2!.line}  ${LINE_GLYPH[r2!.line]}  ${NORMAL}${POSITION_LABELS[2]}──┼── ${id.lowerTrigramImageryChinese}（下卦）
-  ${colorOf(r1!.moving)}${r1!.line}  ${LINE_GLYPH[r1!.line]}  ${NORMAL}${POSITION_LABELS[1]}──┘   ${id.lowerTrigramImageryEnglish} (lower trigram)
+${diagram}
 
 ${NORMAL}(First is line at bottom)
 
