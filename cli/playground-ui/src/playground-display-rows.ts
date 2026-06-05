@@ -5,7 +5,13 @@ import {
 } from '@hexagram/consultation-view'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import { BOLD_GREY, BOLD_RED, BOLD_WHITE, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  BOLD_WHITE,
+  NORMAL,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
 
 import {
   BAR_BLOCK_WIDTH,
