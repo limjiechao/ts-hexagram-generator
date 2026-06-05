@@ -62,6 +62,9 @@ export {
 // TTY-and-environment guard shared by every Ink-only bin's run entry.
 export { isInteractiveEnv } from './run-utils.js'
 
+// Shared positive-integer CLI flag parser — space form and `=` form.
+export { parseIntFlag } from './parse-int-flag.js'
+
 // Generic screen frame shared by the Readout and the History list.
 export {
   computeInnerCols,
