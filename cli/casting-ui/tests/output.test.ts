@@ -2,17 +2,27 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { emptyPartialCastingRecord } from '@hexagram/core/types'
+import {
+  emptyPartialCastingRecord,
+  type PartialCastingRecord,
+} from '@hexagram/core/types'
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-  castingSection,
 } from '@hexagram/readout'
 import { describe, expect, it } from 'vitest'
 
 import { consultationConsoleOutput } from '../src/output-composers'
 import { cases } from './fixtures/cases'
 import { STUB_STATIC_HEXAGRAM } from './helpers/stubs'
+
+// The casting-ledger ANSI rendering is now reached through the public
+// composers (the IR serializer underneath): a partial/full record via
+// buildPartialCastingSections, a null record via buildConsultationSections.
+const castingSection = (casting: PartialCastingRecord | null): string =>
+  casting === null
+    ? buildConsultationSections('', STUB_STATIC_HEXAGRAM, null).casting
+    : buildPartialCastingSections('', casting).casting
 
 const fixturesDirectory = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

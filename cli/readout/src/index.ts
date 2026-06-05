@@ -22,19 +22,6 @@ export {
   type ConsultationSections,
 } from './output-composers.js'
 
-// TEMPORARY section-builder shims (removed in Phase 3d) — the legacy per-section
-// builder names, routed through the IR serializers, kept until casting-ui's
-// console composer collapses onto the IR.
-export {
-  castingSection,
-  emergingHexagramSection,
-  hexagramTextSection,
-  linesBlock,
-  querySection,
-  standingHexagramSection,
-  transformationSection,
-} from './section-shims.js'
-
 // Plain-console projection of the consultation-view IR (used by casting-ui's
 // consultationConsoleOutput).
 export { serializeConsoleOutput } from './serialize-ansi.js'
