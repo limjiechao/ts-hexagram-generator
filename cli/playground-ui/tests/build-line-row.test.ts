@@ -22,11 +22,41 @@ interface Case {
 }
 
 const cases: readonly Case[] = [
-  { name: 'moving + focused + hasMoving', standingLine: 9, emergingLine: 8, focused: true, hasMoving: true },
-  { name: 'moving + unfocused + hasMoving', standingLine: 9, emergingLine: 8, focused: false, hasMoving: true },
-  { name: 'static + focused + hasMoving', standingLine: 7, emergingLine: 7, focused: true, hasMoving: true },
-  { name: 'static + unfocused + ghost (no moving)', standingLine: 7, emergingLine: 7, focused: false, hasMoving: false },
-  { name: 'static + focused + ghost (no moving)', standingLine: 7, emergingLine: 7, focused: true, hasMoving: false },
+  {
+    name: 'moving + focused + hasMoving',
+    standingLine: 9,
+    emergingLine: 8,
+    focused: true,
+    hasMoving: true,
+  },
+  {
+    name: 'moving + unfocused + hasMoving',
+    standingLine: 9,
+    emergingLine: 8,
+    focused: false,
+    hasMoving: true,
+  },
+  {
+    name: 'static + focused + hasMoving',
+    standingLine: 7,
+    emergingLine: 7,
+    focused: true,
+    hasMoving: true,
+  },
+  {
+    name: 'static + unfocused + ghost (no moving)',
+    standingLine: 7,
+    emergingLine: 7,
+    focused: false,
+    hasMoving: false,
+  },
+  {
+    name: 'static + focused + ghost (no moving)',
+    standingLine: 7,
+    emergingLine: 7,
+    focused: true,
+    hasMoving: false,
+  },
 ]
 
 describe('buildLineRow output is stable across the input matrix', () => {
