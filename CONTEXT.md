@@ -6,7 +6,8 @@ covers the whole single-context repo across both buckets: the medium-neutral
 `domain/*` libraries (`core` — which also owns the type vocabulary at `./types` —,
 `consultation-file`, `text-layout`, `consultation-view`) and the medium-bound
 `cli/*` packages (`viewer-core`, `readout`, `casting-ui`, `history-ui`,
-`playground-ui`, `shell`, `test-utils`, and the `cli` bins package `@hexagram/bin`).
+`playground-ui`, `shell`, `test-utils`), and the runnable `apps/*` bucket
+(the `apps/cli` bins package `@hexagram/cli`).
 See `docs/adr/0019-domain-cli-boundary.md` for the boundary.
 
 ## Language

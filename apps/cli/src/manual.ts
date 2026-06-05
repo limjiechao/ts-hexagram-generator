@@ -9,6 +9,8 @@ import {
 } from '@hexagram/casting-ui'
 import { refuseIfNonInteractive } from '@hexagram/viewer-core'
 
+import { anchorCwdToWorkspaceRoot } from './workspace-root.js'
+
 // `hexagram-manual` — the standalone bin for the manual yarrow-stalk flow.
 // Mirrors `apps/cli/src/history.ts` in shape: an Ink-only viewer, gated on a
 // real interactive terminal (refusing non-TTY / NO_COLOR / CI with a clear
@@ -26,6 +28,10 @@ const MANUAL_MIN_TERMINAL_ROWS = 32
 
 async function main(): Promise<void> {
   try {
+    // Anchor cwd to the monorepo root so the save (the viewer resolves
+    // `<cwd>/consultations` via `defaultConsultationsDir`) lands on
+    // `<repo-root>/consultations` regardless of the invocation directory.
+    anchorCwdToWorkspaceRoot()
     refuseIfNonInteractive('hexagram-manual')
     const rows = process.stdout.rows
     if (typeof rows === 'number' && rows < MANUAL_MIN_TERMINAL_ROWS) {

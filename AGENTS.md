@@ -89,7 +89,7 @@ you suppress the local craft of this codebase.
 
 ## Repository layout
 
-This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under two top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, manual invariants, presentation IR); `cli/*` holds the medium-bound terminal layer (chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a build-failing lint error (`pnpm boundaries:check`). See `docs/adr/0019-domain-cli-boundary.md`.
+This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under three top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, manual invariants, presentation IR); `cli/*` holds the medium-bound terminal-layer libraries (chrome, serializers, Ink UIs); `apps/*` holds the runnable apps (the CLI bins package). A `domain/* → cli/*` import is a build-failing lint error (`pnpm boundaries:check`). `apps/*` sits at the top of the DAG and may depend on both `cli/*` and `domain/*`. See `docs/adr/0019-domain-cli-boundary.md`.
 
 ```
 ts-hexagram-generator/             # workspace root (private)
@@ -98,15 +98,16 @@ ts-hexagram-generator/             # workspace root (private)
 │   ├── consultation-file/         # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), IR→Markdown serializer, legacy converter
 │   ├── text-layout/               # @hexagram/text-layout — CJK-aware column width + padding/centring helpers (no divination meaning)
 │   └── consultation-view/         # @hexagram/consultation-view — medium-neutral Consultation-view IR (presentation vocabulary, section order, ledger geometry) + buildConsultationView
-└── cli/                           # medium-bound — thin serializers of the domain
-    ├── viewer-core/               # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout, line glyphs)
-    ├── readout/                   # @hexagram/readout — ANSI serializer of the Consultation-view IR (ConsultationReadout + IR→ANSI serializers)
-    ├── casting-ui/                # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
-    ├── history-ui/                # @hexagram/history-ui — Ink history browser
-    ├── playground-ui/             # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
-    ├── shell/                     # @hexagram/shell — Home hub aggregating the casting/history/playground UIs
-    ├── cli/                       # @hexagram/bin (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins
-    └── test-utils/                # @hexagram/test-utils (private, dev-only) — polling + readiness-witness test helpers
+├── cli/                           # medium-bound terminal-layer libraries — thin serializers of the domain
+│   ├── viewer-core/               # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout, line glyphs)
+│   ├── readout/                   # @hexagram/readout — ANSI serializer of the Consultation-view IR (ConsultationReadout + IR→ANSI serializers)
+│   ├── casting-ui/                # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
+│   ├── history-ui/                # @hexagram/history-ui — Ink history browser
+│   ├── playground-ui/             # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
+│   ├── shell/                     # @hexagram/shell — Home hub aggregating the casting/history/playground UIs
+│   └── test-utils/                # @hexagram/test-utils (private, dev-only) — polling + readiness-witness test helpers
+└── apps/                          # runnable apps — top of the DAG (may depend on cli/* and domain/*)
+    └── cli/                       # @hexagram/cli (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins; workspace-root anchors consultations/ to the repo root
 ```
 
 The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; the domain-vs-CLI boundary that names the two buckets is `docs/adr/0019-domain-cli-boundary.md`. See `docs/adr/` for the full set of architecture decisions. The consultation presentation IR — `@hexagram/core` + `@hexagram/text-layout` → `@hexagram/consultation-view` → `@hexagram/readout` + `@hexagram/consultation-file` + `@hexagram/playground-ui`, each a thin serializer of the shared IR — is recorded in `docs/adr/0018-consultation-view-ir.md`.
@@ -145,11 +146,11 @@ pnpm format:check       # oxfmt --check at root
 pnpm format:fix         # oxfmt --write at root
 
 # Run the CLIs directly (no build needed — tsx + the `source` exports condition)
-pnpm hexagram-random        # tsx cli/cli/src/random.ts
-pnpm hexagram-interactive   # tsx cli/cli/src/interactive.ts
-pnpm hexagram-manual        # tsx cli/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
-pnpm hexagram-playground    # tsx cli/cli/src/playground.ts (Ink-only 4-state line explorer)
-pnpm hexagram-history                   # tsx cli/cli/src/history.ts (Ink-only browser for past consultations)
+pnpm hexagram-random        # tsx apps/cli/src/random.ts
+pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
+pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
+pnpm hexagram-playground    # tsx apps/cli/src/playground.ts (Ink-only 4-state line explorer)
+pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
 pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
 
 # hexagram-random and hexagram-interactive default to a full-screen tabbed viewer;
@@ -223,7 +224,7 @@ Lines 6 and 9 are "moving lines". The emerging hexagram is obtained by flipping 
 
 - **`domain/core/src/random-casting.ts`** — drives `makeLineGenerator` with `node:crypto.randomInt` splits; exports `generateRandomHexagram()` and `generateRandomHexagrams()` for use as a library, plus `generateRandomConsultation()` which also returns the casting record. Pure library code — no CLI entry.
 - **`cli/casting-ui/src/interactive-flow.ts`** — same generator wired to `@inquirer/prompts` for the plain-mode terminal flow (`getHexagramViaInteraction`, `getOneLineViaInteraction`).
-- **`cli/cli/src/{random,interactive,manual}.ts`** — the three bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random-casting` and the viewer + output helpers from `@hexagram/casting-ui`. The manual bin uses the thin `runManualConsultationViewer({ maxWrapWidth })` wrapper exposed by `@hexagram/casting-ui` and refuses non-TTY contexts outright (no `--plain` branch).
+- **`apps/cli/src/{random,interactive,manual}.ts`** — the three bin entries. Each is a shebang + `main()` + top-level await, importing `generateRandomConsultation` from `@hexagram/core/random-casting` and the viewer + output helpers from `@hexagram/casting-ui`. The manual bin uses the thin `runManualConsultationViewer({ maxWrapWidth })` wrapper exposed by `@hexagram/casting-ui` and refuses non-TTY contexts outright (no `--plain` branch). Each consultation-saving bin first calls `anchorCwdToWorkspaceRoot()` (`apps/cli/src/workspace-root.ts`) so saves land in `<repo-root>/consultations` regardless of the invocation directory; `apps/cli/src/history.ts` passes the explicit repo-root `dir` into `runHistoryViewer` and the `--convert-legacy` migration.
 
 `@hexagram/core` also exposes `cryptoRandom()` at `@hexagram/core/crypto-random` — a `[0, 1)` float helper backed by `node:crypto.randomInt`. It's the production RNG behind the home banner's `<AnimatedBanner>` animation, replacing `Math.random` so no flow in the app depends on V8's pseudorandom generator.
 
@@ -304,7 +305,7 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `domain/core/src/g
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/viewer-core` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/bin` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/viewer-core` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `domain/core/tsdown.config.ts` — seven entries: `index`, `types`, `random-casting`, `crypto-random`, `getters`, `hexagrams`, `trigrams` (one per exported subpath; `types` is the domain vocabulary; the `hexagrams`/`trigrams` entries ship from `src/models/` but are exported at the top-level subpath).
 - `domain/consultation-file/tsdown.config.ts` — multiple entries: `index`, `file`, `markdown`, `legacy` (matching the exported subpaths).
@@ -312,7 +313,7 @@ Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ens
 - `cli/readout/tsdown.config.ts` — single `./src/index.ts` entry (the `ConsultationReadout` component + the per-section string builders).
 - `cli/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `cli/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
-- `cli/cli/tsdown.config.ts` — six entries (`hexagram`, `interactive`, `random`, `manual`, `history`, `playground`) matching the six `bin` map entries.
+- `apps/cli/tsdown.config.ts` — six entries (`hexagram`, `interactive`, `random`, `manual`, `history`, `playground`) matching the six `bin` map entries.
 
 ### Linting
 
