@@ -2,6 +2,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
+import { hasMovingLines } from '@hexagram/core/line-semantics'
 import type { Hexagram } from '@hexagram/core/types'
 import { truncateEnd } from '@hexagram/viewer-core'
 
@@ -30,7 +31,7 @@ export interface HexSummaryParts {
 
 export function summarizeHexParts(hexagram: Hexagram): HexSummaryParts {
   const standing = getHexagramRecord(hexagram)
-  const hasMoving = hexagram.some((line) => line === 6 || line === 9)
+  const hasMoving = hasMovingLines(hexagram)
   const standingText = `#${standing.Metadata.Order.WenWang} ${standing.Name.Chinese.Traditional} ${standing.Name.English.WilhelmBaynes.split(' / ')[0] ?? standing.Name.English.WilhelmBaynes}`
   if (!hasMoving) return { standingText, movingSegment: null }
   const emerging = getHexagramRecord(getEmergingHexagram(hexagram))
