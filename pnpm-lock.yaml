@@ -317,6 +317,8 @@ importers:
 
   domain/core: {}
 
+  domain/text-layout: {}
+
 packages:
 
   '@alcalzone/ansi-tokenize@0.3.0':

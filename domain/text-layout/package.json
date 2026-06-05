@@ -1,0 +1,26 @@
+{
+  "name": "@hexagram/text-layout",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "CJK-aware terminal column-width helpers for the Yijing hexagram oracle: visual width measurement and width-aware padding/centring of fixed-width text diagrams",
+  "license": "MIT",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.mts",
+      "import": "./dist/index.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  }
+}
