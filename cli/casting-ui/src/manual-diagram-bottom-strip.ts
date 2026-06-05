@@ -1,5 +1,4 @@
-import { BOLD_GREEN, BOLD_RED, NORMAL } from '@hexagram/viewer-core'
-import stringWidth from 'string-width'
+import { BOLD_GREEN, BOLD_RED, NORMAL, terminalWidth } from '@hexagram/viewer-core'
 
 // Bottom-strip error-branch discriminant. The strip's `error` branch wraps
 // these args; they are flat-extended into BottomStripArgs below. Conservation
@@ -57,8 +56,8 @@ function leftRightRow(
   right: string,
   renderWidth: number,
 ): string {
-  const leftW = stringWidth(left)
-  const rightW = stringWidth(right)
+  const leftW = terminalWidth(left)
+  const rightW = terminalWidth(right)
   const gap = Math.max(1, renderWidth - leftW - rightW)
   return `${left}${' '.repeat(gap)}${right}`
 }
@@ -84,7 +83,7 @@ export function bottomStripRow(args: BottomStripArgs): string {
   if (args.branch === 'resolved') {
     const message = `→ next cast: ${args.next} unparted`
     const colored = `${BOLD_GREEN}${message}${NORMAL}`
-    const trailing = Math.max(0, args.renderWidth - stringWidth(colored))
+    const trailing = Math.max(0, args.renderWidth - terminalWidth(colored))
     return `${colored}${' '.repeat(trailing)}`
   }
   const message = errorMessageText(args)

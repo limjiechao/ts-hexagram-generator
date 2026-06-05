@@ -27,6 +27,17 @@ module.exports = {
       from: { path: '^domain/' },
       to: { path: '^cli/' },
     },
+    {
+      name: 'no-raw-string-width',
+      comment:
+        'Import rendered-string width via @hexagram/viewer-core (terminalWidth ' +
+        'and the truncate/pad helpers), not the string-width package directly, ' +
+        'so the CLI layer has one ANSI-aware width home. viewer-core itself is ' +
+        'the wrapper and is exempt.',
+      severity: 'error',
+      from: { pathNot: '^cli/viewer-core/' },
+      to: { path: 'node_modules/string-width' },
+    },
   ],
   options: {
     doNotFollow: { path: '(^|/)node_modules/' },

@@ -20,6 +20,7 @@ import {
   stripAnsi,
   TAB_BAR_HEIGHT,
   TabBar,
+  terminalWidth,
   wrapToWidth,
   type InputMode,
   type KeyContext,
@@ -36,7 +37,6 @@ import {
   type ReactNode,
 } from 'react'
 import sliceAnsi from 'slice-ansi'
-import stringWidth from 'string-width'
 
 import { computeAutoScrollOffset } from './auto-scroll-offset.js'
 import type { ConsultationSections } from './output-composers.js'
@@ -336,7 +336,7 @@ export function ConsultationReadout({
     () =>
       Math.max(
         1,
-        ...activeContent.split('\n').map((line) => stringWidth(line)),
+        ...activeContent.split('\n').map((line) => terminalWidth(line)),
       ),
     [activeContent],
   )

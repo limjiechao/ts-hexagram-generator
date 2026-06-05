@@ -23,6 +23,7 @@ import {
   keyHintsForCasting,
   QueryBox,
   renderProgressBar,
+  terminalWidth,
 } from '@hexagram/viewer-core'
 import { render, useApp, useInput, type Instance } from 'ink'
 import {
@@ -33,7 +34,6 @@ import {
   useState,
   type ReactElement,
 } from 'react'
-import stringWidth from 'string-width'
 
 import type { SliderAutoLand } from './bouncing-slider-store.js'
 import {
@@ -511,7 +511,7 @@ export function ConsultationViewer({
           // interactive SPACE title would over-reserve ~13 columns. Built via
           // the shared `sliderPromptTitle` helper so this measurement can
           // never drift from the string the component renders.
-          stringWidth(
+          terminalWidth(
             sliderPromptTitle(
               lineNumber,
               state.castIndex,
@@ -528,7 +528,7 @@ export function ConsultationViewer({
           // carries the trailing `+ 1 suspended`. Width is therefore a pure
           // function of `currentMax`; two 2-digit placeholders model the
           // post-commit form exactly.
-          stringWidth(
+          terminalWidth(
             `Stalks: ${currentMax + 1} | Left Heap: 99 | Right Heap: 99 + 1 suspended`,
           ),
         )
