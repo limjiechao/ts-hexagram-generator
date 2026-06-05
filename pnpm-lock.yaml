@@ -307,6 +307,9 @@ importers:
 
   domain/consultation-file:
     dependencies:
+      '@hexagram/consultation-view':
+        specifier: workspace:*
+        version: link:../consultation-view
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
