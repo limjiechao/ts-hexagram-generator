@@ -9,7 +9,7 @@
 // readout, the home banner, and the playground can all share one
 // glyph + role vocabulary without `playground-ui` depending on `shell`.
 
-import { type LinePolarity } from '@hexagram/core/line-semantics'
+import type { LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
 
 import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL_GREY } from './output-palette.js'
