@@ -3,9 +3,8 @@
 // and the playground. No React, no Ink: `deriveBannerLine` /
 // `polarityOf` / `lineColors` are exercised directly.
 
-import { describe, expect, it } from 'vitest'
-
 import { polarityOf } from '@hexagram/core/line-semantics'
+import { describe, expect, it } from 'vitest'
 
 import { deriveBannerLine, lineColors } from '../src/banner-lines'
 import {
