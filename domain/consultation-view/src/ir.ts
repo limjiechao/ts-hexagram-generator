@@ -1,9 +1,5 @@
 import type { DerivedSplit } from '@hexagram/core/casting-derivation'
-import type {
-  Hexagram,
-  Line,
-  PartialCastingRecord,
-} from '@hexagram/core/types'
+import type { Hexagram, Line, PartialCastingRecord } from '@hexagram/core/types'
 
 // ── Casting ledger ─────────────────────────────────────────────────────────
 // One ledger cell is either a derived split (full data) or null (placeholder,
