@@ -3,6 +3,8 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import { CONSULTATIONS_DIR_NAME } from '@hexagram/consultation-file'
+
 // The consultations directory must stay anchored to the monorepo root, NOT to
 // `process.cwd()`. `defaultConsultationsDir()` (in @hexagram/consultation-file)
 // is medium-neutral and resolves `<cwd>/consultations` — correct when the bin
@@ -52,7 +54,7 @@ export function workspaceRoot(moduleUrl: string = import.meta.url): string {
 export function workspaceConsultationsDir(
   moduleUrl: string = import.meta.url,
 ): string {
-  return path.join(workspaceRoot(moduleUrl), 'consultations')
+  return path.join(workspaceRoot(moduleUrl), CONSULTATIONS_DIR_NAME)
 }
 
 /**

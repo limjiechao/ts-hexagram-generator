@@ -1,4 +1,5 @@
 export {
+  CONSULTATIONS_DIR_NAME,
   defaultConsultationsDir,
   loadConsultationFile,
   saveConsultationFile,

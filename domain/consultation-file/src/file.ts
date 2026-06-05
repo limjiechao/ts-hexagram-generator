@@ -26,6 +26,11 @@ export type LoadResult =
     }
   | { ok: false; reason: ParseFailureReason | 'io-error'; path: string }
 
+/** The conventional consultations directory NAME — the single literal both the
+ *  cwd-anchored default (here) and the app layer's repo-root anchor reuse, so
+ *  the folder name is stated once. */
+export const CONSULTATIONS_DIR_NAME = 'consultations'
+
 /**
  * The conventional consultations directory: `<cwd>/consultations`. Every CLI
  * inherited this from the original implementation (the caller's cwd is the
@@ -33,7 +38,7 @@ export type LoadResult =
  * the save default, the history scanner, the legacy migration, and the shell.
  */
 export function defaultConsultationsDir(): string {
-  return path.join(process.cwd(), 'consultations')
+  return path.join(process.cwd(), CONSULTATIONS_DIR_NAME)
 }
 
 /**
