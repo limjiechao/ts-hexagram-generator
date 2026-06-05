@@ -285,6 +285,9 @@ importers:
 
   cli/viewer-core:
     dependencies:
+      '@hexagram/consultation-view':
+        specifier: workspace:*
+        version: link:../../domain/consultation-view
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core
