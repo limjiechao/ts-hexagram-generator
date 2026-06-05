@@ -1,13 +1,62 @@
+import {
+  buildConsultationView,
+  type CastingSection,
+  type HexagramSection,
+  type TextSection,
+  type TransformationSection,
+} from '@hexagram/consultation-view'
+import type {
+  CastingRecord,
+  Hexagram,
+  PartialCastingRecord,
+} from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
 import {
-  castingMarkdownSection,
-  emergingHexagramMarkdownSection,
-  linesMarkdownBlock,
-  queryMarkdownSection,
-  standingHexagramMarkdownSection,
-  transformationMarkdownSection,
-} from '../src/markdown-sections'
+  serializeCastingMarkdown,
+  serializeHexagramMarkdown,
+  serializeLinesMarkdown,
+  serializeQueryMarkdown,
+  serializeTransformationMarkdown,
+} from '../src/serialize-markdown.js'
+
+// Thin wrappers over the IR serializers preserving the legacy section-builder
+// signatures so these unit assertions exercise the new serialize-markdown code.
+const PLACEHOLDER: Hexagram = [7, 7, 7, 7, 7, 7]
+const castingMarkdownSection = (
+  casting: CastingRecord | PartialCastingRecord | null,
+): string =>
+  serializeCastingMarkdown(
+    buildConsultationView('', PLACEHOLDER, casting).sections.find(
+      (s) => s.kind === 'casting',
+    )! as CastingSection,
+  )
+const queryMarkdownSection = (query: string): string =>
+  serializeQueryMarkdown({ kind: 'query', query })
+const transformationMarkdownSection = (hexagram: Hexagram): string =>
+  serializeTransformationMarkdown(
+    buildConsultationView('', hexagram, null).sections.find(
+      (s) => s.kind === 'transformation',
+    )! as TransformationSection,
+  )
+const standingHexagramMarkdownSection = (hexagram: Hexagram): string =>
+  serializeHexagramMarkdown(
+    buildConsultationView('', hexagram, null).sections.find(
+      (s) => s.kind === 'hexagram' && s.role === 'standing',
+    )! as HexagramSection,
+  )
+const emergingHexagramMarkdownSection = (hexagram: Hexagram): string =>
+  serializeHexagramMarkdown(
+    buildConsultationView('', hexagram, null).sections.find(
+      (s) => s.kind === 'hexagram' && s.role === 'emerging',
+    )! as HexagramSection,
+  )
+const linesMarkdownBlock = (hexagram: Hexagram): string =>
+  serializeLinesMarkdown(
+    buildConsultationView('', hexagram, null).sections.find(
+      (s) => s.kind === 'text' && s.role === 'lines',
+    )! as TextSection,
+  )
 
 const casting = [
   [
