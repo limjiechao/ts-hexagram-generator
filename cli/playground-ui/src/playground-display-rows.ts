@@ -1,14 +1,11 @@
-import { MOVING_ARROW, STATIC_GAP } from '@hexagram/consultation-view'
-import { isMovingLine, polarityOf } from '@hexagram/core/line-semantics'
-import type { Hexagram, Line } from '@hexagram/core/types'
 import {
-  BOLD_GREY,
-  BOLD_RED,
-  BOLD_WHITE,
-  deriveBannerLine,
-  NORMAL,
-  NORMAL_GREY,
-} from '@hexagram/viewer-core'
+  MOVING_ARROW,
+  STATIC_GAP,
+  transformationHalfRow,
+} from '@hexagram/consultation-view'
+import { isMovingLine } from '@hexagram/core/line-semantics'
+import type { Hexagram, Line } from '@hexagram/core/types'
+import { BOLD_GREY, BOLD_RED, BOLD_WHITE, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
 
 import {
   BAR_BLOCK_WIDTH,
@@ -54,56 +51,47 @@ export function buildHeaderRow(): string {
 interface LineRowInputs {
   readonly standingLine: Line
   readonly emergingLine: Line
-  readonly positionLabel: string
+  /** The 1..6 PositionKey the template indexes into POSITION_LABELS; replaces
+   *  the pre-rendered positionLabel string so the row grammar lives in one
+   *  place (the shared half-row template). */
+  readonly position: 1 | 2 | 3 | 4 | 5 | 6
   readonly focused: boolean
-  readonly pulse: boolean
   readonly hasMoving: boolean
 }
 
 export function buildLineRow(input: LineRowInputs): string {
-  const {
-    standingLine,
-    emergingLine,
-    positionLabel,
-    focused,
-    pulse,
-    hasMoving,
-  } = input
+  const { standingLine, emergingLine, position, focused, hasMoving } = input
   const moving = isMovingLine(standingLine)
   const chevron = focused ? '› ' : '  '
 
-  // Standing side: use `deriveBannerLine` so the bar + value vocabulary
-  // matches the home banner / casting readout. The pulse flag flips the
-  // moving-bar colour between bright and dim red; the bar glyph itself is
-  // identical on either beat.
-  const standingCells = deriveBannerLine(
-    polarityOf(standingLine),
-    moving,
-    pulse,
-  )
-  const emergingCells = deriveBannerLine(polarityOf(emergingLine), false, pulse)
-
   // Mirror `transformationSection`'s colour scheme: standing moving lines are
-  // BOLD_RED (no pulse-dim flicker — the playground's pulse only matters when
-  // the cursor pauses on a moving line and the user wants to see motion); the
-  // emerging side is BOLD_WHITE normally, NORMAL_GREY when the standing has
-  // no moving lines (the "ghost mirror").
+  // BOLD_RED (no pulse-dim flicker — that was always a no-op here); the
+  // emerging side is BOLD_WHITE normally, NORMAL_GREY when the standing has no
+  // moving lines (the "ghost mirror"). The position label is uncoloured on the
+  // left and coloured on the right (NORMAL, or NORMAL_GREY in the ghost mirror).
   const standingColor = moving ? BOLD_RED : BOLD_WHITE
   const emergingColor = hasMoving ? BOLD_WHITE : NORMAL_GREY
   const positionColor = hasMoving ? NORMAL : NORMAL_GREY
   const gap = moving ? MOVING_ARROW : STATIC_GAP
 
-  const leftCell =
-    `${chevron}${standingColor}${standingCells.value}${NORMAL}` +
-    `  ${standingColor}${standingCells.bar}${NORMAL}` +
-    `  ${positionLabel}`
-
-  const rightCell =
-    `${emergingColor}${emergingCells.value}${NORMAL}` +
-    `  ${emergingColor}${emergingCells.bar}${NORMAL}` +
-    `  ${positionColor}${positionLabel}${NORMAL}`
-
-  return padRightToWidth(`${leftCell}${gap}${rightCell}`, TOP_HALF_WIDTH)
+  // The cell skeleton (indent + value + glyph + position) lives once, in the
+  // shared half-row template. The half-row sources value/glyph from
+  // `String(line)` / `LINE_GLYPH[line]`, byte-identical to the dropped
+  // `deriveBannerLine(...).value` / `.bar`; the emerging side is always static
+  // (6/9 flip to 7/8) so its previous hardcoded `moving = false` is implicit.
+  const left = transformationHalfRow(
+    { line: standingLine, position },
+    chevron,
+    (text) => `${standingColor}${text}${NORMAL}`,
+    // position uncoloured on the left -> identity default (omitted)
+  )
+  const right = transformationHalfRow(
+    { line: emergingLine, position },
+    '',
+    (text) => `${emergingColor}${text}${NORMAL}`,
+    (text) => `${positionColor}${text}${NORMAL}`,
+  )
+  return padRightToWidth(`${left}${gap}${right}`, TOP_HALF_WIDTH)
 }
 
 // ---------------------------------------------------------------------------

@@ -27,7 +27,6 @@
 // When `hasMoving === false`, the emerging side is a "dim ghost" — same
 // identity as standing but rendered in NORMAL_GREY everywhere.
 
-import { POSITION_LABELS } from '@hexagram/consultation-view'
 import type { Hexagram, Line } from '@hexagram/core/types'
 
 import { TOP_HALF_WIDTH } from './playground-display-geometry.js'
@@ -70,7 +69,7 @@ export interface PlaygroundDisplayOutput {
 export function buildPlaygroundDisplay(
   inputs: PlaygroundDisplayInputs,
 ): PlaygroundDisplayOutput {
-  const { standing, emerging, focusIndex, pulse, hasMoving } = inputs
+  const { standing, emerging, focusIndex, hasMoving } = inputs
 
   const rows: string[] = []
   rows.push(buildHeaderRow())
@@ -82,10 +81,8 @@ export function buildPlaygroundDisplay(
       buildLineRow({
         standingLine: standing[lineIndex] as Line,
         emergingLine: emerging[lineIndex] as Line,
-        positionLabel:
-          POSITION_LABELS[(lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6],
+        position: (lineIndex + 1) as 1 | 2 | 3 | 4 | 5 | 6,
         focused: focusIndex === lineIndex,
-        pulse,
         hasMoving,
       }),
     )
