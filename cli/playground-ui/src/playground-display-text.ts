@@ -1,29 +1,9 @@
-// ---------------------------------------------------------------------------
-// CJK-aware width measurement (replicates `visualWidth` from
-// `viewer-core/output-sections.ts` — kept local so this module has no
-// internal-only import on a viewer-core helper).
-// ---------------------------------------------------------------------------
+import { visualWidth } from '@hexagram/text-layout'
 
-export function visualWidth(text: string): number {
-  let width = 0
-  for (const character of text) {
-    const codePoint = character.codePointAt(0) ?? 0
-    const isFullwidth =
-      (codePoint >= 0x1100 && codePoint <= 0x115f) ||
-      (codePoint >= 0x2e80 && codePoint <= 0x303e) ||
-      (codePoint >= 0x3041 && codePoint <= 0x33ff) ||
-      (codePoint >= 0x3400 && codePoint <= 0x4dbf) ||
-      (codePoint >= 0x4e00 && codePoint <= 0x9fff) ||
-      (codePoint >= 0xa000 && codePoint <= 0xa4cf) ||
-      (codePoint >= 0xac00 && codePoint <= 0xd7af) ||
-      (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
-      (codePoint >= 0xfe10 && codePoint <= 0xfe6f) ||
-      (codePoint >= 0xff01 && codePoint <= 0xff60) ||
-      (codePoint >= 0xffe0 && codePoint <= 0xffe6)
-    width += isFullwidth ? 2 : 1
-  }
-  return width
-}
+// CJK-aware width measurement now lives in @hexagram/text-layout. Re-exported
+// here so this module keeps its existing public surface; the ANSI-stripping
+// and padding siblings below build on the shared `visualWidth`.
+export { visualWidth }
 
 const ANSI_PATTERN = /\[[0-9;]*m/g
 

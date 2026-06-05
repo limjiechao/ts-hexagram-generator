@@ -175,6 +175,9 @@ importers:
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../../domain/text-layout
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core
