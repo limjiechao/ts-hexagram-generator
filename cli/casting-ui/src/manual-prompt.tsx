@@ -1,3 +1,6 @@
+import { maxPickFor, performCast } from '@hexagram/core'
+import { validateManualSplit } from '@hexagram/core/manual-validation'
+import type { AdvanceableLineState } from '@hexagram/core/types'
 import { Box, Text, useInput } from 'ink'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import sliceAnsi from 'slice-ansi'
@@ -28,10 +31,8 @@ import {
   type ManualFocusedField,
 } from './manual-diagram.js'
 import {
-  computeManualRoundResult,
   manualFeedbackSurface,
   parseManualBuffer,
-  validateManualInput,
 } from './manual-validation.js'
 
 // How long the manual-mode prompt holds its green `∴ LEFT HEAP … SUSPENDED …
@@ -48,6 +49,14 @@ interface ManualCastingPromptProps {
   castIndex: 0 | 1 | 2
   width: number
   unpartedStalks: number
+  /**
+   * The per-line algorithm state for THIS cast, owned by the flow reducer.
+   * The prompt runs `performCast(lineState, pick)` to display the next-round
+   * unparted count in the green reveal row. DISPLAY ONLY — the authoritative
+   * advance is the reducer's own `performCast` in `splitCommitted`. Both call
+   * the SAME core function, so there is one next-state computation, not two.
+   */
+  lineState: AdvanceableLineState
   manualRevealMs: number
   horizontalOffset: number
   onSubmit: (parsed: number) => void
@@ -189,6 +198,7 @@ export function ManualCastingPrompt({
   castIndex,
   width,
   unpartedStalks,
+  lineState,
   manualRevealMs,
   horizontalOffset,
   onSubmit,
@@ -231,7 +241,7 @@ export function ManualCastingPrompt({
   const remL = parseManualBuffer(remLBuffer)
   const pilesR = parseManualBuffer(pilesRBuffer)
   const remR = parseManualBuffer(remRBuffer)
-  const validation = validateManualInput({
+  const validation = validateManualSplit({
     pilesL,
     remL,
     pilesR,
@@ -316,17 +326,19 @@ export function ManualCastingPrompt({
       // `validation.pick` is the LEFT-heap total (`4·pilesL + remL`); the core
       // pipeline consumes that same number as `partStalksAtIndex` (the cut
       // point) — they coincide because the left-heap size IS the partition
-      // index. `result.next` here is DISPLAY ONLY (the reveal row); the
-      // authoritative advance happens when `onSubmit(pick)` reaches
-      // `performCast` in the flow reducer (`viewer-flow.ts`'s `splitCommitted`).
-      const result = computeManualRoundResult(
-        validation.pick,
-        castIndex,
-        unpartedStalks,
-      )
+      // index. Run the algorithm of record to display the next-round count:
+      // for casts 1–2 the next round's unparted is `maxPickFor(after) + 1`; on
+      // the resolving 3rd cast `after` is the terminal `'3rd-cast'` state (no
+      // `unparted`), whose final remaining count is `line · 4` — the same value
+      // the old closed form produced. DISPLAY ONLY — the reducer's own
+      // `performCast` in `splitCommitted` is authoritative. Same function, one
+      // computation, two presentation purposes.
+      const after = performCast(lineState, validation.pick)
+      const next =
+        after.phase === '3rd-cast' ? after.line * 4 : maxPickFor(after) + 1
       setCommitted({
         pick: validation.pick,
-        next: result.next,
+        next,
       })
       return
     }
