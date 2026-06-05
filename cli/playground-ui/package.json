@@ -27,6 +27,7 @@
     "@hexagram/consultation-file": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/readout": "workspace:*",
+    "@hexagram/text-layout": "workspace:*",
     "@hexagram/viewer-core": "workspace:*",
     "ink": "^7.0.3",
     "react": "^19.2.6",
