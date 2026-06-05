@@ -324,6 +324,15 @@ importers:
         specifier: ^3.12.10
         version: 3.12.10
 
+  domain/consultation-view:
+    dependencies:
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../core
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../text-layout
+
   domain/core: {}
 
   domain/text-layout: {}
