@@ -1,10 +1,30 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 
-import { afterEach, beforeEach, describe, expect, it } from 'vitest'
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { loadConsultationFile, saveConsultationFile } from '../src/file'
+import {
+  defaultConsultationsDir,
+  loadConsultationFile,
+  saveConsultationFile,
+} from '../src/file'
+
+describe('defaultConsultationsDir', () => {
+  it('is <cwd>/consultations', () => {
+    expect(defaultConsultationsDir()).toBe(
+      path.join(process.cwd(), 'consultations'),
+    )
+  })
+
+  it('tracks process.cwd()', () => {
+    const fake = path.join(path.sep, 'tmp', 'fake-cwd')
+    const cwd = vi.spyOn(process, 'cwd').mockReturnValue(fake)
+    expect(defaultConsultationsDir()).toBe(path.join(fake, 'consultations'))
+    cwd.mockRestore()
+  })
+})
 
 let tmpDir: string
 

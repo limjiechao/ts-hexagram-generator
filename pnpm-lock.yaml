@@ -249,6 +249,9 @@ importers:
       '@hexagram/casting-ui':
         specifier: workspace:*
         version: link:../casting-ui
+      '@hexagram/consultation-file':
+        specifier: workspace:*
+        version: link:../../domain/consultation-file
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core

@@ -27,6 +27,16 @@ export type LoadResult =
   | { ok: false; reason: ParseFailureReason | 'io-error'; path: string }
 
 /**
+ * The conventional consultations directory: `<cwd>/consultations`. Every CLI
+ * inherited this from the original implementation (the caller's cwd is the
+ * convention). Single source of truth so the path is not re-hardcoded across
+ * the save default, the history scanner, the legacy migration, and the shell.
+ */
+export function defaultConsultationsDir(): string {
+  return path.join(process.cwd(), 'consultations')
+}
+
+/**
  * Persist a consultation as `consultation-<timestamp>.md` under `dir`.
  *
  * `params.dir` defaults to `<cwd>/consultations` (matches the legacy
@@ -39,7 +49,7 @@ export async function saveConsultationFile(params: {
   casting: CastingRecord | null
   dir?: string
 }): Promise<string> {
-  const dir = params.dir ?? path.join(process.cwd(), 'consultations')
+  const dir = params.dir ?? defaultConsultationsDir()
   await fs.mkdir(dir, { recursive: true })
   const fileSafe = getFilesystemSafeTimestamp()
   const filePath = path.join(dir, `consultation-${fileSafe}.md`)

@@ -1,4 +1,5 @@
 export {
+  defaultConsultationsDir,
   loadConsultationFile,
   saveConsultationFile,
   type LoadResult,
