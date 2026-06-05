@@ -6,6 +6,11 @@ import {
 } from '@hexagram/core/getters'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { CastingRecord, Hexagram, Line } from '@hexagram/core/types'
+import {
+  centerVisual,
+  padStartVisual,
+  padToColumn,
+} from '@hexagram/text-layout'
 
 // `✕` U+2715 — matches the home banner's and viewer-core's moving-yin glyph
 // so every render surface speaks one glyph vocabulary. Saved consultation
@@ -27,37 +32,6 @@ const POSITION_LABELS = {
   6: '（上, 6th）',
 } as const
 
-function visualWidth(text: string): number {
-  let width = 0
-  for (const ch of text) {
-    const cp = ch.codePointAt(0) ?? 0
-    const isFullwidth =
-      (cp >= 0x1100 && cp <= 0x115f) ||
-      (cp >= 0x2e80 && cp <= 0x303e) ||
-      (cp >= 0x3041 && cp <= 0x33ff) ||
-      (cp >= 0x3400 && cp <= 0x4dbf) ||
-      (cp >= 0x4e00 && cp <= 0x9fff) ||
-      (cp >= 0xa000 && cp <= 0xa4cf) ||
-      (cp >= 0xac00 && cp <= 0xd7af) ||
-      (cp >= 0xf900 && cp <= 0xfaff) ||
-      (cp >= 0xfe10 && cp <= 0xfe6f) ||
-      (cp >= 0xff01 && cp <= 0xff60) ||
-      (cp >= 0xffe0 && cp <= 0xffe6)
-    width += isFullwidth ? 2 : 1
-  }
-  return width
-}
-
-function padStartVisual(text: string, width: number): string {
-  return ' '.repeat(Math.max(0, width - visualWidth(text))) + text
-}
-
-function centerVisual(text: string, width: number): string {
-  const total = Math.max(0, width - visualWidth(text))
-  const left = Math.floor(total / 2)
-  return ' '.repeat(left) + text + ' '.repeat(total - left)
-}
-
 const LINE_LABELS = {
   1: '初1',
   2: '二2',
@@ -66,10 +40,6 @@ const LINE_LABELS = {
   5: '五5',
   6: '上6',
 } as const
-
-function padToColumn(text: string, targetColumn: number, minGap = 1): string {
-  return text + ' '.repeat(Math.max(minGap, targetColumn - visualWidth(text)))
-}
 
 // Column layout for the enumerated casting ledger — identical geometry to
 // `castingSection` in @hexagram/readout, minus ANSI, inside a ```text fence.
