@@ -27,8 +27,8 @@
 // When `hasMoving === false`, the emerging side is a "dim ghost" — same
 // identity as standing but rendered in NORMAL_GREY everywhere.
 
+import { POSITION_LABELS } from '@hexagram/consultation-view'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import { POSITION_LABELS } from '@hexagram/readout'
 
 import { TOP_HALF_WIDTH } from './playground-display-geometry.js'
 import {

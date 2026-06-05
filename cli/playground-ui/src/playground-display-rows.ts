@@ -1,6 +1,6 @@
+import { MOVING_ARROW, STATIC_GAP } from '@hexagram/consultation-view'
 import { isMovingLine, polarityOf } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import { MOVING_ARROW, STATIC_GAP } from '@hexagram/readout'
 import {
   BOLD_GREY,
   BOLD_RED,
