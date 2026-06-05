@@ -13,14 +13,12 @@
 // keymap, scrolling and (for casting) its discard-confirm. The app only wires
 // `onExit` / `exitLabel` so the soft-back key (Esc) routes back to Home.
 
-import path from 'node:path'
-import process from 'node:process'
-
 import {
   ConsultationViewer,
   type FlowKind,
   type InputMode,
 } from '@hexagram/casting-ui'
+import { defaultConsultationsDir } from '@hexagram/consultation-file'
 import { HistoryApp } from '@hexagram/history-ui'
 import { PlaygroundApp } from '@hexagram/playground-ui'
 import { useApp } from 'ink'
@@ -150,7 +148,7 @@ export function HexagramApp({
   if (nav.screen === 'history') {
     return (
       <HistoryApp
-        dir={path.join(process.cwd(), 'consultations')}
+        dir={defaultConsultationsDir()}
         onExit={backToHome}
         exitLabel={EXIT_LABEL}
       />
