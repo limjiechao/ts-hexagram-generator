@@ -8,11 +8,10 @@ import {
   LEDGER_COLUMNS,
   LINE_GLYPH,
   LINE_LABELS,
-  MOVING_ARROW,
   POSITION_LABELS,
   RIGHT_COLUMN,
-  STATIC_GAP,
   TRIGRAM_DIVIDER_WIDTH,
+  transformationRow,
   type CastingSection,
   type ConsultationView,
   type HexagramIdentity,
@@ -195,11 +194,12 @@ ${NORMAL}(No transformation)
   const lineRows = rows
     .map(({ standing: s, emerging: e }) => {
       const standingColor = s.moving ? BOLD_RED : BOLD_WHITE
-      const gap = s.moving ? MOVING_ARROW : STATIC_GAP
-      const pos = POSITION_LABELS[s.position]
-      const left = `  ${standingColor}${s.line}${NORMAL}  ${standingColor}${LINE_GLYPH[s.line]}${NORMAL}  ${pos}`
-      const right = `${BOLD_WHITE}${e.line}${NORMAL}  ${BOLD_WHITE}${LINE_GLYPH[e.line]}${NORMAL}  ${pos}`
-      return `${left}${gap}${right}`
+      return transformationRow(
+        s,
+        e,
+        (t) => `${standingColor}${t}${NORMAL}`,
+        (t) => `${BOLD_WHITE}${t}${NORMAL}`,
+      )
     })
     .join('\n')
 

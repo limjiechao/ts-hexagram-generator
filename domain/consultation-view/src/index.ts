@@ -3,6 +3,11 @@ export {
   hexagramDiagramRows,
   hexagramIdentity,
 } from './build-view.js'
+export {
+  transformationRow,
+  transformationHalfRow,
+  type DecorateCell,
+} from './diagram-template.js'
 export * from './ir.js'
 export {
   buildLedgerRows,
