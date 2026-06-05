@@ -7,6 +7,7 @@ export default defineConfig({
     './src/crypto-random.ts',
     './src/getters.ts',
     './src/line-semantics.ts',
+    './src/manual-validation.ts',
     './src/models/hexagrams.ts',
     './src/random-casting.ts',
     './src/models/trigrams.ts',

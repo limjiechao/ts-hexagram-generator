@@ -30,6 +30,11 @@
       "types": "./dist/line-semantics.d.mts",
       "import": "./dist/line-semantics.mjs"
     },
+    "./manual-validation": {
+      "source": "./src/manual-validation.ts",
+      "types": "./dist/manual-validation.d.mts",
+      "import": "./dist/manual-validation.mjs"
+    },
     "./hexagrams": {
       "source": "./src/models/hexagrams.ts",
       "types": "./dist/models/hexagrams.d.mts",
