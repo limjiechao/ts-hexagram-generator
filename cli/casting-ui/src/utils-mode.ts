@@ -87,118 +87,74 @@ export function shouldUseNumericInput(argv: readonly string[]): boolean {
 }
 
 /**
- * Parse the `--wrap-width <n>` / `--wrap-width=<n>` flag. Pure — takes `argv`
- * explicitly so it can be unit-tested without `process`. Falls back to
- * `DEFAULT_MAX_WRAP_WIDTH` when the flag is absent or the value is not a
- * positive integer.
+ * Parse a `--<name> <n>` / `--<name>=<n>` integer flag from `argv`. Pure —
+ * takes `argv` explicitly so it can be unit-tested without `process`. Accepts
+ * only a run of ASCII digits (`/^\d+$/`, so no sign and no decimal point) that
+ * parses to a value `> 0`; otherwise returns `fallback`. Returns the first
+ * valid occurrence. This is the single body the per-flag `parse*` helpers
+ * below delegate to — they differ only in flag name and default.
+ */
+export function parseIntFlag(
+  argv: readonly string[],
+  name: string,
+  fallback: number,
+): number {
+  const eq = `${name}=`
+  for (let index = 0; index < argv.length; index += 1) {
+    const argument = argv[index]
+    let value: string | undefined
+    if (argument === name) {
+      value = argv[index + 1]
+    } else if (argument?.startsWith(eq) === true) {
+      value = argument.slice(eq.length)
+    }
+    if (value !== undefined && /^\d+$/.test(value)) {
+      const parsed = Number.parseInt(value, 10)
+      if (parsed > 0) return parsed
+    }
+  }
+  return fallback
+}
+
+/**
+ * Parse the `--wrap-width <n>` / `--wrap-width=<n>` flag. Falls back to
+ * `DEFAULT_MAX_WRAP_WIDTH` when absent or not a positive integer. Delegates to
+ * `parseIntFlag`.
  */
 export function parseWrapWidth(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === '--wrap-width') {
-      value = argv[index + 1]
-    } else if (argument?.startsWith('--wrap-width=') === true) {
-      value = argument.slice('--wrap-width='.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_MAX_WRAP_WIDTH
+  return parseIntFlag(argv, '--wrap-width', DEFAULT_MAX_WRAP_WIDTH)
 }
 
 /**
- * Parse the `--slider-sweep-ms <n>` / `--slider-sweep-ms=<n>` flag. Pure —
- * takes `argv` explicitly so it can be unit-tested without `process`. Falls
- * back to `DEFAULT_SLIDER_SWEEP_MS` when the flag is absent or the value is
- * not a positive integer.
+ * Parse the `--slider-sweep-ms <n>` / `--slider-sweep-ms=<n>` flag. Falls back
+ * to `DEFAULT_SLIDER_SWEEP_MS`. Delegates to `parseIntFlag`.
  */
 export function parseSliderSweepMs(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === '--slider-sweep-ms') {
-      value = argv[index + 1]
-    } else if (argument?.startsWith('--slider-sweep-ms=') === true) {
-      value = argument.slice('--slider-sweep-ms='.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_SLIDER_SWEEP_MS
+  return parseIntFlag(argv, '--slider-sweep-ms', DEFAULT_SLIDER_SWEEP_MS)
 }
 
 /**
- * Parse the `--cast-bounce-ms <n>` / `--cast-bounce-ms=<n>` flag. Pure —
- * takes `argv` explicitly so it can be unit-tested without `process`. Falls
- * back to `DEFAULT_CAST_BOUNCE_MS` when the flag is absent or the value is
- * not a positive integer. Mirrors `parseSliderSweepMs` exactly.
+ * Parse the `--cast-bounce-ms <n>` / `--cast-bounce-ms=<n>` flag. Falls back to
+ * `DEFAULT_CAST_BOUNCE_MS`. Delegates to `parseIntFlag`.
  */
 export function parseCastBounceMs(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === '--cast-bounce-ms') {
-      value = argv[index + 1]
-    } else if (argument?.startsWith('--cast-bounce-ms=') === true) {
-      value = argument.slice('--cast-bounce-ms='.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_CAST_BOUNCE_MS
+  return parseIntFlag(argv, '--cast-bounce-ms', DEFAULT_CAST_BOUNCE_MS)
 }
 
 /**
- * Parse the `--cast-reveal-ms <n>` / `--cast-reveal-ms=<n>` flag. Pure — takes
- * `argv` explicitly so it can be unit-tested without `process`. Falls back to
- * `DEFAULT_CAST_REVEAL_MS` when the flag is absent or the value is not a
- * positive integer. Mirrors `parseCastBounceMs` exactly.
+ * Parse the `--cast-reveal-ms <n>` / `--cast-reveal-ms=<n>` flag. Falls back to
+ * `DEFAULT_CAST_REVEAL_MS`. Delegates to `parseIntFlag`.
  */
 export function parseCastRevealMs(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === '--cast-reveal-ms') {
-      value = argv[index + 1]
-    } else if (argument?.startsWith('--cast-reveal-ms=') === true) {
-      value = argument.slice('--cast-reveal-ms='.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_CAST_REVEAL_MS
+  return parseIntFlag(argv, '--cast-reveal-ms', DEFAULT_CAST_REVEAL_MS)
 }
 
 /**
- * Parse the `--manual-reveal-ms <n>` / `--manual-reveal-ms=<n>` flag. Pure —
- * takes `argv` explicitly so it can be unit-tested without `process`. Falls
- * back to `DEFAULT_MANUAL_REVEAL_MS` when the flag is absent or the value is
- * not a positive integer. Mirrors `parseCastRevealMs` exactly.
+ * Parse the `--manual-reveal-ms <n>` / `--manual-reveal-ms=<n>` flag. Falls
+ * back to `DEFAULT_MANUAL_REVEAL_MS`. Delegates to `parseIntFlag`.
  */
 export function parseManualRevealMs(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === '--manual-reveal-ms') {
-      value = argv[index + 1]
-    } else if (argument?.startsWith('--manual-reveal-ms=') === true) {
-      value = argument.slice('--manual-reveal-ms='.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_MANUAL_REVEAL_MS
+  return parseIntFlag(argv, '--manual-reveal-ms', DEFAULT_MANUAL_REVEAL_MS)
 }
 
 /**

@@ -1,4 +1,4 @@
-import { expect, test } from 'vitest'
+import { describe, expect, test } from 'vitest'
 
 import {
   buildRandomViewerArgs,
@@ -12,6 +12,7 @@ import {
   parseCastBounceMs,
   parseCastRevealMs,
   parseCliFlags,
+  parseIntFlag,
   parseManualRevealMs,
   parseSliderSweepMs,
   parseWrapWidth,
@@ -19,6 +20,65 @@ import {
   shouldUseNumericInput,
   shouldUsePlainMode,
 } from '../src/utils-mode'
+
+describe('parseIntFlag', () => {
+  test('reads the space-separated form --flag <n>', () => {
+    expect(
+      parseIntFlag(['--cast-reveal-ms', '900'], '--cast-reveal-ms', 700),
+    ).toBe(900)
+  })
+
+  test('reads the equals form --flag=<n>', () => {
+    expect(parseIntFlag(['--cast-reveal-ms=900'], '--cast-reveal-ms', 700)).toBe(
+      900,
+    )
+  })
+
+  test('falls back when the flag is absent', () => {
+    expect(parseIntFlag([], '--cast-reveal-ms', 700)).toBe(700)
+  })
+
+  test('falls back on a non-numeric value', () => {
+    expect(
+      parseIntFlag(['--cast-reveal-ms', 'fast'], '--cast-reveal-ms', 700),
+    ).toBe(700)
+  })
+
+  test('falls back on a zero value (must be a positive integer)', () => {
+    expect(parseIntFlag(['--cast-reveal-ms', '0'], '--cast-reveal-ms', 700)).toBe(
+      700,
+    )
+  })
+
+  test('falls back on a negative / signed value (regex rejects the sign)', () => {
+    expect(parseIntFlag(['--cast-reveal-ms', '-5'], '--cast-reveal-ms', 700)).toBe(
+      700,
+    )
+  })
+
+  test('falls back on a decimal value (regex rejects the dot)', () => {
+    expect(
+      parseIntFlag(['--cast-reveal-ms', '1.5'], '--cast-reveal-ms', 700),
+    ).toBe(700)
+  })
+
+  test('returns the first valid occurrence when repeated', () => {
+    expect(
+      parseIntFlag(
+        ['--cast-reveal-ms=900', '--cast-reveal-ms=1200'],
+        '--cast-reveal-ms',
+        700,
+      ),
+    ).toBe(900)
+  })
+
+  test('does not match a flag that is a prefix of another flag', () => {
+    // `--cast-reveal-ms-extra=900` must NOT satisfy `--cast-reveal-ms`.
+    expect(
+      parseIntFlag(['--cast-reveal-ms-extra=900'], '--cast-reveal-ms', 700),
+    ).toBe(700)
+  })
+})
 
 test('shouldUsePlainMode() detects --plain', () => {
   expect(shouldUsePlainMode(['--plain'])).toBe(true)
