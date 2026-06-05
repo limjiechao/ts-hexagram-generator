@@ -1,6 +1,6 @@
 import process from 'node:process'
 
-import { classifyEnv } from '@hexagram/viewer-core'
+import { classifyEnv, parseIntFlag } from '@hexagram/viewer-core'
 
 export type OutputMode = 'ink' | 'plain'
 export type InputMode = 'slider' | 'number'
@@ -88,35 +88,8 @@ export function shouldUseNumericInput(argv: readonly string[]): boolean {
   return argv.some((argument) => NUMERIC_INPUT_FLAGS.has(argument))
 }
 
-/**
- * Parse a `--<name> <n>` / `--<name>=<n>` integer flag from `argv`. Pure —
- * takes `argv` explicitly so it can be unit-tested without `process`. Accepts
- * only a run of ASCII digits (`/^\d+$/`, so no sign and no decimal point) that
- * parses to a value `> 0`; otherwise returns `fallback`. Returns the first
- * valid occurrence. This is the single body the per-flag `parse*` helpers
- * below delegate to — they differ only in flag name and default.
- */
-export function parseIntFlag(
-  argv: readonly string[],
-  name: string,
-  fallback: number,
-): number {
-  const eq = `${name}=`
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === name) {
-      value = argv[index + 1]
-    } else if (argument?.startsWith(eq) === true) {
-      value = argument.slice(eq.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return fallback
-}
+// Re-export so the name still surfaces at utils-mode (tests import it here).
+export { parseIntFlag } from '@hexagram/viewer-core'
 
 /**
  * Parse the `--wrap-width <n>` / `--wrap-width=<n>` flag. Falls back to

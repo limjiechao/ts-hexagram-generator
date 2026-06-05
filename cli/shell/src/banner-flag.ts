@@ -7,40 +7,27 @@
 
 import process from 'node:process'
 
+import { parseIntFlag } from '@hexagram/viewer-core'
+
 import { DEFAULT_BANNER_INTERVAL_MS } from './banner-state.js'
 
 export { DEFAULT_BANNER_INTERVAL_MS } from './banner-state.js'
 
 const FLAG = '--banner-interval-ms'
-const FLAG_PREFIX = `${FLAG}=`
 
 /**
- * Parse the `--banner-interval-ms <n>` / `--banner-interval-ms=<n>` flag.
- * Pure — takes `argv` explicitly so it can be unit-tested without `process`.
- * Falls back to `DEFAULT_BANNER_INTERVAL_MS` when the flag is absent or the
- * value is not a positive integer.
+ * Parse `--banner-interval-ms <n>` / `--banner-interval-ms=<n>`. Pure — takes
+ * `argv` explicitly for unit testing. Falls back to
+ * `DEFAULT_BANNER_INTERVAL_MS` when the flag is absent or not a positive
+ * integer. Delegates to the shared `parseIntFlag`.
  */
 export function parseBannerIntervalMs(argv: readonly string[]): number {
-  for (let index = 0; index < argv.length; index += 1) {
-    const argument = argv[index]
-    let value: string | undefined
-    if (argument === FLAG) {
-      value = argv[index + 1]
-    } else if (argument?.startsWith(FLAG_PREFIX) === true) {
-      value = argument.slice(FLAG_PREFIX.length)
-    }
-    if (value !== undefined && /^\d+$/.test(value)) {
-      const parsed = Number.parseInt(value, 10)
-      if (parsed > 0) return parsed
-    }
-  }
-  return DEFAULT_BANNER_INTERVAL_MS
+  return parseIntFlag(argv, FLAG, DEFAULT_BANNER_INTERVAL_MS)
 }
 
 /**
- * Resolve `--banner-interval-ms` from the live `process.argv`. Thin wrapper
- * around `parseBannerIntervalMs` — production callers use this; tests call the
- * pure parser directly with crafted argv.
+ * Resolve `--banner-interval-ms` from the live `process.argv`. Thin wrapper —
+ * production callers use this; tests call the pure parser with crafted argv.
  */
 export function resolveBannerIntervalMs(): number {
   return parseBannerIntervalMs(process.argv.slice(2))
