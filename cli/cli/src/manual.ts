@@ -7,7 +7,7 @@ import {
   resolveWrapWidth,
   runManualConsultationViewer,
 } from '@hexagram/casting-ui'
-import { isInteractiveEnv } from '@hexagram/viewer-core'
+import { refuseIfNonInteractive } from '@hexagram/viewer-core'
 
 // `hexagram-manual` — the standalone bin for the manual yarrow-stalk flow.
 // Mirrors `apps/cli/src/history.ts` in shape: an Ink-only viewer, gated on a
@@ -26,10 +26,7 @@ const MANUAL_MIN_TERMINAL_ROWS = 32
 
 async function main(): Promise<void> {
   try {
-    if (!isInteractiveEnv()) {
-      process.stderr.write('hexagram-manual requires an interactive terminal\n')
-      process.exit(1)
-    }
+    refuseIfNonInteractive('hexagram-manual')
     const rows = process.stdout.rows
     if (typeof rows === 'number' && rows < MANUAL_MIN_TERMINAL_ROWS) {
       process.stderr.write(
