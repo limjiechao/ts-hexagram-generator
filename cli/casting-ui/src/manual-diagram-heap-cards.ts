@@ -1,5 +1,4 @@
-import { BOLD_GREEN, BOLD_WHITE, NORMAL } from '@hexagram/viewer-core'
-import stringWidth from 'string-width'
+import { BOLD_GREEN, BOLD_WHITE, NORMAL, terminalWidth } from '@hexagram/viewer-core'
 
 import {
   HEAP_CARD_INTERIOR,
@@ -141,7 +140,7 @@ function buildCardRows(args: CardCellArgs): readonly string[] {
     // Label sits in the inert tier — dim it AFTER padding so the column width
     // (HEAP_LABEL_COL_WIDTH) is computed from the bare text, not the codes.
     const labelPadded = dim(`  ${label}`.padEnd(HEAP_LABEL_COL_WIDTH, ' '))
-    const cellWidth = stringWidth(cell)
+    const cellWidth = terminalWidth(cell)
     const rightMargin = 2
     const innerGap = Math.max(
       0,

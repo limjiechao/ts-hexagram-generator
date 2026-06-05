@@ -1,4 +1,4 @@
-import { isGlobalExitKey } from '@hexagram/viewer-core'
+import { isGlobalExitKey, terminalWidth } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
   useCallback,
@@ -9,7 +9,6 @@ import {
   type ReactElement,
 } from 'react'
 import sliceAnsi from 'slice-ansi'
-import stringWidth from 'string-width'
 
 import {
   BouncingSliderStore,
@@ -457,9 +456,9 @@ export function SliderCastingPrompt({
       : String(totalStalks - 1 - committed).padStart(2, ' ')
   const readout = `Stalks: ${totalStalks} | Left Heap: ${leftCell} | Right Heap: ${rightCell} + 1 suspended`
 
-  const titleWidth = stringWidth(title)
-  const barWidth = stringWidth(bar)
-  const readoutWidth = stringWidth(readout)
+  const titleWidth = terminalWidth(title)
+  const barWidth = terminalWidth(bar)
+  const readoutWidth = terminalWidth(readout)
   const innerContentWidth = Math.max(1, width - 2)
   const renderWidth = Math.max(
     innerContentWidth,

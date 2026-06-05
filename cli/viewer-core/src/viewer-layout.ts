@@ -2,6 +2,18 @@ import sliceAnsi from 'slice-ansi'
 import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
+/**
+ * Display width of a terminal string in columns. ANSI-aware: embedded SGR
+ * escapes count as zero; wide CJK glyphs count as two. The single home for
+ * rendered-string width in the CLI layer — components import this, never the
+ * `string-width` package directly (raw imports are blocked by
+ * `boundaries:check`). Distinct from @hexagram/text-layout's `visualWidth`,
+ * which measures raw (ANSI-free) diagram text.
+ */
+export function terminalWidth(text: string): number {
+  return stringWidth(text)
+}
+
 // Pure layout primitives used by the Ink viewer. Kept separate so the
 // orchestrator (`viewer.tsx`) doesn't have to inline geometry maths and
 // helper functions, and so anyone wanting to test wrap/truncate behaviour

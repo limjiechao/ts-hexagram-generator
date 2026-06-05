@@ -130,6 +130,7 @@ export {
   renderProgressBar,
   stripAnsi,
   TAB_BAR_HEIGHT,
+  terminalWidth,
   truncateEnd,
   truncateStart,
   wrapToWidth,

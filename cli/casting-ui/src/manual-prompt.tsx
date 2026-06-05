@@ -1,10 +1,10 @@
 import { maxPickFor, performCast } from '@hexagram/core'
 import { validateManualSplit } from '@hexagram/core/manual-validation'
 import type { AdvanceableLineState } from '@hexagram/core/types'
+import { terminalWidth } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
 import sliceAnsi from 'slice-ansi'
-import stringWidth from 'string-width'
 
 import {
   bottomStripRow,
@@ -476,7 +476,7 @@ export function ManualCastingPrompt({
   const titleRow = manualTitleRow(lineNumber, castIndex, focusedField)
   const leadingPadTitle = Math.max(
     0,
-    Math.floor((innerContentWidth - stringWidth(titleRow)) / 2),
+    Math.floor((innerContentWidth - terminalWidth(titleRow)) / 2),
   )
   const centeredTitleRow = ' '.repeat(leadingPadTitle) + titleRow
 
@@ -547,8 +547,8 @@ export function ManualCastingPrompt({
   // DIAGRAM_WIDTH) and a right half, gap = 8. Pad the whole row out to
   // `renderWidth` so successive slices land at predictable offsets.
   const composeBodyRow = (leftRow: string, rightRow: string): string => {
-    const leftWidth = stringWidth(leftRow)
-    const rightWidth = stringWidth(rightRow)
+    const leftWidth = terminalWidth(leftRow)
+    const rightWidth = terminalWidth(rightRow)
     const leftPadTrail = Math.max(0, DIAGRAM_WIDTH - leftWidth)
     const middleGap = MANUAL_BODY_GAP
     const totalSoFar = DIAGRAM_WIDTH + middleGap + rightWidth
@@ -610,7 +610,7 @@ export function ManualCastingPrompt({
   // slice by horizontalOffset for the viewer's `<` / `>` narrow-terminal pan.
   const allRows = [centeredTitleRow, '', ...bodyRows, '', stripRow]
   const slicedRows = allRows.map((row) => {
-    const padded = row + ' '.repeat(Math.max(0, renderWidth - stringWidth(row)))
+    const padded = row + ' '.repeat(Math.max(0, renderWidth - terminalWidth(row)))
     return sliceAnsi(
       padded,
       horizontalOffset,

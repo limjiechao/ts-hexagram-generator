@@ -1,5 +1,4 @@
-import { BOLD_GREEN, BOLD_RED, NORMAL } from '@hexagram/viewer-core'
-import stringWidth from 'string-width'
+import { BOLD_GREEN, BOLD_RED, NORMAL, terminalWidth } from '@hexagram/viewer-core'
 
 import {
   DIAGRAM_WIDTH,
@@ -30,7 +29,7 @@ function connectorRow(
 // READOUT_WIDTH. ANSI in `value` (the coloured MISSING count) is width-
 // discounted via `stringWidth`.
 function ledgerRow(label: string, value: string): string {
-  const gap = Math.max(1, READOUT_WIDTH - label.length - stringWidth(value))
+  const gap = Math.max(1, READOUT_WIDTH - label.length - terminalWidth(value))
   return `${label}${' '.repeat(gap)}${value}`
 }
 
