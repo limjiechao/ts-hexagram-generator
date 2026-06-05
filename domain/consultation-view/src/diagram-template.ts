@@ -46,3 +46,52 @@ export function transformationRow(
     transformationHalfRow(emerging, '', decorateEmerging)
   )
 }
+
+/** The trigram-imagery identity fields the diagram braces interpolate. */
+export interface DiagramImagery {
+  readonly upperTrigramImageryChinese: string
+  readonly upperTrigramImageryEnglish: string
+  readonly lowerTrigramImageryChinese: string
+  readonly lowerTrigramImageryEnglish: string
+}
+
+// Brace suffix per top-down row index (0 = top / position 6). The imagery rows
+// (1 and 4) interpolate the upper/lower trigram glosses; the rest are bare
+// connectors. Byte-identical to the legacy ANSI + Markdown diagram blocks.
+function braceSuffix(topIndex: number, im: DiagramImagery): string {
+  switch (topIndex) {
+    case 0:
+      return '──┐'
+    case 1:
+      return `──┼── ${im.upperTrigramImageryChinese}（上卦）`
+    case 2:
+      return `──┘   ${im.upperTrigramImageryEnglish} (upper trigram)`
+    case 3:
+      return '──┐'
+    case 4:
+      return `──┼── ${im.lowerTrigramImageryChinese}（下卦）`
+    default:
+      return `──┘   ${im.lowerTrigramImageryEnglish} (lower trigram)`
+  }
+}
+
+/** Like `DecorateCell` but also receives the row, because the ANSI hexagram
+ *  block colours the value/glyph chunk by THAT row's `moving` flag. Markdown
+ *  ignores the row and passes the chunk through. */
+export type DecorateRow = (chunk: string, row: DiagramLineRow) => string
+
+/** The six hexagram-diagram rows, top-first (position 6 → 1). Each row is
+ *  `"  " + decorate(value + "  " + glyph + "  ") + position + braceSuffix`.
+ *  `decorate` wraps the value/glyph chunk (ANSI colour, by row) or passes it
+ *  through (Markdown); the position label and brace are never decorated. */
+export function hexagramDiagramRowStrings(
+  rows: readonly DiagramLineRow[],
+  imagery: DiagramImagery,
+  decorate: DecorateRow,
+): string[] {
+  return rows.map((row, topIndex) => {
+    const chunk = `${row.line}  ${LINE_GLYPH[row.line]}  `
+    const pos = POSITION_LABELS[row.position as PositionKey]
+    return `  ${decorate(chunk, row)}${pos}${braceSuffix(topIndex, imagery)}`
+  })
+}

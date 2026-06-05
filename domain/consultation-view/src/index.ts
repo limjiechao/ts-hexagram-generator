@@ -4,9 +4,12 @@ export {
   hexagramIdentity,
 } from './build-view.js'
 export {
+  hexagramDiagramRowStrings,
   transformationRow,
   transformationHalfRow,
   type DecorateCell,
+  type DecorateRow,
+  type DiagramImagery,
 } from './diagram-template.js'
 export * from './ir.js'
 export {

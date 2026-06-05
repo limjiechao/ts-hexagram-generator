@@ -1,7 +1,10 @@
 import { describe, expect, it } from 'vitest'
 
 import { MOVING_ARROW, STATIC_GAP } from '../src/vocabulary.js'
-import { transformationRow } from '../src/diagram-template.js'
+import {
+  hexagramDiagramRowStrings,
+  transformationRow,
+} from '../src/diagram-template.js'
 
 const id = (t: string): string => t
 
@@ -29,5 +32,39 @@ describe('transformationRow', () => {
     expect(transformationRow(standing, emerging, wrap, wrap)).toBe(
       `  <9>  <━━━━○━━━━>  （三, 3rd）${MOVING_ARROW}<8>  <━━━   ━━━>  （三, 3rd）`,
     )
+  })
+})
+
+describe('hexagramDiagramRowStrings', () => {
+  const rows = [
+    { line: 9, position: 6, moving: true },
+    { line: 7, position: 5, moving: false },
+    { line: 7, position: 4, moving: false },
+    { line: 8, position: 3, moving: false },
+    { line: 7, position: 2, moving: false },
+    { line: 7, position: 1, moving: false },
+  ] as const
+  const identity = {
+    upperTrigramImageryChinese: '天',
+    upperTrigramImageryEnglish: 'Heaven',
+    lowerTrigramImageryChinese: '澤',
+    lowerTrigramImageryEnglish: 'Lake',
+  }
+
+  it('plain form: six brace rows with imagery on the middle rows', () => {
+    const out = hexagramDiagramRowStrings(rows, identity, (t) => t)
+    expect(out).toEqual([
+      '  9  ━━━━○━━━━  （上, 6th）──┐',
+      '  7  ━━━━━━━━━  （五, 5th）──┼── 天（上卦）',
+      '  7  ━━━━━━━━━  （四, 4th）──┘   Heaven (upper trigram)',
+      '  8  ━━━   ━━━  （三, 3rd）──┐',
+      '  7  ━━━━━━━━━  （二, 2nd）──┼── 澤（下卦）',
+      '  7  ━━━━━━━━━  （初, 1st）──┘   Lake (lower trigram)',
+    ])
+  })
+
+  it('decorate wraps the value+glyph chunk, not the position or brace', () => {
+    const out = hexagramDiagramRowStrings(rows, identity, (t) => `<${t}>`)
+    expect(out[0]).toBe('  <9  ━━━━○━━━━  >（上, 6th）──┐')
   })
 })
