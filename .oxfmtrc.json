@@ -5,5 +5,8 @@
   "printWidth": 80,
   "sortImports": true,
   "sortPackageJson": false,
-  "ignorePatterns": ["domain/consultation-file/tests/fixtures/*.md"]
+  "ignorePatterns": [
+    "domain/consultation-file/tests/fixtures/*.md",
+    "docs/superpowers/plans/*.md"
+  ]
 }
