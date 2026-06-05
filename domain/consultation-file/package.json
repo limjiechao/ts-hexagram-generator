@@ -46,6 +46,7 @@
   },
   "dependencies": {
     "@hexagram/core": "workspace:*",
+    "@hexagram/text-layout": "workspace:*",
     "dayjs": "^1.11.20",
     "gray-matter": "^4.0.3",
     "js-yaml": "^3.14.1"

@@ -304,6 +304,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../text-layout
       dayjs:
         specifier: ^1.11.20
         version: 1.11.20
