@@ -3,6 +3,7 @@
 packages:
   - 'domain/*'
   - 'cli/*'
+  - 'apps/*'
 
 allowBuilds:
   esbuild: true

@@ -66,6 +66,30 @@ importers:
         specifier: ^4.1.6
         version: 4.1.6(@types/node@24.12.4)(vite@6.3.5(@types/node@24.12.4)(jiti@2.7.0)(lightningcss@1.29.3)(tsx@4.21.0)(yaml@2.9.0))
 
+  apps/cli:
+    dependencies:
+      '@hexagram/casting-ui':
+        specifier: workspace:*
+        version: link:../../cli/casting-ui
+      '@hexagram/consultation-file':
+        specifier: workspace:*
+        version: link:../../domain/consultation-file
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../../domain/core
+      '@hexagram/history-ui':
+        specifier: workspace:*
+        version: link:../../cli/history-ui
+      '@hexagram/playground-ui':
+        specifier: workspace:*
+        version: link:../../cli/playground-ui
+      '@hexagram/shell':
+        specifier: workspace:*
+        version: link:../../cli/shell
+      '@hexagram/viewer-core':
+        specifier: workspace:*
+        version: link:../../cli/viewer-core
+
   cli/casting-ui:
     dependencies:
       '@hexagram/consultation-file':
@@ -111,30 +135,6 @@ importers:
       ink-testing-library:
         specifier: ^4.0.0
         version: 4.0.0(@types/react@19.2.14)
-
-  cli/cli:
-    dependencies:
-      '@hexagram/casting-ui':
-        specifier: workspace:*
-        version: link:../casting-ui
-      '@hexagram/consultation-file':
-        specifier: workspace:*
-        version: link:../../domain/consultation-file
-      '@hexagram/core':
-        specifier: workspace:*
-        version: link:../../domain/core
-      '@hexagram/history-ui':
-        specifier: workspace:*
-        version: link:../history-ui
-      '@hexagram/playground-ui':
-        specifier: workspace:*
-        version: link:../playground-ui
-      '@hexagram/shell':
-        specifier: workspace:*
-        version: link:../shell
-      '@hexagram/viewer-core':
-        specifier: workspace:*
-        version: link:../viewer-core
 
   cli/history-ui:
     dependencies:

@@ -3,6 +3,12 @@
 // hypothetical Next.js app); cli/* is terminal-specific. The dependency
 // arrow must always point cli -> domain, never the reverse.
 //
+// apps/* sits at the TOP of the DAG (the runnable bins) and may freely
+// depend on both cli/* and domain/*; no rule forbids that. The cruised dirs
+// (`domain cli apps` in the boundaries:check script) include apps only so the
+// guard has coverage over the whole tree — the single forbidden edge below is
+// still just domain -> cli.
+//
 // Today there are ZERO domain -> cli edges (core depends on nothing;
 // consultation-file depends on core only), so this rule passes green on
 // introduction. It is a DRIFT GUARD that fails the build the moment a

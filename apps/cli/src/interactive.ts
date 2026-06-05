@@ -13,6 +13,8 @@ import {
 } from '@hexagram/casting-ui'
 import { BOLD_GREY, BOLD_WHITE, NORMAL } from '@hexagram/viewer-core'
 
+import { anchorCwdToWorkspaceRoot } from './workspace-root.js'
+
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
 
 function welcomeOutput(
@@ -39,6 +41,10 @@ ${epilogueStyle}${epilogue}${NORMAL}
 
 async function main(): Promise<void> {
   try {
+    // Anchor cwd to the monorepo root so the save (plain and Ink alike resolve
+    // `<cwd>/consultations` via `defaultConsultationsDir`) lands on
+    // `<repo-root>/consultations` regardless of the invocation directory.
+    anchorCwdToWorkspaceRoot()
     if (resolveOutputMode() === 'plain') {
       // Plain mode keeps the Inquirer-driven terminal flow: gather the
       // query and 18 splits at the prompt, then print + save the formatted

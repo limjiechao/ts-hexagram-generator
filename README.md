@@ -17,7 +17,7 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 
 ## Monorepo layout
 
-The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under two top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR) and `cli/*` (medium-bound — terminal chrome, serializers, Ink UIs, bins). A `domain/* → cli/*` import is a lint error; see [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
+The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under three top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR), `cli/*` (medium-bound terminal-layer libraries — chrome, serializers, Ink UIs), and `apps/*` (runnable apps — the CLI bins). A `domain/* → cli/*` import is a lint error; `apps/*` sits at the top of the DAG and may depend on both. See [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
 
 | Package                       | Description                                                                                                                                                                                                                               |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -32,7 +32,7 @@ The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Pac
 | `@hexagram/playground-ui`     | The Ink interactive 4-state line explorer.                                                                                                                                                                                                |
 | `@hexagram/shell`             | The Home hub that aggregates the casting, history, and playground UIs into one app.                                                                                                                                                       |
 | `@hexagram/test-utils`        | Workspace-private test helpers (polling + readiness-witness utilities). Not published.                                                                                                                                                    |
-| `@hexagram/bin` _(private)_   | The CLI bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-history`, `hexagram-playground`).                                                                                                       |
+| `@hexagram/cli` _(private)_   | The runnable CLI app (lives under `apps/cli`), exposing the bins (`hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-history`, `hexagram-playground`).                                                   |
 
 Every library package publishes via `package.json#exports` only — no `main` / `module` / `types`. Each subpath exposes `source` (for `tsx`/`vitest`), `types` (`.d.mts`), and `import` (`.mjs`) conditions. See [docs/adr/0002](docs/adr/0002-monorepo-structure-and-package-decomposition.md) and [docs/adr/0003](docs/adr/0003-package-publishing-and-module-strategy.md).
 
@@ -84,7 +84,7 @@ import {
 
 ## Install globally from local source
 
-The CLI bins are exposed by the `@hexagram/bin` workspace package. Until publishing lands you can install them globally from your local clone.
+The CLI bins are exposed by the `@hexagram/cli` workspace package (under `apps/cli`). Until publishing lands you can install them globally from your local clone.
 
 `hexagram` opens on a Home menu from which you can cast a new consultation or browse past ones. The `hexagram-random` and `hexagram-interactive` CLIs present the reading directly in a full-screen tabbed viewer by default (Casting / Transformation / Standing Hexagram / Emerging Hexagram tabs), opening on the Casting tab — a record of the eighteen stalk divisions that produced the hexagram. Pass `--plain` (or `--no-ui`) for the classic scrolling console output; non-interactive (piped) runs fall back to plain output automatically. Either mode saves the reading as a timestamped `.md` under `consultations/`.
 
@@ -92,31 +92,31 @@ In the tabbed viewer, content hard-wraps at 120 columns by default; pass `--wrap
 
 Pass `--slider-sweep-ms <n>` (default 1800) to set the end-to-end sweep duration of the interactive bouncing slider; the per-cast tick is derived so each sweep takes the same time regardless of stalk count.
 
-### Option 1 — `pnpm link --global` from `cli/cli` (live development)
+### Option 1 — `pnpm link --global` from `apps/cli` (live development)
 
-Creates a symlink from the global pnpm bin directory to `cli/cli/dist/`. Edits in any workspace package are picked up by the next `pnpm build` — no reinstall.
+Creates a symlink from the global pnpm bin directory to `apps/cli/dist/`. Edits in any workspace package are picked up by the next `pnpm build` — no reinstall.
 
 ```bash
 pnpm install
 pnpm build                            # turbo builds all packages in topological order
-pnpm --filter @hexagram/bin link --global
+pnpm --filter @hexagram/cli link --global
 
 hexagram
 hexagram-random
 hexagram-interactive
 
 # When you're done:
-pnpm --filter @hexagram/bin uninstall --global
+pnpm --filter @hexagram/cli uninstall --global
 ```
 
 ### Option 2 — `pnpm add -g` against the workspace path
 
-Copies the built `@hexagram/bin` package (plus its workspace dependencies) into the global pnpm store. Re-run after every change.
+Copies the built `@hexagram/cli` package (plus its workspace dependencies) into the global pnpm store. Re-run after every change.
 
 ```bash
 pnpm install
 pnpm build
-pnpm add -g "$PWD/cli/cli"
+pnpm add -g "$PWD/apps/cli"
 
 hexagram-random
 ```
@@ -142,11 +142,11 @@ pnpm --filter @hexagram/casting-ui        pack
 pnpm --filter @hexagram/history-ui        pack
 pnpm --filter @hexagram/playground-ui     pack
 pnpm --filter @hexagram/shell             pack
-pnpm --filter @hexagram/bin               pack
+pnpm --filter @hexagram/cli               pack
 
 # Install the CLI tarball globally; pnpm resolves the workspace deps from
 # the same store (or use --offline against the just-packed tarballs).
-pnpm add -g ./cli/cli/hexagram-cli-0.0.0.tgz
+pnpm add -g ./apps/cli/hexagram-cli-0.0.0.tgz
 
 hexagram-random
 ```
@@ -157,8 +157,8 @@ If you'd rather use npm:
 
 ```bash
 npm link                                 # in any workspace package → global symlink
-npm install -g ./cli/cli                # install a copy from the workspace path
-npm install -g ./cli/cli/hexagram-cli-0.0.0.tgz   # install from a packed tarball
+npm install -g ./apps/cli                # install a copy from the workspace path
+npm install -g ./apps/cli/hexagram-cli-0.0.0.tgz   # install from a packed tarball
 ```
 
 ### Verify & troubleshoot

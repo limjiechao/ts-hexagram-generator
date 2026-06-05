@@ -59,9 +59,12 @@ letting the renderers become thin.
 
 ## Consequences
 
-- **Two top-level buckets.** Packages live under `domain/*` (medium-neutral) and `cli/*`
-  (medium-bound). `pnpm-workspace.yaml` globs both; the bins package is `cli/cli`
-  (`@hexagram/bin`), no longer `apps/cli`.
+- **Three top-level buckets.** Packages live under `domain/*` (medium-neutral), `cli/*`
+  (medium-bound terminal-layer libraries), and `apps/*` (runnable apps). `pnpm-workspace.yaml`
+  globs all three; the bins package is `apps/cli` (`@hexagram/cli`). `apps/*` sits at the top
+  of the DAG and may depend on both `cli/*` and `domain/*`; the boundary lint still forbids only
+  `domain/* → cli/*`. (A predecessor reorg briefly housed the bins at `cli/cli` as `@hexagram/bin`;
+  the runnable app now lives in its own `apps/*` bucket.)
 - **The lint is load-bearing.** A `domain/* → cli/*` import is a design error caught at
   lint time, not review time. New domain code that "just needs a colour" must instead
   express the intent medium-neutrally and let a `cli/*` serializer choose the colour.
