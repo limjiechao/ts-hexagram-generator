@@ -1,5 +1,7 @@
 import process from 'node:process'
 
+import { classifyEnv } from '@hexagram/viewer-core'
+
 export type OutputMode = 'ink' | 'plain'
 export type InputMode = 'slider' | 'number'
 
@@ -175,9 +177,9 @@ export function shouldForceNumericForAccessibility(envVars: {
   NO_COLOR: string | undefined
   CI: string | undefined
 }): boolean {
-  const noColor = envVars.NO_COLOR !== undefined && envVars.NO_COLOR !== ''
-  const ci = envVars.CI !== undefined && envVars.CI !== ''
-  return noColor || ci
+  // Derive from the single env policy. `forceNumeric` ignores `isTTY`, so the
+  // value passed here is immaterial (non-TTY already routes to plain mode).
+  return classifyEnv({ isTTY: true, ...envVars }).forceNumeric
 }
 
 /**
