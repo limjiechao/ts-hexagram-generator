@@ -18,14 +18,13 @@ import {
   type LedgerRow,
   LINE_GLYPH,
   LINE_LABELS,
-  MOVING_ARROW,
   POSITION_LABELS,
   type QuerySection,
   RIGHT_COLUMN,
-  STATIC_GAP,
   type TextSection,
   type TextVariant,
   type TransformationSection,
+  transformationRow,
 } from '@hexagram/consultation-view'
 import {
   centerVisual,
@@ -141,13 +140,9 @@ export function serializeTransformationMarkdown(
 
   const header = `${padToColumn('  Standing', RIGHT_COLUMN)}Emerging`
   const lineRows = rows
-    .map(({ standing: s, emerging: e }) => {
-      const gap = s.moving ? MOVING_ARROW : STATIC_GAP
-      const pos = POSITION_LABELS[s.position]
-      const left = `  ${s.line}  ${LINE_GLYPH[s.line]}  ${pos}`
-      const right = `${e.line}  ${LINE_GLYPH[e.line]}  ${pos}`
-      return `${left}${gap}${right}`
-    })
+    .map(({ standing: s, emerging: e }) =>
+      transformationRow(s, e, (t) => t, (t) => t),
+    )
     .join('\n')
   const footer1 = `${padToColumn(
     `  #${standing.wenWang} ${standing.chineseTraditional}（${standing.pinyin}）`,
