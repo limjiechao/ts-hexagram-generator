@@ -1,15 +1,15 @@
 import {
+  CAST1_OFFSET_IN_BLOCK,
+  castingTableActiveRow,
+  castingTableFollowRow,
+} from '@hexagram/consultation-view'
+import {
   emptyPartialCastingRecord,
   type CastingRecord,
 } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import {
-  CAST1_OFFSET_IN_BLOCK,
-  castingSection,
-  castingTableActiveRow,
-  castingTableFollowRow,
-} from '../src/casting-ledger.js'
+import { castingSection } from '../src/section-shims.js'
 
 // oxlint-disable-next-line no-control-regex
 const SGR_PATTERN = /\u001B\[[0-9;]*m/g
