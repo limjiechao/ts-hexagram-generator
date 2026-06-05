@@ -26,14 +26,10 @@ export {
 // consultationConsoleOutput).
 export { serializeConsoleOutput } from './serialize-ansi.js'
 
-// Casting-table row geometry helpers + shared layout vocabulary, re-exported
-// from their canonical home (@hexagram/consultation-view) so existing
-// downstream importers (the viewer's auto-follow scroll; the playground's
-// diagram geometry) keep resolving them via @hexagram/readout.
+// Casting-table row geometry helpers, re-exported from their canonical home
+// (@hexagram/consultation-view) so the viewer's auto-follow scroll keeps
+// resolving them via @hexagram/readout.
 export {
   castingTableActiveRow,
   castingTableFollowRow,
-  MOVING_ARROW,
-  POSITION_LABELS,
-  STATIC_GAP,
 } from '@hexagram/consultation-view'
