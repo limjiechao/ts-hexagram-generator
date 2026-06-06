@@ -32,6 +32,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0017 | Type vocabulary folded into core                            | Accepted           |
 | 0018 | Consultation view IR + renderer collapse                    | Accepted           |
 | 0019 | The boundary is domain vs CLI, not computation vs rendering | Accepted           |
+| 0020 | Consultations directory anchoring                           | Accepted           |
 
 ## Template
 

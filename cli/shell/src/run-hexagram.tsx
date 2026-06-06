@@ -37,6 +37,10 @@ import { HexagramApp, type CastingFlags } from './hexagram-app.js'
  * process exit code (`0` on a clean quit, `1` on refusal); `runHexagram` never
  * calls `process.exit()` itself, keeping it focused and unit-testable.
  *
+ * `consultationsDir` is the repo-root-anchored save directory threaded from the
+ * bin; it is forwarded to `<HexagramApp>` (History mount + casting save edge).
+ * Omitted in unit tests, where the app falls back to `defaultConsultationsDir()`.
+ *
  * On a clean run it:
  *   - snapshots the casting flags (`--numeric-input`, `--wrap-width`,
  *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`) and the
@@ -48,7 +52,10 @@ import { HexagramApp, type CastingFlags } from './hexagram-app.js'
  *     built-in instakill),
  *   - awaits `waitUntilExit()` so it resolves only when the user quits.
  */
-export async function runHexagram(env?: EnvSnapshot): Promise<boolean> {
+export async function runHexagram(
+  consultationsDir?: string,
+  env?: EnvSnapshot,
+): Promise<boolean> {
   const snapshot: EnvSnapshot = env ?? liveSnapshot()
   if (!warnIfNonInteractive('hexagram', snapshot)) return false
 
@@ -72,7 +79,11 @@ export async function runHexagram(env?: EnvSnapshot): Promise<boolean> {
   }
 
   const instance = render(
-    <HexagramApp castingFlags={castingFlags} bannerTiming={bannerTiming} />,
+    <HexagramApp
+      castingFlags={castingFlags}
+      bannerTiming={bannerTiming}
+      consultationsDir={consultationsDir}
+    />,
     {
       exitOnCtrlC: false,
       alternateScreen: true,

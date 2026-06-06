@@ -15,7 +15,7 @@ describe('runHexagram non-interactive refusal', () => {
       })
 
     // Injected snapshot — no render happens, so this never mounts Ink.
-    const result = await runHexagram({
+    const result = await runHexagram(undefined, {
       isTTY: false,
       NO_COLOR: undefined,
       CI: undefined,
@@ -30,7 +30,7 @@ describe('runHexagram non-interactive refusal', () => {
     const stderr = vi
       .spyOn(process.stderr, 'write')
       .mockImplementation(() => true)
-    const result = await runHexagram({
+    const result = await runHexagram(undefined, {
       isTTY: true,
       NO_COLOR: '1',
       CI: undefined,

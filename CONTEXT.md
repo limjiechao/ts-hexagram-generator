@@ -15,7 +15,9 @@ See `docs/adr/0019-domain-cli-boundary.md` for the boundary.
 **Consultation**:
 A completed divination — a query, its casting, and the resulting hexagram(s) —
 saved as one Markdown file under `consultations/`. The canonical user-facing
-noun for a saved reading.
+noun for a saved reading. The save directory is anchored to the repo root and
+threaded explicitly from each bin (no `process.chdir`) — see
+`docs/adr/0020-consultations-dir-anchoring.md`.
 _Avoid_: entry (code-only — `HistoryEntry` is the type name, but UI text always
 says "consultation"), reading, session.
 

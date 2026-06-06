@@ -84,6 +84,13 @@ interface HexagramAppProps {
    * `<AnimatedBanner>`.
    */
   bannerTiming?: BannerTimingConfig
+  /**
+   * The repo-root-anchored consultations directory, threaded from the bin via
+   * `runHexagram()`. Forwarded to the History mount and the casting viewer's
+   * save edge. Omitted in unit tests, which fall back to
+   * `defaultConsultationsDir()` (or pass the test's tmpdir explicitly).
+   */
+  consultationsDir?: string
 }
 
 /**
@@ -113,6 +120,7 @@ export function HexagramApp({
   sliderCommitRevealMs,
   bannerTestOverride,
   bannerTiming,
+  consultationsDir,
 }: HexagramAppProps): ReactElement {
   const { exit } = useApp()
   const [nav, dispatch] = useReducer(navReducer, initialNavState)
@@ -148,7 +156,7 @@ export function HexagramApp({
   if (nav.screen === 'history') {
     return (
       <HistoryApp
-        dir={defaultConsultationsDir()}
+        dir={consultationsDir ?? defaultConsultationsDir()}
         onExit={backToHome}
         exitLabel={EXIT_LABEL}
       />
@@ -178,6 +186,7 @@ export function HexagramApp({
       castBounceMs={castingFlags.castBounceMs}
       castRevealMs={castingFlags.castRevealMs}
       sliderCommitRevealMs={sliderCommitRevealMs}
+      consultationsDir={consultationsDir}
       onExit={backToHome}
       exitLabel={EXIT_LABEL}
     />
