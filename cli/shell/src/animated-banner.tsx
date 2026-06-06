@@ -8,10 +8,11 @@
 
 import { cryptoRandom } from '@hexagram/core/crypto-random'
 import { getHexagramRecord } from '@hexagram/core/getters'
-import { lineColors, NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
+import { NORMAL, NORMAL_GREY } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import { useEffect, useReducer, type ReactElement } from 'react'
 
+import { lineColors } from './banner-lines.js'
 import {
   advanceBannerState,
   createBannerState,

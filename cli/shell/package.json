@@ -26,6 +26,7 @@
   "dependencies": {
     "@hexagram/casting-ui": "workspace:*",
     "@hexagram/consultation-file": "workspace:*",
+    "@hexagram/consultation-view": "workspace:*",
     "@hexagram/core": "workspace:*",
     "@hexagram/history-ui": "workspace:*",
     "@hexagram/playground-ui": "workspace:*",

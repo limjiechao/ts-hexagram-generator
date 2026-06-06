@@ -1,18 +1,16 @@
-// Pure unit tests for the banner-line render derivation — the Functional Core
-// of the line-glyph vocabulary shared by the home banner, the casting readout,
-// and the playground. No React, no Ink: `deriveBannerLine` /
-// `polarityOf` / `lineColors` are exercised directly.
+// Pure unit tests for the home banner's line-render derivation. No React, no
+// Ink: `deriveBannerLine` / `polarityOf` / `lineColors` are exercised directly.
 
 import { polarityOf } from '@hexagram/core/line-semantics'
-import { describe, expect, it } from 'vitest'
-
-import { deriveBannerLine, lineColors } from '../src/banner-lines'
 import {
   BOLD_GREY,
   BOLD_RED,
   DIM_RED,
   NORMAL_GREY,
-} from '../src/output-palette'
+} from '@hexagram/viewer-core'
+import { describe, expect, it } from 'vitest'
+
+import { deriveBannerLine, lineColors } from '../src/banner-lines'
 
 describe('polarityOf', () => {
   it('classifies solid lines (7 young yang, 9 moving yang) as yang', () => {
