@@ -1,8 +1,5 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
-import type {
-  CastingSection,
-  QuerySection,
-} from '@hexagram/consultation-view/ir'
+import { buildLedgerRows } from '@hexagram/consultation-view/ledger-geometry'
 import type {
   CastingRecord,
   Hexagram,
@@ -65,15 +62,15 @@ export function buildPartialCastingSections(
   query: string,
   casting: PartialCastingRecord,
 ): Pick<ConsultationSections, 'query' | 'casting'> {
-  // The partial flow has no hexagram yet; a static placeholder feeds the
-  // (discarded) downstream sections while we serialize only query + casting.
-  const view = buildConsultationView(query, [7, 7, 7, 7, 7, 7], casting)
+  // WHY: a partial (mid-flow) casting render needs only the ledger; the
+  // hexagram isn't known yet. Build the casting section straight from
+  // buildLedgerRows instead of round-tripping a sentinel [7,7,7,7,7,7] through
+  // buildConsultationView. `media: ['ansi']` is honest (this transient render
+  // only feeds the viewer's ANSI Casting tab) and inert — both serializers are
+  // called directly here, not through the media-filtering loops.
+  const rows = buildLedgerRows(casting)
   return {
-    query: serializeQueryAnsi(
-      view.sections.find((s) => s.kind === 'query')! as QuerySection,
-    ),
-    casting: serializeCastingAnsi(
-      view.sections.find((s) => s.kind === 'casting')! as CastingSection,
-    ),
+    query: serializeQueryAnsi({ kind: 'query', media: ['ansi'], query }),
+    casting: serializeCastingAnsi({ kind: 'casting', media: ['ansi'], rows }),
   }
 }
