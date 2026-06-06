@@ -1,14 +1,13 @@
 import { visualWidth } from '@hexagram/text-layout'
+import { stripAnsi } from '@hexagram/viewer-core'
 
 // CJK-aware width measurement now lives in @hexagram/text-layout. Re-exported
 // here so this module keeps its existing public surface; the ANSI-stripping
 // and padding siblings below build on the shared `visualWidth`.
 export { visualWidth }
 
-const ANSI_PATTERN = /\[[0-9;]*m/g
-
 export function plainVisualWidth(text: string): number {
-  return visualWidth(text.replace(ANSI_PATTERN, ''))
+  return visualWidth(stripAnsi(text))
 }
 
 export function padRightToWidth(row: string, target: number): string {
