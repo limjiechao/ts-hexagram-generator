@@ -8,7 +8,10 @@ import {
   type LineCasting,
 } from '@hexagram/core/types'
 
-import type { ConsultationEnvelope } from './frontmatter.js'
+import {
+  CURRENT_SCHEMA_VERSION,
+  type ConsultationEnvelope,
+} from './frontmatter.js'
 
 // Strip ANSI SGR sequences. The new-format fixtures contain them; older
 // real-world files don't.
@@ -41,7 +44,7 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
   return {
     ok: true,
     envelope: {
-      schemaVersion: 1,
+      schemaVersion: CURRENT_SCHEMA_VERSION,
       timestamp: filenameTimestampToIso(input.filenameTimestamp),
       query,
       hexagram,
@@ -186,8 +189,10 @@ function replayLine(lineCasting: LineCasting): Line {
   // Each recorded pick is validated by `performCast` inside `makeLineGenerator`
   // (the single runtime enforcer): a degenerate pick that empties the right heap
   // after suspension throws `RangeError`, which `castingReplaysTo` catches as a
-  // mismatch → `castingRecovered: false`. So a legacy file that recorded an
-  // empty right heap is not recovered, by design (see ADR-0006).
+  // mismatch, so `extractCasting` returns `null`: the converted file carries
+  // `casting: null` (no casting record retained — there is no `castingRecovered`
+  // field; provenance is intentionally not kept). A legacy file that recorded an
+  // empty right heap is therefore not recovered, by design (see ADR-0006).
   const generator = makeLineGenerator({
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],

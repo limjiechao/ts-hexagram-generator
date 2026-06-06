@@ -74,7 +74,7 @@ conservation, and the saved file are untouched.
 - The injected-RNG test override contract is preserved across the rename.
 - Because `performCast` is also the replay engine, a legacy `.txt` that recorded
   a degenerate `pick === max` (an empty right heap) no longer replay-validates:
-  its casting converts to `null` (`castingRecovered: false`) rather than being
+  its casting converts to `null` rather than being
   resurrected. We drop that recovery deliberately — `deriveSplit` still renders
   such a record for display, but the algorithm of record won't reproduce it.
 

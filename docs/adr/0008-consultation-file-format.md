@@ -13,8 +13,8 @@ The envelope has five fields and nothing derived:
   the row surfaces as `[unreadable]` in the history browser.
 - `timestamp` — ISO 8601 with offset.
 - `query` — the divination question (YAML block scalar for multi-line).
-- `hexagram` — a flat 6-element array, **bottom-first**, matching the in-memory
-  `Hexagram` tuple.
+- `hexagram` — a mapping keyed **`L6..L1` (visual top-first)**; a converter inverts
+  to/from the bottom-first `Hexagram` tuple at the package boundary.
 - `casting` — a mapping keyed **`L6..L1` (visual top-first)**; a converter inverts
   to/from the bottom-first `CastingRecord` at the package boundary.
 
@@ -22,8 +22,9 @@ Two deliberate asymmetries:
 
 1. **Bottom-first in memory, top-first on disk.** The algorithm builds a hexagram
    from the bottom up, so the tuple is bottom-first; a human reads a hexagram top
-   down, so the file is `L6..L1`. `castingToYaml`/`castingFromYaml` (and the
-   hexagram equivalents) make the inversion explicit and testable at the boundary.
+   down, so the file is `L6..L1`. This inversion applies uniformly to **both**
+   `hexagram` and `casting`: `hexagramToYaml`/`hexagramFromYaml` and
+   `castingToYaml`/`castingFromYaml` make it explicit and testable at the boundary.
 2. **Derived data is never persisted.** Hex names, emerging hexagram, scripture,
    exegesis, and translations are recomputed via `@hexagram/core/getters`
    ([ADR-0007](0007-hexagram-and-trigram-data.md)) on every render. On open, the freshly
@@ -34,8 +35,8 @@ Legacy pre-Markdown `.txt` files are migrated by `convertLegacyTxt` (run via
 `hexagram-history --convert-legacy`). It handles **Shape A** (has a CASTING table —
 full casting recovered, validated by replaying the splits through
 `makeLineGenerator` and confirming the same hexagram) and **Shape B** (no table —
-synthesises sentinel casting, marks `castingRecovered: false`). The replay-validate
-step means recovered casting is proven, not trusted.
+sets `casting: null`; no sentinel, no `castingRecovered` field). The replay-validate
+step means Shape A's recovered casting is proven, not trusted.
 
 ## Considered options
 
@@ -62,7 +63,7 @@ step means recovered casting is proven, not trusted.
 
 ## Where it's enforced
 
-- `packages/consultation-file/src/frontmatter.ts` — envelope, `CURRENT_SCHEMA_VERSION`,
+- `domain/consultation-file/src/frontmatter.ts` — envelope, `CURRENT_SCHEMA_VERSION`,
   the `L6..L1` converters, strict-equal load.
-- `packages/consultation-file/src/file.ts` — save/load, body re-render + self-heal.
-- `packages/consultation-file/src/legacy-converter.ts` — Shape A/B migration.
+- `domain/consultation-file/src/file.ts` — save/load, body re-render + self-heal.
+- `domain/consultation-file/src/legacy-converter.ts` — Shape A/B migration.
