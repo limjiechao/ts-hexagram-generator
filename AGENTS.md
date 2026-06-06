@@ -99,7 +99,7 @@ ts-hexagram-generator/             # workspace root (private)
 │   ├── text-layout/               # @hexagram/text-layout — CJK-aware column width + padding/centring helpers (no divination meaning)
 │   └── consultation-view/         # @hexagram/consultation-view — medium-neutral Consultation-view IR (presentation vocabulary, section order, ledger geometry) + buildConsultationView
 ├── cli/                           # medium-bound terminal-layer libraries — thin serializers of the domain
-│   ├── viewer-core/               # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout, line glyphs)
+│   ├── viewer-core/               # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout)
 │   ├── readout/                   # @hexagram/readout — ANSI serializer of the Consultation-view IR (ConsultationReadout + IR→ANSI serializers)
 │   ├── casting-ui/                # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
 │   ├── history-ui/                # @hexagram/history-ui — Ink history browser

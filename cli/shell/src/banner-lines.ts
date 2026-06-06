@@ -1,21 +1,21 @@
-// Pure render derivation for an animated hexagram line. Given a single line's
+// The home banner's pure line-render derivation: given a single line's
 // polarity (yang/yin), whether it is currently a moving line, and the current
-// pulse beat, derive the three things an Ink renderer needs to draw the line:
+// pulse beat, derive the three things an Ink renderer needs to draw the line —
 // a fixed-width bar glyph string, the numeric casting value, and a colour
 // role. No React, no I/O — every output is a pure function of the inputs, so
-// the derivation is unit-testable without rendering Ink.
+// the derivation is unit-testable in isolation without rendering Ink.
 //
-// Originally introduced for the home banner; lifted here so the casting
-// readout, the home banner, and the playground can all share one
-// glyph + role vocabulary without `playground-ui` depending on `shell`.
+// Lives in cli/shell beside its only consumer, the home banner.
 
 import { LINE_GLYPH } from '@hexagram/consultation-view/vocabulary'
 import type { LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
-
-import { BOLD_GREY, BOLD_RED, DIM_RED, NORMAL_GREY } from './output-palette.js'
-
-export type { LinePolarity }
+import {
+  BOLD_GREY,
+  BOLD_RED,
+  DIM_RED,
+  NORMAL_GREY,
+} from '@hexagram/viewer-core'
 
 /**
  * The colour role of an animated hexagram line — the shell maps this to
@@ -70,9 +70,8 @@ export function deriveBannerLine(
 
 /**
  * The two SGR runs for a line, by colour role: `[value colour, bar colour]`.
- * Shared by every line renderer (`<AnimatedBanner>` for the home banner;
- * `<LineCard>` for the playground) so the same `LineRole` always maps to the
- * same on-screen colour.
+ * Used by the home banner's `<AnimatedBanner>` so each `LineRole` maps to a
+ * stable on-screen colour.
  */
 export function lineColors(role: LineRole): readonly [string, string] {
   switch (role) {

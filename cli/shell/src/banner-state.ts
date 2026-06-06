@@ -11,7 +11,8 @@
 
 import { polarityOf } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import { deriveBannerLine, type LineCells } from '@hexagram/viewer-core'
+
+import { deriveBannerLine, type LineCells } from './banner-lines.js'
 
 /** An injected random source — returns a float in `[0, 1)`, like Math.random. */
 export type Rng = () => number

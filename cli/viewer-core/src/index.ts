@@ -1,20 +1,9 @@
 // @hexagram/viewer-core — generic terminal-UI building blocks shared by the
 // consultation viewer flows. Chrome (TabBar / FooterBar / QueryBox /
 // scrolling), layout maths, the data-driven keymap, the ANSI palette, and the
-// shared line-glyph / validator primitives. The Consultation Readout itself —
+// shared validator primitives. The Consultation Readout itself —
 // the tabbed readout component and the per-section string builders — lives in
 // @hexagram/readout, which depends on this package for its chrome.
-
-// Pure render derivation for an animated hexagram line — the glyph + role
-// vocabulary shared by the home banner, the casting readout, and the hexagram
-// playground.
-export {
-  deriveBannerLine,
-  lineColors,
-  type LineCells,
-  type LinePolarity,
-  type LineRole,
-} from './banner-lines.js'
 
 // Generic confirmation modal — title + context + Y/N keypress affordances,
 // framed in the viewer-core chrome. Owns its own input handling.
