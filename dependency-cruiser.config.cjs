@@ -15,6 +15,16 @@
 // text-layout}). So this rule passes green on introduction. It is a DRIFT
 // GUARD that fails the build the moment a future change inverts the arrow —
 // not a detector of a current leak.
+//
+// A SECOND forbidden rule, `no-raw-string-width`, gives rendered-width
+// measurement one home: every cli/* package must import width through
+// @hexagram/viewer-core's ANSI-aware `terminalWidth` (and the truncate/pad
+// chrome helpers), never the `string-width` package directly. cli/viewer-core
+// itself IS that wrapper, so it is the sole exemption. This is distinct BY
+// DESIGN from domain/text-layout's `visualWidth`, which measures raw
+// (un-ANSI'd) diagram text: the two width homes serve different layers —
+// ANSI-aware chrome width vs. medium-neutral diagram geometry — and must not
+// be conflated.
 /** @type {import('dependency-cruiser').IConfiguration} */
 module.exports = {
   forbidden: [
