@@ -6,7 +6,10 @@ import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { serializeFrontmatter } from '../src/frontmatter'
+import {
+  CURRENT_SCHEMA_VERSION,
+  serializeFrontmatter,
+} from '../src/frontmatter'
 import { convertLegacyTxt } from '../src/legacy-converter'
 import { markdownConsultationBody } from '../src/markdown'
 
@@ -43,6 +46,18 @@ describe('convertLegacyTxt — HEAP casting table', () => {
     expect(replayHexagram(result.envelope.casting!)).toEqual(
       result.envelope.hexagram,
     )
+  })
+})
+
+describe('convertLegacyTxt — schemaVersion', () => {
+  it('converted legacy files carry CURRENT_SCHEMA_VERSION, not a frozen literal', () => {
+    const result = convertLegacyTxt({
+      text: read('legacy-real-heap-casting.txt'),
+      filenameTimestamp: '2026-05-19T11-08-42+0800',
+    })
+    expect(result.ok).toBe(true)
+    if (result.ok)
+      expect(result.envelope.schemaVersion).toBe(CURRENT_SCHEMA_VERSION)
   })
 })
 

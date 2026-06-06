@@ -260,14 +260,14 @@ Every saved consultation is a Markdown file with a YAML frontmatter envelope. Th
 - `schemaVersion: 1` (strict-equal on load; mismatch surfaces row as `[unreadable]` in `hexagram-history`)
 - `timestamp` (ISO 8601 with offset, e.g. `2026-05-19T14:23:11+0800`)
 - `query` (YAML `|` block scalar for multi-line)
-- `hexagram` (flat 6-element array, bottom-first — matches the in-memory `Hexagram` tuple)
+- `hexagram` (mapping keyed `L6..L1` — visual top-first, like `casting`; a converter inverts to/from the bottom-first `Hexagram` tuple at the package boundary)
 - `casting` (mapping keyed `L6..L1` — visual top-first; a converter inverts to/from the bottom-first `CastingRecord` tuple at the package boundary)
 
 The Markdown body below the frontmatter is **decorative**: re-rendered from the envelope by `markdownConsultationBody` on every load. On open, the history flow byte-compares the freshly-rendered body against disk and rewrites if they differ (so renderer upgrades self-heal old files). Derived data — hex name, emerging hex, scripture/exegesis text, translations — is never persisted; it's recomputed via `@hexagram/core/getters` every render.
 
 Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation-file/file`.
 
-Legacy `.txt` files (pre-Markdown era) are migrated by `pnpm hexagram-history --convert-legacy`, which parses each `.txt` via `convertLegacyTxt`, writes the corresponding `.md`, and moves the original into `consultations/legacy/`. The migration handles both **Shape A** (recent format with CASTING table — full casting recovered) and **Shape B** (older format without CASTING — synthesizes sentinel casting, marks `castingRecovered: false`). `consultations/legacy/` is never scanned by `hexagram-history`.
+Legacy `.txt` files (pre-Markdown era) are migrated by `pnpm hexagram-history --convert-legacy`, which parses each `.txt` via `convertLegacyTxt`, writes the corresponding `.md`, and moves the original into `consultations/legacy/`. The migration handles both **Shape A** (recent format with CASTING table — full casting recovered) and **Shape B** (older format without CASTING — sets `casting: null`; no sentinel, no `castingRecovered` field). `consultations/legacy/` is never scanned by `hexagram-history`. A `casting: null` envelope arises from THREE intentionally-indistinguishable origins — a legacy Shape-B conversion, a Shape-A table that fails replay-validation, and a Playground save (the playground writes a hexagram with `casting: null`) — so all three are history-browsable rows that render a "Casting not recorded" notice.
 
 ### History browser — `@hexagram/history-ui`
 
