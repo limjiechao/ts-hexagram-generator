@@ -9,8 +9,6 @@
 // `process.exit()` is left to the caller so the entry stays focused and
 // testable.
 
-import process from 'node:process'
-
 import {
   resolveCastBounceMs,
   resolveCastRevealMs,
@@ -18,7 +16,7 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
 } from '@hexagram/casting-ui'
-import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
+import { liveSnapshot, warnIfNonInteractive, type EnvSnapshot } from '@hexagram/viewer-core'
 import { render } from 'ink'
 
 import { resolveBannerIntervalMs } from './banner-flag.js'
@@ -28,8 +26,6 @@ import {
 } from './banner-state.js'
 import { HexagramApp, type CastingFlags } from './hexagram-app.js'
 
-/** The stderr message written when the environment is non-interactive. */
-const NON_INTERACTIVE_MESSAGE = 'hexagram requires an interactive terminal\n'
 
 /**
  * Run the composed `hexagram` CLI. Resolves to `true` on a clean quit and
@@ -50,18 +46,8 @@ const NON_INTERACTIVE_MESSAGE = 'hexagram requires an interactive terminal\n'
  *   - awaits `waitUntilExit()` so it resolves only when the user quits.
  */
 export async function runHexagram(env?: EnvSnapshot): Promise<boolean> {
-  // The interactivity gate is the single env policy (`classifyEnv`), not a
-  // local re-read. `env` defaults to the live `process` snapshot in
-  // production; tests inject a snapshot to exercise the refusal branch.
-  const snapshot: EnvSnapshot = env ?? {
-    isTTY: Boolean(process.stdout.isTTY),
-    NO_COLOR: process.env.NO_COLOR,
-    CI: process.env.CI,
-  }
-  if (!classifyEnv(snapshot).interactive) {
-    process.stderr.write(NON_INTERACTIVE_MESSAGE)
-    return false
-  }
+  const snapshot: EnvSnapshot = env ?? liveSnapshot()
+  if (!warnIfNonInteractive('hexagram', snapshot)) return false
 
   // Snapshot the casting flags once, before render. `hexagram` accepts ONLY
   // the casting flags — not `--plain`/`--no-ui` (it is TTY-only) and not

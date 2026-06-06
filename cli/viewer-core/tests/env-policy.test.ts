@@ -2,7 +2,7 @@ import process from 'node:process'
 
 import { describe, expect, test, vi } from 'vitest'
 
-import { classifyEnv, refuseIfNonInteractive } from '../src/env-policy.js'
+import { classifyEnv, refuseIfNonInteractive, warnIfNonInteractive } from '../src/env-policy.js'
 
 describe('classifyEnv', () => {
   // interactive = isTTY && !noColor && !ci
@@ -89,5 +89,33 @@ describe('refuseIfNonInteractive', () => {
     expect(exit).toHaveBeenCalledWith(1)
     stderr.mockRestore()
     exit.mockRestore()
+  })
+})
+
+describe('warnIfNonInteractive', () => {
+  test('interactive env -> returns true, writes nothing', () => {
+    const spy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
+    const result = warnIfNonInteractive('hexagram', {
+      isTTY: true,
+      NO_COLOR: undefined,
+      CI: undefined,
+    })
+    expect(result).toBe(true)
+    expect(spy).not.toHaveBeenCalled()
+    spy.mockRestore()
+  })
+
+  test('non-interactive env -> returns false, writes the bin-named message', () => {
+    const spy = vi.spyOn(process.stderr, 'write').mockReturnValue(true)
+    const result = warnIfNonInteractive('hexagram-playground', {
+      isTTY: false,
+      NO_COLOR: undefined,
+      CI: undefined,
+    })
+    expect(result).toBe(false)
+    expect(spy).toHaveBeenCalledWith(
+      'hexagram-playground requires an interactive terminal\n',
+    )
+    spy.mockRestore()
   })
 })

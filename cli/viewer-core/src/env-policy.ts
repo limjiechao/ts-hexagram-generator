@@ -46,23 +46,40 @@ export function classifyEnv(env: EnvSnapshot): EnvPolicy {
   }
 }
 
-/**
- * Refuse a non-interactive environment with the exact, long-standing stderr
- * message and exit code 1. `binName` is the FULL bin name (e.g. `hexagram`,
- * `hexagram-history`) so the composed shell bin's prefix-less message is
- * expressible. Reads the live `process` state via `classifyEnv`.
- *
- * Returns when the environment IS interactive, so callers that previously
- * branched on a boolean can call this unconditionally and continue.
- */
-export function refuseIfNonInteractive(binName: string): void {
-  const policy = classifyEnv({
+/** The live environment snapshot from `process` — the single reading both the
+ *  boolean guard and the run-entries use, so the snapshot shape lives once. */
+export function liveSnapshot(): EnvSnapshot {
+  return {
     isTTY: Boolean(process.stdout.isTTY),
     NO_COLOR: process.env.NO_COLOR,
     CI: process.env.CI,
-  })
-  if (!policy.interactive) {
-    process.stderr.write(`${binName} requires an interactive terminal\n`)
-    process.exit(1)
   }
+}
+
+/**
+ * Warn (to stderr) and report whether the environment is interactive enough to
+ * mount an Ink UI. The SINGLE home for the refusal message. It never exits —
+ * callers decide. `env` defaults to the live snapshot; tests inject one to
+ * reach the refusal branch.
+ *
+ * Returns true when interactive (caller proceeds); false after writing
+ * `<binName> requires an interactive terminal` (caller refuses).
+ */
+export function warnIfNonInteractive(
+  binName: string,
+  env: EnvSnapshot = liveSnapshot(),
+): boolean {
+  if (classifyEnv(env).interactive) return true
+  process.stderr.write(`${binName} requires an interactive terminal\n`)
+  return false
+}
+
+/**
+ * Refuse a non-interactive environment by warning and exiting 1. Thin wrapper
+ * over `warnIfNonInteractive`; the `process.exit` lives at this app-boundary
+ * helper so the app bins stay one-liners while the library run-entries use the
+ * boolean form. `binName` is the FULL bin name (e.g. `hexagram-history`).
+ */
+export function refuseIfNonInteractive(binName: string): void {
+  if (!warnIfNonInteractive(binName)) process.exit(1)
 }
