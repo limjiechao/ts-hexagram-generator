@@ -12,114 +12,39 @@
 
 import {
   hexagramDiagramRowStrings,
-  LEDGER_COLUMNS,
-  LINE_LABELS,
+  ledgerBlock,
   RIGHT_COLUMN,
   transformationRow,
   type CastingSection,
   type ConsultationView,
   type HexagramSection,
-  type LedgerRow,
+  type LedgerStyle,
   type QuerySection,
   type TextSection,
   type TextVariant,
   type TransformationSection,
 } from '@hexagram/consultation-view'
-import {
-  centerVisual,
-  padStartVisual,
-  padToColumn,
-} from '@hexagram/text-layout'
-
-const LEDGER_INDENT = '   '
-const LEDGER_GUTTER = ' │ '
-
-const colWidth = (key: string): number =>
-  LEDGER_COLUMNS.find((c) => c.key === key)!.width
+import { padToColumn } from '@hexagram/text-layout'
 
 export function serializeCastingMarkdown(section: CastingSection): string {
   if (section.rows === null) return `## CASTING\n\n_Casting not recorded._\n`
 
-  const blank = (key: string): string => ' '.repeat(colWidth(key))
-
-  const leftSpan =
-    colWidth('leftHeap') +
-    3 +
-    colWidth('leftPiles') +
-    3 +
-    colWidth('leftRemainder')
-  const rightSpan =
-    colWidth('rightHeap') +
-    3 +
-    colWidth('rightPiles') +
-    3 +
-    colWidth('held') +
-    3 +
-    colWidth('rightRemainder')
-  const bannerRow =
-    LEDGER_INDENT +
-    [blank('line'), blank('cast'), blank('stalks')].join(LEDGER_GUTTER) +
-    LEDGER_GUTTER +
-    centerVisual('左Left', leftSpan) +
-    LEDGER_GUTTER +
-    centerVisual('右Right', rightSpan) +
-    LEDGER_GUTTER +
-    [blank('setAside'), blank('sigma')].join(LEDGER_GUTTER)
-
-  const headerRow =
-    LEDGER_INDENT +
-    LEDGER_COLUMNS.map((c) => padStartVisual(c.header, c.width)).join(
-      LEDGER_GUTTER,
-    )
-  const headerRule =
-    LEDGER_INDENT + LEDGER_COLUMNS.map((c) => '═'.repeat(c.width)).join('═╪═')
-  const blockRule =
-    LEDGER_INDENT + LEDGER_COLUMNS.map((c) => '─'.repeat(c.width)).join('─┼─')
-
-  const dataRow = (row: LedgerRow): string => {
-    const d = row.cell
-    // Markdown is only ever rendered from a full CastingRecord (or null above),
-    // so every cell is a DerivedSplit; the guard documents that invariant.
-    if (d === null) throw new Error('markdown casting expects a full record')
-    const plain = (value: number, key: string): string =>
-      padStartVisual(String(value), colWidth(key))
-    return (
-      LEDGER_INDENT +
-      [
-        padStartVisual(
-          row.showLine ? LINE_LABELS[row.lineNumber] : '',
-          colWidth('line'),
-        ),
-        plain(row.castNumber, 'cast'),
-        plain(d.stalks, 'stalks'),
-        plain(d.leftHeap, 'leftHeap'),
-        plain(d.leftPiles, 'leftPiles'),
-        plain(d.leftRemainder, 'leftRemainder'),
-        plain(d.rightHeap, 'rightHeap'),
-        plain(d.rightPiles, 'rightPiles'),
-        plain(d.held, 'held'),
-        plain(d.rightRemainder, 'rightRemainder'),
-        plain(d.setAside, 'setAside'),
-        row.castNumber === 3
-          ? padStartVisual(`⇒ ${d.combinedPiles}`, colWidth('sigma'))
-          : padStartVisual(String(d.combinedPiles), colWidth('sigma')),
-      ].join(LEDGER_GUTTER)
-    )
+  const markdownStyle: LedgerStyle = {
+    gutter: ' │ ',
+    heading: (t) => t,
+    rule: (t) => t,
+    dataCell: (_key, text) => text,
+    placeholder: () => {
+      // Markdown is only ever rendered from a full CastingRecord, so a null
+      // cell is a programmer error — the same invariant the old guard asserted.
+      throw new Error('markdown casting expects a full record')
+    },
   }
-
-  const body = section.rows
-    .map((row) =>
-      row.trailingRule ? `${dataRow(row)}\n${blockRule}` : dataRow(row),
-    )
-    .join('\n')
 
   return `## CASTING
 
 \`\`\`text
-${bannerRow}
-${headerRow}
-${headerRule}
-${body}
+${ledgerBlock(section.rows, markdownStyle)}
 \`\`\`
 `
 }
