@@ -31,7 +31,9 @@ export { Cursor, isGlobalExitKey } from './editor-primitives.js'
 // interactive gate and the force-numeric heuristic derive from.
 export {
   classifyEnv,
+  liveSnapshot,
   refuseIfNonInteractive,
+  warnIfNonInteractive,
   type EnvPolicy,
   type EnvSnapshot,
 } from './env-policy.js'

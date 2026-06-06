@@ -4,17 +4,12 @@
 // the app's exit. Mirrors `runHistoryViewer` and `runHexagram` exactly so
 // every Ink-only run-entry behaves consistently.
 
-import process from 'node:process'
-
-import { classifyEnv, type EnvSnapshot } from '@hexagram/viewer-core'
+import { liveSnapshot, warnIfNonInteractive, type EnvSnapshot } from '@hexagram/viewer-core'
 import { render } from 'ink'
 import { createElement } from 'react'
 
 import { PlaygroundApp } from './playground-app.js'
 
-/** The stderr message written when the environment is non-interactive. */
-const NON_INTERACTIVE_MESSAGE =
-  'hexagram-playground requires an interactive terminal\n'
 
 /**
  * Run the standalone `hexagram-playground` CLI. Resolves to `true` on a
@@ -29,17 +24,9 @@ const NON_INTERACTIVE_MESSAGE =
  * compose-friendly wiring leaves room for a future discard-confirm).
  */
 export async function runPlaygroundApp(env?: EnvSnapshot): Promise<boolean> {
-  // Gate from the single env policy; `env` defaults to the live `process`
-  // snapshot and is injected by tests to reach the refusal branch.
-  const snapshot: EnvSnapshot = env ?? {
-    isTTY: Boolean(process.stdout.isTTY),
-    NO_COLOR: process.env.NO_COLOR,
-    CI: process.env.CI,
-  }
-  if (!classifyEnv(snapshot).interactive) {
-    process.stderr.write(NON_INTERACTIVE_MESSAGE)
-    return false
-  }
+  // `env` defaults to the live snapshot; tests inject one to reach refusal.
+  const snapshot: EnvSnapshot = env ?? liveSnapshot()
+  if (!warnIfNonInteractive('hexagram-playground', snapshot)) return false
   const instance = render(createElement(PlaygroundApp), {
     exitOnCtrlC: false,
     alternateScreen: true,
