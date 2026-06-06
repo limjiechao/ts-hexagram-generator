@@ -56,6 +56,9 @@ describe('ledgerBlock', () => {
       ...plainStyle,
       placeholder: (dot) => `[${dot}]`,
     })
-    expect(dots).toContain('[·]')
+    // The placeholder callback wraps the already-padded `·` (pad inside, wrap
+    // outside) — the same layout the ANSI serializer uses for its colour run, so
+    // the dot arrives right-aligned within its column, never bare.
+    expect(dots).toMatch(/\[ +·\]/)
   })
 })
