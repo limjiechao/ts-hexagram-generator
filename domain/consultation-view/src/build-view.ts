@@ -3,7 +3,7 @@ import {
   getHexagramRecord,
   getTrigramRecord,
 } from '@hexagram/core/getters'
-import { isMovingLine } from '@hexagram/core/line-semantics'
+import { hasMovingLines, isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, PartialCastingRecord } from '@hexagram/core/types'
 
 import type {
@@ -178,7 +178,7 @@ export function buildConsultationView(
   hexagram: Hexagram,
   casting: PartialCastingRecord | null,
 ): ConsultationView {
-  const hasMovingLines = hexagram.some(isMovingLine)
+  const moving = hasMovingLines(hexagram)
   const emerging = getEmergingHexagram(hexagram)
   const sections: ConsultationSection[] = [
     { kind: 'query', query },
@@ -188,7 +188,7 @@ export function buildConsultationView(
     },
     {
       kind: 'transformation',
-      body: hasMovingLines
+      body: moving
         ? {
             rows: diagramRows(hexagram).map((standing, i) => ({
               standing,
@@ -217,7 +217,7 @@ export function buildConsultationView(
       variants: hexagramTextVariants(hexagram),
     },
   ]
-  if (hasMovingLines) {
+  if (moving) {
     sections.push(
       {
         kind: 'hexagram',
@@ -235,5 +235,5 @@ export function buildConsultationView(
     )
   }
   sections.push(linesSection(hexagram))
-  return { sections, hasMovingLines }
+  return { sections, hasMovingLines: moving }
 }
