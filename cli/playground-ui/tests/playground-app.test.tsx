@@ -11,7 +11,7 @@ import { waitFor, waitForReady } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { PlaygroundApp } from '../src/playground-app'
+import { PlaygroundApp } from '../src/playground-app.js'
 
 // `useWindowSize` reads stdout dimensions; ink-testing-library's fake stdout
 // reports zero rows. Mock the hook so `<PlaygroundApp>` sizes to a usable

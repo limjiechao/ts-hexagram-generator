@@ -4,9 +4,9 @@ import { fileURLToPath } from 'node:url'
 
 import { describe, expect, it } from 'vitest'
 
-import { serializeFrontmatter } from '../src/frontmatter'
-import { markdownConsultationBody } from '../src/markdown'
-import { cases, FIXTURE_TIMESTAMP } from './fixtures/cases'
+import { serializeFrontmatter } from '../src/frontmatter.js'
+import { markdownConsultationBody } from '../src/markdown.js'
+import { cases, FIXTURE_TIMESTAMP } from './fixtures/cases.js'
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 

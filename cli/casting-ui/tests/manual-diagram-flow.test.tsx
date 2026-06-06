@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { flowFooterRows, flowHeaderRows } from '../src/manual-diagram-flow'
+import { flowFooterRows, flowHeaderRows } from '../src/manual-diagram-flow.js'
 
 describe('flowHeaderRows', () => {
   it('renders the UNPARTED readout directly above the branch (no drop row)', () => {

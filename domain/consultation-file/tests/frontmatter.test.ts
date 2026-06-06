@@ -11,7 +11,7 @@ import {
   type ConsultationEnvelope,
   type YamlCasting,
   type YamlHexagram,
-} from '../src/frontmatter'
+} from '../src/frontmatter.js'
 
 const sampleLine = (a: number, b: number, c: number): LineCasting => [
   { pick: a, max: 48 },

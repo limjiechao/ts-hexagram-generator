@@ -5,7 +5,7 @@ import {
   maxPickFor,
   performCast,
   stalksBeforeParting,
-} from '../src/index'
+} from '../src/index.js'
 import type { AdvanceableLineState, LineState } from '../src/types.js'
 
 describe('initialLineState', () => {

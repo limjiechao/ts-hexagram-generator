@@ -5,7 +5,7 @@ import {
   padRightToWidth,
   plainVisualWidth,
   visualWidth,
-} from '../src/playground-display-text'
+} from '../src/playground-display-text.js'
 
 describe('playground-display-text', () => {
   it('visualWidth counts CJK as two', () => {

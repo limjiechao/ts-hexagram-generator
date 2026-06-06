@@ -9,8 +9,8 @@ import {
   dispatchPlaygroundKey,
   type PlaygroundKeyContext,
   type PlaygroundStateSlice,
-} from '../src/playground-keymap'
-import type { PlaygroundAction } from '../src/playground-state'
+} from '../src/playground-keymap.js'
+import type { PlaygroundAction } from '../src/playground-state.js'
 
 function emptyKey(): Key {
   return {

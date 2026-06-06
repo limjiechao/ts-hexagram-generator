@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 
-import { extendVitestBaseConfig } from '../../vitest.config.base'
+import { extendVitestBaseConfig } from '../../vitest.config.base.js'
 
 // Shell hosts integration tests that drive Home → casting → done end-to-end
 // through 18 cast iterations + a real file write, plus a 64-iteration

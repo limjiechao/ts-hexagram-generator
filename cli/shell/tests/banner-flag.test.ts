@@ -8,7 +8,7 @@ import { expect, test } from 'vitest'
 import {
   DEFAULT_BANNER_INTERVAL_MS,
   parseBannerIntervalMs,
-} from '../src/banner-flag'
+} from '../src/banner-flag.js'
 
 test('parseBannerIntervalMs() reads --banner-interval-ms <n>', () => {
   expect(parseBannerIntervalMs(['--banner-interval-ms', '500'])).toBe(500)

@@ -5,7 +5,7 @@ import {
   focusedInputBoxRows,
   questionPanelRows,
   stepDotsRow,
-} from '../src/manual-diagram-right-pane'
+} from '../src/manual-diagram-right-pane.js'
 
 describe('stepDotsRow', () => {
   it('renders cumulative fill dots up to the focused field', () => {

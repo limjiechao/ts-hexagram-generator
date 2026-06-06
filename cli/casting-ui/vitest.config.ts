@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 
-import { extendVitestBaseConfig } from '../../vitest.config.base'
+import { extendVitestBaseConfig } from '../../vitest.config.base.js'
 
 // Casting-ui hosts the heaviest Ink-render tests in the workspace:
 // `viewer.test.tsx`'s random-flow playback drives 18 casts through Ink's

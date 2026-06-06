@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
-import { twoHeapDiagramRows } from '../src/manual-diagram-heap-cards'
-import { stripAnsi } from './helpers/ansi'
+import { twoHeapDiagramRows } from '../src/manual-diagram-heap-cards.js'
+import { stripAnsi } from './helpers/ansi.js'
 
 describe('twoHeapDiagramRows', () => {
   // Row layout (10 rows): 0 header / 1 Piles / 2 Fours ×4 / 3 separator /

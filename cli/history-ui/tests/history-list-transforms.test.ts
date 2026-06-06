@@ -1,14 +1,14 @@
 import type { Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import type { ListRow } from '../src/history-list-state'
+import type { ListRow } from '../src/history-list-state.js'
 import {
   buildTitle,
   deleteIdentity,
   entryHeadLineParts,
   summarizeHexParts,
-} from '../src/history-list-transforms'
-import type { HistoryEntry } from '../src/history-scan'
+} from '../src/history-list-transforms.js'
+import type { HistoryEntry } from '../src/history-scan.js'
 
 function entry(p: string, query: string): HistoryEntry {
   return {

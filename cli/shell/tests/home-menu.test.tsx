@@ -17,7 +17,7 @@ import { waitFor, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
-import { HomeMenu } from '../src/home-menu'
+import { HomeMenu } from '../src/home-menu.js'
 
 // `useWindowSize` reads stdout dimensions; ink-testing-library's fake stdout
 // reports zero rows. Mock the hook so `<HomeMenu>` sizes to a usable terminal.

@@ -6,8 +6,8 @@ import { describe, expect, it, vi } from 'vitest'
 import {
   CastingPromptBox,
   getCastingPromptHeight,
-} from '../src/casting-prompt-box'
-import { BACKSPACE, CTRL_R, ENTER, TAB } from './helpers/keystrokes'
+} from '../src/casting-prompt-box.js'
+import { BACKSPACE, CTRL_R, ENTER, TAB } from './helpers/keystrokes.js'
 
 // ── getCastingPromptHeight (manual arm) ─────────────────────────────────────
 

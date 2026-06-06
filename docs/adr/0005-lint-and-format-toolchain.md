@@ -30,6 +30,14 @@ Notable rule choices:
 - A project rule **bans `await tick(...)` in test files**; its rationale lives in
   [ADR-0012](0012-terminal-test-reliability.md) (the comment in `eslint.config.js` is the
   long-form version).
+- The explicit-`.js` relative-import convention ([ADR-0004](0004-typescript-compiler-posture.md))
+  is pinned by a core ESLint `no-restricted-imports` rule (a `patterns.regex` that
+  flags any `./`/`../` specifier lacking a real extension), NOT by `import/extensions`:
+  oxlint's `import/extensions` resolves specifiers against disk and rejects
+  `.js`-for-`.ts` (it demands the on-disk `.ts`), and the eslint layer's
+  `eslint-plugin-importer` ships no `extensions` rule. The `no-restricted-imports`
+  regex matches the literal specifier string instead, so it accepts the
+  `.js`-written-`.ts` convention while still failing the build on a missing extension.
 
 ## Considered options
 

@@ -2,8 +2,8 @@ import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CastingStatus, getCastingStatusHeight } from '../src/casting-status'
-import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes'
+import { CastingStatus, getCastingStatusHeight } from '../src/casting-status.js'
+import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes.js'
 
 describe('CastingStatus', () => {
   it('renders the line/cast progress', () => {

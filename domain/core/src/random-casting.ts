@@ -1,7 +1,7 @@
 import { randomInt } from 'node:crypto'
 
 import { selectablePickMax } from './casting-derivation.js'
-import { makeLineGenerator, stalksBeforeParting } from './index'
+import { makeLineGenerator, stalksBeforeParting } from './index.js'
 import {
   assertIsCastingRecord,
   assertIsFourOperationsResult,

@@ -1,11 +1,11 @@
-import type { HexagramKey } from './foundation'
-import type { GenericHexagramRecord } from './hexagram'
-import { HEXAGRAM_METADATA } from './hexagram-metadata'
-import { HEXAGRAM_NAME } from './hexagram-name'
-import { HEXAGRAM_TEXT_CHINESE_SIMPLIFIED } from './hexagram-text-chinese-simplified'
-import { HEXAGRAM_TEXT_CHINESE_TRADITIONAL } from './hexagram-text-chinese-traditional'
-import { HEXAGRAM_TEXT_ENGLISH_LEGGE } from './hexagram-text-english-legge'
-import { HEXAGRAM_TEXT_ENGLISH_WILHELM_BAYNES } from './hexagram-text-english-wilhelm-baynes'
+import type { HexagramKey } from './foundation.js'
+import { HEXAGRAM_METADATA } from './hexagram-metadata.js'
+import { HEXAGRAM_NAME } from './hexagram-name.js'
+import { HEXAGRAM_TEXT_CHINESE_SIMPLIFIED } from './hexagram-text-chinese-simplified.js'
+import { HEXAGRAM_TEXT_CHINESE_TRADITIONAL } from './hexagram-text-chinese-traditional.js'
+import { HEXAGRAM_TEXT_ENGLISH_LEGGE } from './hexagram-text-english-legge.js'
+import { HEXAGRAM_TEXT_ENGLISH_WILHELM_BAYNES } from './hexagram-text-english-wilhelm-baynes.js'
+import type { GenericHexagramRecord } from './hexagram.js'
 
 // A lookup of all 64 hexagrams
 export type HexagramRecords = Record<HexagramKey, GenericHexagramRecord>

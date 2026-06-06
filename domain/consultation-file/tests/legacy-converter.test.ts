@@ -9,9 +9,9 @@ import { describe, expect, it } from 'vitest'
 import {
   CURRENT_SCHEMA_VERSION,
   serializeFrontmatter,
-} from '../src/frontmatter'
-import { convertLegacyTxt } from '../src/legacy-converter'
-import { markdownConsultationBody } from '../src/markdown'
+} from '../src/frontmatter.js'
+import { convertLegacyTxt } from '../src/legacy-converter.js'
+import { markdownConsultationBody } from '../src/markdown.js'
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const read = (name: string): string =>

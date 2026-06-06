@@ -5,8 +5,8 @@ import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { MANUAL_GUIDE_TITLE } from '../src/manual-guide'
-import { ConsultationViewer } from '../src/viewer'
+import { MANUAL_GUIDE_TITLE } from '../src/manual-guide.js'
+import { ConsultationViewer } from '../src/viewer.js'
 import {
   ARROW_DOWN,
   ARROW_RIGHT,
@@ -16,13 +16,13 @@ import {
   ESCAPE,
   SPACE,
   TAB,
-} from './helpers/keystrokes'
-import { pickFromFrame } from './helpers/slider'
+} from './helpers/keystrokes.js'
+import { pickFromFrame } from './helpers/slider.js'
 import {
   STUB_CASTING,
   STUB_SAVED_PATH,
   STUB_STATIC_HEXAGRAM,
-} from './helpers/stubs'
+} from './helpers/stubs.js'
 
 // Stub the filesystem-touching `@hexagram/consultation-file/file` module so the
 // interactive-mode tests can drive the viewer to completion without writing

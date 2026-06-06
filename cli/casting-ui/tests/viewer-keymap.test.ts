@@ -13,7 +13,7 @@ import {
 import type { Key } from 'ink'
 import { describe, expect, it, vi } from 'vitest'
 
-import type { FlowState } from '../src/viewer-flow'
+import type { FlowState } from '../src/viewer-flow.js'
 
 // Pure unit tests for the data-driven viewer keymap. No ink-testing-library
 // here — every binding is exercised against a stub `KeyContext` whose

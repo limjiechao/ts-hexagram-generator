@@ -5,7 +5,7 @@ import {
   navReducer,
   type NavEvent,
   type NavState,
-} from '../src/nav-machine'
+} from '../src/nav-machine.js'
 
 // Pure unit tests for the composed-app navigation reducer. No mount, no
 // React/Ink — `navReducer` is exercised directly with plain state + event

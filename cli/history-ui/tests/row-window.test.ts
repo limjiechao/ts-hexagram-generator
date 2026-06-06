@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { computeWindowStart, resolveRowWindow } from '../src/row-window'
+import { computeWindowStart, resolveRowWindow } from '../src/row-window.js'
 
 describe('computeWindowStart', () => {
   it('pins to 0 when the whole list fits within the window', () => {

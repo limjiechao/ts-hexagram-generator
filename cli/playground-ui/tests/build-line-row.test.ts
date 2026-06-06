@@ -8,7 +8,7 @@
 import type { Line } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { buildLineRow } from '../src/playground-display-rows'
+import { buildLineRow } from '../src/playground-display-rows.js'
 
 // One representative cell per axis. Standing 9 = moving yang (→ emerging 8);
 // standing 7 = static yang (→ emerging 7). Position label is the 3rd-place

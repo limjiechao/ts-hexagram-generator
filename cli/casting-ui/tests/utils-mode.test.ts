@@ -19,7 +19,7 @@ import {
   shouldForceNumericForAccessibility,
   shouldUseNumericInput,
   shouldUsePlainMode,
-} from '../src/utils-mode'
+} from '../src/utils-mode.js'
 
 describe('parseIntFlag', () => {
   test('reads the space-separated form --flag <n>', () => {

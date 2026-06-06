@@ -10,7 +10,7 @@ import {
 } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'
 
-import { deriveBannerLine, lineColors } from '../src/banner-lines'
+import { deriveBannerLine, lineColors } from '../src/banner-lines.js'
 
 describe('polarityOf', () => {
   it('classifies solid lines (7 young yang, 9 moving yang) as yang', () => {

@@ -45,4 +45,27 @@ export default sxzz().append(
     },
   },
   ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
+  {
+    // S17 drift-guard (ADR-0004/0005): every relative import must carry an
+    // explicit `.js` extension. oxlint's `import/extensions` can't host this —
+    // it resolves the specifier to disk and rejects `.js`-for-`.ts`. This core
+    // ESLint rule matches the literal specifier STRING instead, so it accepts
+    // the `.js`-written-`.ts` convention. The regex flags any `./` or `../`
+    // import that does not end in a real extension. Placed after the oxlint
+    // spread so it is the final word for these files.
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [
+            {
+              regex: String.raw`^\.{1,2}/.*(?<!\.(?:js|mjs|cjs|json|css))$`,
+              message:
+                'Relative imports must use an explicit `.js` extension (ADR-0004); bundler resolution maps it back to the `.ts`/`.tsx` source.',
+            },
+          ],
+        },
+      ],
+    },
+  },
 )

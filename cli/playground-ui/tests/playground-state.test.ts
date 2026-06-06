@@ -10,7 +10,7 @@ import {
   playgroundReducer,
   type PlaygroundAction,
   type PlaygroundState,
-} from '../src/playground-state'
+} from '../src/playground-state.js'
 
 function reduce(
   state: PlaygroundState,

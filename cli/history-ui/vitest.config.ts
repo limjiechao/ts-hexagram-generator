@@ -1,6 +1,6 @@
 import { defineConfig } from 'vitest/config'
 
-import { extendVitestBaseConfig } from '../../vitest.config.base'
+import { extendVitestBaseConfig } from '../../vitest.config.base.js'
 
 // History-ui tests poll the rendered frame after `stdin.write(ENTER)` to
 // gate on the consultation readout appearing. Under the Ubuntu GHA matrix

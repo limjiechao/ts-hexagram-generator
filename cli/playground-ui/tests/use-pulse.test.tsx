@@ -11,7 +11,7 @@ import { render } from 'ink-testing-library'
 import type { ReactElement } from 'react'
 import { describe, expect, it } from 'vitest'
 
-import { usePulse } from '../src/use-pulse'
+import { usePulse } from '../src/use-pulse.js'
 
 function PulseProbe({ intervalMs }: { intervalMs: number }): ReactElement {
   const pulse = usePulse(intervalMs)

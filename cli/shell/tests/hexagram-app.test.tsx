@@ -44,9 +44,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import type {
   BannerTestOverride,
   BannerTimingConfig,
-} from '../src/banner-state'
-import { HexagramApp, type CastingFlags } from '../src/hexagram-app'
-import { HomeMenu } from '../src/home-menu'
+} from '../src/banner-state.js'
+import { HexagramApp, type CastingFlags } from '../src/hexagram-app.js'
+import { HomeMenu } from '../src/home-menu.js'
 
 // Deterministic stub for the random casting plan. Every pick is 3 — a couple
 // of cells from the slider's min — so each cast bounces briefly then

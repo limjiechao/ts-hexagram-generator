@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { cryptoRandom } from '../src/crypto-random'
+import { cryptoRandom } from '../src/crypto-random.js'
 
 describe('cryptoRandom', () => {
   test('returns a number in [0, 1) by default', () => {

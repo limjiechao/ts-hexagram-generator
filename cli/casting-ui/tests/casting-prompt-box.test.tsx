@@ -3,8 +3,8 @@ import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CastingPromptBox } from '../src/casting-prompt-box'
-import { ENTER } from './helpers/keystrokes'
+import { CastingPromptBox } from '../src/casting-prompt-box.js'
+import { ENTER } from './helpers/keystrokes.js'
 
 function CastingPromptBoxHost({
   onSubmit,

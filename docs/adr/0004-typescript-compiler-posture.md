@@ -11,7 +11,9 @@ The load-bearing options and why they're set:
 
 - **Runtime-aligned, no down-levelling** — `target: esnext`, `lib: ["es2023"]`,
   `module: preserve`, `moduleResolution: bundler`. Node 24 runs ES2023 natively, so
-  output stays close to source and tsdown/esbuild owns the emit format.
+  output stays close to source and tsdown/esbuild owns the emit format. Relative
+  imports carry an explicit `.js` extension — the runtime/output extension — which
+  `bundler` resolution transparently maps back to the authored `.ts`/`.tsx` source.
 - **Maximum safety** — `strict: true` plus `noUncheckedIndexedAccess: true`. The
   latter matters for this domain: indexing a `Hexagram`/`CastingRecord` tuple yields
   `T | undefined`, forcing explicit guards instead of silent out-of-bounds reads.

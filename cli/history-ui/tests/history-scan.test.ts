@@ -5,7 +5,7 @@ import path from 'node:path'
 import { serializeFrontmatter } from '@hexagram/consultation-file'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { scanConsultations } from '../src/history-scan'
+import { scanConsultations } from '../src/history-scan.js'
 
 let tmpDir: string
 

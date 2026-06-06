@@ -1,7 +1,7 @@
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { markdownConsultationBody } from '../src/markdown'
+import { markdownConsultationBody } from '../src/markdown.js'
 
 const casting: CastingRecord = [
   [
