@@ -6,6 +6,7 @@
 // should be re-run and `IDENTITY_STACK_WIDTH` bumped (which in turn drives
 // `TOP_HALF_WIDTH`).
 
+import { MOVING_ARROW } from '@hexagram/consultation-view/vocabulary'
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
@@ -108,7 +109,7 @@ describe('playground identity-stack width invariant', () => {
     // The right identity cell starts at col `LEFT_LINE_WIDTH + GAP_WIDTH = 46`
     // and must hold at least `IDENTITY_STACK_WIDTH` cols of content. So
     // `TOP_HALF_WIDTH >= 46 + IDENTITY_STACK_WIDTH`.
-    const RIGHT_COLUMN_START = 27 + 19 // LEFT_LINE_WIDTH + GAP_WIDTH
+    const RIGHT_COLUMN_START = 27 + MOVING_ARROW.length // LEFT_LINE_WIDTH + GAP_WIDTH
     expect(TOP_HALF_WIDTH).toBeGreaterThanOrEqual(
       RIGHT_COLUMN_START + IDENTITY_STACK_WIDTH,
     )

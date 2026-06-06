@@ -2,12 +2,20 @@
 // Geometry constants (single-column model)
 // ---------------------------------------------------------------------------
 
+import {
+  MOVING_ARROW,
+  RIGHT_COLUMN,
+} from '@hexagram/consultation-view/vocabulary'
+
 /** Focus-chevron column (always reserved, even when not focused). */
 export const CHEVRON_WIDTH = 2
 
 /**
  * Width of the bar+pos block on each side (no chevron):
  *   value(1) + 2sp + bar(9) + 2sp + pos(11) = 25 cols.
+ * NB: this equals the consultation vocabulary's TRIGRAM_DIVIDER_WIDTH (25) only
+ * by coincidence — distinct knowledge (single-column sum vs divider width), so
+ * it is deliberately NOT imported.
  */
 export const BAR_BLOCK_WIDTH = 25
 
@@ -17,12 +25,16 @@ export const LEFT_LINE_WIDTH: number = CHEVRON_WIDTH + BAR_BLOCK_WIDTH
 /** Width of the right line cell (no chevron on the right). */
 export const RIGHT_LINE_WIDTH: number = BAR_BLOCK_WIDTH
 
-/**
- * Inter-column gap width — matches the casting viewer's `MOVING_ARROW` /
- * `STATIC_GAP` width (19 cols) so the playground sits flush with the
- * transformation section's geometry.
- */
-export const GAP_WIDTH = 19
+/** Inter-column gap — shares the transformation section's arrow/gap width. */
+export const GAP_WIDTH: number = MOVING_ARROW.length
+
+// The playground's left column must end exactly where the consultation's right
+// column begins, so the two surfaces sit flush.
+if (LEFT_LINE_WIDTH + GAP_WIDTH !== RIGHT_COLUMN) {
+  throw new Error(
+    `playground geometry drift: ${LEFT_LINE_WIDTH + GAP_WIDTH} !== RIGHT_COLUMN ${RIGHT_COLUMN}`,
+  )
+}
 
 /**
  * Worst-case identity-stack row width in display cols, scanned across all
