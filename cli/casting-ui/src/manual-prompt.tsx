@@ -30,10 +30,7 @@ import {
   type ManualDiagramState,
   type ManualFocusedField,
 } from './manual-diagram.js'
-import {
-  manualFeedbackSurface,
-  parseManualBuffer,
-} from './manual-validation.js'
+import { manualFeedbackSurface, parseManualBuffer } from './manual-feedback.js'
 
 // How long the manual-mode prompt holds its green `∴ LEFT HEAP … SUSPENDED …
 // NEXT CAST …` reveal after Enter before forwarding `onSubmit` upstream.

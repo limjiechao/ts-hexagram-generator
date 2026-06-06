@@ -1,7 +1,7 @@
 import { validateManualSplit } from '@hexagram/core/manual-validation'
 import { describe, expect, it } from 'vitest'
 
-import { manualFeedbackSurface } from '../src/manual-validation'
+import { manualFeedbackSurface } from '../src/manual-feedback'
 
 // The exhaustive invariant coverage lives in core's own suite
 // (`domain/core/tests/manual-validation.test.ts`). Here we only prove the

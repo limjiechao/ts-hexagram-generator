@@ -87,7 +87,7 @@ On terminals wider than the natural body width, the body block (diagram + right 
   diagram means revisiting the floor.
 - Rewind semantics live in the reducer/hook, not in the component — extend undo
   there.
-- `zero-remainder` must stay ahead of `conservation` in `validateManualInput` —
+- `zero-remainder` must stay ahead of `conservation` in `validateManualSplit` —
   conservation is a sum check and cannot detect a `0` remainder hidden by a
   compensating pile-count shift. Reordering them silently re-admits malformed
   `0`-remainder casts.
