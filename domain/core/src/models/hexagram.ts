@@ -18,11 +18,11 @@ import type {
   LowerTrigramKey,
   UpperTrigramKey,
   WenWangOrder,
-} from './foundation'
-import type { HexagramTextChineseSimplified } from './hexagram-text-chinese-simplified'
-import type { HexagramTextChineseTraditional } from './hexagram-text-chinese-traditional'
-import type { HexagramTextEnglishLegge } from './hexagram-text-english-legge'
-import type { HexagramTextEnglishWilhelmBaynes } from './hexagram-text-english-wilhelm-baynes'
+} from './foundation.js'
+import type { HexagramTextChineseSimplified } from './hexagram-text-chinese-simplified.js'
+import type { HexagramTextChineseTraditional } from './hexagram-text-chinese-traditional.js'
+import type { HexagramTextEnglishLegge } from './hexagram-text-english-legge.js'
+import type { HexagramTextEnglishWilhelmBaynes } from './hexagram-text-english-wilhelm-baynes.js'
 
 // ============================================================================
 // Metadata

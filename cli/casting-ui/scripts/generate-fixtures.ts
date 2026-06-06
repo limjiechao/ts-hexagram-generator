@@ -6,8 +6,8 @@ import { fileURLToPath } from 'node:url'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import { buildConsultationSections } from '@hexagram/readout'
 
-import { consultationConsoleOutput } from '../src/output-composers'
-import { cases } from '../tests/fixtures/cases'
+import { consultationConsoleOutput } from '../src/output-composers.js'
+import { cases } from '../tests/fixtures/cases.js'
 
 // Regenerate the byte-locked fixtures from `consultationConsoleOutput` and
 // `buildConsultationSections`. Run after changing any section builder; review

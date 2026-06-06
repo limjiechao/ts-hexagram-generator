@@ -7,8 +7,8 @@
 import type { Key } from 'ink'
 import { describe, expect, it, vi } from 'vitest'
 
-import { createHistoryListInputHandler } from '../src/history-list-input'
-import type { ListRow } from '../src/history-list-state'
+import { createHistoryListInputHandler } from '../src/history-list-input.js'
+import type { ListRow } from '../src/history-list-state.js'
 
 function makeKey(overrides: Partial<Key> = {}): Key {
   return {

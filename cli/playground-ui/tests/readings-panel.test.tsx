@@ -11,7 +11,7 @@ import { render } from 'ink-testing-library'
 import type { ComponentProps } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { buildReadingsRows, ReadingsPanel } from '../src/readings-panel'
+import { buildReadingsRows, ReadingsPanel } from '../src/readings-panel.js'
 
 // Match the `playground-app.test.tsx` setup: ink-testing-library's fake
 // stdout reports zero rows, so any code path that consults

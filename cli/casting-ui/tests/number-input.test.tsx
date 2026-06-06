@@ -3,8 +3,8 @@ import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { NumberInput } from '../src/number-input'
-import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
+import { NumberInput } from '../src/number-input.js'
+import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes.js'
 
 function NumberInputHost({
   onSubmit,

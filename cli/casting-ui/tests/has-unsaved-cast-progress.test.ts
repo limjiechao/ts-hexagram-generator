@@ -2,8 +2,8 @@ import { initialLineState } from '@hexagram/core'
 import { emptyPartialCastingRecord } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { hasUnsavedCastProgress } from '../src/has-unsaved-cast-progress'
-import type { FlowState } from '../src/viewer-flow'
+import { hasUnsavedCastProgress } from '../src/has-unsaved-cast-progress.js'
+import type { FlowState } from '../src/viewer-flow.js'
 
 // Pure unit tests for `hasUnsavedCastProgress` — the leaf predicate over the
 // casting flow state. No ink-testing-library, no mount: the function takes a

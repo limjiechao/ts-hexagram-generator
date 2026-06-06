@@ -1,7 +1,7 @@
 import stringWidth from 'string-width'
 import { describe, expect, it } from 'vitest'
 
-import { bottomStripRow } from '../src/manual-diagram-bottom-strip'
+import { bottomStripRow } from '../src/manual-diagram-bottom-strip.js'
 
 describe('bottomStripRow', () => {
   const ESC = String.fromCodePoint(27)

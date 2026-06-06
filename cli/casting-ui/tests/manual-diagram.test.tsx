@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 
-import { manualTitleRow } from '../src/manual-diagram'
+import { manualTitleRow } from '../src/manual-diagram.js'
 
 describe('manualTitleRow', () => {
   it('renders a slim line / cast / step title with no inline dots', () => {

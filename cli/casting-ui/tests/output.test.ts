@@ -12,9 +12,9 @@ import {
 } from '@hexagram/readout'
 import { describe, expect, it } from 'vitest'
 
-import { consultationConsoleOutput } from '../src/output-composers'
-import { cases } from './fixtures/cases'
-import { STUB_STATIC_HEXAGRAM } from './helpers/stubs'
+import { consultationConsoleOutput } from '../src/output-composers.js'
+import { cases } from './fixtures/cases.js'
+import { STUB_STATIC_HEXAGRAM } from './helpers/stubs.js'
 
 // The casting-ledger ANSI rendering is now reached through the public
 // composers (the IR serializer underneath): a partial/full record via

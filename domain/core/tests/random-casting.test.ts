@@ -1,13 +1,13 @@
 import { describe, expect, test } from 'vitest'
 
-import { assertSelectablePick, deriveSplit } from '../src/casting-derivation'
+import { assertSelectablePick, deriveSplit } from '../src/casting-derivation.js'
 import {
   generateRandomConsultation,
   generateRandomHexagram,
   generateRandomHexagrams,
   generateRandomLines,
   splitStalksRandomly,
-} from '../src/random-casting'
+} from '../src/random-casting.js'
 
 describe('generateRandomHexagram', () => {
   test('generateRandomHexagram() should return a valid hexagram', () => {

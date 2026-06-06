@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
-import { BouncingSliderStore } from '../src/bouncing-slider-store'
+import { BouncingSliderStore } from '../src/bouncing-slider-store.js'
 
 afterEach(() => {
   vi.useRealTimers()

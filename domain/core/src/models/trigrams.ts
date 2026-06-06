@@ -20,7 +20,7 @@ import {
   WEN_WANG_ORDER,
   type GenericTrigramRecord,
   type TrigramKey,
-} from './trigram'
+} from './trigram.js'
 
 export type TrigramRecords = Record<TrigramKey, GenericTrigramRecord>
 

@@ -3,9 +3,9 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
-import { serializeFrontmatter } from '../src/frontmatter'
-import { markdownConsultationBody } from '../src/markdown'
-import { cases, FIXTURE_TIMESTAMP } from '../tests/fixtures/cases'
+import { serializeFrontmatter } from '../src/frontmatter.js'
+import { markdownConsultationBody } from '../src/markdown.js'
+import { cases, FIXTURE_TIMESTAMP } from '../tests/fixtures/cases.js'
 
 const fixturesDir = path.join(
   path.dirname(fileURLToPath(import.meta.url)),

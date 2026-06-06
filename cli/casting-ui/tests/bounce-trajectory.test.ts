@@ -4,7 +4,7 @@ import {
   armDelayTicks,
   firstLandingTick,
   positionAtTick,
-} from '../src/bounce-trajectory'
+} from '../src/bounce-trajectory.js'
 
 // The pure bounce-trajectory module reproduces `BouncingSliderStore`'s
 // triangle wave EXACTLY: `position` starts at `min` (tick 0); each tick

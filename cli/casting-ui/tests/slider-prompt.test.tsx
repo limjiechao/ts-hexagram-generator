@@ -2,10 +2,10 @@ import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
-import { CastingPromptBox } from '../src/casting-prompt-box'
-import { SliderInput } from '../src/slider-prompt'
-import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes'
-import { pickFromFrame } from './helpers/slider'
+import { CastingPromptBox } from '../src/casting-prompt-box.js'
+import { SliderInput } from '../src/slider-prompt.js'
+import { CTRL_C, ESCAPE, SPACE } from './helpers/keystrokes.js'
+import { pickFromFrame } from './helpers/slider.js'
 
 // ── SliderInput ──────────────────────────────────────────────────────────────
 

@@ -3,8 +3,8 @@ import { render } from 'ink-testing-library'
 import { useState, type ReactElement } from 'react'
 import { describe, expect, it, vi } from 'vitest'
 
-import { QueryEditor } from '../src/query-editor'
-import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes'
+import { QueryEditor } from '../src/query-editor.js'
+import { BACKSPACE, CTRL_C, ENTER, ESCAPE } from './helpers/keystrokes.js'
 
 // Controlled-state host so tests exercise the editor exactly the way the
 // viewer will — buffer lifted into a parent component.

@@ -10,7 +10,7 @@ import {
   defaultConsultationsDir,
   loadConsultationFile,
   saveConsultationFile,
-} from '../src/file'
+} from '../src/file.js'
 
 describe('defaultConsultationsDir', () => {
   it('is <cwd>/consultations', () => {

@@ -3,7 +3,7 @@ import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
-import { HistoryList } from '../src/history-list'
+import { HistoryList } from '../src/history-list.js'
 
 // Matches ANSI SGR escape sequences (ESC[...m) — e.g. the inverse-video codes
 // Ink emits for the focused row. Built from char code 0x1b so the literal

@@ -14,7 +14,7 @@ import { describe, expect, it } from 'vitest'
 import {
   IDENTITY_STACK_WIDTH,
   TOP_HALF_WIDTH,
-} from '../src/playground-display-geometry'
+} from '../src/playground-display-geometry.js'
 
 function visualWidth(text: string): number {
   let width = 0

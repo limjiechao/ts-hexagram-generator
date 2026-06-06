@@ -1,6 +1,6 @@
 import fs from 'node:fs/promises'
 
-import { HEXAGRAM_RECORDS } from '../src/models/hexagrams'
+import { HEXAGRAM_RECORDS } from '../src/models/hexagrams.js'
 import { TRIGRAM_RECORDS } from '../src/models/trigrams.js'
 
 await Promise.all([

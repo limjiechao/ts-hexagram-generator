@@ -1,4 +1,4 @@
-import type { WenWangOrder } from './foundation'
+import type { WenWangOrder } from './foundation.js'
 
 export const HEXAGRAM_METADATA = {
   1: {

@@ -8,8 +8,8 @@ import {
   type ListRow,
   type NavGeometry,
   type State,
-} from '../src/history-list-state'
-import type { HistoryEntry } from '../src/history-scan'
+} from '../src/history-list-state.js'
+import type { HistoryEntry } from '../src/history-scan.js'
 
 function entry(p: string): HistoryEntry {
   return {

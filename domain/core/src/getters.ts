@@ -1,8 +1,8 @@
-import type { HexagramKey } from './models/foundation'
-import type { GenericHexagramRecord } from './models/hexagram'
-import { HEXAGRAM_RECORDS } from './models/hexagrams'
-import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
-import { TRIGRAM_RECORDS } from './models/trigrams'
+import type { HexagramKey } from './models/foundation.js'
+import type { GenericHexagramRecord } from './models/hexagram.js'
+import { HEXAGRAM_RECORDS } from './models/hexagrams.js'
+import type { GenericTrigramRecord, TrigramKey } from './models/trigram.js'
+import { TRIGRAM_RECORDS } from './models/trigrams.js'
 import type { Hexagram } from './types.js'
 
 // Line vocabulary lives in line-semantics.ts.

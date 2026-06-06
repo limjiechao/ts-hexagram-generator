@@ -14,7 +14,7 @@ import {
   buildPlaygroundDerivation,
   INITIAL_HEXAGRAM,
   setLineAt,
-} from '../src/playground-lines'
+} from '../src/playground-lines.js'
 
 describe('INITIAL_HEXAGRAM', () => {
   it('opens on Qian — six lines of young yang (7)', () => {

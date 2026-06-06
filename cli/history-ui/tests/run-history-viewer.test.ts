@@ -8,7 +8,7 @@ import {
 } from '@hexagram/consultation-file'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
-import { rerenderOnDisk } from '../src/history-app'
+import { rerenderOnDisk } from '../src/history-app.js'
 
 let tmpDir: string
 beforeEach(async () => {

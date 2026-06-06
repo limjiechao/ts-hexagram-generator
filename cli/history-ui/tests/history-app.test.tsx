@@ -12,7 +12,7 @@ import { yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { HistoryApp } from '../src/history-app'
+import { HistoryApp } from '../src/history-app.js'
 
 // Matches ANSI SGR escape sequences (ESC[...m). Stripped before assertions
 // so text matching is robust to Ink's colour codes.

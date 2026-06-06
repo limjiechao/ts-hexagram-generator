@@ -14,7 +14,7 @@ import {
   type CastingPlan,
   type FlowKind,
   type FlowState,
-} from '../src/viewer-flow'
+} from '../src/viewer-flow.js'
 
 it('FlowKind admits "manual"', () => {
   const kind: FlowKind = 'manual'

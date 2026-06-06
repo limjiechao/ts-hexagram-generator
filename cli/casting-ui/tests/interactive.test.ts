@@ -4,7 +4,7 @@ import process from 'node:process'
 import { input, number } from '@inquirer/prompts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { getHexagramViaInteraction } from '../src/interactive-flow'
+import { getHexagramViaInteraction } from '../src/interactive-flow.js'
 
 // `main()` lived in `src/interactive.ts` and is migrating to
 // `apps/cli/src/interactive.ts` in the next commit; the tests for it

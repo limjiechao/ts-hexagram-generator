@@ -16,7 +16,7 @@ import {
   framesPerPhase,
   type BannerState,
   type BannerTimingConfig,
-} from '../src/banner-state'
+} from '../src/banner-state.js'
 
 // A deterministic RNG: replays `values` in order, cycling if exhausted. Lets a
 // test pin exactly which hexagram and which moving-line plan are produced.
