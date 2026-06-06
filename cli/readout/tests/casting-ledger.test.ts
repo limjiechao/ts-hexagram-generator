@@ -1,10 +1,10 @@
+import { buildConsultationView } from '@hexagram/consultation-view/build-view'
+import type { CastingSection } from '@hexagram/consultation-view/ir'
 import {
-  buildConsultationView,
   CAST1_OFFSET_IN_BLOCK,
   castingTableActiveRow,
   castingTableFollowRow,
-  type CastingSection,
-} from '@hexagram/consultation-view'
+} from '@hexagram/consultation-view/ledger-geometry'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,

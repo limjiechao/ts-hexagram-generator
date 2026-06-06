@@ -12,18 +12,22 @@
 
 import {
   hexagramDiagramRowStrings,
-  ledgerBlock,
-  RIGHT_COLUMN,
   transformationRow,
-  type CastingSection,
-  type ConsultationView,
-  type HexagramSection,
+} from '@hexagram/consultation-view/diagram-template'
+import type {
+  CastingSection,
+  ConsultationView,
+  HexagramSection,
+  QuerySection,
+  TextSection,
+  TextVariant,
+  TransformationSection,
+} from '@hexagram/consultation-view/ir'
+import {
+  ledgerBlock,
   type LedgerStyle,
-  type QuerySection,
-  type TextSection,
-  type TextVariant,
-  type TransformationSection,
-} from '@hexagram/consultation-view'
+} from '@hexagram/consultation-view/ledger-template'
+import { RIGHT_COLUMN } from '@hexagram/consultation-view/vocabulary'
 import { padToColumn } from '@hexagram/text-layout'
 
 export function serializeCastingMarkdown(section: CastingSection): string {

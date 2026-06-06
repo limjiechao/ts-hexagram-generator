@@ -9,7 +9,7 @@
 // readout, the home banner, and the playground can all share one
 // glyph + role vocabulary without `playground-ui` depending on `shell`.
 
-import { LINE_GLYPH } from '@hexagram/consultation-view'
+import { LINE_GLYPH } from '@hexagram/consultation-view/vocabulary'
 import type { LinePolarity } from '@hexagram/core/line-semantics'
 import type { Line } from '@hexagram/core/types'
 

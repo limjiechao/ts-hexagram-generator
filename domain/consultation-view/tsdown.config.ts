@@ -1,6 +1,13 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: ['./src/index.ts'],
+  entry: [
+    './src/build-view.ts',
+    './src/diagram-template.ts',
+    './src/ir.ts',
+    './src/ledger-geometry.ts',
+    './src/ledger-template.ts',
+    './src/vocabulary.ts',
+  ],
   platform: 'node',
 })

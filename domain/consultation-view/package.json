@@ -5,10 +5,35 @@
   "description": "Medium-neutral consultation view IR: the presentation vocabulary, the section IR, and the single assembly that builds it from (query, hexagram, casting)",
   "license": "MIT",
   "exports": {
-    ".": {
-      "source": "./src/index.ts",
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+    "./build-view": {
+      "source": "./src/build-view.ts",
+      "types": "./dist/build-view.d.mts",
+      "import": "./dist/build-view.mjs"
+    },
+    "./diagram-template": {
+      "source": "./src/diagram-template.ts",
+      "types": "./dist/diagram-template.d.mts",
+      "import": "./dist/diagram-template.mjs"
+    },
+    "./ir": {
+      "source": "./src/ir.ts",
+      "types": "./dist/ir.d.mts",
+      "import": "./dist/ir.mjs"
+    },
+    "./ledger-geometry": {
+      "source": "./src/ledger-geometry.ts",
+      "types": "./dist/ledger-geometry.d.mts",
+      "import": "./dist/ledger-geometry.mjs"
+    },
+    "./ledger-template": {
+      "source": "./src/ledger-template.ts",
+      "types": "./dist/ledger-template.d.mts",
+      "import": "./dist/ledger-template.mjs"
+    },
+    "./vocabulary": {
+      "source": "./src/vocabulary.ts",
+      "types": "./dist/vocabulary.d.mts",
+      "import": "./dist/vocabulary.mjs"
     },
     "./package.json": "./package.json"
   },

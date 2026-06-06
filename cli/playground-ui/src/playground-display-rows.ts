@@ -1,8 +1,8 @@
+import { transformationHalfRow } from '@hexagram/consultation-view/diagram-template'
 import {
   MOVING_ARROW,
   STATIC_GAP,
-  transformationHalfRow,
-} from '@hexagram/consultation-view'
+} from '@hexagram/consultation-view/vocabulary'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
 import {

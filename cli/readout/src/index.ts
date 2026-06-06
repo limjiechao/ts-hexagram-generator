@@ -32,4 +32,4 @@ export { serializeConsoleOutput } from './serialize-ansi.js'
 export {
   castingTableActiveRow,
   castingTableFollowRow,
-} from '@hexagram/consultation-view'
+} from '@hexagram/consultation-view/ledger-geometry'

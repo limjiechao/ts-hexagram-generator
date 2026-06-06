@@ -6,20 +6,26 @@
 
 import {
   hexagramDiagramRowStrings,
-  ledgerBlock,
-  RIGHT_COLUMN,
   transformationRow,
-  TRIGRAM_DIVIDER_WIDTH,
-  type CastingSection,
-  type ConsultationView,
-  type HexagramIdentity,
-  type HexagramSection,
+} from '@hexagram/consultation-view/diagram-template'
+import type {
+  CastingSection,
+  ConsultationView,
+  HexagramIdentity,
+  HexagramSection,
+  QuerySection,
+  TextSection,
+  TextVariant,
+  TransformationSection,
+} from '@hexagram/consultation-view/ir'
+import {
+  ledgerBlock,
   type LedgerStyle,
-  type QuerySection,
-  type TextSection,
-  type TextVariant,
-  type TransformationSection,
-} from '@hexagram/consultation-view'
+} from '@hexagram/consultation-view/ledger-template'
+import {
+  RIGHT_COLUMN,
+  TRIGRAM_DIVIDER_WIDTH,
+} from '@hexagram/consultation-view/vocabulary'
 import { padToColumn } from '@hexagram/text-layout'
 import {
   BOLD_CYAN,

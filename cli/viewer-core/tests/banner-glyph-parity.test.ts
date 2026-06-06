@@ -1,4 +1,4 @@
-import { LINE_GLYPH } from '@hexagram/consultation-view'
+import { LINE_GLYPH } from '@hexagram/consultation-view/vocabulary'
 import { describe, expect, it } from 'vitest'
 
 import { deriveBannerLine } from '../src/banner-lines.js'

@@ -1,4 +1,4 @@
-import { hexagramIdentity } from '@hexagram/consultation-view'
+import { hexagramIdentity } from '@hexagram/consultation-view/build-view'
 import type { Hexagram } from '@hexagram/core/types'
 
 // The four identity-stack rows are composed from the consultation-view IR's
