@@ -5,6 +5,7 @@ import type { GenericTrigramRecord, TrigramKey } from './models/trigram'
 import { TRIGRAM_RECORDS } from './models/trigrams'
 import type { Hexagram } from './types.js'
 
+// Line vocabulary lives in line-semantics.ts.
 const HexagramLineToKey = {
   6: 2,
   7: 1,

@@ -3,12 +3,7 @@
 // isolation. The reducer in `playground-state.ts` composes these primitives;
 // see also `playground-keymap.ts` for the input → action mapping.
 //
-// Vocabulary:
-//   - 7 = young yang  (solid, static)   ━━━━━━━━━
-//   - 8 = young yin   (broken, static)  ━━━   ━━━
-//   - 9 = old yang    (solid, moving)   ━━━━○━━━━
-//   - 6 = old yin     (broken, moving)  ━━━ ✕ ━━━
-// Moving lines transform on commit: 6→7, 9→8 (the emerging hexagram).
+// Line vocabulary (6/7/8/9, moving lines) → @hexagram/core line-semantics.ts.
 
 import {
   getEmergingHexagram,
