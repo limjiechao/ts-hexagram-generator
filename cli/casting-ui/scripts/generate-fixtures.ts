@@ -3,6 +3,7 @@ import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import { isMovingLine } from '@hexagram/core/line-semantics'
 import { buildConsultationSections } from '@hexagram/readout'
 
 import { consultationConsoleOutput } from '../src/output-composers'
@@ -32,7 +33,7 @@ for (const { name, query, hexagram, casting } of cases) {
   // Validate that every section the Ink viewer expects to render is present;
   // a regression that silently drops a section would otherwise be encoded as
   // the new ground truth.
-  const hasMovingLines = hexagram.some((line) => line === 6 || line === 9)
+  const hasMovingLines = hexagram.some(isMovingLine)
   if (sections.query === '' && query !== '') {
     throw new Error(
       `Case ${name}: empty query section despite a non-empty query`,
