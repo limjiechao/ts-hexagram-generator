@@ -11,6 +11,7 @@ export {
   type DecorateRow,
   type DiagramImagery,
 } from './diagram-template.js'
+export { ledgerBlock, type LedgerStyle } from './ledger-template.js'
 export * from './ir.js'
 export {
   buildLedgerRows,
