@@ -70,7 +70,11 @@ export function ledgerBlock(
   // Banner row: 左Left / 右Right each span their sub-columns plus the interior
   // 3-col gutters between them.
   const leftSpan =
-    colWidth('leftHeap') + 3 + colWidth('leftPiles') + 3 + colWidth('leftRemainder')
+    colWidth('leftHeap') +
+    3 +
+    colWidth('leftPiles') +
+    3 +
+    colWidth('leftRemainder')
   const rightSpan =
     colWidth('rightHeap') +
     3 +
@@ -110,7 +114,11 @@ export function ledgerBlock(
         ),
         row,
       ),
-      dataCell('cast', padStartVisual(String(row.castNumber), colWidth('cast')), row),
+      dataCell(
+        'cast',
+        padStartVisual(String(row.castNumber), colWidth('cast')),
+        row,
+      ),
     ]
     if (row.cell === null) {
       for (const key of DATA_KEYS)
@@ -124,7 +132,9 @@ export function ledgerBlock(
   }
 
   const body = rows
-    .map((row) => (row.trailingRule ? `${dataRow(row)}\n${blockRule}` : dataRow(row)))
+    .map((row) =>
+      row.trailingRule ? `${dataRow(row)}\n${blockRule}` : dataRow(row),
+    )
     .join('\n')
 
   return `${bannerRow}\n${headerRow}\n${headerRule}\n${body}`

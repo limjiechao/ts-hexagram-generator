@@ -16,7 +16,11 @@ import {
   resolveSliderSweepMs,
   resolveWrapWidth,
 } from '@hexagram/casting-ui'
-import { liveSnapshot, warnIfNonInteractive, type EnvSnapshot } from '@hexagram/viewer-core'
+import {
+  liveSnapshot,
+  warnIfNonInteractive,
+  type EnvSnapshot,
+} from '@hexagram/viewer-core'
 import { render } from 'ink'
 
 import { resolveBannerIntervalMs } from './banner-flag.js'
@@ -25,7 +29,6 @@ import {
   type BannerTimingConfig,
 } from './banner-state.js'
 import { HexagramApp, type CastingFlags } from './hexagram-app.js'
-
 
 /**
  * Run the composed `hexagram` CLI. Resolves to `true` on a clean quit and
