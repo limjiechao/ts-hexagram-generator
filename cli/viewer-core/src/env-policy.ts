@@ -1,9 +1,13 @@
-// Single source of truth for the CLI's environment policy. Both the
-// interactive-TTY gate (every Ink-only bin's run entry) and the force-numeric
-// accessibility heuristic (the casting slider falls back to typed input) read
-// the same `NO_COLOR` / `CI` signals — encoding that reading twice let the two
-// drift. `classifyEnv` reads the snapshot once; the two consumers select the
-// field they need.
+// Single source of truth for the CLI's environment policy. It exposes all
+// THREE env-derived bits as orthogonal projections of one snapshot: the
+// interactive-TTY gate (every Ink-only bin's run entry), the force-numeric
+// accessibility heuristic (the casting slider falls back to typed input), and
+// the headless bit (the plain-vs-Ink renderer choice). The interactive/numeric
+// pair read the same `NO_COLOR` / `CI` signals and headless reads `isTTY` —
+// encoding any of those readings twice let the consumers drift, so the
+// plain-vs-Ink call now reads `headless` here rather than its own private
+// `!isTTY`. `classifyEnv` reads the snapshot once; each consumer selects the
+// field it needs.
 
 import process from 'node:process'
 
@@ -22,6 +26,12 @@ export interface EnvPolicy {
    * routes to plain mode, which is always typed).
    */
   forceNumeric: boolean
+  /**
+   * stdout is not a TTY → the plain (non-Ink) renderer is used. The
+   * plain-vs-Ink decision reads this; it is `!isTTY` and is explicitly NOT
+   * gated on NO_COLOR/CI (a NO_COLOR/CI TTY stays Ink, with typed input).
+   */
+  headless: boolean
 }
 
 /** A non-empty env var per https://no-color.org/ semantics (set AND non-empty). */
@@ -31,11 +41,12 @@ function isSet(value: string | undefined): boolean {
 
 /**
  * Derive the CLI's environment policy from an explicit snapshot. Pure — takes
- * the snapshot so it can be unit-tested without `process`. The two booleans are
- * the only env-derived policy the CLI has:
+ * the snapshot so it can be unit-tested without `process`. The three booleans
+ * are the only env-derived policy the CLI has:
  *
  *   interactive  = isTTY && !NO_COLOR && !CI
  *   forceNumeric = NO_COLOR || CI
+ *   headless     = !isTTY
  */
 export function classifyEnv(env: EnvSnapshot): EnvPolicy {
   const noColor = isSet(env.NO_COLOR)
@@ -43,6 +54,7 @@ export function classifyEnv(env: EnvSnapshot): EnvPolicy {
   return {
     interactive: env.isTTY && !noColor && !ci,
     forceNumeric: noColor || ci,
+    headless: !env.isTTY,
   }
 }
 

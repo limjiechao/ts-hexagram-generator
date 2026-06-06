@@ -163,7 +163,10 @@ export function shouldForceNumericForAccessibility(envVars: {
  */
 export function parseCliFlags(env: CliEnv): CliFlags {
   const outputMode: OutputMode =
-    shouldUsePlainMode(env.argv) || !env.isTTY ? 'plain' : 'ink'
+    shouldUsePlainMode(env.argv) ||
+    classifyEnv({ isTTY: env.isTTY, ...env.envVars }).headless
+      ? 'plain'
+      : 'ink'
   const inputMode: InputMode =
     shouldUseNumericInput(env.argv) ||
     shouldForceNumericForAccessibility(env.envVars)

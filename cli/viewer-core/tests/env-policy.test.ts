@@ -13,32 +13,34 @@ describe('classifyEnv', () => {
   test('TTY, no NO_COLOR, no CI -> interactive, not forceNumeric', () => {
     expect(
       classifyEnv({ isTTY: true, NO_COLOR: undefined, CI: undefined }),
-    ).toEqual({ interactive: true, forceNumeric: false })
+    ).toEqual({ interactive: true, forceNumeric: false, headless: false })
   })
 
   test('non-TTY alone -> not interactive, not forceNumeric', () => {
     expect(
       classifyEnv({ isTTY: false, NO_COLOR: undefined, CI: undefined }),
-    ).toEqual({ interactive: false, forceNumeric: false })
+    ).toEqual({ interactive: false, forceNumeric: false, headless: true })
   })
 
   test('NO_COLOR set non-empty -> not interactive, forceNumeric', () => {
     expect(classifyEnv({ isTTY: true, NO_COLOR: '1', CI: undefined })).toEqual({
       interactive: false,
       forceNumeric: true,
+      headless: false,
     })
   })
 
   test('CI set non-empty -> not interactive, forceNumeric', () => {
     expect(
       classifyEnv({ isTTY: true, NO_COLOR: undefined, CI: 'true' }),
-    ).toEqual({ interactive: false, forceNumeric: true })
+    ).toEqual({ interactive: false, forceNumeric: true, headless: false })
   })
 
   test('empty-string NO_COLOR / CI are treated as unset', () => {
     expect(classifyEnv({ isTTY: true, NO_COLOR: '', CI: '' })).toEqual({
       interactive: true,
       forceNumeric: false,
+      headless: false,
     })
   })
 
@@ -47,8 +49,22 @@ describe('classifyEnv', () => {
       {
         interactive: false,
         forceNumeric: true,
+        headless: true,
       },
     )
+  })
+
+  test('headless is true iff stdout is not a TTY, regardless of NO_COLOR/CI', () => {
+    expect(
+      classifyEnv({ isTTY: false, NO_COLOR: undefined, CI: undefined })
+        .headless,
+    ).toBe(true)
+    expect(
+      classifyEnv({ isTTY: true, NO_COLOR: '1', CI: undefined }).headless,
+    ).toBe(false)
+    expect(
+      classifyEnv({ isTTY: true, NO_COLOR: undefined, CI: 'true' }).headless,
+    ).toBe(false)
   })
 })
 

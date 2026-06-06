@@ -24,6 +24,8 @@ import { anchorCwdToWorkspaceRoot } from './workspace-root.js'
 // COUNTED/MISSING gauge or the footer would be clipped, so we refuse upfront
 // with the same stderr-and-exit-1 shape as the non-TTY guard rather than
 // render a broken screen.
+// Recorded as policy in ADR-0010: a manual-only terminal-height gate (it stays
+// in the bin because it needs `process.stdout.rows`).
 const MANUAL_MIN_TERMINAL_ROWS = 32
 
 async function main(): Promise<void> {
