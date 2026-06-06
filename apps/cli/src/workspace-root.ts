@@ -1,6 +1,5 @@
 import { existsSync } from 'node:fs'
 import path from 'node:path'
-import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { CONSULTATIONS_DIR_NAME } from '@hexagram/consultation-file'
@@ -13,9 +12,11 @@ import { CONSULTATIONS_DIR_NAME } from '@hexagram/consultation-file'
 //
 // The root-anchoring is an app-layer concern: walk up from this module's own
 // location until we find the workspace marker (`pnpm-workspace.yaml`), then
-// resolve `consultations/` relative to that root. The app passes the result as
-// the explicit `dir` into the consultation-file / history APIs (which already
-// accept a `dir`), so the directory is stable regardless of the invocation cwd.
+// resolve `consultations/` relative to that root. The app computes
+// `workspaceConsultationsDir()` once at the shell edge and threads it as the
+// explicit `dir`/`consultationsDir` into the consultation-file, history, and
+// casting APIs (which all accept it), so the directory is stable regardless of
+// the invocation cwd — no bin mutates `process.cwd()` (see ADR-0020).
 
 const WORKSPACE_MARKER = 'pnpm-workspace.yaml'
 
@@ -55,22 +56,4 @@ export function workspaceConsultationsDir(
   moduleUrl: string = import.meta.url,
 ): string {
   return path.join(workspaceRoot(moduleUrl), CONSULTATIONS_DIR_NAME)
-}
-
-/**
- * Anchor `process.cwd()` to the monorepo root for the lifetime of a bin.
- *
- * The casting save path (`saveConsultationFile` inside the Ink viewer and
- * `logAndSaveConsultationOutput`) and the shell's History mount resolve their
- * directory via `defaultConsultationsDir()` = `<cwd>/consultations`, and they
- * do NOT accept an explicit `dir`. Rather than ripple a `dir` prop through the
- * whole viewer component tree, the app layer pins cwd to the workspace root at
- * bin entry — so every consumer of the medium-neutral `defaultConsultationsDir`
- * lands on `<repo-root>/consultations`, no matter which directory the user ran
- * the command from. History/migration additionally pass the explicit dir.
- */
-export function anchorCwdToWorkspaceRoot(
-  moduleUrl: string = import.meta.url,
-): void {
-  process.chdir(workspaceRoot(moduleUrl))
 }

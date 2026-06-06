@@ -140,6 +140,12 @@ interface ConsultationViewerProps {
   onManualFocusedFieldChange?: (
     field: 'pilesL' | 'remL' | 'pilesR' | 'remR',
   ) => void
+  // Where the saved `.md` consultation lands. Threaded from the bin (the
+  // repo-root-anchored `workspaceConsultationsDir()`) to the single
+  // `saveConsultationFile({ dir })` call below. Omitted by tests and the
+  // back-compat sections shape; `saveConsultationFile` then falls back to
+  // its cwd-based `defaultConsultationsDir()`.
+  consultationsDir?: string
 }
 
 // Which exit path a pending discard confirmation belongs to. `back` is the
@@ -171,6 +177,7 @@ export function ConsultationViewer({
   manualRevealMs = MANUAL_REVEAL_MS,
   onManualPromptReady,
   onManualFocusedFieldChange,
+  consultationsDir,
 }: ConsultationViewerProps): ReactElement {
   const { exit } = useApp()
   // The soft-back destination — the injected `onExit`, or Ink's program exit
@@ -345,6 +352,7 @@ export function ConsultationViewer({
           query: state.query,
           hexagram,
           casting,
+          dir: consultationsDir,
         })
         if (!cancelled)
           dispatch({ type: 'computeSucceeded', sections, savedPath })
@@ -360,7 +368,13 @@ export function ConsultationViewer({
     return () => {
       cancelled = true
     }
-  }, [state.mode, state.query, state.completedLines, state.partialCasting])
+  }, [
+    state.mode,
+    state.query,
+    state.completedLines,
+    state.partialCasting,
+    consultationsDir,
+  ])
 
   // Whether this render is the random flow playing back in number-input mode
   // — the accessibility / non-colour fallback. In this mode the above-footer
@@ -765,6 +779,7 @@ export async function runConsultationViewer(
         castRevealMs?: number
         sliderCommitRevealMs?: number
         manualRevealMs?: number
+        consultationsDir?: string
       }
     | ConsultationSections,
   maybeSavedPath?: string,
@@ -782,6 +797,7 @@ export async function runConsultationViewer(
             castRevealMs={argsOrSections.castRevealMs}
             sliderCommitRevealMs={argsOrSections.sliderCommitRevealMs}
             manualRevealMs={argsOrSections.manualRevealMs}
+            consultationsDir={argsOrSections.consultationsDir}
           />,
           { alternateScreen: true },
         )
@@ -807,11 +823,13 @@ export async function runConsultationViewer(
 export function runManualConsultationViewer(opts: {
   maxWrapWidth?: number
   manualRevealMs?: number
+  consultationsDir?: string
 }): Promise<void> {
   return runConsultationViewer({
     flowKind: 'manual',
     inputMode: 'number',
     maxWrapWidth: opts.maxWrapWidth,
     manualRevealMs: opts.manualRevealMs,
+    consultationsDir: opts.consultationsDir,
   })
 }

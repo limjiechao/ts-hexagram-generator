@@ -13,6 +13,7 @@ export async function logAndSaveConsultationOutput(
   question: string,
   hexagram: Hexagram,
   casting: CastingRecord,
+  consultationsDir?: string,
 ): Promise<void> {
   const consoleOutput = consultationConsoleOutput(question, hexagram, casting)
   console.clear()
@@ -21,6 +22,7 @@ export async function logAndSaveConsultationOutput(
     query: question,
     hexagram,
     casting,
+    dir: consultationsDir,
   })
   console.info('')
   console.info(`${BOLD_GREY}Consultation output saved to ${filePath}.${NORMAL}`)

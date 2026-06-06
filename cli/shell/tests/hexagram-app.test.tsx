@@ -14,11 +14,12 @@
 // cast-by-cast through `casting` mode; `generateRandomConsultation` is stubbed
 // with a deterministic min-pick plan so the eighteen casts auto-land fast
 // enough for the test (the real RNG would land at unpredictable, sometimes
-// slow, ticks). To keep the on-disk write isolated, the test
-// `process.chdir()`s into a fresh `mkdtemp` directory: both
-// `<ConsultationViewer>`'s save and `<HexagramApp>`'s history scan resolve
-// `consultations/` relative to `process.cwd()`. `useWindowSize` is mocked
-// because ink-testing-library's fake stdout reports no rows.
+// slow, ticks). To keep the on-disk write isolated, the test passes
+// `consultationsDir={tmpDir}` (a fresh `mkdtemp` directory) to every
+// `<HexagramApp>` mount: the prop threads to both `<ConsultationViewer>`'s save
+// and `<HexagramApp>`'s history scan, so neither touches the real repo and the
+// test never mutates the working directory. `useWindowSize` is mocked because
+// ink-testing-library's fake stdout reports no rows.
 //
 // The `done`-state signal asserted on is the UNLOCKED multi-tab bar: while the
 // casting flow runs, only the active tab renders; once `done`, the full tab
@@ -33,7 +34,6 @@
 import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import process from 'node:process'
 
 import { getHexagramRecord } from '@hexagram/core/getters'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
@@ -133,20 +133,17 @@ function frozenBannerOverride(): BannerTestOverride {
 }
 
 let tmpDir: string
-let originalCwd: string
 
 beforeEach(async () => {
   windowSize.current = { columns: 100, rows: 30 }
-  originalCwd = process.cwd()
-  // A fresh isolated directory for this run. Both the casting viewer's save
-  // and the history scan resolve `consultations/` from `process.cwd()`, so
-  // chdir-ing here keeps the on-disk write out of the real repo.
+  // A fresh isolated directory for this run. Every `<HexagramApp>` mount is
+  // passed `consultationsDir={tmpDir}`, so the casting viewer's save and the
+  // history scan both land here — keeping the on-disk write out of the real
+  // repo without mutating `process.cwd()`.
   tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), 'hexagram-app-'))
-  process.chdir(tmpDir)
 })
 
 afterEach(async () => {
-  process.chdir(originalCwd)
   await fs.rm(tmpDir, { recursive: true, force: true })
 })
 
@@ -161,6 +158,7 @@ async function castRandomConsultation(
   const handle = render(
     <HexagramApp
       castingFlags={CASTING_FLAGS}
+      consultationsDir={tmpDir}
       sliderCommitRevealMs={0}
       bannerTestOverride={frozenBannerOverride()}
     />,
@@ -189,6 +187,7 @@ describe('<HexagramApp> — Home screen', () => {
     const { lastFrame, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -217,6 +216,7 @@ describe('<HexagramApp> — Home screen', () => {
     const { lastFrame, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -238,6 +238,7 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
     const { lastFrame, stdin, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -286,7 +287,11 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
       inputMode: 'number',
     }
     const { lastFrame, stdin, unmount } = render(
-      <HexagramApp castingFlags={numericFlags} sliderCommitRevealMs={0} />,
+      <HexagramApp
+        castingFlags={numericFlags}
+        consultationsDir={tmpDir}
+        sliderCommitRevealMs={0}
+      />,
     )
     await yieldMacrotask()
     stdin.write(ARROW_DOWN)
@@ -374,6 +379,7 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
     const { lastFrame, stdin, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -402,6 +408,7 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
     const { lastFrame, stdin, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -429,6 +436,7 @@ describe('<HexagramApp> — mid-cast discard confirm', () => {
     const { lastFrame, stdin, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={frozenBannerOverride()}
       />,
     )
@@ -463,6 +471,7 @@ describe('<HexagramApp> — animated home banner', () => {
     const { lastFrame, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={override}
       />,
     )
@@ -493,6 +502,7 @@ describe('<HexagramApp> — animated home banner', () => {
     const { lastFrame, unmount } = render(
       <HexagramApp
         castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
         bannerTestOverride={override}
         bannerTiming={briskTiming}
       />,

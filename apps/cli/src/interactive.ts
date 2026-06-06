@@ -13,7 +13,7 @@ import {
 } from '@hexagram/casting-ui'
 import { BOLD_GREY, BOLD_WHITE, NORMAL } from '@hexagram/viewer-core'
 
-import { anchorCwdToWorkspaceRoot } from './workspace-root.js'
+import { workspaceConsultationsDir } from './workspace-root.js'
 
 type Style = typeof BOLD_GREY | typeof BOLD_WHITE | typeof NORMAL
 
@@ -41,10 +41,11 @@ ${epilogueStyle}${epilogue}${NORMAL}
 
 async function main(): Promise<void> {
   try {
-    // Anchor cwd to the monorepo root so the save (plain and Ink alike resolve
-    // `<cwd>/consultations` via `defaultConsultationsDir`) lands on
+    // Resolve the repo-root-anchored consultations dir and thread it explicitly
+    // to the save edge (no cwd mutation — FCIS). Both the plain save and the
+    // Ink viewer receive it as `consultationsDir`, so the reading lands on
     // `<repo-root>/consultations` regardless of the invocation directory.
-    anchorCwdToWorkspaceRoot()
+    const consultationsDir = workspaceConsultationsDir()
     if (resolveOutputMode() === 'plain') {
       // Plain mode keeps the Inquirer-driven terminal flow: gather the
       // query and 18 splits at the prompt, then print + save the formatted
@@ -57,7 +58,12 @@ async function main(): Promise<void> {
       `)
 
       const { query, hexagram, casting } = await getHexagramViaInteraction()
-      await logAndSaveConsultationOutput(query, hexagram, casting)
+      await logAndSaveConsultationOutput(
+        query,
+        hexagram,
+        casting,
+        consultationsDir,
+      )
     } else {
       // Ink mode hands the entire flow to the viewer — query box and the
       // 18 split prompts live inside the Casting tab.
@@ -66,6 +72,7 @@ async function main(): Promise<void> {
         inputMode: resolveInputMode(),
         maxWrapWidth: resolveWrapWidth(),
         sliderSweepMs: resolveSliderSweepMs(),
+        consultationsDir,
       })
     }
 
