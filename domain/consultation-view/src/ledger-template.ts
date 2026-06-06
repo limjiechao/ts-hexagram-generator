@@ -114,7 +114,7 @@ export function ledgerBlock(
     ]
     if (row.cell === null) {
       for (const key of DATA_KEYS)
-        cells.push(padStartVisual(placeholder('·'), colWidth(key)))
+        cells.push(placeholder(padStartVisual('·', colWidth(key))))
     } else {
       const d = row.cell
       for (const key of DATA_KEYS)
