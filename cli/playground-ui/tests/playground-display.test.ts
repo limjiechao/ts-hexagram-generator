@@ -2,7 +2,8 @@
 // Ink — every assertion runs against the ANSI string output of
 // `buildPlaygroundDisplay`.
 
-import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
+import { getHexagramRecord } from '@hexagram/core/getters'
+import { getEmergingHexagram } from '@hexagram/core/line-semantics'
 import type { Hexagram } from '@hexagram/core/types'
 import { NORMAL_GREY, stripAnsi } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'

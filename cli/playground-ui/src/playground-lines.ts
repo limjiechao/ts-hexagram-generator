@@ -10,8 +10,10 @@
 //   - 6 = old yin     (broken, moving)  ━━━ ✕ ━━━
 // Moving lines transform on commit: 6→7, 9→8 (the emerging hexagram).
 
-import { getEmergingHexagram } from '@hexagram/core/getters'
-import { movingLineIndices } from '@hexagram/core/line-semantics'
+import {
+  getEmergingHexagram,
+  movingLineIndices,
+} from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
 
 /** The Playground opens on Qian #1 — all six lines young yang (7). */

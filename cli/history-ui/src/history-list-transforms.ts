@@ -1,8 +1,11 @@
 import path from 'node:path'
 import process from 'node:process'
 
-import { getEmergingHexagram, getHexagramRecord } from '@hexagram/core/getters'
-import { hasMovingLines } from '@hexagram/core/line-semantics'
+import { getHexagramRecord } from '@hexagram/core/getters'
+import {
+  getEmergingHexagram,
+  hasMovingLines,
+} from '@hexagram/core/line-semantics'
 import type { Hexagram } from '@hexagram/core/types'
 import { truncateEnd } from '@hexagram/viewer-core'
 

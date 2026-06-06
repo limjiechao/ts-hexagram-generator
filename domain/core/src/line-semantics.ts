@@ -64,6 +64,23 @@ export function flipPolarity(line: Line): Line {
   }
 }
 
+// Moving lines collapse to their non-moving counterparts: 6→7, 9→8;
+// static lines pass through.
+const EMERGING_LINE = {
+  6: 7,
+  7: 7,
+  8: 8,
+  9: 8,
+} as const satisfies Record<Line, Line>
+
+/**
+ * The emerging hexagram: collapse every moving line to its static counterpart
+ * (6→7, 9→8), leaving static lines unchanged.
+ */
+export function getEmergingHexagram(hexagram: Hexagram): Hexagram {
+  return hexagram.map((line) => EMERGING_LINE[line]) as Hexagram
+}
+
 /** The four `Line` values in the cycle's total order (spec's digit-tour). */
 const CYCLE_FORWARD: readonly Line[] = [7, 9, 8, 6] as const
 
