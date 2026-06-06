@@ -54,4 +54,7 @@ Notable rule choices:
 - `.oxfmtrc.json` — formatting choices (pure JSON; reverse map).
 - `eslint.config.js` — the eslint layer, disabled formatter rules, docs ignore,
   and the `await tick` ban.
+- `dependency-cruiser.config.cjs` — the architectural boundary rules
+  (`no-domain-to-cli`, `no-raw-string-width`), run as `pnpm boundaries:check`; the
+  rule rationale lives in [ADR-0019](0019-domain-cli-boundary.md).
 - `package.json` scripts — `lint:check` / `format:check` wire the two together.

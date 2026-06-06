@@ -91,6 +91,11 @@ letting the renderers become thin.
 - `dependency-cruiser.config.cjs` — the `no-domain-to-cli` forbidden rule (severity
   `error`), run as `pnpm boundaries:check` and wired into Turbo + `check:all`; forbids any
   `domain/* → cli/*` edge across the resolved module graph.
+- `dependency-cruiser.config.cjs` — the `no-raw-string-width` forbidden rule (severity
+  `error`): only `cli/viewer-core` may import the `string-width` package; every other
+  `cli/*` measures rendered width through viewer-core's ANSI-aware `terminalWidth`
+  wrapper. Distinct by design from `domain/text-layout`'s `visualWidth` (raw, un-ANSI'd
+  diagram text), so chrome width and diagram geometry stay separate homes.
 - `domain/consultation-view/` — the medium-neutral IR: presentation vocabulary, section
   order, ledger geometry.
 - `domain/core/` — line semantics (`@hexagram/core/line-semantics`: `isMovingLine`, the
