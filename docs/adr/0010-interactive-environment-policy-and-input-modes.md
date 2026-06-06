@@ -48,8 +48,25 @@ environment guard, applied to widget choice instead of startup.
 
 ## Where it's enforced
 
-- `packages/viewer-core/src/run-utils.ts` — `isInteractiveEnv`.
-- `packages/casting-ui/src/utils-mode.ts` — `resolveOutputMode` / `resolveInputMode`
+- `cli/viewer-core/src/env-policy.ts` — `classifyEnv` (the interactive /
+  headless / forceNumeric policy) plus `warnIfNonInteractive` /
+  `refuseIfNonInteractive` (the refusal message + exit-1 guard the Ink-only bins
+  call). `run-utils.ts`'s `isInteractiveEnv` is a thin live-snapshot wrapper
+  over `classifyEnv(...).interactive`.
+- `cli/casting-ui/src/utils-mode.ts` — `resolveOutputMode` / `resolveInputMode`
   and the NO_COLOR/CI overrides.
 - `apps/cli/src/{history,manual,playground}.ts` — the Ink-only non-TTY guards.
 - `apps/cli/src/{random,interactive}.ts` — the `--plain` branch.
+
+## Amendment — 2026-06-06
+
+- `EnvPolicy` now carries three orthogonal projections of one snapshot:
+  `interactive`, `forceNumeric`, and `headless` (= `!isTTY`). The plain-vs-Ink
+  decision reads `headless` and is explicitly NOT gated on NO_COLOR/CI — a
+  NO_COLOR/CI TTY stays Ink with typed input (tier-1 behaviour above).
+- `MANUAL_MIN_TERMINAL_ROWS = 32` (`apps/cli/src/manual.ts`) is a fourth,
+  manual-only gate: the manual prompt needs ≥32 rows for its diagram + chrome,
+  so the bin refuses shorter terminals. It stays in the bin (it needs
+  `process.stdout.rows`) but is recorded here as policy.
+- Stale paths: the "Where it's enforced" list says `packages/…`; the tree uses
+  `cli/…` and `apps/…`.
