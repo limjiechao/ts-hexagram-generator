@@ -1,9 +1,9 @@
+import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import {
   getEmergingHexagram,
-  getHexagramRecord,
-  getTrigramRecord,
-} from '@hexagram/core/getters'
-import { hasMovingLines, isMovingLine } from '@hexagram/core/line-semantics'
+  hasMovingLines,
+  isMovingLine,
+} from '@hexagram/core/line-semantics'
 import type { Hexagram, PartialCastingRecord } from '@hexagram/core/types'
 
 import type {

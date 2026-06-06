@@ -4,6 +4,7 @@ import {
   cycleLineBackward,
   cycleLineForward,
   flipPolarity,
+  getEmergingHexagram,
   hasMovingLines,
   isMovingLine,
   movingLineIndices,
@@ -73,6 +74,18 @@ describe('cycleLineBackward', () => {
     for (const line of ALL_LINES) {
       expect(cycleLineBackward(cycleLineForward(line))).toBe(line)
     }
+  })
+})
+
+describe('getEmergingHexagram', () => {
+  it('collapses moving lines (6→7, 9→8) and passes static lines through', () => {
+    const standing: Hexagram = [6, 7, 8, 9, 7, 8]
+    expect(getEmergingHexagram(standing)).toEqual([7, 7, 8, 8, 7, 8])
+  })
+
+  it('returns an identical hexagram when there are no moving lines', () => {
+    const standing: Hexagram = [7, 8, 7, 8, 7, 8]
+    expect(getEmergingHexagram(standing)).toEqual([7, 8, 7, 8, 7, 8])
   })
 })
 
