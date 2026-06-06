@@ -1,9 +1,9 @@
 import {
   buildConsultationView,
   CAST1_OFFSET_IN_BLOCK,
-  type CastingSection,
   castingTableActiveRow,
   castingTableFollowRow,
+  type CastingSection,
 } from '@hexagram/consultation-view'
 import {
   emptyPartialCastingRecord,

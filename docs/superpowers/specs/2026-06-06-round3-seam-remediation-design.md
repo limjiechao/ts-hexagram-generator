@@ -11,7 +11,7 @@ left open or surfaced fresh.
 
 Close four seam clusters **without changing any observable output**. Every
 behaviour-touching change is gated by the existing byte-identity fixture suites:
-green *without* a `pnpm generate-fixtures` run is the proof the bytes are
+green _without_ a `pnpm generate-fixtures` run is the proof the bytes are
 unchanged. Risk-ordered parts, smallest/safest first.
 
 This is a legibility/coherence change, not a feature. No new capability, no new
@@ -32,7 +32,7 @@ a Next.js app rebuilds every CLI feature from `domain/*` alone, and the
 
 - **B — non-interactive refusal fork (deferred S3 from round 2).** The policy
   predicate `classifyEnv` is single-homed (`cli/viewer-core/src/env-policy.ts:40`),
-  but the refusal *message* `"<bin> requires an interactive terminal"` is
+  but the refusal _message_ `"<bin> requires an interactive terminal"` is
   authored three times (`env-policy.ts:65`; `cli/shell/src/run-hexagram.tsx:32`;
   `cli/playground-ui/src/run-playground-app.ts:16`) and enforcement forks two
   ways: `refuseIfNonInteractive` → `process.exit(1)` (used by the `history` /
@@ -52,8 +52,8 @@ a Next.js app rebuilds every CLI feature from `domain/*` alone, and the
   knowledge** — the in-progress UI cannot see the hexagram — and is left alone.)
 
 - **D — casting-ledger assembly duplicated across serializers.** The IR already
-  owns the ledger *data model* (`LedgerRow`) and *column schema*
-  (`LEDGER_COLUMNS`, `buildLedgerRows`). What is duplicated is the *assembly*:
+  owns the ledger _data model_ (`LedgerRow`) and _column schema_
+  (`LEDGER_COLUMNS`, `buildLedgerRows`). What is duplicated is the _assembly_:
   banner-span math (`leftSpan` / `rightSpan`), the `indent + cells.join(gutter)`
   row construction, the `═╪═` / `─┼─` rule rows, and the null→placeholder branch
   — hand-written in parallel at `cli/readout/src/serialize-ansi.ts:52-159` and
@@ -110,7 +110,7 @@ gate.
   CJK and risk the width invariant). playground-ui already depends on
   viewer-core — no new edge.
 
-This *fixes* the playground's missing-ESC bug. Behaviour risk: if any fixture or
+This _fixes_ the playground's missing-ESC bug. Behaviour risk: if any fixture or
 identity string contained a literal `[Nm` sequence, the stricter regex would
 stop stripping it and shift a measured width. Gated by
 `top-half-width-invariant.test.ts` and the parity gate. If anything shifts, the
@@ -158,8 +158,8 @@ testability:
 
 - `cli/shell/src/run-hexagram.tsx`: replace the `NON_INTERACTIVE_MESSAGE` const
   and the inline `classifyEnv(snapshot).interactive` + `stderr.write` + `return
-  false` (`:32`, `:61-63`) with `if (!warnIfNonInteractive('hexagram', snapshot))
-  return false`.
+false` (`:32`, `:61-63`) with `if (!warnIfNonInteractive('hexagram', snapshot))
+return false`.
 - `cli/playground-ui/src/run-playground-app.ts`: same, with
   `'hexagram-playground'` (`:16-17`, `:39-41`).
 
@@ -171,11 +171,11 @@ it); every path is unit-testable via the injected snapshot.
 ### Part 4 — Shared casting-ledger assembler (D), gated, byte-risky
 
 New `domain/consultation-view/src/ledger-template.ts`. It owns the full ledger
-*assembly* and consumes a `LedgerStyle` strategy object so each serializer
+_assembly_ and consumes a `LedgerStyle` strategy object so each serializer
 injects only its medium. The IR (`LedgerRow`, `LEDGER_COLUMNS`,
 `buildLedgerRows`) is unchanged.
 
-```ts
+````ts
 export interface LedgerStyle {
   /** The inter-cell gutter (ANSI: ` <grey>│</reset> `; Markdown: ` │ `). */
   gutter: string
@@ -201,7 +201,7 @@ export function ledgerBlock(
   rows: readonly LedgerRow[],
   style: LedgerStyle,
 ): string
-```
+````
 
 - `cli/readout/src/serialize-ansi.ts`: `serializeCastingAnsi` becomes the
   heading + `ledgerBlock(section.rows, ansiLedgerStyle)`, where `ansiLedgerStyle`
@@ -212,9 +212,9 @@ export function ledgerBlock(
 - `domain/consultation-file/src/serialize-markdown.ts`: `serializeCastingMarkdown`
   becomes the `## CASTING` + ```text fence + `ledgerBlock(section.rows,
   markdownLedgerStyle)`, where every callback is identity, the gutter is ` │ `,
-  and `placeholder` throws (the record is always full here).
+and `placeholder` throws (the record is always full here).
 
-The five callbacks each map to a *currently-existing* distinct decoration —
+The five callbacks each map to a _currently-existing_ distinct decoration —
 minimal for the two media, not a speculative "colour anything" knob.
 
 ## Components & boundaries
@@ -224,8 +224,8 @@ minimal for the two media, not a speculative "colour anything" knob.
 - `viewer-core` gains `warnIfNonInteractive` (and exports it).
 - `cli/readout` (ANSI) and `consultation-file` (Markdown) become thinner: they
   own only the heading/fence + their style object. `cli/readout → consultation-
-  view` is an existing legal cli→domain edge; `consultation-file → consultation-
-  view` is existing domain→domain. No boundary change, no cycle.
+view` is an existing legal cli→domain edge; `consultation-file → consultation-
+view` is existing domain→domain. No boundary change, no cycle.
 
 ## Testing & gating
 
@@ -239,13 +239,13 @@ minimal for the two media, not a speculative "colour anything" knob.
   `refuseIfNonInteractive` / run-entry refusal tests still green; type:check.
 - **Part 4 (TDD):** first write a characterization test in
   `domain/consultation-view/tests/ledger-template.test.ts` that locks the plain
-  (Markdown-style, identity callbacks) ledger output *and* a decorated form
+  (Markdown-style, identity callbacks) ledger output _and_ a decorated form
   (wrapping callbacks) — capturing the exact bytes before the serializers are
   repointed. Then introduce `ledgerBlock`, repoint both serializers, and confirm
   the **parity gate is green WITHOUT `generate-fixtures`** — that green is the
   byte-identity proof.
 - **Final gate:** `pnpm boundaries:check && pnpm build && pnpm test &&
-  pnpm type:check && pnpm lint:check && pnpm format:check`.
+pnpm type:check && pnpm lint:check && pnpm format:check`.
 
 > **Environment note.** The gate requires **node ≥24.6** and a prior
 > `pnpm install` + `pnpm build` (vitest resolves cross-package `source`). The
