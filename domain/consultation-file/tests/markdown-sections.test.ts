@@ -32,7 +32,7 @@ const castingMarkdownSection = (
     )! as CastingSection,
   )
 const queryMarkdownSection = (query: string): string =>
-  serializeQueryMarkdown({ kind: 'query', query })
+  serializeQueryMarkdown({ kind: 'query', media: ['ansi', 'markdown'], query })
 const transformationMarkdownSection = (hexagram: Hexagram): string =>
   serializeTransformationMarkdown(
     buildConsultationView('', hexagram, null).sections.find(

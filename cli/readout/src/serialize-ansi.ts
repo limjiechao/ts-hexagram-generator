@@ -225,8 +225,9 @@ export function serializeTextAnsi(section: TextSection): string {
     return `${BOLD_GREY}HEXAGRAM:
 ${section.variants.map(textVariantBlockAnsi).join('\n\n')}`
   }
-  // role === 'lines'
-  if (section.variant === 'none') return ''
+  // role === 'lines' — a lines:none section is markdown-only (media filtered
+  // out upstream), so it never reaches here; ANSI renders that text via the
+  // separate text:hexagram section.
   if (section.variant === 'multi')
     return `${BOLD_GREY}LINES:
 
@@ -244,8 +245,9 @@ ${section.variants.map(textVariantBlockAnsi).join('\n\n')}`
 
 // Compose the four viewer tab strings from the IR, matching the legacy
 // buildConsultationSections grouping exactly: the LINES text section rides
-// inside the `standing` tab string (it is '' when static); `emerging` is null
-// when there are no moving lines.
+// inside the `standing` tab string when its `media` includes 'ansi' (the
+// no-moving lines:none section is markdown-only, so it is filtered out here);
+// `emerging` is null when there are no moving lines.
 export function serializeConsultationTabs(
   view: ConsultationView,
 ): ConsultationSections {
@@ -263,11 +265,10 @@ export function serializeConsultationTabs(
     (s) => s.kind === 'text' && s.role === 'lines',
   )! as TextSection
 
-  const linesOut = serializeTextAnsi(lines)
   const standing = [
     serializeHexagramAnsi(hexes[0]!),
     serializeTextAnsi(hexTexts[0]!),
-    ...(linesOut ? [linesOut] : []),
+    ...(lines.media.includes('ansi') ? [serializeTextAnsi(lines)] : []),
   ]
     .join('\n\n')
     .trim()
@@ -293,6 +294,7 @@ export function serializeConsultationTabs(
 export function serializeConsoleOutput(view: ConsultationView): string {
   const parts: string[] = []
   for (const s of view.sections) {
+    if (!s.media.includes('ansi')) continue
     switch (s.kind) {
       case 'query':
         parts.push(serializeQueryAnsi(s))
@@ -306,11 +308,9 @@ export function serializeConsoleOutput(view: ConsultationView): string {
       case 'hexagram':
         parts.push(serializeHexagramAnsi(s))
         break
-      case 'text': {
-        const out = serializeTextAnsi(s)
-        if (out !== '') parts.push(out) // no-moving LINES → '' (suppressed)
+      case 'text':
+        parts.push(serializeTextAnsi(s))
         break
-      }
     }
   }
   return `\n\n${parts.join('\n\n')}\n`

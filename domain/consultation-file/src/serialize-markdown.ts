@@ -4,11 +4,12 @@
 // from @hexagram/text-layout. The byte output is locked by the consultation-file
 // md-body-*.md / md-file-*.md fixtures.
 //
-// Body projection: markdown folds the hexagram-level scripture into the trailing
-// LINES block (no-moving case) and never emits a standalone hexagram-text
-// section, so serializeConsultationMarkdownBody SKIPS the IR's `text:hexagram`
-// sections and renders query, casting, transformation, standing diagram,
-// [emerging diagram], LINES — exactly the legacy markdownConsultationBody order.
+// Body projection: markdown emits every section whose `media` includes
+// 'markdown'. Hexagram-level text is ANSI-only (`text:hexagram`, media=['ansi'])
+// because markdown folds that scripture into the trailing LINES block via the
+// no-moving `lines:none` section (media=['markdown']). The result is query,
+// casting, transformation, standing diagram, [emerging diagram], LINES — exactly
+// the legacy markdownConsultationBody order.
 
 import {
   hexagramDiagramRowStrings,
@@ -170,13 +171,15 @@ ${blocks}
 }
 
 // Compose the Markdown body from the IR, joining sections with '\n' (matching
-// the legacy `parts.join('\n')`). The `text:hexagram` sections are skipped —
-// markdown folds hexagram-level text into the trailing LINES block.
+// the legacy `parts.join('\n')`). Sections are filtered by their `media` flag:
+// only `text:lines` reaches the `text` case (hexagram-level text is ANSI-only
+// and markdown folds it into the trailing LINES block).
 export function serializeConsultationMarkdownBody(
   view: ConsultationView,
 ): string {
   const parts: string[] = []
   for (const s of view.sections) {
+    if (!s.media.includes('markdown')) continue
     switch (s.kind) {
       case 'query':
         parts.push(serializeQueryMarkdown(s))
@@ -191,7 +194,7 @@ export function serializeConsultationMarkdownBody(
         parts.push(serializeHexagramMarkdown(s))
         break
       case 'text':
-        if (s.role === 'lines') parts.push(serializeLinesMarkdown(s))
+        parts.push(serializeLinesMarkdown(s))
         break
     }
   }
