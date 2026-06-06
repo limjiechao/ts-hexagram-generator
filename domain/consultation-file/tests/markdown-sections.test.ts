@@ -1,10 +1,10 @@
-import {
-  buildConsultationView,
-  type CastingSection,
-  type HexagramSection,
-  type TextSection,
-  type TransformationSection,
-} from '@hexagram/consultation-view'
+import { buildConsultationView } from '@hexagram/consultation-view/build-view'
+import type {
+  CastingSection,
+  HexagramSection,
+  TextSection,
+  TransformationSection,
+} from '@hexagram/consultation-view/ir'
 import type {
   CastingRecord,
   Hexagram,

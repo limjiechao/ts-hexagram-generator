@@ -1,4 +1,4 @@
-import { buildConsultationView } from '@hexagram/consultation-view'
+import { buildConsultationView } from '@hexagram/consultation-view/build-view'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 
 import { serializeConsultationMarkdownBody } from './serialize-markdown.js'
