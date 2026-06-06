@@ -1,4 +1,5 @@
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
+import { ANSI_PATTERN } from '@hexagram/viewer-core'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
@@ -92,12 +93,6 @@ export type FlowAction =
   // manual flow never carries one (a plan is set only by the random flow's
   // `querySubmit`; see "manual flow carries no casting plan" in the tests).
   | { type: 'lineRewound' }
-
-// Use the same ANSI-pattern regex as `viewer-layout.ts` to avoid duplicating
-// the suppression. Inlined here so this module has no dependency on the
-// layout module (keeps the flow reducer leaf-pure).
-// oxlint-disable-next-line no-control-regex
-const ANSI_PATTERN: RegExp = /\u001B\[[0-9;]*m/g
 
 /**
  * Recover the user's plain query text from a pre-built `querySection()`
