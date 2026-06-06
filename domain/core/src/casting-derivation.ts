@@ -10,27 +10,16 @@ import type { SplitRecord } from './types.js'
 export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
 
 /**
- * The highest pick a stalk-input flow may offer or draw, given the recorded
- * `SplitRecord.max` (= unparted stalks − 1, which already reserves the right
- * heap's suspended stalk 掛一).
- *
- * It is one **below** the recorded max: a pick of `recordedMax` would leave the
- * right heap with only that one suspended stalk — nothing to count by fours —
- * and `neverZeroMod4(0) === 0`. A division-by-four remainder is always 1..4
- * (揲之以四 counts a multiple of four's last group as the remainder, never 0),
- * so the right heap must keep a SECOND, countable stalk. Capping the pick here
- * is the single source of truth for that rule; the recorded `SplitRecord.max`
- * is unchanged, so the readout's stalk count, conservation, and the saved file
- * are untouched.
- *
- * Two layers enforce this rule, by design — there is no single owner: the
- * slider, typed-prompt, plain Inquirer, and RNG flows CLAMP to this ceiling;
- * the manual validator instead DERIVES the same `[1, recordedMax − 1]` range
- * structurally (its remainders are constrained to 1..4 by construction, so it
- * never calls `selectablePickMax`). `performCast` — the algorithm of record —
- * is the runtime backstop for both via `assertSelectablePick`. The manual
- * derivation's agreement with this guard is locked by `manual-validation.test`
- * ("manual 'ok' picks satisfy the core never-zero guard").
+ * selectablePickMax(recordedMax) = recordedMax − 1 is the DEFINITIONAL home of
+ * the never-zero-remainder rule (a pick of `max` would leave the right heap one
+ * suspended stalk, nothing to count by fours, remainder 0). The slider, typed,
+ * plain-Inquirer, and RNG flows clamp to this value. assertSelectablePick —
+ * called by performCast, the algorithm of record — is the single RUNTIME
+ * enforcer. The manual validator derives the same [1, recordedMax−1] range
+ * structurally from its four typed fields (it cannot call a pick-clamp because
+ * it has no pick); its agreement with the guard is locked by manual-validation
+ * .test ("manual 'ok' picks satisfy the core never-zero guard"). One definition,
+ * one runtime enforcer; see ADR-0006.
  */
 export const selectablePickMax = (recordedMax: number): number =>
   recordedMax - 1
