@@ -4,12 +4,15 @@
 // the app's exit. Mirrors `runHistoryViewer` and `runHexagram` exactly so
 // every Ink-only run-entry behaves consistently.
 
-import { liveSnapshot, warnIfNonInteractive, type EnvSnapshot } from '@hexagram/viewer-core'
+import {
+  liveSnapshot,
+  warnIfNonInteractive,
+  type EnvSnapshot,
+} from '@hexagram/viewer-core'
 import { render } from 'ink'
 import { createElement } from 'react'
 
 import { PlaygroundApp } from './playground-app.js'
-
 
 /**
  * Run the standalone `hexagram-playground` CLI. Resolves to `true` on a

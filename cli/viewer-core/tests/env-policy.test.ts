@@ -2,7 +2,11 @@ import process from 'node:process'
 
 import { describe, expect, test, vi } from 'vitest'
 
-import { classifyEnv, refuseIfNonInteractive, warnIfNonInteractive } from '../src/env-policy.js'
+import {
+  classifyEnv,
+  refuseIfNonInteractive,
+  warnIfNonInteractive,
+} from '../src/env-policy.js'
 
 describe('classifyEnv', () => {
   // interactive = isTTY && !noColor && !ci

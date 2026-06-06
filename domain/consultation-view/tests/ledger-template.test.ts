@@ -17,9 +17,27 @@ const plainStyle: LedgerStyle = {
 
 // One full line-6 block (3 casts), all selectable picks valid (pick < max).
 const rows: readonly LedgerRow[] = [
-  { lineNumber: 6, castNumber: 3, showLine: true, trailingRule: false, cell: deriveSplit({ pick: 4, max: 8 }) },
-  { lineNumber: 6, castNumber: 2, showLine: false, trailingRule: false, cell: deriveSplit({ pick: 4, max: 7 }) },
-  { lineNumber: 6, castNumber: 1, showLine: false, trailingRule: false, cell: deriveSplit({ pick: 4, max: 7 }) },
+  {
+    lineNumber: 6,
+    castNumber: 3,
+    showLine: true,
+    trailingRule: false,
+    cell: deriveSplit({ pick: 4, max: 8 }),
+  },
+  {
+    lineNumber: 6,
+    castNumber: 2,
+    showLine: false,
+    trailingRule: false,
+    cell: deriveSplit({ pick: 4, max: 7 }),
+  },
+  {
+    lineNumber: 6,
+    castNumber: 1,
+    showLine: false,
+    trailingRule: false,
+    cell: deriveSplit({ pick: 4, max: 7 }),
+  },
 ]
 
 describe('ledgerBlock', () => {
@@ -50,7 +68,13 @@ describe('ledgerBlock', () => {
 
   it('null cell uses the placeholder callback (not dataCell)', () => {
     const placeholderRows: readonly LedgerRow[] = [
-      { lineNumber: 6, castNumber: 3, showLine: true, trailingRule: false, cell: null },
+      {
+        lineNumber: 6,
+        castNumber: 3,
+        showLine: true,
+        trailingRule: false,
+        cell: null,
+      },
     ]
     const dots = ledgerBlock(placeholderRows, {
       ...plainStyle,

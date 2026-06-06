@@ -1,5 +1,4 @@
 import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
-import { ANSI_PATTERN } from '@hexagram/viewer-core'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
@@ -10,6 +9,7 @@ import {
   type SplitRecord,
 } from '@hexagram/core/types'
 import type { ConsultationSections } from '@hexagram/readout'
+import { ANSI_PATTERN } from '@hexagram/viewer-core'
 
 /**
  * The predetermined casting plan for a random flow — the hexagram and the
