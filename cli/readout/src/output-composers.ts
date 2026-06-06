@@ -1,5 +1,8 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
-import type { CastingSection } from '@hexagram/consultation-view/ir'
+import type {
+  CastingSection,
+  QuerySection,
+} from '@hexagram/consultation-view/ir'
 import type {
   CastingRecord,
   Hexagram,
@@ -66,7 +69,9 @@ export function buildPartialCastingSections(
   // (discarded) downstream sections while we serialize only query + casting.
   const view = buildConsultationView(query, [7, 7, 7, 7, 7, 7], casting)
   return {
-    query: serializeQueryAnsi({ kind: 'query', query }),
+    query: serializeQueryAnsi(
+      view.sections.find((s) => s.kind === 'query')! as QuerySection,
+    ),
     casting: serializeCastingAnsi(
       view.sections.find((s) => s.kind === 'casting')! as CastingSection,
     ),

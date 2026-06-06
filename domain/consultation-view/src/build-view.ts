@@ -141,11 +141,12 @@ function oneMovingLineVariants(hexagram: Hexagram): readonly TextVariant[] {
 function linesSection(hexagram: Hexagram): TextSection {
   const movingCount = hexagram.filter(isMovingLine).length
   if (movingCount === 0)
-    // No moving lines: the LINES block carries the *hexagram-level* text in
-    // markdown; the ANSI side renders this text separately as the standing
-    // HEXAGRAM block. Both project from this one section.
+    // No moving lines: markdown-only. The `media` flag encodes that the LINES
+    // block carries the hexagram-level text in markdown, while ANSI renders that
+    // text via the separate text:hexagram section instead.
     return {
       kind: 'text',
+      media: ['markdown'],
       role: 'lines',
       variant: 'none',
       variants: hexagramTextVariants(hexagram),
@@ -153,11 +154,18 @@ function linesSection(hexagram: Hexagram): TextSection {
   if (movingCount === 1)
     return {
       kind: 'text',
+      media: ['ansi', 'markdown'],
       role: 'lines',
       variant: 'one',
       variants: oneMovingLineVariants(hexagram),
     }
-  return { kind: 'text', role: 'lines', variant: 'multi', variants: [] }
+  return {
+    kind: 'text',
+    media: ['ansi', 'markdown'],
+    role: 'lines',
+    variant: 'multi',
+    variants: [],
+  }
 }
 
 /** Public sub-builder: the hexagram identity strings (no record traversal in consumers). */
@@ -181,13 +189,15 @@ export function buildConsultationView(
   const moving = hasMovingLines(hexagram)
   const emerging = getEmergingHexagram(hexagram)
   const sections: ConsultationSection[] = [
-    { kind: 'query', query },
+    { kind: 'query', media: ['ansi', 'markdown'], query },
     {
       kind: 'casting',
+      media: ['ansi', 'markdown'],
       rows: casting === null ? null : buildLedgerRows(casting),
     },
     {
       kind: 'transformation',
+      media: ['ansi', 'markdown'],
       body: moving
         ? {
             rows: diagramRows(hexagram).map((standing, i) => ({
@@ -205,6 +215,7 @@ export function buildConsultationView(
     },
     {
       kind: 'hexagram',
+      media: ['ansi', 'markdown'],
       role: 'standing',
       wenWang: identityOf(hexagram).wenWang,
       rows: diagramRows(hexagram),
@@ -212,6 +223,7 @@ export function buildConsultationView(
     },
     {
       kind: 'text',
+      media: ['ansi'],
       role: 'hexagram',
       variant: 'hexagram',
       variants: hexagramTextVariants(hexagram),
@@ -221,6 +233,7 @@ export function buildConsultationView(
     sections.push(
       {
         kind: 'hexagram',
+        media: ['ansi', 'markdown'],
         role: 'emerging',
         wenWang: identityOf(emerging).wenWang,
         rows: diagramRows(emerging),
@@ -228,6 +241,7 @@ export function buildConsultationView(
       },
       {
         kind: 'text',
+        media: ['ansi'],
         role: 'hexagram',
         variant: 'hexagram',
         variants: hexagramTextVariants(emerging),

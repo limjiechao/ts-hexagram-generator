@@ -74,6 +74,12 @@ without pulling in any terminal code.
   owning ANSI serialization + the Ink `ConsultationReadout` component. The
   byte-identity fixtures that ADR-0016 relied on remain the regression gate; they
   now prove the serializers match the IR rather than each other.
+- **Section→medium visibility is explicit, not implicit.** Each IR section carries a
+  `media: ('ansi'|'markdown')[]` flag; serializers filter on it rather than skipping
+  sections in their switch arms. Hexagram-level text is emitted as `text:hexagram`
+  (ANSI-only; Markdown folds it into the trailing LINES block via the no-moving
+  `lines:none` section, Markdown-only). `buildConsultationView` is the sole owner of
+  visibility.
 
 ## Where it's enforced
 
