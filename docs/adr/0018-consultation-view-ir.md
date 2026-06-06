@@ -80,6 +80,8 @@ without pulling in any terminal code.
   (ANSI-only; Markdown folds it into the trailing LINES block via the no-moving
   `lines:none` section, Markdown-only). `buildConsultationView` is the sole owner of
   visibility.
+- **Mid-flow casting renders from the `buildLedgerRows` subset**, not a
+  sentinel-hexagram round-trip through the full assembly.
 
 ## Where it's enforced
 
