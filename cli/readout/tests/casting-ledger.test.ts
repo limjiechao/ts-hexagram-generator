@@ -135,6 +135,19 @@ describe('castingSection — partial', () => {
     expect(out).toContain('Casting not recorded')
     expect(out).not.toContain('│')
   })
+
+  it('names the absence reason when one is recorded', () => {
+    const section = buildConsultationView(
+      '',
+      PLACEHOLDER,
+      null,
+      'legacy-unreplayable',
+    ).sections.find((s) => s.kind === 'casting')! as CastingSection
+    const out = stripAnsi(serializeCastingAnsi(section))
+    expect(out).toContain(
+      'Casting not recorded (recorded casting could not be validated)',
+    )
+  })
 })
 
 describe('castingTableActiveRow', () => {

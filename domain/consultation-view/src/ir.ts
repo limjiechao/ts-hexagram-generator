@@ -41,6 +41,13 @@ export interface CastingSection {
   readonly absenceReason?: CastingAbsenceReason | null
 }
 
+/** Human-readable phrase for each absence reason, shared by all serializers. */
+export const CASTING_ABSENCE_LABEL: Record<CastingAbsenceReason, string> = {
+  'legacy-no-table': 'legacy file had no casting table',
+  'legacy-unreplayable': 'recorded casting could not be validated',
+  playground: 'playground exploration',
+}
+
 // ── Line-diagram sections ───────────────────────────────────────────────────
 /** One diagram row: a line value, its glyph (from LINE_GLYPH), its position. */
 export interface DiagramLineRow {

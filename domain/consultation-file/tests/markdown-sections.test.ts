@@ -131,6 +131,18 @@ describe('castingMarkdownSection', () => {
       '## CASTING\n\n_Casting not recorded._\n',
     )
   })
+
+  it('names the absence reason when one is recorded', () => {
+    const section = buildConsultationView(
+      '',
+      PLACEHOLDER,
+      null,
+      'playground',
+    ).sections.find((s) => s.kind === 'casting')! as CastingSection
+    expect(serializeCastingMarkdown(section)).toBe(
+      '## CASTING\n\n_Casting not recorded (playground exploration)._\n',
+    )
+  })
 })
 
 describe('queryMarkdownSection', () => {
