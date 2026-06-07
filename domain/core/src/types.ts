@@ -24,6 +24,26 @@ export const assertIsHexagram: (value: unknown) => asserts value is Hexagram = (
   }
 }
 
+/**
+ * A 0-based index into a `Hexagram` tuple: `0` = Line 1 (bottom) … `5` = Line 6
+ * (top). The single authoritative range guard — previously duplicated as a
+ * private guard in `consultation-view`'s view builder and an exported guard in
+ * `cli/viewer-core` (finding S7). Both now import this one.
+ */
+export type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
+
+/**
+ * Narrow an `unknown` (or the `number` that `Array.findIndex` returns) to a
+ * `LineIndex`. The `!== -1` clause is redundant given the range check but is
+ * kept so this is a faithful superset of the former viewer-core guard — it
+ * documents the `findIndex` "not found" sentinel as an explicit reject.
+ * NOTE: this is a RANGE guard, not an integer guard (matches the prior
+ * behaviour; see the S7 plan, fork A).
+ */
+export function isLineIndex(value: unknown): value is LineIndex {
+  return typeof value === 'number' && value !== -1 && value >= 0 && value <= 5
+}
+
 export type FourOperationsResult = {
   unpartedStalks: number[]
   suspendedFromNextRound: number[]
