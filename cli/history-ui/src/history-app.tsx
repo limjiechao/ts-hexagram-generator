@@ -263,6 +263,7 @@ export function HistoryApp({
     envelope.query,
     envelope.hexagram,
     envelope.casting,
+    envelope.castingAbsence,
   )
   const querySlot = (innerCols: number): ReactElement => (
     <QueryBox query={envelope.query} width={innerCols} />
