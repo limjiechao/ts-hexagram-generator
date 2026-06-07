@@ -3,5 +3,6 @@
   "timestamp": "2025-08-12T07:05:56+0800",
   "query": "",
   "hexagram": [7, 7, 7, 7, 7, 7],
-  "casting": null
+  "casting": null,
+  "castingAbsence": "legacy-unreplayable"
 }

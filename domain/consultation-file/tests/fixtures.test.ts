@@ -30,6 +30,7 @@ describe('full markdown file fixtures', () => {
           query,
           hexagram,
           casting,
+          castingAbsence: null,
         },
         markdownConsultationBody(query, hexagram, casting),
       )

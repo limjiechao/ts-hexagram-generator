@@ -26,6 +26,8 @@ for (const { name, query, hexagram, casting } of cases) {
       query,
       hexagram,
       casting,
+      // All generated cases carry a present casting → no absence reason.
+      castingAbsence: null,
     },
     body,
   )

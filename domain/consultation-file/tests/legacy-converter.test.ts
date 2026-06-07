@@ -227,6 +227,71 @@ describe('converted → md round-trips through serialize', () => {
   })
 })
 
+describe('convertLegacyTxt — castingAbsence reason', () => {
+  it('marks a no-table (Shape B) file legacy-no-table', () => {
+    const res = convertLegacyTxt({
+      text: read('legacy-shape-b.txt'),
+      filenameTimestamp: '2026-03-16T13-28-33+0800',
+    })
+    expect(res.ok).toBe(true)
+    if (res.ok) {
+      expect(res.envelope.casting).toBeNull()
+      expect(res.envelope.castingAbsence).toBe('legacy-no-table')
+    }
+  })
+
+  it('marks a real oldest-vintage no-casting file legacy-no-table', () => {
+    const res = convertLegacyTxt({
+      text: read('legacy-real-oldest-no-casting.txt'),
+      filenameTimestamp: '2025-06-10T04-09-02+0800',
+    })
+    expect(res.ok).toBe(true)
+    if (res.ok) {
+      expect(res.envelope.casting).toBeNull()
+      expect(res.envelope.castingAbsence).toBe('legacy-no-table')
+    }
+  })
+
+  it('marks a present-but-unreplayable table legacy-unreplayable', () => {
+    // legacy-heap-multi-moving.txt HAS a CASTING table whose splits include
+    // empty-right-heap rows that throw on replay — the table is present but
+    // does not reconstruct the hexagram.
+    const res = convertLegacyTxt({
+      text: read('legacy-heap-multi-moving.txt'),
+      filenameTimestamp: '2026-02-20T09-30-00+0800',
+    })
+    expect(res.ok).toBe(true)
+    if (res.ok) {
+      expect(res.envelope.casting).toBeNull()
+      expect(res.envelope.castingAbsence).toBe('legacy-unreplayable')
+    }
+  })
+
+  it('marks a synthetic non-reconstructing table legacy-unreplayable', () => {
+    const res = convertLegacyTxt({
+      text: read('legacy-txt-fixture-multi-moving.txt'),
+      filenameTimestamp: '2026-02-20T09-30-00+0800',
+    })
+    expect(res.ok).toBe(true)
+    if (res.ok) {
+      expect(res.envelope.casting).toBeNull()
+      expect(res.envelope.castingAbsence).toBe('legacy-unreplayable')
+    }
+  })
+
+  it('a recovered table has a null castingAbsence', () => {
+    const res = convertLegacyTxt({
+      text: read('legacy-real-heap-casting.txt'),
+      filenameTimestamp: '2026-05-19T11-08-42+0800',
+    })
+    expect(res.ok).toBe(true)
+    if (res.ok) {
+      expect(res.envelope.casting).not.toBeNull()
+      expect(res.envelope.castingAbsence).toBeNull()
+    }
+  })
+})
+
 // Byte-locked envelope fixtures — the committed regression net. Each `.json`
 // is the converted `ConsultationEnvelope` for a distinct legacy shape.
 describe('convertLegacyTxt — byte-locked envelope fixtures', () => {
