@@ -1,6 +1,8 @@
 import {
+  isCastingAbsenceReason,
   isCastingRecord,
   isHexagram,
+  type CastingAbsenceReason,
   type CastingRecord,
   type Hexagram,
   type Line,
@@ -73,6 +75,11 @@ export interface ConsultationEnvelope {
   /** `null` when the consultation has no recorded casting (e.g. migrated from
    * a legacy `.txt` that predates the CASTING table). */
   casting: CastingRecord | null
+  /**
+   * Why `casting` is absent — non-null IFF `casting` is null (ADR-0008). A
+   * pre-field null-casting file (no key) parses back as 'legacy-no-table'.
+   */
+  castingAbsence: CastingAbsenceReason | null
 }
 
 export type ParseResult =
@@ -100,10 +107,13 @@ export function serializeFrontmatter(
     timestamp: envelope.timestamp,
     query: envelope.query,
     hexagram: hexagramToYaml(envelope.hexagram),
-    // A null casting is omitted from the frontmatter entirely — "no casting"
-    // is the absence of the key, not a sentinel value.
+    // Exactly one of `casting` / `castingAbsence` is present. A null casting
+    // omits the casting key and records WHY it is absent (ADR-0008). The
+    // defensive default keeps serialize total even if a caller forgot the
+    // reason. `castingAbsence` takes the casting key's insertion slot so byte
+    // order stays schemaVersion → timestamp → query → hexagram → (one of two).
     ...(envelope.casting === null
-      ? {}
+      ? { castingAbsence: envelope.castingAbsence ?? 'legacy-no-table' }
       : { casting: castingToYaml(envelope.casting) }),
   }
   // Prepend a newline so that matter.stringify emits a blank line between
@@ -134,10 +144,8 @@ export function parseFrontmatter(text: string): ParseResult {
     return { ok: false, reason: 'missing-frontmatter' }
   }
 
-  const { schemaVersion, timestamp, query, hexagram, casting } = data as Record<
-    string,
-    unknown
-  >
+  const { schemaVersion, timestamp, query, hexagram, casting, castingAbsence } =
+    data as Record<string, unknown>
 
   if (schemaVersion !== CURRENT_SCHEMA_VERSION) {
     return { ok: false, reason: 'schema-version-mismatch' }
@@ -150,17 +158,29 @@ export function parseFrontmatter(text: string): ParseResult {
   const hexagramTuple = hexagramFromYaml(hexagram)
   if (!isHexagram(hexagramTuple)) return { ok: false, reason: 'invalid-shape' }
 
-  // `casting` is optional: an absent key means "no casting recorded" and
-  // parses back as `null`. When present it must be a valid `L6..L1` mapping.
+  // `casting` is optional: an absent key means "no casting recorded". When
+  // casting is absent, `castingAbsence` records why — defaulting to
+  // 'legacy-no-table' for pre-field files (ADR-0008). A present-but-unknown
+  // castingAbsence value is corruption → invalid-shape. When present, casting
+  // must be a valid `L6..L1` mapping and carries no absence reason.
   let castingRecord: CastingRecord | null
+  let absence: CastingAbsenceReason | null
   if (casting === undefined) {
     castingRecord = null
+    if (castingAbsence === undefined) {
+      absence = 'legacy-no-table'
+    } else if (isCastingAbsenceReason(castingAbsence)) {
+      absence = castingAbsence
+    } else {
+      return { ok: false, reason: 'invalid-shape' }
+    }
   } else {
     if (!isYamlCasting(casting)) return { ok: false, reason: 'invalid-shape' }
     castingRecord = castingFromYaml(casting)
     if (!isCastingRecord(castingRecord)) {
       return { ok: false, reason: 'invalid-shape' }
     }
+    absence = null
   }
 
   return {
@@ -172,6 +192,7 @@ export function parseFrontmatter(text: string): ParseResult {
         query,
         hexagram: hexagramTuple,
         casting: castingRecord,
+        castingAbsence: absence,
       },
       body: content,
     },
