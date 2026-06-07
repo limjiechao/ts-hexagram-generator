@@ -293,8 +293,10 @@ describe('<PlaygroundApp>', () => {
     expect(content).toMatch(/^---/)
     expect(content).toContain('query:')
     expect(content).toContain('hi')
-    // Casting key absent (playground sources don't carry a CastingRecord).
+    // Casting key absent (playground sources don't carry a CastingRecord),
+    // but the reason for its absence is recorded as 'playground'.
     expect(content).not.toMatch(/^casting:/m)
+    expect(content).toMatch(/^castingAbsence: playground$/m)
     unmount()
   })
 
