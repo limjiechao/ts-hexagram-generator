@@ -7,6 +7,7 @@ import {
 import {
   isLineIndex,
   POSITIONS_TOP_FIRST,
+  toTopFirst,
   type CastingAbsenceReason,
   type Hexagram,
   type PartialCastingRecord,
@@ -187,6 +188,10 @@ export function buildConsultationView(
 ): ConsultationView {
   const moving = hasMovingLines(hexagram)
   const emerging = getEmergingHexagram(hexagram)
+  // `diagramRows` is top-first (line 6 → 1); `emerging` is bottom-first. Walk
+  // emerging in the SAME top-first order via the named reversal so standing[i]
+  // and emergingTopFirst[i] are the same position (replaces a bare `5 - i`).
+  const emergingTopFirst = toTopFirst(emerging)
   const sections: ConsultationSection[] = [
     { kind: 'query', media: ['ansi', 'markdown'], query },
     {
@@ -205,7 +210,7 @@ export function buildConsultationView(
             rows: diagramRows(hexagram).map((standing, i) => ({
               standing,
               emerging: {
-                line: emerging[5 - i]!,
+                line: emergingTopFirst[i]!,
                 position: standing.position,
                 moving: false,
               },
