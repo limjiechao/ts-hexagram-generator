@@ -88,14 +88,20 @@ letting the renderers become thin.
 ## Where it's enforced
 
 - `pnpm-workspace.yaml` — `domain/*` + `cli/*` globs (replacing `packages/*` + `apps/*`).
-- `dependency-cruiser.config.cjs` — the `no-domain-to-cli` forbidden rule (severity
-  `error`), run as `pnpm boundaries:check` and wired into Turbo + `check:all`; forbids any
-  `domain/* → cli/*` edge across the resolved module graph.
-- `dependency-cruiser.config.cjs` — the `no-raw-string-width` forbidden rule (severity
-  `error`): only `cli/viewer-core` may import the `string-width` package; every other
-  `cli/*` measures rendered width through viewer-core's ANSI-aware `terminalWidth`
-  wrapper. Distinct by design from `domain/text-layout`'s `visualWidth` (raw, un-ANSI'd
-  diagram text), so chrome width and diagram geometry stay separate homes.
+- `eslint.config.js` — a `no-restricted-imports` override scoped to `domain/**/*.{ts,tsx}`
+  (severity `error`) lists the seven `cli/*` package names as forbidden `paths`, so any
+  `domain/* → cli/*` import fails the build. Run by `pnpm lint:check` and wired into Turbo
+  `lint:check` + `check:all` / `check:affected`.
+- `eslint.config.js` — a `no-restricted-imports` override scoped to `cli/**/src/**/*.{ts,tsx}`
+  with `cli/viewer-core/**` ignored (severity `error`) forbids the `string-width` package:
+  only `cli/viewer-core` may import it directly; every other `cli/*` measures rendered width
+  through viewer-core's ANSI-aware `terminalWidth` wrapper. Distinct by design from
+  `domain/text-layout`'s `visualWidth` (raw, un-ANSI'd diagram text), so chrome width and
+  diagram geometry stay separate homes.
+- The enforcement MECHANISM moved from dependency-cruiser (`dependency-cruiser.config.cjs`,
+  `pnpm boundaries:check`) to these ESLint `no-restricted-imports` overrides; the boundary
+  DECISION is unchanged. As a side effect the boundary now also covers domain `tests/` and
+  `scripts/` (dependency-cruiser excluded those paths).
 - `domain/consultation-view/` — the medium-neutral IR: presentation vocabulary, section
   order, ledger geometry.
 - `domain/core/` — line semantics (`@hexagram/core/line-semantics`: `isMovingLine`, the

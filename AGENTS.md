@@ -89,7 +89,7 @@ you suppress the local craft of this codebase.
 
 ## Repository layout
 
-This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under three top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, manual invariants, presentation IR); `cli/*` holds the medium-bound terminal-layer libraries (chrome, serializers, Ink UIs); `apps/*` holds the runnable apps (the CLI bins package). A `domain/* → cli/*` import is a build-failing lint error (`pnpm boundaries:check`). `apps/*` sits at the top of the DAG and may depend on both `cli/*` and `domain/*`. See `docs/adr/0019-domain-cli-boundary.md`.
+This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Packages live under three top-level buckets: `domain/*` holds the medium-neutral, reusable layer (algorithm, data, types, line semantics, manual invariants, presentation IR); `cli/*` holds the medium-bound terminal-layer libraries (chrome, serializers, Ink UIs); `apps/*` holds the runnable apps (the CLI bins package). A `domain/* → cli/*` import is a build-failing lint error (an ESLint `no-restricted-imports` rule scoped to `domain/**`, run by `pnpm lint:check`). `apps/*` sits at the top of the DAG and may depend on both `cli/*` and `domain/*`. See `docs/adr/0019-domain-cli-boundary.md`.
 
 ```
 ts-hexagram-generator/             # workspace root (private)

@@ -28,9 +28,6 @@ jobs:
       - name: Lint
         run: pnpm run lint:check
 
-      - name: Boundaries
-        run: pnpm run boundaries:check
-
       - name: Typecheck
         run: pnpm run type:check
 
