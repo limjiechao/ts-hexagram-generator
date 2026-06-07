@@ -1,5 +1,9 @@
 import { deriveSplit } from '@hexagram/core/casting-derivation'
-import type { PartialCastingRecord } from '@hexagram/core/types'
+import {
+  POSITIONS_TOP_FIRST,
+  type LineIndex,
+  type PartialCastingRecord,
+} from '@hexagram/core/types'
 
 import type { LedgerRow } from './ir.js'
 
@@ -25,14 +29,11 @@ export function castingTableFollowRow(lineIndex: number): number {
 export function buildLedgerRows(
   casting: PartialCastingRecord,
 ): readonly LedgerRow[] {
-  const lineOrder = [
-    [6, casting[5]],
-    [5, casting[4]],
-    [4, casting[3]],
-    [3, casting[2]],
-    [2, casting[1]],
-    [1, casting[0]],
-  ] as const
+  // Top-first line numbers (6 → 1) paired with their bottom-first casting cell
+  // (`casting[lineNumber - 1]`) — the same flip the diagram rows use.
+  const lineOrder = POSITIONS_TOP_FIRST.map(
+    (lineNumber) => [lineNumber, casting[(lineNumber - 1) as LineIndex]] as const,
+  )
   const rows: LedgerRow[] = []
   for (const [blockIndex, [lineNumber, lineCasting]] of lineOrder.entries()) {
     const [cast1, cast2, cast3] = lineCasting
