@@ -17,7 +17,7 @@ A TypeScript library that implements the Yarrow Stalk Method for generating I Ch
 
 ## Monorepo layout
 
-The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under three top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR), `cli/*` (medium-bound terminal-layer libraries — chrome, serializers, Ink UIs), and `apps/*` (runnable apps — the CLI bins). A `domain/* → cli/*` import is a lint error; `apps/*` sits at the top of the DAG and may depend on both. See [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
+The repo is a **Turborepo + pnpm-workspaces** monorepo. The root is private. Packages live under three top-level buckets: `domain/*` (medium-neutral, reusable — algorithm, data, types, presentation IR), `cli/*` (medium-bound terminal-layer libraries — chrome, serializers, Ink UIs), and `apps/*` (runnable apps — the CLI bins). A `domain/* → cli/*` import is a lint error (enforced by ESLint, via `pnpm lint:check`); `apps/*` sits at the top of the DAG and may depend on both. See [docs/adr/0019](docs/adr/0019-domain-cli-boundary.md).
 
 | Package                       | Description                                                                                                                                                                                                                               |
 | ----------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

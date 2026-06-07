@@ -1,6 +1,30 @@
 import { sxzz } from '@sxzz/eslint-config'
 import oxlint from 'eslint-plugin-oxlint'
 
+// S17 drift-guard (ADR-0004/0005): every relative import must carry an explicit
+// `.js` extension. Hoisted to a module-level const because ESLint flat config
+// does NOT merge two configs' `no-restricted-imports` — the last matching config
+// wins outright for that rule key. Each scoped override below that adds `paths`
+// MUST re-list this pattern, or the extension guard silently dies for that file
+// set. One authoritative copy here, referenced everywhere.
+const explicitJsExtensionPattern = {
+  regex: String.raw`^\.{1,2}/.*(?<!\.(?:js|mjs|cjs|json|css))$`,
+  message:
+    'Relative imports must use an explicit `.js` extension (ADR-0004); bundler resolution maps it back to the `.ts`/`.tsx` source.',
+}
+
+// The seven cli/* package names (ADR-0019 boundary). domain/* may not import any
+// of them: the dependency arrow points cli → domain, never the reverse.
+const cliPackageNames = [
+  '@hexagram/viewer-core',
+  '@hexagram/readout',
+  '@hexagram/casting-ui',
+  '@hexagram/history-ui',
+  '@hexagram/playground-ui',
+  '@hexagram/shell',
+  '@hexagram/test-utils',
+]
+
 export default sxzz().append(
   {
     // Planning docs under docs/ contain illustrative TypeScript snippets
@@ -46,22 +70,53 @@ export default sxzz().append(
   },
   ...oxlint.buildFromOxlintConfigFile('./.oxlintrc.json'),
   {
-    // S17 drift-guard (ADR-0004/0005): every relative import must carry an
-    // explicit `.js` extension. oxlint's `import/extensions` can't host this —
-    // it resolves the specifier to disk and rejects `.js`-for-`.ts`. This core
-    // ESLint rule matches the literal specifier STRING instead, so it accepts
-    // the `.js`-written-`.ts` convention. The regex flags any `./` or `../`
-    // import that does not end in a real extension. Placed after the oxlint
-    // spread so it is the final word for these files.
+    // Global `.js`-extension drift-guard (ADR-0004/0005). oxlint's
+    // `import/extensions` can't host this — it resolves the specifier to disk
+    // and rejects `.js`-for-`.ts`. This core ESLint rule matches the literal
+    // specifier STRING instead, so it accepts the `.js`-written-`.ts`
+    // convention. Placed after the oxlint spread, and BEFORE the two scoped
+    // overrides below, so each scoped block (which re-lists this pattern) wins
+    // for its file set without losing the extension guard.
+    rules: {
+      'no-restricted-imports': ['error', { patterns: [explicitJsExtensionPattern] }],
+    },
+  },
+  {
+    // ADR-0019 boundary: domain/* must not import cli/*. The dependency arrow
+    // points cli → domain. Re-lists the extension pattern because flat config
+    // replaces (does not merge) this rule key for the matched files.
+    files: ['domain/**/*.{ts,tsx}'],
     rules: {
       'no-restricted-imports': [
         'error',
         {
-          patterns: [
+          patterns: [explicitJsExtensionPattern],
+          paths: cliPackageNames.map((name) => ({
+            name,
+            message:
+              'domain/* must not import cli/* (ADR-0019): the dependency arrow points cli → domain. Express the intent medium-neutrally (consultation-view IR or text-layout) and let a cli/* serializer render it.',
+          })),
+        },
+      ],
+    },
+  },
+  {
+    // ADR-0019 boundary: only cli/viewer-core may import `string-width` directly;
+    // every other cli/* measures rendered width through viewer-core's ANSI-aware
+    // `terminalWidth` wrapper. Re-lists the extension pattern for the same
+    // flat-config replace-semantics reason as above.
+    files: ['cli/**/src/**/*.{ts,tsx}'],
+    ignores: ['cli/viewer-core/**'],
+    rules: {
+      'no-restricted-imports': [
+        'error',
+        {
+          patterns: [explicitJsExtensionPattern],
+          paths: [
             {
-              regex: String.raw`^\.{1,2}/.*(?<!\.(?:js|mjs|cjs|json|css))$`,
+              name: 'string-width',
               message:
-                'Relative imports must use an explicit `.js` extension (ADR-0004); bundler resolution maps it back to the `.ts`/`.tsx` source.',
+                'Import rendered-string width via @hexagram/viewer-core (terminalWidth and the truncate/pad helpers), not string-width directly (ADR-0019). viewer-core is the sole exempt wrapper.',
             },
           ],
         },

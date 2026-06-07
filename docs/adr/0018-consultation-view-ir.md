@@ -101,5 +101,5 @@ without pulling in any terminal code.
   serializer of the IR identity/diagram subset.
 - the byte-locked fixtures (`cli/casting-ui/tests/fixtures/*`,
   `domain/consultation-file/tests/fixtures/*`) — the standing regression gate.
-- the dependency-cruiser `no-domain-to-cli` rule — keeps `consultation-view`
-  UI-free.
+- the ESLint `no-restricted-imports` `domain/**` cli-import boundary
+  ([ADR-0019](0019-domain-cli-boundary.md)) — keeps `consultation-view` UI-free.
