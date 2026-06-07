@@ -126,22 +126,22 @@ describe('CLI', () => {
       // The casting record captures all 18 splits: 6 lines × 3 divisions.
       expect(casting).toHaveLength(6)
       expect(casting.every((line) => line.length === 3)).toBe(true)
-      // Every mocked pick was 1; the first division records max 48 (= stalks
-      // - 1; the selectable pick range is 1–47, reserving the right heap's
-      // countable stalk so the remainder is never 0).
+      // Every mocked pick was 1; the first division records recordedMax 48 (=
+      // stalks - 1; the selectable pick range is 1–47, reserving the right
+      // heap's countable stalk so the remainder is never 0).
       expect(casting.flat().map((split) => split.pick)).toEqual(
         Array.from({ length: 18 }, () => 1),
       )
-      expect(casting[0][0]).toEqual({ pick: 1, max: 48 })
+      expect(casting[0][0]).toEqual({ pick: 1, recordedMax: 48 })
     })
 
     it('should handle different valid split indices', async () => {
       // Line 1 uses each round's selectable CEILING (47, 42, 38) — one below the
-      // recorded max (48, 43, 39). The ceiling is the largest pick `performCast`
-      // accepts; a pick equal to the recorded max empties the right heap after
+      // recordedMax (48, 43, 39). The ceiling is the largest pick `performCast`
+      // accepts; a pick equal to the recordedMax empties the right heap after
       // suspension and is rejected (never-zero-remainder invariant, ADR-0006).
-      // The ceilings yield the same line value (9) as the old degenerate max
-      // picks did, so the hexagram is unchanged.
+      // The ceilings yield the same line value (9) as the old degenerate
+      // recordedMax picks did, so the hexagram is unchanged.
       const mockNumberPromptInputs: MockNumberPromptInputs = {
         type: 'valid',
         inputs: [
@@ -163,7 +163,7 @@ describe('CLI', () => {
       expect(casting.flat().map((split) => split.pick)).toEqual([
         47, 42, 38, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
       ])
-      expect(casting[0][0].max).toBe(48)
+      expect(casting[0][0].recordedMax).toBe(48)
     })
   })
 

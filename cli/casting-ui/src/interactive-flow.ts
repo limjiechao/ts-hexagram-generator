@@ -15,12 +15,12 @@ import { getUserQuery } from './prompts.js'
 
 async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
   const min = 1
-  const max = unpartedStalks.length - 1
-  // The selectable ceiling is one below the recorded `max`, so the right heap
+  const recordedMax = unpartedStalks.length - 1
+  // The selectable ceiling is one below the recorded ceiling, so the right heap
   // keeps a countable stalk after suspension and its remainder is never 0. We
-  // still RECORD the full `max` so the readout and conservation are unchanged.
-  // The rule lives in `@hexagram/core` — see `selectablePickMax`.
-  const pickMax = selectablePickMax(max)
+  // still RECORD the full `recordedMax` so the readout and conservation are
+  // unchanged. The rule lives in `@hexagram/core` — see `selectablePickMax`.
+  const pickMax = selectablePickMax(recordedMax)
 
   const pick = await number({
     message: `Divide the stalks. Pick a number from ${min} to ${pickMax}.`,
@@ -30,7 +30,7 @@ async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
     required: true,
   })
 
-  return { pick, max }
+  return { pick, recordedMax }
 }
 
 /**
