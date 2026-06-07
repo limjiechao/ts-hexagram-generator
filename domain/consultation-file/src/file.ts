@@ -73,6 +73,7 @@ export async function saveConsultationFile(params: {
     params.query,
     params.hexagram,
     params.casting,
+    params.casting === null ? params.castingAbsence! : null,
   )
   const text = serializeFrontmatter(
     {
