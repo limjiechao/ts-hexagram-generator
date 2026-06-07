@@ -78,7 +78,7 @@ conservation, and the saved file are untouched.
   resurrected. We drop that recovery deliberately — `deriveSplit` still renders
   such a record for display, but the algorithm of record won't reproduce it.
   As of 2026-06-07 ([ADR-0008](0008-consultation-file-format.md)) that null is
-  tagged `castingAbsence: legacy-unreplayable` — the *fact of* unreplayability is
+  tagged `castingAbsence: legacy-unreplayable` — the _fact of_ unreplayability is
   now recorded, even though the casting data itself still is not recovered.
 
 ## Where it's enforced
