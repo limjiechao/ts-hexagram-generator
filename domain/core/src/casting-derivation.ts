@@ -25,6 +25,16 @@ export const selectablePickMax = (recordedMax: number): number =>
   recordedMax - 1
 
 /**
+ * stalkCountFor(recordedMax) = recordedMax + 1 is the inverse of the `− 1` that
+ * `SplitRecord.max` bakes in: `max` is the unparted stalk count minus the one
+ * suspended stalk (掛一), so adding it back recovers the true count of stalks
+ * before this division. The slider/manual readouts show this as `Stalks: <n>`.
+ * Paired with `selectablePickMax` so the two `± 1` conversions around the
+ * recorded ceiling each have exactly one named owner.
+ */
+export const stalkCountFor = (recordedMax: number): number => recordedMax + 1
+
+/**
  * Throw a `RangeError` unless `pick` is a strictly-interior split of a round's
  * stalk pile: `1 ≤ pick ≤ selectablePickMax(recordedMax)`. This is the runtime
  * guard behind the never-zero-remainder invariant (see `selectablePickMax`);
@@ -49,7 +59,7 @@ export const assertSelectablePick = (
  * heap before sorting), so `leftHeap + rightHeap === stalks`.
  */
 export interface DerivedSplit {
-  /** unparted stalks at the start of this cast (`max + 1`) */
+  /** unparted stalks at the start of this cast (`stalkCountFor(max)`) */
   stalks: number
   /** left heap size (`pick`) */
   leftHeap: number
@@ -77,7 +87,7 @@ export interface DerivedSplit {
  * `1 + leftRemainder + rightRemainder + 4 * combinedPiles === stalks`.
  */
 export function deriveSplit({ pick, max }: SplitRecord): DerivedSplit {
-  const stalks = max + 1
+  const stalks = stalkCountFor(max)
   const leftHeap = pick
   const rightHeap = max - pick + 1
   const leftRemainder = neverZeroMod4(pick)
