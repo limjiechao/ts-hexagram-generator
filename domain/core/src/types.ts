@@ -66,6 +66,35 @@ export type CastingRecord = [
   LineCasting,
 ]
 
+/**
+ * Why a consultation has no recorded casting. Present in the saved envelope only
+ * when `casting` is absent (see ADR-0008). The three origins are otherwise
+ * indistinguishable:
+ *  - 'legacy-no-table'    — migrated legacy .txt with no CASTING table (also the
+ *                           read-time default for pre-field null-casting files).
+ *  - 'legacy-unreplayable'— migrated legacy .txt whose table failed replay.
+ *  - 'playground'         — saved from the playground line-explorer (never cast).
+ */
+export type CastingAbsenceReason =
+  | 'legacy-no-table'
+  | 'legacy-unreplayable'
+  | 'playground'
+
+const CASTING_ABSENCE_REASONS: readonly CastingAbsenceReason[] = [
+  'legacy-no-table',
+  'legacy-unreplayable',
+  'playground',
+]
+
+export function isCastingAbsenceReason(
+  value: unknown,
+): value is CastingAbsenceReason {
+  return (
+    typeof value === 'string' &&
+    (CASTING_ABSENCE_REASONS as readonly string[]).includes(value)
+  )
+}
+
 const isSplitRecord = (value: unknown): value is SplitRecord =>
   typeof value === 'object' &&
   value !== null &&
