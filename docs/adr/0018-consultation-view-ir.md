@@ -79,7 +79,12 @@ without pulling in any terminal code.
   sections in their switch arms. Hexagram-level text is emitted as `text:hexagram`
   (ANSI-only; Markdown folds it into the trailing LINES block via the no-moving
   `lines:none` section, Markdown-only). `buildConsultationView` is the sole owner of
-  visibility.
+  visibility. The per-section `media:[...]` literals are tabulated once as a section→medium
+  matrix comment directly above `buildConsultationView` — the single survey point
+  for "which sections each medium shows." `serializeConsultationTabs`
+  (`cli/readout/src/serialize-ansi.ts`) is a third, order-independent re-grouping
+  of the same sections by `kind`/`role` into the four viewer tabs; it consults the
+  same `media` flag (it does not introduce a second visibility rule).
 - **Mid-flow casting renders from the `buildLedgerRows` subset**, not a
   sentinel-hexagram round-trip through the full assembly.
 
