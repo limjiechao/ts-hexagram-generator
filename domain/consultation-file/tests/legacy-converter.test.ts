@@ -74,9 +74,9 @@ describe('convertLegacyTxt — SPLIT casting table', () => {
     expect(replayHexagram(result.envelope.casting!)).toEqual(
       result.envelope.hexagram,
     )
-    // SPLIT format: "Split" column is the left heap = pick; "Stalks" = max.
+    // SPLIT format: "Split" column is the left heap = pick; "Stalks" = recordedMax.
     // Line 1 / cast 1 of the real file: Stalks 48, Split 5.
-    expect(result.envelope.casting?.[0][0]).toEqual({ pick: 5, max: 48 })
+    expect(result.envelope.casting?.[0][0]).toEqual({ pick: 5, recordedMax: 48 })
   })
 })
 

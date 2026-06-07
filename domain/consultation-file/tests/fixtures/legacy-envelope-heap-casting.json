@@ -7,85 +7,85 @@
     [
       {
         "pick": 25,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 20,
-        "max": 43
+        "recordedMax": 43
       },
       {
         "pick": 9,
-        "max": 35
+        "recordedMax": 35
       }
     ],
     [
       {
         "pick": 25,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 16,
-        "max": 43
+        "recordedMax": 43
       },
       {
         "pick": 14,
-        "max": 35
+        "recordedMax": 35
       }
     ],
     [
       {
         "pick": 20,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 20,
-        "max": 39
+        "recordedMax": 39
       },
       {
         "pick": 17,
-        "max": 31
+        "recordedMax": 31
       }
     ],
     [
       {
         "pick": 23,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 19,
-        "max": 43
+        "recordedMax": 43
       },
       {
         "pick": 17,
-        "max": 35
+        "recordedMax": 35
       }
     ],
     [
       {
         "pick": 16,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 19,
-        "max": 39
+        "recordedMax": 39
       },
       {
         "pick": 19,
-        "max": 31
+        "recordedMax": 31
       }
     ],
     [
       {
         "pick": 22,
-        "max": 48
+        "recordedMax": 48
       },
       {
         "pick": 24,
-        "max": 43
+        "recordedMax": 43
       },
       {
         "pick": 19,
-        "max": 35
+        "recordedMax": 35
       }
     ]
   ],

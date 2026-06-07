@@ -80,7 +80,7 @@ function extractHexagram(text: string): Hexagram | null {
 }
 
 /**
- * Per-line, bottom-first casting splits: each row is the three `(max, pick)`
+ * Per-line, bottom-first casting splits: each row is the three `(recordedMax, pick)`
  * pairs for casts 1–3. `null` means no parseable table was found.
  */
 type RawSplits = [[number, number], [number, number], [number, number]]
@@ -120,9 +120,9 @@ function extractCasting(text: string, expected: Hexagram): ExtractedCasting {
 
 function splitsToLineCasting(row: RawSplits): LineCasting {
   return [
-    { pick: row[0][1], max: row[0][0] },
-    { pick: row[1][1], max: row[1][0] },
-    { pick: row[2][1], max: row[2][0] },
+    { pick: row[0][1], recordedMax: row[0][0] },
+    { pick: row[1][1], recordedMax: row[1][0] },
+    { pick: row[2][1], recordedMax: row[2][0] },
   ]
 }
 
@@ -130,12 +130,12 @@ function splitsToLineCasting(row: RawSplits): LineCasting {
  * HEAP vintage — `Stalks | Left Heap | Right Heap` columns, bare numeric row
  * labels (`6`..`1`). Data rows look like:
  *   │    6 │     48 │    22 │    26 │     43 │    24 │    19 │     35 │    19 │    16 │
- * The `Stalks` column is the round's `max`; `Left Heap` is the `pick`.
+ * The `Stalks` column is the round's `recordedMax`; `Left Heap` is the `pick`.
  */
 function parseHeapTable(text: string): Record<number, RawSplits> | null {
-  // Right Heap columns are non-capturing — they are `max − pick` and carry no
-  // information the parser needs beyond `Stalks` (`max`) and `Left Heap`
-  // (`pick`).
+  // Right Heap columns are non-capturing — they are `recordedMax − pick` and
+  // carry no information the parser needs beyond `Stalks` (`recordedMax`) and
+  // `Left Heap` (`pick`).
   const rowRegex =
     /^│\s+(\d)\s+│\s+(\d+)\s+│\s+(\d+)\s+│\s+\d+\s+│\s+(\d+)\s+│\s+(\d+)\s+│\s+\d+\s+│\s+(\d+)\s+│\s+(\d+)\s+│\s+\d+\s+│/gm
   const rows: Record<number, RawSplits> = {}
@@ -161,7 +161,7 @@ function parseHeapTable(text: string): Record<number, RawSplits> | null {
  *   │    6 │     48 │    19 │     43 │    40 │     35 │    16 │
  * The seven-numeric-field shape (one row label + three `Stalks`/`Split`
  * pairs) is what tells a SPLIT row apart from a ten-field HEAP row.
- * The `Stalks` column is the round's `max`; `Split` is the left heap = `pick`.
+ * The `Stalks` column is the round's `recordedMax`; `Split` is the left heap = `pick`.
  */
 function parseSplitTable(text: string): Record<number, RawSplits> | null {
   const rowRegex =
