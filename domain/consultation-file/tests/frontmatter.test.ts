@@ -90,6 +90,8 @@ const envelope: ConsultationEnvelope = {
   query: 'Will the harvest be plentiful?',
   hexagram: [7, 8, 7, 8, 7, 8],
   casting: sampleCasting,
+  // A present casting carries no absence reason.
+  castingAbsence: null,
 }
 
 describe('serializeFrontmatter', () => {
@@ -170,7 +172,13 @@ describe('parseFrontmatter', () => {
 })
 
 describe('nullable casting', () => {
-  const noCasting: ConsultationEnvelope = { ...envelope, casting: null }
+  // A null casting must carry a reason; serialize defaults to 'legacy-no-table'
+  // and parse defaults an absent field to the same, so this round-trips cleanly.
+  const noCasting: ConsultationEnvelope = {
+    ...envelope,
+    casting: null,
+    castingAbsence: 'legacy-no-table',
+  }
 
   it('omits the casting key entirely when casting is null', () => {
     const text = serializeFrontmatter(noCasting, 'BODY')
@@ -191,5 +199,85 @@ describe('nullable casting', () => {
     const result = parseFrontmatter(text)
     if (!result.ok) throw new Error(`expected ok, got ${result.reason}`)
     expect(result.data.envelope).toEqual(noCasting)
+  })
+})
+
+const baseHexagram = [7, 7, 7, 7, 7, 7] as const
+
+function nullCastingEnvelope(
+  reason: 'legacy-no-table' | 'legacy-unreplayable' | 'playground',
+): ConsultationEnvelope {
+  return {
+    schemaVersion: 1,
+    timestamp: '2026-06-07T10:00:00+0800',
+    query: 'q',
+    hexagram: [...baseHexagram] as ConsultationEnvelope['hexagram'],
+    casting: null,
+    castingAbsence: reason,
+  }
+}
+
+describe('castingAbsence frontmatter', () => {
+  it('serializes castingAbsence when casting is null and omits the casting key', () => {
+    const text = serializeFrontmatter(nullCastingEnvelope('playground'), 'body')
+    expect(text).toMatch(/^castingAbsence: playground$/m)
+    expect(text).not.toMatch(/^casting:/m)
+  })
+
+  it('round-trips each reason', () => {
+    for (const reason of [
+      'legacy-no-table',
+      'legacy-unreplayable',
+      'playground',
+    ] as const) {
+      const text = serializeFrontmatter(nullCastingEnvelope(reason), 'body')
+      const parsed = parseFrontmatter(text)
+      expect(parsed.ok).toBe(true)
+      if (parsed.ok) {
+        expect(parsed.data.envelope.casting).toBeNull()
+        expect(parsed.data.envelope.castingAbsence).toBe(reason)
+      }
+    }
+  })
+
+  it('defaults a pre-field null-casting file to legacy-no-table', () => {
+    // A file written before this field: no `casting`, no `castingAbsence`.
+    const legacy =
+      '---\nschemaVersion: 1\ntimestamp: 2026-01-01T00:00:00+0800\nquery: q\n' +
+      'hexagram:\n  L6: 7\n  L5: 7\n  L4: 7\n  L3: 7\n  L2: 7\n  L1: 7\n---\n\nbody\n'
+    const parsed = parseFrontmatter(legacy)
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) {
+      expect(parsed.data.envelope.casting).toBeNull()
+      expect(parsed.data.envelope.castingAbsence).toBe('legacy-no-table')
+    }
+  })
+
+  it('a present casting carries a null castingAbsence', () => {
+    const text =
+      '---\nschemaVersion: 1\ntimestamp: 2026-01-01T00:00:00+0800\nquery: q\n' +
+      'hexagram:\n  L6: 7\n  L5: 7\n  L4: 7\n  L3: 7\n  L2: 7\n  L1: 7\n' +
+      'casting:\n  L6:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
+      '  L5:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
+      '  L4:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
+      '  L3:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
+      '  L2:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
+      '  L1:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n---\n\nbody\n'
+    const parsed = parseFrontmatter(text)
+    expect(parsed.ok).toBe(true)
+    if (parsed.ok) {
+      expect(parsed.data.envelope.casting).not.toBeNull()
+      expect(parsed.data.envelope.castingAbsence).toBeNull()
+    }
+  })
+
+  it('rejects an unknown castingAbsence value as invalid-shape', () => {
+    const bad =
+      '---\nschemaVersion: 1\ntimestamp: 2026-01-01T00:00:00+0800\nquery: q\n' +
+      'hexagram:\n  L6: 7\n  L5: 7\n  L4: 7\n  L3: 7\n  L2: 7\n  L1: 7\n' +
+      'castingAbsence: bogus\n---\n\nbody\n'
+    const parsed = parseFrontmatter(bad)
+    expect(parsed.ok).toBe(false)
+    if (!parsed.ok) expect(parsed.reason).toBe('invalid-shape')
   })
 })
