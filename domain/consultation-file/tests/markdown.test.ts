@@ -5,34 +5,34 @@ import { markdownConsultationBody } from '../src/markdown.js'
 
 const casting: CastingRecord = [
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
   [
-    { pick: 1, max: 48 },
-    { pick: 2, max: 43 },
-    { pick: 3, max: 39 },
+    { pick: 1, recordedMax: 48 },
+    { pick: 2, recordedMax: 43 },
+    { pick: 3, recordedMax: 39 },
   ],
 ]
 

@@ -60,34 +60,34 @@ const linesMarkdownBlock = (hexagram: Hexagram): string =>
 
 const casting = [
   [
-    { pick: 27, max: 48 },
-    { pick: 28, max: 43 },
-    { pick: 30, max: 39 },
+    { pick: 27, recordedMax: 48 },
+    { pick: 28, recordedMax: 43 },
+    { pick: 30, recordedMax: 39 },
   ],
   [
-    { pick: 22, max: 48 },
-    { pick: 23, max: 43 },
-    { pick: 29, max: 35 },
+    { pick: 22, recordedMax: 48 },
+    { pick: 23, recordedMax: 43 },
+    { pick: 29, recordedMax: 35 },
   ],
   [
-    { pick: 17, max: 48 },
-    { pick: 24, max: 43 },
-    { pick: 14, max: 35 },
+    { pick: 17, recordedMax: 48 },
+    { pick: 24, recordedMax: 43 },
+    { pick: 14, recordedMax: 35 },
   ],
   [
-    { pick: 22, max: 48 },
-    { pick: 34, max: 43 },
-    { pick: 25, max: 39 },
+    { pick: 22, recordedMax: 48 },
+    { pick: 34, recordedMax: 43 },
+    { pick: 25, recordedMax: 39 },
   ],
   [
-    { pick: 10, max: 48 },
-    { pick: 26, max: 43 },
-    { pick: 33, max: 39 },
+    { pick: 10, recordedMax: 48 },
+    { pick: 26, recordedMax: 43 },
+    { pick: 33, recordedMax: 39 },
   ],
   [
-    { pick: 12, max: 48 },
-    { pick: 20, max: 39 },
-    { pick: 18, max: 31 },
+    { pick: 12, recordedMax: 48 },
+    { pick: 20, recordedMax: 39 },
+    { pick: 18, recordedMax: 31 },
   ],
 ] as const
 
