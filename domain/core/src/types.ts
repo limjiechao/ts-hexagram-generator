@@ -69,10 +69,14 @@ export const assertIsFourOperationsResult: (
 }
 
 // One stalk division: the index the stalks were parted at (`pick`) and the
-// largest index that was selectable for that round (`max`, i.e. the prompt's
-// "Pick a number from 1 to max"). Captured for both interactive picks and
-// RNG-chosen splits so the casting can be replayed.
-export type SplitRecord = { pick: number; max: number }
+// RECORDED ceiling for that round (`recordedMax` = `unparted − 1`, reserving the
+// one suspended stalk 掛一). `recordedMax` is NOT a legal pick: the selectable
+// range is `[1, recordedMax − 1]` = `[1, selectablePickMax(recordedMax)]` (see
+// `casting-derivation.ts`). The field is PERSISTED — the on-disk YAML casting key
+// is `recordedMax` too (no converter remap; no schemaVersion bump; ADR-0008).
+// Captured for both interactive picks and RNG-chosen splits so the casting can
+// be replayed.
+export type SplitRecord = { pick: number; recordedMax: number }
 // The three divisions (三變) that produce one line.
 export type LineCasting = [SplitRecord, SplitRecord, SplitRecord]
 // All eighteen divisions (十有八變) that produce a hexagram, in casting order
@@ -119,9 +123,9 @@ const isSplitRecord = (value: unknown): value is SplitRecord =>
   typeof value === 'object' &&
   value !== null &&
   'pick' in value &&
-  'max' in value &&
+  'recordedMax' in value &&
   typeof value.pick === 'number' &&
-  typeof value.max === 'number'
+  typeof value.recordedMax === 'number'
 
 const isLineCasting = (value: unknown): value is LineCasting =>
   Array.isArray(value) && value.length === 3 && value.every(isSplitRecord)
