@@ -32,9 +32,9 @@ export const getOneRandomLine = function* (): Generator<
   /* Return */ void,
   /* Next */ void
 > {
-  // `max` mirrors the selectable range an interactive prompt would show for
-  // this round ("Pick a number from 1 to max"), so RNG castings replay the
-  // same way as interactive ones.
+  // `recordedMax` mirrors the selectable range an interactive prompt would show
+  // for this round ("Pick a number from 1 to recordedMax"), so RNG castings
+  // replay the same way as interactive ones.
   const firstMax = stalksBeforeParting.length - 1
   const firstSplit = splitStalksRandomly(stalksBeforeParting)
   const roundOneArguments = {
@@ -67,9 +67,9 @@ export const getOneRandomLine = function* (): Generator<
     line,
     rounds: [roundOneResults, roundTwoResults, roundThreeResults] as const,
     splits: [
-      { pick: firstSplit, max: firstMax },
-      { pick: secondSplit, max: secondMax },
-      { pick: thirdSplit, max: thirdMax },
+      { pick: firstSplit, recordedMax: firstMax },
+      { pick: secondSplit, recordedMax: secondMax },
+      { pick: thirdSplit, recordedMax: thirdMax },
     ],
   }
 }

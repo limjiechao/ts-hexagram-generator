@@ -37,8 +37,8 @@ describe('splitStalksRandomly (pick ceiling)', () => {
       for (let iteration = 0; iteration < 5_000; iteration += 1) {
         const pick = splitStalksRandomly(unparted)
         expect(pick).toBeGreaterThanOrEqual(1)
-        // `length - 1` is the recorded `SplitRecord.max`; the ceiling is one
-        // below it.
+        // `length - 1` is the recorded `SplitRecord.recordedMax`; the ceiling is
+        // one below it.
         expect(pick).toBeLessThanOrEqual(length - 2)
       }
     }
@@ -159,8 +159,8 @@ describe('rng distribution (slow)', () => {
 // S3 lock-in: every RNG-drawn pick must satisfy the core's never-zero guard, so
 // the random flow — which now routes each pick through `performCast`
 // (`assertSelectablePick`) in the viewer's reducer — can never surface a thrown
-// RangeError to the user. `SplitRecord.max` is the recorded max for that round;
-// the pick must stay in `[1, selectablePickMax(max)]`. Mirrors the manual
+// RangeError to the user. `SplitRecord.recordedMax` is the recorded max for that
+// round; the pick must stay in `[1, selectablePickMax(recordedMax)]`. Mirrors the manual
 // flow's "manual 'ok' picks satisfy the core never-zero guard" property.
 describe('random picks satisfy the core never-zero guard', () => {
   test('every plan pick passes assertSelectablePick across 200 consultations', () => {
@@ -169,7 +169,7 @@ describe('random picks satisfy the core never-zero guard', () => {
       for (const line of casting) {
         for (const split of line) {
           expect(() =>
-            assertSelectablePick(split.max, split.pick),
+            assertSelectablePick(split.recordedMax, split.pick),
           ).not.toThrow()
         }
       }
