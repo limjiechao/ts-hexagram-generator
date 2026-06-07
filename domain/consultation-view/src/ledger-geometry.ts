@@ -32,7 +32,8 @@ export function buildLedgerRows(
   // Top-first line numbers (6 → 1) paired with their bottom-first casting cell
   // (`casting[lineNumber - 1]`) — the same flip the diagram rows use.
   const lineOrder = POSITIONS_TOP_FIRST.map(
-    (lineNumber) => [lineNumber, casting[(lineNumber - 1) as LineIndex]] as const,
+    (lineNumber) =>
+      [lineNumber, casting[(lineNumber - 1) as LineIndex]] as const,
   )
   const rows: LedgerRow[] = []
   for (const [blockIndex, [lineNumber, lineCasting]] of lineOrder.entries()) {

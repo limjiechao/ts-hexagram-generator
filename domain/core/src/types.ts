@@ -50,7 +50,9 @@ export function isLineIndex(value: unknown): value is LineIndex {
  *  view layer. (The YAML converters in `@hexagram/consultation-file` name the
  *  SAME flip separately at the disk boundary — they build a keyed `L6..L1`
  *  mapping, a different operation; ADR-0008.) */
-export const POSITIONS_TOP_FIRST: readonly [6, 5, 4, 3, 2, 1] = [6, 5, 4, 3, 2, 1]
+export const POSITIONS_TOP_FIRST: readonly [6, 5, 4, 3, 2, 1] = [
+  6, 5, 4, 3, 2, 1,
+]
 
 /** Reverse a bottom-first 6-tuple into a top-first 6-tuple (index 0 = line 6).
  *  Used by the view builder for the transformation emerging row; replaces the
