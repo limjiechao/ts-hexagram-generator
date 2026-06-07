@@ -14,9 +14,9 @@ import {
 } from '../src/frontmatter.js'
 
 const sampleLine = (a: number, b: number, c: number): LineCasting => [
-  { pick: a, max: 48 },
-  { pick: b, max: 43 },
-  { pick: c, max: 39 },
+  { pick: a, recordedMax: 48 },
+  { pick: b, recordedMax: 43 },
+  { pick: c, recordedMax: 39 },
 ]
 
 const sampleCasting: CastingRecord = [
@@ -257,12 +257,12 @@ describe('castingAbsence frontmatter', () => {
     const text =
       '---\nschemaVersion: 1\ntimestamp: 2026-01-01T00:00:00+0800\nquery: q\n' +
       'hexagram:\n  L6: 7\n  L5: 7\n  L4: 7\n  L3: 7\n  L2: 7\n  L1: 7\n' +
-      'casting:\n  L6:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
-      '  L5:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
-      '  L4:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
-      '  L3:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
-      '  L2:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n' +
-      '  L1:\n    - {pick: 24, max: 48}\n    - {pick: 20, max: 43}\n    - {pick: 16, max: 39}\n---\n\nbody\n'
+      'casting:\n  L6:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
+      '  L5:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
+      '  L4:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
+      '  L3:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
+      '  L2:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
+      '  L1:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n---\n\nbody\n'
     const parsed = parseFrontmatter(text)
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
