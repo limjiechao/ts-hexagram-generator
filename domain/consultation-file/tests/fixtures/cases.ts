@@ -8,9 +8,9 @@ const lc = (
   m2 = 43,
   m3 = 39,
 ): LineCasting => [
-  { pick: p1, max: m1 },
-  { pick: p2, max: m2 },
-  { pick: p3, max: m3 },
+  { pick: p1, recordedMax: m1 },
+  { pick: p2, recordedMax: m2 },
+  { pick: p3, recordedMax: m3 },
 ]
 
 // Fixed timestamp string used in the full-file fixtures so the bytes stay locked.

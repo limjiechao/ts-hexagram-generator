@@ -12,46 +12,46 @@ hexagram:
 casting:
   L6:
     - pick: 3
-      max: 48
+      recordedMax: 48
     - pick: 29
-      max: 39
+      recordedMax: 39
     - pick: 20
-      max: 31
+      recordedMax: 31
   L5:
     - pick: 22
-      max: 48
+      recordedMax: 48
     - pick: 38
-      max: 39
+      recordedMax: 39
     - pick: 15
-      max: 35
+      recordedMax: 35
   L4:
     - pick: 30
-      max: 48
+      recordedMax: 48
     - pick: 12
-      max: 43
+      recordedMax: 43
     - pick: 1
-      max: 39
+      recordedMax: 39
   L3:
     - pick: 9
-      max: 48
+      recordedMax: 48
     - pick: 18
-      max: 43
+      recordedMax: 43
     - pick: 27
-      max: 35
+      recordedMax: 35
   L2:
     - pick: 41
-      max: 48
+      recordedMax: 48
     - pick: 7
-      max: 43
+      recordedMax: 43
     - pick: 36
-      max: 39
+      recordedMax: 39
   L1:
     - pick: 13
-      max: 48
+      recordedMax: 48
     - pick: 25
-      max: 43
+      recordedMax: 43
     - pick: 4
-      max: 39
+      recordedMax: 39
 ---
 
 ## QUERY
