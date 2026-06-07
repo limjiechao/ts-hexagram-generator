@@ -129,6 +129,7 @@ const MOVING_ENVELOPE: ConsultationEnvelope = {
   query: 'Why did this happen?',
   hexagram: [6, 7, 8, 9, 7, 8] as Hexagram,
   casting: CASTING,
+  castingAbsence: null,
 }
 
 /** A consultation with a null casting — e.g. migrated from a legacy `.txt`. */
@@ -138,6 +139,7 @@ const NULL_CASTING_ENVELOPE: ConsultationEnvelope = {
   query: 'A consultation with no recorded casting.',
   hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
   casting: null,
+  castingAbsence: 'legacy-no-table',
 }
 
 /** A second, older consultation — used for multi-row delete tests. */
@@ -147,6 +149,7 @@ const SECOND_ENVELOPE: ConsultationEnvelope = {
   query: 'Should I take the contract in Berlin?',
   hexagram: [7, 8, 7, 8, 7, 8] as Hexagram,
   casting: CASTING,
+  castingAbsence: null,
 }
 
 let tmpDir: string
