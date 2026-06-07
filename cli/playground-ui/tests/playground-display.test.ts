@@ -2,6 +2,7 @@
 // Ink — every assertion runs against the ANSI string output of
 // `buildPlaygroundDisplay`.
 
+import { TRIGRAM_DIVIDER_WIDTH } from '@hexagram/consultation-view/vocabulary'
 import { getHexagramRecord } from '@hexagram/core/getters'
 import { getEmergingHexagram } from '@hexagram/core/line-semantics'
 import type { Hexagram } from '@hexagram/core/types'
@@ -51,6 +52,10 @@ describe('buildPlaygroundDisplay', () => {
   describe('geometry constants', () => {
     it('LEFT_LINE_WIDTH = CHEVRON_WIDTH + BAR_BLOCK_WIDTH', () => {
       expect(LEFT_LINE_WIDTH).toBe(CHEVRON_WIDTH + BAR_BLOCK_WIDTH)
+    })
+
+    it('BAR_BLOCK_WIDTH is the IR per-side bar-block width (one decision, one home)', () => {
+      expect(BAR_BLOCK_WIDTH).toBe(TRIGRAM_DIVIDER_WIDTH)
     })
 
     it('TOP_HALF_ROWS = 13 (header + 6 lines + blank + 2 name + 1 divider + 2 trigram)', () => {
