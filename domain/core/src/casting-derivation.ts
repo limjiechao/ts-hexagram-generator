@@ -11,7 +11,7 @@ export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
 
 /**
  * selectablePickMax(recordedMax) = recordedMax − 1 is the DEFINITIONAL home of
- * the never-zero-remainder rule (a pick of `max` would leave the right heap one
+ * the never-zero-remainder rule (a pick of `recordedMax` would leave the right heap one
  * suspended stalk, nothing to count by fours, remainder 0). The slider, typed,
  * plain-Inquirer, and RNG flows clamp to this value. assertSelectablePick —
  * called by performCast, the algorithm of record — is the single RUNTIME
@@ -26,7 +26,7 @@ export const selectablePickMax = (recordedMax: number): number =>
 
 /**
  * stalkCountFor(recordedMax) = recordedMax + 1 is the inverse of the `− 1` that
- * `SplitRecord.max` bakes in: `max` is the unparted stalk count minus the one
+ * `SplitRecord.recordedMax` bakes in: `recordedMax` is the unparted stalk count minus the one
  * suspended stalk (掛一), so adding it back recovers the true count of stalks
  * before this division. The slider/manual readouts show this as `Stalks: <n>`.
  * Paired with `selectablePickMax` so the two `± 1` conversions around the
@@ -54,12 +54,12 @@ export const assertSelectablePick = (
 
 /**
  * Every intermediate quantity of one stalk division (一變), reconstructed from
- * its `{ pick, max }` record for display. `stalks` and `rightHeap` fold the one
+ * its `{ pick, recordedMax }` record for display. `stalks` and `rightHeap` fold the one
  * suspended stalk back in (it was part of the unparted stalks and the right
  * heap before sorting), so `leftHeap + rightHeap === stalks`.
  */
 export interface DerivedSplit {
-  /** unparted stalks at the start of this cast (`stalkCountFor(max)`) */
+  /** unparted stalks at the start of this cast (`stalkCountFor(recordedMax)`) */
   stalks: number
   /** left heap size (`pick`) */
   leftHeap: number
@@ -83,16 +83,16 @@ export interface DerivedSplit {
 
 /**
  * Reconstruct every intermediate quantity of one yarrow-stalk division from its
- * `{ pick, max }` record. Conservation holds for every division:
+ * `{ pick, recordedMax }` record. Conservation holds for every division:
  * `1 + leftRemainder + rightRemainder + 4 * combinedPiles === stalks`.
  */
-export function deriveSplit({ pick, max }: SplitRecord): DerivedSplit {
-  const stalks = stalkCountFor(max)
+export function deriveSplit({ pick, recordedMax }: SplitRecord): DerivedSplit {
+  const stalks = stalkCountFor(recordedMax)
   const leftHeap = pick
-  const rightHeap = max - pick + 1
+  const rightHeap = recordedMax - pick + 1
   const leftRemainder = neverZeroMod4(pick)
   const leftPiles = (pick - leftRemainder) / 4
-  const rightSorted = max - pick // right heap minus the 1 suspended stalk
+  const rightSorted = recordedMax - pick // right heap minus the 1 suspended stalk
   const rightRemainder = neverZeroMod4(rightSorted)
   const rightPiles = (rightSorted - rightRemainder) / 4
   return {
