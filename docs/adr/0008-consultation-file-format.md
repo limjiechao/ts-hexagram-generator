@@ -17,7 +17,15 @@ The envelope has six fields and nothing derived:
   to/from the bottom-first `Hexagram` tuple at the package boundary.
 - `casting` — a mapping keyed **`L6..L1` (visual top-first)**; a converter inverts
   to/from the bottom-first `CastingRecord` at the package boundary. **Absent** (no
-  key) when there is no recorded casting.
+  key) when there is no recorded casting. Each line is three split rows; each split
+  is the pair **`{ pick, recordedMax }`** on disk. `recordedMax` is the round's
+  recorded ceiling (`unparted − 1`, reserving the suspended stalk 掛一) — never a
+  legal pick (the selectable range is `[1, recordedMax − 1]`). The converter passes
+  each split through opaquely, so the on-disk key tracks the in-memory `SplitRecord`
+  field name. **The key was renamed from the misleading `max` (S3, 2026-06-07) with
+  NO `schemaVersion` bump** — this is a POC rename, so a pre-rename file carrying the
+  old `max:` key now loads as `[unreadable]` (`invalid-shape`); that is accepted, not
+  migrated.
 - `castingAbsence` — present **iff `casting` is absent**: a closed enum
   (`legacy-no-table` | `legacy-unreplayable` | `playground`) recording **why** the
   casting is absent. A present `casting` carries no `castingAbsence`. **No
