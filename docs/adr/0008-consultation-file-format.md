@@ -7,7 +7,7 @@ A saved consultation is a Markdown file (`consultation-<timestamp>.md`) with a Y
 frontmatter envelope. **The frontmatter is canonical; the Markdown body is
 decorative** — re-rendered from the envelope on every load.
 
-The envelope has five fields and nothing derived:
+The envelope has six fields and nothing derived:
 
 - `schemaVersion: 1` — checked **strict-equal** on load. A mismatch is not migrated;
   the row surfaces as `[unreadable]` in the history browser.
@@ -16,7 +16,14 @@ The envelope has five fields and nothing derived:
 - `hexagram` — a mapping keyed **`L6..L1` (visual top-first)**; a converter inverts
   to/from the bottom-first `Hexagram` tuple at the package boundary.
 - `casting` — a mapping keyed **`L6..L1` (visual top-first)**; a converter inverts
-  to/from the bottom-first `CastingRecord` at the package boundary.
+  to/from the bottom-first `CastingRecord` at the package boundary. **Absent** (no
+  key) when there is no recorded casting.
+- `castingAbsence` — present **iff `casting` is absent**: a closed enum
+  (`legacy-no-table` | `legacy-unreplayable` | `playground`) recording **why** the
+  casting is absent. A present `casting` carries no `castingAbsence`. **No
+  `schemaVersion` bump:** a pre-field null-casting file (no `castingAbsence` key)
+  defaults to `legacy-no-table` on read and gains the key on the next self-heal
+  rewrite.
 
 Two deliberate asymmetries:
 
@@ -35,8 +42,24 @@ Legacy pre-Markdown `.txt` files are migrated by `convertLegacyTxt` (run via
 `hexagram-history --convert-legacy`). It handles **Shape A** (has a CASTING table —
 full casting recovered, validated by replaying the splits through
 `makeLineGenerator` and confirming the same hexagram) and **Shape B** (no table —
-sets `casting: null`; no sentinel, no `castingRecovered` field). The replay-validate
-step means Shape A's recovered casting is proven, not trusted.
+sets `casting: null`, `castingAbsence: legacy-no-table`). When a Shape-A table
+fails replay-validation the casting is dropped and tagged
+`castingAbsence: legacy-unreplayable` (the *fact of* unreplayability is recorded;
+the casting data still is not). The replay-validate step means Shape A's recovered
+casting is proven, not trusted.
+
+## Amendment — 2026-06-07: the casting-absence reason
+
+A `casting: null` envelope has three otherwise-indistinguishable origins — a
+legacy Shape-B file, a legacy Shape-A replay failure, and a playground save. This
+ADR originally said the absence carried "no sentinel" and provenance was
+intentionally not kept. That stance is **superseded for the *absence* case
+only**: the compulsory `castingAbsence` field now records *why* casting is absent,
+so the three origins are distinguishable in the file and in the readout (the
+"Casting not recorded" notice names the reason). This does **not** reverse
+[ADR-0011](0011-manual-casting-flow-design.md) — a casting that *happened*
+(interactive / random / manual) still carries no provenance; `castingAbsence`
+exists only when casting *did not* happen.
 
 ## Considered options
 
@@ -64,6 +87,10 @@ step means Shape A's recovered casting is proven, not trusted.
 ## Where it's enforced
 
 - `domain/consultation-file/src/frontmatter.ts` — envelope, `CURRENT_SCHEMA_VERSION`,
-  the `L6..L1` converters, strict-equal load.
-- `domain/consultation-file/src/file.ts` — save/load, body re-render + self-heal.
-- `domain/consultation-file/src/legacy-converter.ts` — Shape A/B migration.
+  the `L6..L1` converters, strict-equal load, `castingAbsence` serialize/parse +
+  the `legacy-no-table` read-time default.
+- `domain/consultation-file/src/file.ts` — save/load, body re-render + self-heal;
+  `saveConsultationFile` requires `castingAbsence` when `casting` is null.
+- `domain/consultation-file/src/legacy-converter.ts` — Shape A/B migration, tagging
+  the two null-casting origins `legacy-no-table` vs `legacy-unreplayable`.
+- `domain/core/src/types.ts` — the `CastingAbsenceReason` vocabulary + guard.
