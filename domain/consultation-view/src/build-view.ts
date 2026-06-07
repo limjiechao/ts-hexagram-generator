@@ -137,6 +137,8 @@ function oneMovingLineVariants(hexagram: Hexagram): readonly TextVariant[] {
   ]
 }
 
+// The no-moving `lines:none` branch is the Markdown half of S6's one
+// divergence — see the visibility matrix above buildConsultationView.
 function linesSection(hexagram: Hexagram): TextSection {
   const movingCount = hexagram.filter(isMovingLine).length
   if (movingCount === 0)
