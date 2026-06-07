@@ -296,6 +296,8 @@ export function serializeConsultationTabs(
 // tab grouping and the saved `.md` body. This is the slice's one sanctioned
 // behaviour change: the legacy plain output emitted LINES *before* the emerging
 // block; harmonizing it here makes every surface speak one order.
+// Visibility (which sections reach this ANSI walk) is owned upstream — see the
+// section→medium matrix above buildConsultationView in @hexagram/consultation-view.
 export function serializeConsoleOutput(view: ConsultationView): string {
   const parts: string[] = []
   for (const s of view.sections) {
