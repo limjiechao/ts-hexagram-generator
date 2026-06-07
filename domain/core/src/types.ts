@@ -44,6 +44,23 @@ export function isLineIndex(value: unknown): value is LineIndex {
   return typeof value === 'number' && value !== -1 && value >= 0 && value <= 5
 }
 
+/** Line positions in visual top-first order (line 6 top … line 1 bottom) — the
+ *  order every hexagram diagram and the casting ledger render in. The single
+ *  named owner of the bottom-first-tuple ↔ top-first-presentation flip for the
+ *  view layer. (The YAML converters in `@hexagram/consultation-file` name the
+ *  SAME flip separately at the disk boundary — they build a keyed `L6..L1`
+ *  mapping, a different operation; ADR-0008.) */
+export const POSITIONS_TOP_FIRST: readonly [6, 5, 4, 3, 2, 1] = [6, 5, 4, 3, 2, 1]
+
+/** Reverse a bottom-first 6-tuple into a top-first 6-tuple (index 0 = line 6).
+ *  Used by the view builder for the transformation emerging row; replaces the
+ *  anonymous `x[5 - i]` literal. */
+export function toTopFirst<T>(
+  tuple: readonly [T, T, T, T, T, T],
+): [T, T, T, T, T, T] {
+  return [tuple[5], tuple[4], tuple[3], tuple[2], tuple[1], tuple[0]]
+}
+
 export type FourOperationsResult = {
   unpartedStalks: number[]
   suspendedFromNextRound: number[]
