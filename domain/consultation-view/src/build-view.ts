@@ -6,6 +6,7 @@ import {
 } from '@hexagram/core/line-semantics'
 import {
   isLineIndex,
+  POSITIONS_TOP_FIRST,
   type CastingAbsenceReason,
   type Hexagram,
   type PartialCastingRecord,
@@ -68,7 +69,7 @@ function diagramRows(
   movingFrom: Hexagram = hexagram,
 ): readonly DiagramLineRow[] {
   // Top-first (line 6 → line 1) to match every diagram section.
-  return ([6, 5, 4, 3, 2, 1] as const).map((position) => {
+  return POSITIONS_TOP_FIRST.map((position) => {
     const index = position - 1
     return {
       line: hexagram[index]!,
