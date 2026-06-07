@@ -10,7 +10,7 @@ describe('isCastingAbsenceReason', () => {
   it('rejects unknown strings and non-strings', () => {
     expect(isCastingAbsenceReason('legacy')).toBe(false)
     expect(isCastingAbsenceReason('')).toBe(false)
-    expect(isCastingAbsenceReason(undefined)).toBe(false)
+    expect(isCastingAbsenceReason(undefined as unknown)).toBe(false)
     expect(isCastingAbsenceReason(null)).toBe(false)
     expect(isCastingAbsenceReason(3)).toBe(false)
   })

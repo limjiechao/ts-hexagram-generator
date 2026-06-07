@@ -19,6 +19,7 @@ function entry(p: string, query: string): HistoryEntry {
       query,
       hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
       casting: null,
+      castingAbsence: 'legacy-no-table',
     },
     body: '',
   }

@@ -63,6 +63,7 @@ describe('scanConsultations', () => {
               { pick: 3, max: 39 },
             ],
           ],
+          castingAbsence: null,
         },
         'BODY',
       )

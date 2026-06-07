@@ -37,6 +37,7 @@ const fakeEntries = [
       query: 'What will working with Raven be like?',
       hexagram: [8, 7, 8, 9, 9, 9] as Hexagram,
       casting: [] as never,
+      castingAbsence: null,
     },
     body: '',
   },
@@ -48,6 +49,7 @@ const fakeEntries = [
       query: 'Should I study full-time or part-time?',
       hexagram: [8, 8, 6, 8, 8, 8] as Hexagram,
       casting: [] as never,
+      castingAbsence: null,
     },
     body: '',
   },
@@ -411,6 +413,7 @@ describe('<HistoryList>', () => {
         query: `Question number ${i}`,
         hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
         casting: [] as never,
+        castingAbsence: null,
       },
       body: '',
     }))
@@ -442,6 +445,7 @@ describe('<HistoryList>', () => {
         query: `Question number ${i}`,
         hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
         casting: [] as never,
+        castingAbsence: null,
       },
       body: '',
     }))
@@ -475,6 +479,7 @@ describe('<HistoryList>', () => {
         query: `Consultation ${i}`,
         hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
         casting: [] as never,
+        castingAbsence: null,
       },
       body: '',
     }))
@@ -649,6 +654,7 @@ describe('<HistoryList>', () => {
       query: 'Will the project succeed?',
       hexagram: [9, 7, 8, 9, 7, 8] as Hexagram, // lines 1 and 4 are moving (9)
       casting: [] as never,
+      castingAbsence: null,
     },
     body: '',
   }
@@ -662,6 +668,7 @@ describe('<HistoryList>', () => {
       query: 'What is the current situation?',
       hexagram: [7, 7, 7, 7, 7, 7] as Hexagram, // all young yang, no moving
       casting: [] as never,
+      castingAbsence: null,
     },
     body: '',
   }
@@ -1102,6 +1109,7 @@ describe('<HistoryList>', () => {
         query: `Question ${i} about the path ahead`,
         hexagram: [9, 7, 8, 9, 7, 8] as Hexagram,
         casting: [] as never,
+        castingAbsence: null,
       },
     }))
     const { lastFrame } = render(
@@ -1721,6 +1729,7 @@ describe('<HistoryList>', () => {
             query: 'Third question',
             hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
             casting: [] as never,
+            castingAbsence: null,
           },
           body: '',
         },
