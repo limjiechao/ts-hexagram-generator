@@ -22,7 +22,10 @@ describe('selectablePickMax', () => {
 
   it('agrees with deriveSplit: pick = selectablePickMax keeps both remainders in 1..4', () => {
     for (const recordedMax of [48, 43, 39, 32, 13]) {
-      const d = deriveSplit({ pick: selectablePickMax(recordedMax), recordedMax })
+      const d = deriveSplit({
+        pick: selectablePickMax(recordedMax),
+        recordedMax,
+      })
       expect(d.rightRemainder).toBeGreaterThanOrEqual(1)
       expect(d.rightRemainder).toBeLessThanOrEqual(4)
     }
@@ -38,7 +41,9 @@ describe('stalkCountFor', () => {
     for (const recordedMax of [48, 43, 39, 13]) {
       // selectablePickMax(recordedMax) = recordedMax − 1; stalkCountFor adds 1,
       // so the count sits two above the selectable ceiling.
-      expect(stalkCountFor(recordedMax)).toBe(selectablePickMax(recordedMax) + 2)
+      expect(stalkCountFor(recordedMax)).toBe(
+        selectablePickMax(recordedMax) + 2,
+      )
     }
   })
 })

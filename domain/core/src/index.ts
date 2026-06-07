@@ -187,7 +187,7 @@ export const initialLineState: Extract<LineState, { phase: '0th-cast' }> = {
 }
 
 // The **recorded** max for the next pick — `unparted.length - 1`, i.e. the
-// `SplitRecord.max` stored alongside the pick (it reserves the right heap's
+// `SplitRecord.recordedMax` stored alongside the pick (it reserves the right heap's
 // suspended stalk 掛一). This is NOT the selectable ceiling a prompt offers:
 // flows cap the pick one lower, at `selectablePickMax(maxPickFor(state))`, so
 // the right heap keeps a countable stalk and its remainder is never 0 (see

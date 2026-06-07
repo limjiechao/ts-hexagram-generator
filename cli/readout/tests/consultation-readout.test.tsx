@@ -24,9 +24,9 @@ vi.mock('ink', async (importOriginal) => {
 const TAB = '\t'
 
 const STUB_CASTING: CastingRecord = Array.from({ length: 6 }, () => [
-  { pick: 24, max: 48 },
-  { pick: 20, max: 43 },
-  { pick: 16, max: 35 },
+  { pick: 24, recordedMax: 48 },
+  { pick: 20, recordedMax: 43 },
+  { pick: 16, recordedMax: 35 },
 ]) as CastingRecord
 
 const MOVING_HEXAGRAM: Hexagram = [6, 9, 7, 8, 7, 8]
