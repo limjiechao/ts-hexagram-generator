@@ -4,10 +4,11 @@ import {
   hasMovingLines,
   isMovingLine,
 } from '@hexagram/core/line-semantics'
-import type {
-  CastingAbsenceReason,
-  Hexagram,
-  PartialCastingRecord,
+import {
+  isLineIndex,
+  type CastingAbsenceReason,
+  type Hexagram,
+  type PartialCastingRecord,
 } from '@hexagram/core/types'
 
 import type {
@@ -22,14 +23,6 @@ import { buildLedgerRows } from './ledger-geometry.js'
 
 function capitalizeFirst(text: string): string {
   return text.length === 0 ? text : `${text[0]!.toUpperCase()}${text.slice(1)}`
-}
-
-// Private Line-index guard (0..5). Mirrors the guard the pre-IR markdown
-// renderer used (`i >= 0 && i <= 5`); kept local so this domain package needs
-// no cli dependency for the validator. `findIndex` returns -1 or 0..5, so this
-// is byte-equivalent to viewer-core's isLineIndex at the only call site.
-function isLineIndex(i: number): i is 0 | 1 | 2 | 3 | 4 | 5 {
-  return i >= 0 && i <= 5
 }
 
 function identityOf(hexagram: Hexagram): HexagramIdentity {
