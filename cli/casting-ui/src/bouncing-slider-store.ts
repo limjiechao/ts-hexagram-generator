@@ -168,10 +168,17 @@ export class BouncingSliderStore {
     if (this.intervalId !== null) return
     this.intervalId = setInterval(() => {
       if (this.committed) return
+      // Geometric reflection at the slider walls — the cursor steps one cell,
+      // and if it would pass a wall it reverses and steps one cell back inward.
+      // `upperBound` here is the slider's UPPER BOUND (the reachable pick
+      // ceiling, already === selectablePickMax(currentMax) — see viewer.tsx),
+      // NOT a pick clamp: `upperBound - 1` is "one cell inward from the
+      // ceiling", reflection geometry, not the never-zero-remainder − 1.
+      const upperBound = this.max
       let next = this.position + this.direction
-      if (next > this.max) {
+      if (next > upperBound) {
         this.direction = -1
-        next = this.max - 1
+        next = upperBound - 1
       } else if (next < this.min) {
         this.direction = 1
         next = this.min + 1

@@ -6,7 +6,10 @@
 // consults `firstLandingTick` once and stops on exactly that tick, so the
 // visible motion and the landing are the SAME wave.
 //
-// The reference imperative loop (kept bit-for-bit faithful here):
+// The reference imperative loop (kept bit-for-bit faithful here). The `max - 1`
+// / `min + 1` are geometric reflection at the slider walls — "one cell inward
+// after bouncing off the wall" — NOT a pick clamp; `max` is the reachable
+// cursor ceiling (already === selectablePickMax(currentMax)), not a heap size:
 //   start `position = min`, `direction = +1`
 //   each tick: `next = position + direction`
 //     if `next > max` → `direction = -1`, `next = max - 1`
