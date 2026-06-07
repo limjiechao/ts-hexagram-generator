@@ -165,10 +165,10 @@ describe('castingSection (partial)', () => {
 
   it('shows populated cells alongside placeholders when partially filled', () => {
     const mixed = emptyPartialCastingRecord()
-    mixed[0][0] = { pick: 20, max: 48 }
+    mixed[0][0] = { pick: 20, recordedMax: 48 }
     const rendered = stripAnsi(castingSection(mixed))
-    // Line 1's first cast derives Stalks 49 (max + 1), Left heap 20 (pick) and
-    // Right heap 29 (max - pick + 1); its ten derived cells fill in, leaving
+    // Line 1's first cast derives Stalks 49 (recordedMax + 1), Left heap 20 (pick) and
+    // Right heap 29 (recordedMax - pick + 1); its ten derived cells fill in, leaving
     // 180 − 10 = 170 dots.
     expect(rendered).toContain(' 49 ')
     expect(rendered).toContain(' 20 ')

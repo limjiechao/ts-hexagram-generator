@@ -1,8 +1,8 @@
 import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/core/types'
 
 // Build one line's three divisions from its picks and selectable ranges. The
-// `max` values follow a real yarrow casting: the first division always ranges
-// 1–48, later divisions narrow as stalks are set aside.
+// `recordedMax` values follow a real yarrow casting: the first division always
+// ranges 1–48, later divisions narrow as stalks are set aside.
 const lineCasting = (
   p1: number,
   p2: number,
@@ -11,9 +11,9 @@ const lineCasting = (
   m2 = 43,
   m3 = 39,
 ): LineCasting => [
-  { pick: p1, max: m1 },
-  { pick: p2, max: m2 },
-  { pick: p3, max: m3 },
+  { pick: p1, recordedMax: m1 },
+  { pick: p2, recordedMax: m2 },
+  { pick: p3, recordedMax: m3 },
 ]
 
 export interface ConsultationCase {
