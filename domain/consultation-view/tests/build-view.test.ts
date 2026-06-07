@@ -99,18 +99,18 @@ describe('buildConsultationView section order + gate', () => {
 describe('buildConsultationView absence reason', () => {
   it('threads the reason into the casting section when casting is null', () => {
     const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], null, 'playground')
-    const casting = view.sections.find((s) => s.kind === 'casting') as
+    const section = view.sections.find((s) => s.kind === 'casting') as
       | CastingSection
       | undefined
-    expect(casting?.rows).toBeNull()
-    expect(casting?.absenceReason).toBe('playground')
+    expect(section?.rows).toBeNull()
+    expect(section?.absenceReason).toBe('playground')
   })
   it('defaults to null reason when omitted (live flow)', () => {
     const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], null)
-    const casting = view.sections.find((s) => s.kind === 'casting') as
+    const section = view.sections.find((s) => s.kind === 'casting') as
       | CastingSection
       | undefined
-    expect(casting?.absenceReason ?? null).toBeNull()
+    expect(section?.absenceReason ?? null).toBeNull()
   })
   it('never leaks a reason into a present-casting render', () => {
     const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], casting, 'playground')
