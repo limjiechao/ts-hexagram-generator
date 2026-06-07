@@ -62,19 +62,19 @@ interface CastingPromptBoxProps {
   castIndex: 0 | 1 | 2
   min: number
   /**
-   * The reachable pick ceiling: the cursor sweeps `[min, max]` and a typed
-   * value must satisfy `min ≤ v ≤ max`. The viewer passes `currentMax - 1`
-   * (one below the recorded `SplitRecord.max`) so the right heap always keeps a
-   * countable stalk after the suspension and the remainder is never 0; the
-   * recorded `max` is unchanged. `stalksTotal` carries the true stalk count for
-   * the slider readout.
+   * The selectable pick ceiling: the cursor sweeps `[min, max]` and a typed
+   * value must satisfy `min ≤ v ≤ max`. The viewer passes
+   * `selectablePickMax(currentMax)` (one below the recorded `SplitRecord.max`)
+   * so the right heap always keeps a countable stalk after the suspension and
+   * the remainder is never 0; the recorded `max` is unchanged. `stalksTotal`
+   * carries the true stalk count for the slider readout.
    */
   max: number
   /**
-   * True total stalk count for the slider readout, decoupled from the reachable
-   * `max` (see `SliderInputProps.stalksTotal`). The viewer passes
-   * `currentMax + 1`. Defaults to `max + 1` for the slider when omitted; the
-   * number/manual branches don't use it.
+   * True total stalk count for the slider readout, decoupled from the selectable
+   * `max` (see `SliderInputProps.stalksTotal`). The viewer threads
+   * `stalkCountFor(currentMax)`; the `max + 1` fallback only recovers
+   * `recordedMax`. The number/manual branches don't use it.
    */
   stalksTotal?: number
   width: number
@@ -144,8 +144,9 @@ interface CastingPromptBoxProps {
    * `Unparted stalks: M` row and the basis for the per-field bounds
    * (`piles ∈ [0, floor((max-1)/4)]`, `remainder ∈ [1, 4]`) plus the
    * cross-field range check (derived split ∈ `[1, max-1]`). Conventionally
-   * equals `max + 1` (the casting hook keeps `currentMax = unparted - 1`).
-   * Required when `flowKind === 'manual'`; ignored otherwise.
+   * equals `stalkCountFor(currentMax)` (the casting hook keeps
+   * `currentMax = unparted - 1`). Required when `flowKind === 'manual'`;
+   * ignored otherwise.
    */
   unpartedStalks?: number
   /**
@@ -179,12 +180,13 @@ interface CastingPromptBoxProps {
  * Two visual modes:
  *  - **slider** (default): five-row layout — verbatim title, blank spacer,
  *    centred bouncing-slider bar, blank spacer, centred
- *    `Stalks: <max + 1> | Left Heap:  <spinner> | Right Heap:  <spinner> + 1 suspended`
+ *    `Stalks: <stalksTotal> | Left Heap:  <spinner> | Right Heap:  <spinner> + 1 suspended`
  *    readout (both Braille glyphs advanced one frame per tick — the left
  *    walks the cycle clockwise, the right anticlockwise; the live cursor
- *    value stays hidden). `Stalks` is `max + 1` — the true stalk count —
- *    because `max` is only the left-heap pick ceiling, held one short so the
- *    right heap keeps a stalk to suspend (掛一); that suspended stalk is the
+ *    value stays hidden). `Stalks` is `stalksTotal` (the viewer threads
+ *    `stalkCountFor(currentMax)`) — the true stalk count — because `max` is
+ *    only the selectable left-heap pick ceiling, held short so the right heap
+ *    keeps a stalk to suspend (掛一); that suspended stalk is the
  *    trailing `+ 1 suspended` on the right. Each heap cell — both glyph and
  *    pick — is rendered at a stable 2-column width so the readout never
  *    shifts laterally across the ticking → reveal transition or across
@@ -236,8 +238,9 @@ export function CastingPromptBox({
     // Defensive default — the viewer threads `unpartedStalks` explicitly (so
     // this fallback is dead in production), but callers that omit it for
     // `flowKind === 'manual'` get a sensible baseline: the true stalk count
-    // `stalksTotal` if supplied, else `max + 1`. (`max` is the reachable pick
-    // ceiling, so `max + 1` is a best-effort lower bound only.)
+    // `stalksTotal` if supplied, else `max + 1`. (`max` is the SELECTABLE pick
+    // ceiling, so `max + 1` recovers only `recordedMax` — a best-effort lower
+    // bound, NOT stalkCountFor's true count.)
     const unparted = unpartedStalks ?? stalksTotal ?? max + 1
     // Defensive default mirrors `unparted` above — the viewer always threads the
     // reducer-owned `state.lineState`, so this fallback is dead in production.

@@ -205,11 +205,14 @@ interface SliderInputProps {
   onSubmit: (value: number) => void
   /**
    * True total stalk count for the `Stalks: <n>` readout, decoupled from the
-   * reachable cursor ceiling `max`. The cursor sweeps `[min, max]`, but the
-   * right heap reserves TWO stalks beyond the pick (one suspended via 掛一, one
-   * to count by fours so the remainder is never 0), so the true stalk count is
-   * `max + 2` when the viewer caps the pick. Defaults to `max + 1` — the legacy
-   * single-reservation value — so standalone callers/tests need not supply it.
+   * reachable cursor ceiling `max`. Here `max` is the SELECTABLE pick ceiling
+   * (`selectablePickMax(recordedMax)`, threaded from `viewer.tsx`). The cursor
+   * sweeps `[min, max]`, but the right heap reserves TWO stalks beyond the pick
+   * (one suspended via 掛一, one to count by fours so the remainder is never 0),
+   * so the true stalk count is `max + 2` when the viewer caps the pick. The
+   * viewer always threads the real count via `stalkCountFor(currentMax)`; the
+   * `max + 1` default only recovers `recordedMax` (single reservation) so
+   * standalone callers/tests need not supply it.
    */
   stalksTotal?: number
   /** Tick interval in ms — defaults to 80, which sweeps `max=48` in ~3.8 s. */
@@ -237,9 +240,11 @@ interface SliderInputProps {
  * `Stalks: <stalksTotal> | Left Heap:  <glyph> | Right Heap:  <glyph> + 1 suspended`
  * readout where both glyphs are Braille spinners advanced one frame per tick —
  * the left walks the cycle clockwise, the right walks it anticlockwise.
- * `Stalks` is `stalksTotal` (default `max + 1`), not the reachable ceiling
- * `max`: `max` is only the left-heap pick ceiling, held short of the true stalk
- * count so the right heap always retains a stalk to suspend (掛一以象三) — and,
+ * `Stalks` is `stalksTotal` (the viewer threads `stalkCountFor(currentMax)`;
+ * the `max + 1` fallback only recovers `recordedMax`), not the reachable
+ * ceiling `max`: `max` is only the selectable left-heap pick ceiling, held
+ * short of the true stalk count so the right heap always retains a stalk to
+ * suspend (掛一以象三) — and,
  * when the viewer caps the pick, a second stalk to count (so the remainder is
  * never 0). That suspended stalk — taken from the right heap (see
  * `suspendOneFromTheRight` in `@hexagram/core`) — is the trailing
@@ -327,11 +332,12 @@ interface SliderCastingPromptProps {
   onSkip: (() => void) | undefined
   onSubmit: (value: number) => void
   /**
-   * True total stalk count for the readout, decoupled from the reachable
+   * True total stalk count for the readout, decoupled from the selectable
    * cursor ceiling `max` (see `SliderInputProps.stalksTotal`). `Right Heap` is
    * `stalksTotal - 1 - pick` (the suspended stalk is the trailing
-   * `+ 1 suspended`), so the row conserves to `stalksTotal`. Defaults to
-   * `max + 1`.
+   * `+ 1 suspended`), so the row conserves to `stalksTotal`. The viewer threads
+   * `stalkCountFor(currentMax)`; the `max + 1` fallback only recovers
+   * `recordedMax`.
    */
   stalksTotal?: number
   /**
