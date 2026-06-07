@@ -5,6 +5,7 @@ import {
   deriveSplit,
   neverZeroMod4,
   selectablePickMax,
+  stalkCountFor,
 } from '../src/casting-derivation.js'
 import type { SplitRecord } from '../src/types.js'
 
@@ -24,6 +25,20 @@ describe('selectablePickMax', () => {
       const d = deriveSplit({ pick: selectablePickMax(max), max })
       expect(d.rightRemainder).toBeGreaterThanOrEqual(1)
       expect(d.rightRemainder).toBeLessThanOrEqual(4)
+    }
+  })
+})
+
+describe('stalkCountFor', () => {
+  it('is the inverse of the recorded-ceiling − 1', () => {
+    expect(stalkCountFor(48)).toBe(49)
+    expect([48, 43, 39].map(stalkCountFor)).toEqual([49, 44, 40])
+  })
+  it('round-trips with selectablePickMax over a recorded max', () => {
+    for (const recordedMax of [48, 43, 39, 13]) {
+      // selectablePickMax(recordedMax) = recordedMax − 1; stalkCountFor adds 1,
+      // so the count sits two above the selectable ceiling.
+      expect(stalkCountFor(recordedMax)).toBe(selectablePickMax(recordedMax) + 2)
     }
   })
 })

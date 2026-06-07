@@ -1,5 +1,8 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
-import { selectablePickMax } from '@hexagram/core/casting-derivation'
+import {
+  selectablePickMax,
+  stalkCountFor,
+} from '@hexagram/core/casting-derivation'
 import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
   assertIsCastingRecord,
@@ -248,7 +251,8 @@ export function ConsultationViewer({
   // heap divisible by four counts its last group as the remainder). The slider
   // cursor / typed input are capped at this value, while `currentMax` is still
   // RECORDED (so the `Stalks` readout and conservation are unchanged) and the
-  // true stalk count `currentMax + 1` is passed to the prompt as `stalksTotal`.
+  // true stalk count `stalkCountFor(currentMax)` is passed to the prompt as
+  // `stalksTotal`.
   // The random flow's plan picks are likewise ≤ this ceiling (see
   // `splitStalksRandomly`), so the slider auto-land target is always reachable.
   // The rule lives in `@hexagram/core` — see `selectablePickMax`.
@@ -534,16 +538,16 @@ export function ConsultationViewer({
           ),
           reachablePickMax + 2, // bar = reachable cells + 2 (▕ + cells + ▏)
           // Readout below the bar is
-          // `Stalks: <currentMax + 1> | Left Heap: <cell> | Right Heap: <cell> + 1 suspended`,
+          // `Stalks: <stalkCountFor(currentMax)> | Left Heap: <cell> | Right Heap: <cell> + 1 suspended`,
           // where each heap cell renders at a stable 2-column width —
           // leading-space + glyph during ticking, padStart(2) on the numeric
           // pick after commit. `Stalks` shows the true stalk count
-          // `currentMax + 1` (the slider's `stalksTotal`), and the right heap
+          // `stalkCountFor(currentMax)` (the slider's `stalksTotal`), and the right heap
           // carries the trailing `+ 1 suspended`. Width is therefore a pure
           // function of `currentMax`; two 2-digit placeholders model the
           // post-commit form exactly.
           terminalWidth(
-            `Stalks: ${currentMax + 1} | Left Heap: 99 | Right Heap: 99 + 1 suspended`,
+            `Stalks: ${stalkCountFor(currentMax)} | Left Heap: 99 | Right Heap: 99 + 1 suspended`,
           ),
         )
       : 0
@@ -608,14 +612,14 @@ export function ConsultationViewer({
       castIndex={state.castIndex}
       min={1}
       max={reachablePickMax}
-      stalksTotal={currentMax + 1}
+      stalksTotal={stalkCountFor(currentMax)}
       buffer={state.castingBuffer}
       error={state.error}
       width={innerCols}
       inputMode={inputMode}
       flowKind={state.flowKind}
       manualRevealMs={manualRevealMs}
-      unpartedStalks={currentMax + 1}
+      unpartedStalks={stalkCountFor(currentMax)}
       // Mid-casting `state.lineState` is always advanceable (the reducer resets
       // to initialLineState after each line; a line in flight is 0th/1st/2nd
       // cast), so this assert never narrows away a real '3rd-cast'. Same
