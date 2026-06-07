@@ -91,17 +91,70 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       query: 'What will it be like?',
       hexagram: [8, 7, 8, 9, 9, 9],
       casting: null,
+      castingAbsence: 'playground',
       dir: tmpDir,
     })
 
     const text = await fs.readFile(savedPath, 'utf8')
     expect(text).not.toMatch(/^casting:/m)
-    expect(text).toContain('_Casting not recorded._')
+    expect(text).toContain('_Casting not recorded')
 
     const loaded = await loadConsultationFile(savedPath)
     if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
     expect(loaded.envelope.query).toBe('What will it be like?')
     expect(loaded.envelope.hexagram).toEqual([8, 7, 8, 9, 9, 9])
     expect(loaded.envelope.casting).toBeNull()
+  })
+
+  it('persists the reason for a null casting and reads it back', async () => {
+    const savedPath = await saveConsultationFile({
+      query: 'q',
+      hexagram: [7, 7, 7, 7, 7, 7],
+      casting: null,
+      castingAbsence: 'playground',
+      dir: tmpDir,
+    })
+    const text = await fs.readFile(savedPath, 'utf8')
+    expect(text).toMatch(/^castingAbsence: playground$/m)
+    const loaded = await loadConsultationFile(savedPath)
+    expect(loaded.ok).toBe(true)
+    if (loaded.ok) expect(loaded.envelope.castingAbsence).toBe('playground')
+  })
+
+  it('throws if a null casting is saved without a reason', async () => {
+    await expect(
+      saveConsultationFile({
+        query: 'q',
+        hexagram: [7, 7, 7, 7, 7, 7],
+        casting: null,
+        dir: tmpDir,
+        // castingAbsence intentionally omitted
+      } as never),
+    ).rejects.toThrow(/castingAbsence/)
+  })
+
+  it('a present casting carries a null castingAbsence on load', async () => {
+    const line = [
+      { pick: 1, max: 48 },
+      { pick: 2, max: 43 },
+      { pick: 3, max: 39 },
+    ] as const
+    const savedPath = await saveConsultationFile({
+      query: 'q',
+      hexagram: [7, 8, 7, 8, 7, 8],
+      casting: [
+        [...line],
+        [...line],
+        [...line],
+        [...line],
+        [...line],
+        [...line],
+      ],
+      dir: tmpDir,
+    })
+    const loaded = await loadConsultationFile(savedPath)
+    if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
+    expect(loaded.envelope.casting).not.toBeNull()
+    expect(loaded.envelope.castingAbsence).toBeNull()
   })
 })

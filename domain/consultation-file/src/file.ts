@@ -2,7 +2,11 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-import type { CastingRecord, Hexagram } from '@hexagram/core/types'
+import type {
+  CastingAbsenceReason,
+  CastingRecord,
+  Hexagram,
+} from '@hexagram/core/types'
 
 import {
   CURRENT_SCHEMA_VERSION,
@@ -52,8 +56,15 @@ export async function saveConsultationFile(params: {
   query: string
   hexagram: Hexagram
   casting: CastingRecord | null
+  /** Required when `casting` is null — why casting is absent (ADR-0008). */
+  castingAbsence?: CastingAbsenceReason
   dir?: string
 }): Promise<string> {
+  if (params.casting === null && params.castingAbsence === undefined) {
+    throw new Error(
+      'saveConsultationFile: castingAbsence is required when casting is null',
+    )
+  }
   const dir = params.dir ?? defaultConsultationsDir()
   await fs.mkdir(dir, { recursive: true })
   const fileSafe = getFilesystemSafeTimestamp()
@@ -70,6 +81,7 @@ export async function saveConsultationFile(params: {
       query: params.query,
       hexagram: params.hexagram,
       casting: params.casting,
+      castingAbsence: params.casting === null ? params.castingAbsence! : null,
     },
     body,
   )
