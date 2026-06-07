@@ -17,7 +17,7 @@ import { ANSI_PATTERN } from '@hexagram/viewer-core'
  * in the imperative shell (the Viewer's Query-submit handler). The reducer
  * only stores and carries it; the impure `crypto.randomInt` call never enters
  * this pure module. `casting[lineIndex][castIndex]` is a `SplitRecord`
- * `{ pick, max }`; `hexagram[lineIndex]` is the resolved `Line`. `null` for
+ * `{ pick, recordedMax }`; `hexagram[lineIndex]` is the resolved `Line`. `null` for
  * an interactive flow, which generates its lines cast-by-cast instead.
  */
 export interface CastingPlan {
@@ -49,7 +49,7 @@ export interface FlowState {
   partialCasting: PartialCastingRecord
   completedLines: Line[]
   // The per-line algorithm state — the reducer is the SINGLE owner of casting:
-  // it advances this via the pure `performCast` and derives the recorded `max`
+  // it advances this via the pure `performCast` and derives the recorded ceiling
   // and resolved `Line` itself. Reset to `initialLineState` after every 3rd
   // cast and on `lineRewound`. Replaces the old `useLineGenerator` refs.
   lineState: LineState
@@ -69,7 +69,7 @@ export type FlowAction =
   | { type: 'querySubmit'; plan?: CastingPlan }
   | { type: 'castingBufferChange'; value: string }
   | { type: 'castingError'; message: string | null }
-  // The reducer derives the recorded `max` and resolved `Line` from `pick`
+  // The reducer derives the recorded ceiling and resolved `Line` from `pick`
   // via the pure `performCast` — the imperative shell no longer pre-computes
   // them.
   | { type: 'splitCommitted'; pick: number }
@@ -117,10 +117,10 @@ export const EMPTY_SECTIONS: ConsultationSections = {
 }
 
 /**
- * The recorded `max` for the current cast (`stalks - 1` for this round).
+ * The recorded ceiling for the current cast (`stalks - 1` for this round).
  * `lineState` is never in the resolved `'3rd-cast'` phase mid-casting (the
- * reducer resets it after every 3rd cast), so the fallback to the round-1 max
- * is unreachable in practice — it only satisfies `maxPickFor`'s advanceable
+ * reducer resets it after every 3rd cast), so the fallback to the round-1
+ * recordedMax is unreachable in practice — it only satisfies `maxPickFor`'s advanceable
  * input domain for the type checker.
  */
 export function recordedMaxFor(lineState: LineState): number {
@@ -180,16 +180,16 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
     case 'splitCommitted': {
       // The reducer is the SINGLE owner of the per-line algorithm: it advances
       // `lineState` through the pure `performCast` and derives the recorded
-      // `max` and resolved `Line` itself. The action carries only the pick.
+      // recorded ceiling and resolved `Line` itself. The action carries only the pick.
       const before = state.lineState
       // Defensive: the reducer resets `lineState` after every 3rd cast, so a
       // `splitCommitted` can never arrive on a resolved line (this also
       // satisfies `performCast`/`maxPickFor`'s advanceable input domain).
       if (before.phase === '3rd-cast') return state
 
-      const max = maxPickFor(before)
+      const recordedMax = maxPickFor(before)
       const after = performCast(before, action.pick)
-      const split: SplitRecord = { pick: action.pick, max }
+      const split: SplitRecord = { pick: action.pick, recordedMax }
       const line = after.phase === '3rd-cast' ? after.line : undefined
       const nextLineState: LineState =
         after.phase === '3rd-cast' ? initialLineState : after

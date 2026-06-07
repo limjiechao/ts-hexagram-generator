@@ -238,13 +238,13 @@ export function ConsultationViewer({
   // The current cast's selectable range. The interactive/manual flows derive
   // it from the reducer's `lineState` (the single owner of the per-line
   // algorithm); the random flow reads it straight from the predetermined plan
-  // (`SplitRecord.max`, which equals what `lineState` would derive).
+  // (`SplitRecord.recordedMax`, which equals what `lineState` would derive).
   const currentMax =
     state.castingPlan === null
       ? recordedMaxFor(state.lineState)
-      : state.castingPlan.casting[state.lineIndex][state.castIndex].max
+      : state.castingPlan.casting[state.lineIndex][state.castIndex].recordedMax
 
-  // The reachable pick ceiling — one below the recorded `SplitRecord.max`.
+  // The reachable pick ceiling — one below the recorded `SplitRecord.recordedMax`.
   // `currentMax` (= stalks - 1) already reserves the right heap's suspended
   // stalk (掛一); reserving a SECOND stalk here keeps a countable stalk on the
   // right after the suspension, so its remainder is always 1..4, never 0 (a
