@@ -1,14 +1,7 @@
-type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
-export function isLineIndex(
-  maybeLineIndex: unknown,
-): maybeLineIndex is LineIndex {
-  return (
-    typeof maybeLineIndex === 'number' &&
-    maybeLineIndex !== -1 &&
-    maybeLineIndex >= 0 &&
-    maybeLineIndex <= 5
-  )
-}
+// `LineIndex` + `isLineIndex` are the single authoritative line-index
+// vocabulary, owned by @hexagram/core (finding S7). Re-exported here so the
+// existing viewer-core public surface (index.ts) is unchanged for consumers.
+export { isLineIndex, type LineIndex } from '@hexagram/core/types'
 
 type LineKey = 'L1' | 'L2' | 'L3' | 'L4' | 'L5' | 'L6'
 export function isLine1ToLine6(maybeLineKey: unknown): maybeLineKey is LineKey {
