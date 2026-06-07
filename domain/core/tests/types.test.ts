@@ -1,6 +1,11 @@
 import { describe, expect, it } from 'vitest'
 
-import { isCastingAbsenceReason, isLineIndex } from '../src/types.js'
+import {
+  isCastingAbsenceReason,
+  isLineIndex,
+  POSITIONS_TOP_FIRST,
+  toTopFirst,
+} from '../src/types.js'
 
 describe('isCastingAbsenceReason', () => {
   it('accepts the three known reasons', () => {
@@ -33,5 +38,20 @@ describe('isLineIndex', () => {
     expect(isLineIndex(undefined)).toBe(false)
     expect(isLineIndex(null)).toBe(false)
     expect(isLineIndex(Number.NaN)).toBe(false)
+  })
+})
+
+describe('top-first ordering primitive', () => {
+  it('POSITIONS_TOP_FIRST is line 6 → line 1', () => {
+    expect(POSITIONS_TOP_FIRST).toEqual([6, 5, 4, 3, 2, 1])
+  })
+
+  it('toTopFirst reverses a bottom-first 6-tuple', () => {
+    expect(toTopFirst([1, 2, 3, 4, 5, 6])).toEqual([6, 5, 4, 3, 2, 1])
+  })
+
+  it('toTopFirst is an involution (applied twice = identity)', () => {
+    const t = [10, 20, 30, 40, 50, 60] as const
+    expect(toTopFirst(toTopFirst(t))).toEqual([...t])
   })
 })
