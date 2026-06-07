@@ -1,5 +1,10 @@
 import type { DerivedSplit } from '@hexagram/core/casting-derivation'
-import type { Hexagram, Line, PartialCastingRecord } from '@hexagram/core/types'
+import type {
+  CastingAbsenceReason,
+  Hexagram,
+  Line,
+  PartialCastingRecord,
+} from '@hexagram/core/types'
 
 /** Which render media emit this section. buildConsultationView is the sole owner. */
 export type SectionMedium = 'ansi' | 'markdown'
@@ -28,6 +33,12 @@ export interface CastingSection {
   readonly media: readonly SectionMedium[]
   /** null → "Casting not recorded" caption; otherwise the 18 ledger rows. */
   readonly rows: readonly LedgerRow[] | null
+  /**
+   * When `rows` is null, why casting is absent (drives the reason-aware notice).
+   * null/absent for live-flow renders (partial real casting) where no reason
+   * applies. Imported from core to avoid restating the vocabulary.
+   */
+  readonly absenceReason?: CastingAbsenceReason | null
 }
 
 // ── Line-diagram sections ───────────────────────────────────────────────────
