@@ -180,6 +180,8 @@ ${blocks}
 // the legacy `parts.join('\n')`). Sections are filtered by their `media` flag:
 // only `text:lines` reaches the `text` case (hexagram-level text is ANSI-only
 // and markdown folds it into the trailing LINES block).
+// Visibility is owned upstream — see the section→medium matrix above
+// buildConsultationView in @hexagram/consultation-view.
 export function serializeConsultationMarkdownBody(
   view: ConsultationView,
 ): string {
