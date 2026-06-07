@@ -284,6 +284,8 @@ export function PlaygroundApp({
         query,
         hexagram: state.lines,
         casting: null,
+        // The playground explores lines without a real yarrow cast.
+        castingAbsence: 'playground',
       }
       if (saveDir !== undefined) params.dir = saveDir
       saveConsultationFile(params)
