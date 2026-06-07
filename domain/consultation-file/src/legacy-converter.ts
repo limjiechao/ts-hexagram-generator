@@ -38,9 +38,11 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
   // A legacy `.txt` may carry its casting table in one of two vintages
   // (HEAP or SPLIT). `extractCasting` returns the parsed `CastingRecord`
   // only when the 18 splits replay through `makeLineGenerator` back to the
-  // file's own hexagram; otherwise (no table, or a table that does not
-  // reconstruct) it returns `null`. "No casting" is `null` — no sentinel.
-  const casting = extractCasting(text, hexagram)
+  // file's own hexagram. The two null cases now carry distinct reasons
+  // (ADR-0008): no table at all → 'legacy-no-table'; a table that does not
+  // reconstruct → 'legacy-unreplayable'. The fact OF unreplayability is
+  // recorded even though the casting data itself is not recovered.
+  const extracted = extractCasting(text, hexagram)
   return {
     ok: true,
     envelope: {
@@ -48,7 +50,8 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
       timestamp: filenameTimestampToIso(input.filenameTimestamp),
       query,
       hexagram,
-      casting,
+      casting: extracted.casting,
+      castingAbsence: extracted.absence,
     },
   }
 }
@@ -83,16 +86,23 @@ function extractHexagram(text: string): Hexagram | null {
 type RawSplits = [[number, number], [number, number], [number, number]]
 
 /**
- * Recover the casting from whichever table vintage the file carries, then
- * replay-validate it. Returns `null` when no table is present or the parsed
- * splits do not reconstruct `expected`.
+ * The outcome of recovering a legacy casting table, carrying the reason for a
+ * null alongside the null itself so the two absent-casting origins stay
+ * distinguishable (ADR-0008).
  */
-function extractCasting(
-  text: string,
-  expected: Hexagram,
-): CastingRecord | null {
+type ExtractedCasting =
+  | { casting: CastingRecord; absence: null }
+  | { casting: null; absence: 'legacy-no-table' | 'legacy-unreplayable' }
+
+/**
+ * Recover the casting from whichever table vintage the file carries, then
+ * replay-validate it. Returns a `legacy-no-table` null when no table is
+ * present, a `legacy-unreplayable` null when the parsed splits do not
+ * reconstruct `expected`, and the recovered casting (absence `null`) otherwise.
+ */
+function extractCasting(text: string, expected: Hexagram): ExtractedCasting {
   const rows = parseHeapTable(text) ?? parseSplitTable(text)
-  if (rows === null) return null
+  if (rows === null) return { casting: null, absence: 'legacy-no-table' }
 
   const casting: CastingRecord = [
     splitsToLineCasting(rows[1]!),
@@ -103,7 +113,9 @@ function extractCasting(
     splitsToLineCasting(rows[6]!),
   ]
 
-  return castingReplaysTo(casting, expected) ? casting : null
+  return castingReplaysTo(casting, expected)
+    ? { casting, absence: null }
+    : { casting: null, absence: 'legacy-unreplayable' }
 }
 
 function splitsToLineCasting(row: RawSplits): LineCasting {
@@ -189,10 +201,11 @@ function replayLine(lineCasting: LineCasting): Line {
   // Each recorded pick is validated by `performCast` inside `makeLineGenerator`
   // (the single runtime enforcer): a degenerate pick that empties the right heap
   // after suspension throws `RangeError`, which `castingReplaysTo` catches as a
-  // mismatch, so `extractCasting` returns `null`: the converted file carries
-  // `casting: null` (no casting record retained — there is no `castingRecovered`
-  // field; provenance is intentionally not kept). A legacy file that recorded an
-  // empty right heap is therefore not recovered, by design (see ADR-0006).
+  // mismatch, so `extractCasting` resolves to a `legacy-unreplayable` null: the
+  // converted file carries `casting: null` with the reason recorded (the casting
+  // data itself is still not recovered — there is no `castingRecovered` field).
+  // A legacy file that recorded an empty right heap is therefore not recovered,
+  // by design (see ADR-0006), but the fact of unreplayability IS kept.
   const generator = makeLineGenerator({
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],
