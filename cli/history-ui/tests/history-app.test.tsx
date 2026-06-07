@@ -264,7 +264,11 @@ describe('<HistoryApp> — loaded readout', () => {
     await pressUntil(stdin, lastFrame, ENTER, (frame) =>
       frame.includes('Consultation · loaded 2024-02-01 11:30'),
     )
-    expect(stripAnsi(lastFrame() ?? '')).toContain('Casting not recorded')
+    // The loaded envelope's castingAbsence ('legacy-no-table') names the reason
+    // in the notice rather than collapsing to a bare "Casting not recorded".
+    expect(stripAnsi(lastFrame() ?? '')).toContain(
+      'Casting not recorded (legacy file had no casting table)',
+    )
   })
 
   it('shows the body-refreshed notice when the on-disk body had drifted', async () => {

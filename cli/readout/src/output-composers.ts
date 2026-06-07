@@ -1,6 +1,7 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
 import { buildLedgerRows } from '@hexagram/consultation-view/ledger-geometry'
 import type {
+  CastingAbsenceReason,
   CastingRecord,
   Hexagram,
   PartialCastingRecord,
@@ -39,15 +40,18 @@ export interface ConsultationSections {
  *
  * `casting` is `null` for a consultation with no recorded casting (e.g. one
  * migrated from a pre-CASTING legacy `.txt`); the casting tab then renders a
- * "Casting not recorded" notice.
+ * "Casting not recorded" notice. `absenceReason` names WHY casting is absent
+ * (from the loaded envelope's `castingAbsence`); it defaults to null for the
+ * live flows, which never carry a reason.
  */
 export function buildConsultationSections(
   query: string,
   hexagram: Hexagram,
   casting: CastingRecord | null,
+  absenceReason: CastingAbsenceReason | null = null,
 ): ConsultationSections {
   return serializeConsultationTabs(
-    buildConsultationView(query, hexagram, casting),
+    buildConsultationView(query, hexagram, casting, absenceReason),
   )
 }
 
