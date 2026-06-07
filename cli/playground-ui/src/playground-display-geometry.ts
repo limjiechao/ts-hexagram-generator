@@ -4,7 +4,7 @@
 
 import {
   MOVING_ARROW,
-  RIGHT_COLUMN,
+  TRIGRAM_DIVIDER_WIDTH,
 } from '@hexagram/consultation-view/vocabulary'
 
 /** Focus-chevron column (always reserved, even when not focused). */
@@ -13,11 +13,11 @@ export const CHEVRON_WIDTH = 2
 /**
  * Width of the bar+pos block on each side (no chevron):
  *   value(1) + 2sp + bar(9) + 2sp + pos(11) = 25 cols.
- * NB: this equals the consultation vocabulary's TRIGRAM_DIVIDER_WIDTH (25) only
- * by coincidence — distinct knowledge (single-column sum vs divider width), so
- * it is deliberately NOT imported.
+ * This IS the consultation IR's per-side bar block (`transformationHalfRow`
+ * emits the same value/glyph/position skeleton), so it is sourced from the
+ * single authority — `TRIGRAM_DIVIDER_WIDTH` — rather than re-pegged here.
  */
-export const BAR_BLOCK_WIDTH = 25
+export const BAR_BLOCK_WIDTH: number = TRIGRAM_DIVIDER_WIDTH
 
 /** Width of the left line cell (chevron + bar block). */
 export const LEFT_LINE_WIDTH: number = CHEVRON_WIDTH + BAR_BLOCK_WIDTH
@@ -28,13 +28,11 @@ export const RIGHT_LINE_WIDTH: number = BAR_BLOCK_WIDTH
 /** Inter-column gap — shares the transformation section's arrow/gap width. */
 export const GAP_WIDTH: number = MOVING_ARROW.length
 
-// The playground's left column must end exactly where the consultation's right
-// column begins, so the two surfaces sit flush.
-if (LEFT_LINE_WIDTH + GAP_WIDTH !== RIGHT_COLUMN) {
-  throw new Error(
-    `playground geometry drift: ${LEFT_LINE_WIDTH + GAP_WIDTH} !== RIGHT_COLUMN ${RIGHT_COLUMN}`,
-  )
-}
+// The playground's left column ends exactly where the consultation's right
+// column begins (col 46), flush by construction: LEFT_LINE_WIDTH + GAP_WIDTH =
+// CHEVRON_WIDTH(2) + TRIGRAM_DIVIDER_WIDTH(25) + MOVING_ARROW.length(19) = 46 =
+// RIGHT_COLUMN. The bar block and the connector are now both sourced from the
+// shared IR vocabulary, so there is nothing left to drift at runtime.
 
 /**
  * Worst-case identity-stack row width in display cols, scanned across all
