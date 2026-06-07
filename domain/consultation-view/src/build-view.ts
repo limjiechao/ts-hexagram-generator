@@ -4,7 +4,11 @@ import {
   hasMovingLines,
   isMovingLine,
 } from '@hexagram/core/line-semantics'
-import type { Hexagram, PartialCastingRecord } from '@hexagram/core/types'
+import type {
+  CastingAbsenceReason,
+  Hexagram,
+  PartialCastingRecord,
+} from '@hexagram/core/types'
 
 import type {
   ConsultationSection,
@@ -185,6 +189,7 @@ export function buildConsultationView(
   query: string,
   hexagram: Hexagram,
   casting: PartialCastingRecord | null,
+  absenceReason: CastingAbsenceReason | null = null,
 ): ConsultationView {
   const moving = hasMovingLines(hexagram)
   const emerging = getEmergingHexagram(hexagram)
@@ -194,6 +199,9 @@ export function buildConsultationView(
       kind: 'casting',
       media: ['ansi', 'markdown'],
       rows: casting === null ? null : buildLedgerRows(casting),
+      // Guardrail: the reason only applies when there are no rows. Never let a
+      // reason leak into a present-casting render (would change those fixtures).
+      absenceReason: casting === null ? absenceReason : null,
     },
     {
       kind: 'transformation',

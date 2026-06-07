@@ -1,5 +1,9 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
-import type { CastingRecord, Hexagram } from '@hexagram/core/types'
+import type {
+  CastingAbsenceReason,
+  CastingRecord,
+  Hexagram,
+} from '@hexagram/core/types'
 
 import { serializeConsultationMarkdownBody } from './serialize-markdown.js'
 
@@ -15,8 +19,9 @@ export function markdownConsultationBody(
   query: string,
   hexagram: Hexagram,
   casting: CastingRecord | null,
+  absenceReason: CastingAbsenceReason | null = null,
 ): string {
   return serializeConsultationMarkdownBody(
-    buildConsultationView(query, hexagram, casting),
+    buildConsultationView(query, hexagram, casting, absenceReason),
   )
 }
