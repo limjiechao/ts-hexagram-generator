@@ -42,7 +42,11 @@ export async function migrateLegacy(dir: string): Promise<void> {
     await fs.writeFile(mdPath, md, 'utf8')
     await fs.rename(filePath, path.join(legacyDir, name))
     process.stdout.write(
-      `OK ${name} → ${path.basename(mdPath)}${envelope.casting === null ? ' (casting unrecovered)' : ''}\n`,
+      `OK ${name} → ${path.basename(mdPath)}${
+        envelope.casting === null
+          ? ` (casting absent: ${envelope.castingAbsence})`
+          : ''
+      }\n`,
     )
     migrated += 1
   }
