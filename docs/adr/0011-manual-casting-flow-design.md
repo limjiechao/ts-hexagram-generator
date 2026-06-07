@@ -53,9 +53,9 @@ byte-identity test drives the same 18-pick sequence through both flows and asser
 the captured save arguments are equal. (Consultation provenance is a Readout display
 property, not a stored fact — see `CONTEXT.md`.)
 
-This still holds for casts that *happened*: the `castingAbsence` field added in
+This still holds for casts that _happened_: the `castingAbsence` field added in
 2026-06-07 ([ADR-0008](0008-consultation-file-format.md)) is **orthogonal** — it
-records why a casting is *absent* (`casting: null`) and is present only then, so a
+records why a casting is _absent_ (`casting: null`) and is present only then, so a
 manual/interactive/random reading with a real casting carries no provenance. This
 is a clarification, not a reversal of "No provenance field".
 

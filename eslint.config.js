@@ -78,7 +78,10 @@ export default sxzz().append(
     // overrides below, so each scoped block (which re-lists this pattern) wins
     // for its file set without losing the extension guard.
     rules: {
-      'no-restricted-imports': ['error', { patterns: [explicitJsExtensionPattern] }],
+      'no-restricted-imports': [
+        'error',
+        { patterns: [explicitJsExtensionPattern] },
+      ],
     },
   },
   {
