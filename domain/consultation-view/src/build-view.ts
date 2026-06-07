@@ -180,6 +180,34 @@ export function hexagramDiagramRows(
   return diagramRows(hexagram, movingFrom)
 }
 
+// ── Section → medium visibility matrix (the single survey point) ─────────────
+// buildConsultationView is the SOLE owner of which sections each medium emits
+// (ADR-0018: "Section→medium visibility is explicit, not implicit"). The
+// serializers do NOT decide visibility — they filter on each section's `media`
+// flag. This table is what those scattered `media:[...]` literals add up to:
+//
+//   section (kind / role / variant)        ansi   markdown
+//   query                                    ✓        ✓
+//   casting                                  ✓        ✓
+//   transformation                           ✓        ✓
+//   hexagram / standing                      ✓        ✓
+//   text / hexagram   (standing scripture)   ✓        ✗   ← ANSI-only
+//   hexagram / emerging  (moving only)       ✓        ✓
+//   text / hexagram   (emerging, moving)     ✓        ✗   ← ANSI-only
+//   text / lines / none  (no moving lines)   ✗        ✓   ← Markdown-only
+//   text / lines / one   (one moving line)   ✓        ✓
+//   text / lines / multi (multi moving)      ✓        ✓
+//
+// The ONE deliberate divergence: for a STATIC (no-moving) hexagram the
+// hexagram-level scripture is rendered ANSI-side by `text:hexagram` and
+// Markdown-side by `text:lines:none` (Markdown folds that scripture into the
+// trailing `## LINES` block). Same words, different sections, by design — so
+// the bytes match each medium's legacy layout. Consumers of this flag:
+//   • cli/readout/src/serialize-ansi.ts        serializeConsoleOutput  (ansi)
+//   • domain/consultation-file/src/serialize-markdown.ts  body composer (md)
+//   • cli/readout/src/serialize-ansi.ts        serializeConsultationTabs
+//     — a THIRD, order-independent re-grouping by kind/role that consults the
+//     SAME flag (the `lines.media.includes('ansi')` guard), not a new rule.
 export function buildConsultationView(
   query: string,
   hexagram: Hexagram,
