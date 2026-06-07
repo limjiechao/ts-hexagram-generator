@@ -8,15 +8,16 @@ import {
   hexagramDiagramRowStrings,
   transformationRow,
 } from '@hexagram/consultation-view/diagram-template'
-import type {
-  CastingSection,
-  ConsultationView,
-  HexagramIdentity,
-  HexagramSection,
-  QuerySection,
-  TextSection,
-  TextVariant,
-  TransformationSection,
+import {
+  CASTING_ABSENCE_LABEL,
+  type CastingSection,
+  type ConsultationView,
+  type HexagramIdentity,
+  type HexagramSection,
+  type QuerySection,
+  type TextSection,
+  type TextVariant,
+  type TransformationSection,
 } from '@hexagram/consultation-view/ir'
 import {
   ledgerBlock,
@@ -42,12 +43,16 @@ import {
 import type { ConsultationSections } from './output-composers.js'
 
 export function serializeCastingAnsi(section: CastingSection): string {
-  if (section.rows === null)
+  if (section.rows === null) {
+    const why = section.absenceReason
+      ? ` (${CASTING_ABSENCE_LABEL[section.absenceReason]})`
+      : ''
     return `
 ${BOLD_GREY}CASTING:${NORMAL}
 
-${NORMAL}Casting not recorded
+${NORMAL}Casting not recorded${why}
 `.trim()
+  }
 
   const ansiStyle: LedgerStyle = {
     gutter: ` ${NORMAL_GREY}│${NORMAL} `,

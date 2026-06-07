@@ -15,14 +15,15 @@ import {
   hexagramDiagramRowStrings,
   transformationRow,
 } from '@hexagram/consultation-view/diagram-template'
-import type {
-  CastingSection,
-  ConsultationView,
-  HexagramSection,
-  QuerySection,
-  TextSection,
-  TextVariant,
-  TransformationSection,
+import {
+  CASTING_ABSENCE_LABEL,
+  type CastingSection,
+  type ConsultationView,
+  type HexagramSection,
+  type QuerySection,
+  type TextSection,
+  type TextVariant,
+  type TransformationSection,
 } from '@hexagram/consultation-view/ir'
 import {
   ledgerBlock,
@@ -32,7 +33,12 @@ import { RIGHT_COLUMN } from '@hexagram/consultation-view/vocabulary'
 import { padToColumn } from '@hexagram/text-layout'
 
 export function serializeCastingMarkdown(section: CastingSection): string {
-  if (section.rows === null) return `## CASTING\n\n_Casting not recorded._\n`
+  if (section.rows === null) {
+    const why = section.absenceReason
+      ? ` (${CASTING_ABSENCE_LABEL[section.absenceReason]})`
+      : ''
+    return `## CASTING\n\n_Casting not recorded${why}._\n`
+  }
 
   const markdownStyle: LedgerStyle = {
     gutter: ' │ ',
