@@ -76,7 +76,10 @@ describe('convertLegacyTxt — SPLIT casting table', () => {
     )
     // SPLIT format: "Split" column is the left heap = pick; "Stalks" = recordedMax.
     // Line 1 / cast 1 of the real file: Stalks 48, Split 5.
-    expect(result.envelope.casting?.[0][0]).toEqual({ pick: 5, recordedMax: 48 })
+    expect(result.envelope.casting?.[0][0]).toEqual({
+      pick: 5,
+      recordedMax: 48,
+    })
   })
 })
 

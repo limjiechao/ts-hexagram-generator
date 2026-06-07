@@ -52,7 +52,7 @@ full casting recovered, validated by replaying the splits through
 `makeLineGenerator` and confirming the same hexagram) and **Shape B** (no table —
 sets `casting: null`, `castingAbsence: legacy-no-table`). When a Shape-A table
 fails replay-validation the casting is dropped and tagged
-`castingAbsence: legacy-unreplayable` (the *fact of* unreplayability is recorded;
+`castingAbsence: legacy-unreplayable` (the _fact of_ unreplayability is recorded;
 the casting data still is not). The replay-validate step means Shape A's recovered
 casting is proven, not trusted.
 
@@ -61,13 +61,13 @@ casting is proven, not trusted.
 A `casting: null` envelope has three otherwise-indistinguishable origins — a
 legacy Shape-B file, a legacy Shape-A replay failure, and a playground save. This
 ADR originally said the absence carried "no sentinel" and provenance was
-intentionally not kept. That stance is **superseded for the *absence* case
-only**: the compulsory `castingAbsence` field now records *why* casting is absent,
+intentionally not kept. That stance is **superseded for the _absence_ case
+only**: the compulsory `castingAbsence` field now records _why_ casting is absent,
 so the three origins are distinguishable in the file and in the readout (the
 "Casting not recorded" notice names the reason). This does **not** reverse
-[ADR-0011](0011-manual-casting-flow-design.md) — a casting that *happened*
+[ADR-0011](0011-manual-casting-flow-design.md) — a casting that _happened_
 (interactive / random / manual) still carries no provenance; `castingAbsence`
-exists only when casting *did not* happen.
+exists only when casting _did not_ happen.
 
 ## Considered options
 

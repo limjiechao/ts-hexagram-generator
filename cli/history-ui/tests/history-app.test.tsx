@@ -117,9 +117,9 @@ const ENTER = '\r'
 const CTRL_D = String.fromCodePoint(0x04)
 
 const CASTING: CastingRecord = Array.from({ length: 6 }, () => [
-  { pick: 1, max: 48 },
-  { pick: 2, max: 43 },
-  { pick: 3, max: 39 },
+  { pick: 1, recordedMax: 48 },
+  { pick: 2, recordedMax: 43 },
+  { pick: 3, recordedMax: 39 },
 ]) as CastingRecord
 
 /** A consultation with moving lines (6 and 9 present → all four tabs). */

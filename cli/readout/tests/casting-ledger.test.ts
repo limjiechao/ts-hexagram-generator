@@ -56,9 +56,9 @@ const visualWidthOf = (row: string): number =>
 // pick=24, max=48 derives to stalks 49, L heap 24 / 5 piles / 4 odd,
 // R heap 25 / 5 piles / 4 odd, held 1, aside 9, Σ 10.
 const FULL: CastingRecord = Array.from({ length: 6 }, () => [
-  { pick: 24, max: 48 },
-  { pick: 20, max: 43 },
-  { pick: 16, max: 35 },
+  { pick: 24, recordedMax: 48 },
+  { pick: 20, recordedMax: 43 },
+  { pick: 16, recordedMax: 35 },
 ]) as CastingRecord
 
 describe('castingSection — full ledger', () => {

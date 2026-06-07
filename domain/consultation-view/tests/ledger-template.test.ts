@@ -22,21 +22,21 @@ const rows: readonly LedgerRow[] = [
     castNumber: 3,
     showLine: true,
     trailingRule: false,
-    cell: deriveSplit({ pick: 4, max: 8 }),
+    cell: deriveSplit({ pick: 4, recordedMax: 8 }),
   },
   {
     lineNumber: 6,
     castNumber: 2,
     showLine: false,
     trailingRule: false,
-    cell: deriveSplit({ pick: 4, max: 7 }),
+    cell: deriveSplit({ pick: 4, recordedMax: 7 }),
   },
   {
     lineNumber: 6,
     castNumber: 1,
     showLine: false,
     trailingRule: false,
-    cell: deriveSplit({ pick: 4, max: 7 }),
+    cell: deriveSplit({ pick: 4, recordedMax: 7 }),
   },
 ]
 

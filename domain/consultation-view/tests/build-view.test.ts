@@ -9,9 +9,9 @@ import type {
 } from '../src/ir.js'
 
 const casting: CastingRecord = Array.from({ length: 6 }, () => [
-  { pick: 1, max: 48 },
-  { pick: 2, max: 43 },
-  { pick: 3, max: 39 },
+  { pick: 1, recordedMax: 48 },
+  { pick: 2, recordedMax: 43 },
+  { pick: 3, recordedMax: 39 },
 ]) as CastingRecord
 
 const kinds = (h: Hexagram) =>
@@ -98,7 +98,12 @@ describe('buildConsultationView section order + gate', () => {
 
 describe('buildConsultationView absence reason', () => {
   it('threads the reason into the casting section when casting is null', () => {
-    const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], null, 'playground')
+    const view = buildConsultationView(
+      'q',
+      [7, 7, 7, 7, 7, 7],
+      null,
+      'playground',
+    )
     const section = view.sections.find((s) => s.kind === 'casting') as
       | CastingSection
       | undefined
@@ -113,7 +118,12 @@ describe('buildConsultationView absence reason', () => {
     expect(section?.absenceReason ?? null).toBeNull()
   })
   it('never leaks a reason into a present-casting render', () => {
-    const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], casting, 'playground')
+    const view = buildConsultationView(
+      'q',
+      [7, 7, 7, 7, 7, 7],
+      casting,
+      'playground',
+    )
     const section = view.sections.find((s) => s.kind === 'casting') as
       | CastingSection
       | undefined

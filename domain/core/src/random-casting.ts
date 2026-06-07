@@ -17,7 +17,7 @@ import {
 // REF: https://nodejs.org/api/crypto.html#crypto_crypto_randomint_min_max_callback
 // Draw a pick in `[1, selectablePickMax(recordedMax)]`, the same range the
 // interactive/manual flows offer (see `selectablePickMax` in
-// `casting-derivation.ts`): one below the recorded `SplitRecord.max` so the
+// `casting-derivation.ts`): one below the recorded `SplitRecord.recordedMax` so the
 // right heap keeps a countable stalk after the suspended one (掛一) and its
 // remainder is never 0. `randomInt(min, max)` is exclusive on `max`, so we add
 // 1 to include the ceiling. (`length` is never below ~32 across the three

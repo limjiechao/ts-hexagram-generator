@@ -55,9 +55,9 @@ import { HomeMenu } from '../src/home-menu.js'
 const randomConsultationMock = vi.hoisted(() => {
   const stubHexagram: Hexagram = [7, 8, 7, 8, 7, 8]
   const stubCasting = Array.from({ length: 6 }, () => [
-    { pick: 3, max: 48 },
-    { pick: 3, max: 43 },
-    { pick: 3, max: 35 },
+    { pick: 3, recordedMax: 48 },
+    { pick: 3, recordedMax: 43 },
+    { pick: 3, recordedMax: 35 },
   ]) as CastingRecord
   return vi.fn(() => ({ hexagram: stubHexagram, casting: stubCasting }))
 })
