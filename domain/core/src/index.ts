@@ -188,13 +188,13 @@ export const initialLineState: Extract<LineState, { phase: '0th-cast' }> = {
 
 // The **recorded** max for the next pick — `unparted.length - 1`, i.e. the
 // `SplitRecord.recordedMax` stored alongside the pick (it reserves the right heap's
-// suspended stalk 掛一). This is NOT the selectable ceiling a prompt offers:
-// flows cap the pick one lower, at `selectablePickMax(maxPickFor(state))`, so
-// the right heap keeps a countable stalk and its remainder is never 0 (see
-// `selectablePickMax` in `casting-derivation.ts`). Only meaningful before
-// resolution — `'3rd-cast'` has nothing left to pick, so it's excluded from the
-// input domain.
-export const maxPickFor = (state: AdvanceableLineState): number =>
+// suspended stalk 掛一). Named for the value it returns, not for any pick a
+// prompt may offer: flows cap the pick one lower, at
+// `selectablePickMax(recordedMaxFor(state))`, so the right heap keeps a
+// countable stalk and its remainder is never 0 (see `selectablePickMax` in
+// `casting-derivation.ts`). Only meaningful before resolution — `'3rd-cast'`
+// has nothing left to pick, so it's excluded from the input domain.
+export const recordedMaxFor = (state: AdvanceableLineState): number =>
   state.unparted.length - 1
 
 // Phase advancement is total over the non-terminal subdomain; the conditional

@@ -16,7 +16,7 @@ There are **two different "maxes"** for each cast — keep them straight:
 
 | Quantity                | Value        | Meaning                                                                                                                                                    |
 | ----------------------- | ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Recorded max            | `stalks − 1` | `SplitRecord.max`; reserves the suspended stalk 掛一. Used for the readout, conservation, the saved file. Returned by `maxPickFor(state)`.                 |
+| Recorded max            | `stalks − 1` | `SplitRecord.recordedMax`; reserves the suspended stalk 掛一. Used for the readout, conservation, the saved file. Returned by `recordedMaxFor(state)`.     |
 | Selectable pick ceiling | `stalks − 2` | The highest `pick` a flow may offer/draw. Reserves a SECOND, countable stalk so the right heap's remainder stays 1..4. = `selectablePickMax(recordedMax)`. |
 
 ## Rules
@@ -47,9 +47,9 @@ There are **two different "maxes"** for each cast — keep them straight:
 
 ## Where it lives
 
-- `packages/core/src/casting-derivation.ts` — `selectablePickMax`,
+- `domain/core/src/casting-derivation.ts` — `selectablePickMax`,
   `assertSelectablePick`, `neverZeroMod4`, `deriveSplit`.
-- `packages/core/src/index.ts` — `performCast` (enforces), `maxPickFor` (records).
+- `domain/core/src/index.ts` — `performCast` (enforces), `recordedMaxFor` (records).
 - All input flows clamp to `selectablePickMax`: `random-casting.ts`,
   `casting-ui/src/viewer.tsx`, `casting-ui/src/interactive-flow.ts`; the manual
   flow's validator derives the same range structurally.

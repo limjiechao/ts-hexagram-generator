@@ -1,9 +1,10 @@
 import { describe, expect, test } from 'vitest'
 
+import { selectablePickMax } from '../src/casting-derivation.js'
 import {
   initialLineState,
-  maxPickFor,
   performCast,
+  recordedMaxFor,
   stalksBeforeParting,
 } from '../src/index.js'
 import type { AdvanceableLineState, LineState } from '../src/types.js'
@@ -18,15 +19,26 @@ describe('initialLineState', () => {
   })
 })
 
-describe('maxPickFor', () => {
+describe('recordedMaxFor', () => {
   test('reports unparted.length - 1 in 0th-cast (=48)', () => {
-    expect(maxPickFor(initialLineState)).toBe(48)
+    expect(recordedMaxFor(initialLineState)).toBe(48)
   })
 
-  test('reports the smaller selectable range after one cast', () => {
+  test('reports the smaller recorded max after one cast', () => {
     const next = performCast(initialLineState, 24)
-    expect(maxPickFor(next)).toBe(next.unparted.length - 1)
-    expect(maxPickFor(next)).toBeLessThan(48)
+    expect(recordedMaxFor(next)).toBe(next.unparted.length - 1)
+    expect(recordedMaxFor(next)).toBeLessThan(48)
+  })
+
+  // The name pins the value: `recordedMaxFor` returns the RECORDED max — the
+  // value stored as `SplitRecord.recordedMax` — which is strictly one above the
+  // highest pick a flow may offer (`selectablePickMax`). Reading the old name
+  // (`maxPickFor`) as "the max pick you may make" was off by one; this asserts
+  // the gap so the name can never silently collapse back onto the pick ceiling.
+  test('is one above the selectable pick ceiling (not itself a selectable pick)', () => {
+    expect(recordedMaxFor(initialLineState)).toBe(
+      selectablePickMax(recordedMaxFor(initialLineState)) + 1,
+    )
   })
 })
 

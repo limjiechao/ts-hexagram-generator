@@ -58,10 +58,10 @@ import {
   type InputMode,
 } from './utils-mode.js'
 import {
+  currentRecordedMax,
   EMPTY_SECTIONS,
   flowReducer,
   initialFlowState,
-  recordedMaxFor,
   type CastingPlan,
   type FlowAction,
   type FlowKind,
@@ -241,7 +241,7 @@ export function ConsultationViewer({
   // (`SplitRecord.recordedMax`, which equals what `lineState` would derive).
   const currentMax =
     state.castingPlan === null
-      ? recordedMaxFor(state.lineState)
+      ? currentRecordedMax(state.lineState)
       : state.castingPlan.casting[state.lineIndex][state.castIndex].recordedMax
 
   // The reachable pick ceiling — one below the recorded `SplitRecord.recordedMax`.
@@ -623,7 +623,7 @@ export function ConsultationViewer({
       // Mid-casting `state.lineState` is always advanceable (the reducer resets
       // to initialLineState after each line; a line in flight is 0th/1st/2nd
       // cast), so this assert never narrows away a real '3rd-cast'. Same
-      // narrowing `recordedMaxFor(state.lineState)` above relies on.
+      // narrowing `currentRecordedMax(state.lineState)` above relies on.
       lineState={state.lineState as AdvanceableLineState}
       tickMs={deriveTickMs(sliderSweepMs, reachablePickMax)}
       commitRevealMs={sliderCommitRevealMs}

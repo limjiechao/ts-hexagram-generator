@@ -443,7 +443,7 @@ describe('ConsultationViewer (interactive flow)', () => {
     // showed the stale 3rd-cast max (e.g. 1..30) under the new "Line 2 · 1st
     // Cast" title. Now `splitCommitted` advances the reducer's `lineState`
     // synchronously, so the very next render derives the new line's max via
-    // `recordedMaxFor`. Validate the prompt is back to 1..47 on the new line
+    // `currentRecordedMax`. Validate the prompt is back to 1..47 on the new line
     // (the pick ceiling, one below the recorded round-1 max of 48).
     const { lastFrame, stdin, unmount } = render(
       <ConsultationViewer flowKind="interactive" inputMode="number" />,
