@@ -11,7 +11,8 @@
 // fiddler, not a divination flow — no 用九/用六 or stacked multi-line
 // judgments).
 
-import { getHexagramRecord } from '@hexagram/core/getters'
+import { movingLineVariants } from '@hexagram/consultation-view/build-view'
+import type { TextVariant } from '@hexagram/consultation-view/ir'
 import type { Hexagram } from '@hexagram/core/types'
 import {
   BOLD_GREY,
@@ -45,14 +46,13 @@ interface ReadingsPanelProps {
   readonly scrollOffset: number
 }
 
-const LINE_KEYS: readonly ['L1', 'L2', 'L3', 'L4', 'L5', 'L6'] = [
-  'L1',
-  'L2',
-  'L3',
-  'L4',
-  'L5',
-  'L6',
-] as const
+// The playground strip shows a compact two-variant subset of the IR's four —
+// the same Traditional-Chinese + Wilhelm-Baynes pair the identity stack shows.
+// These labels are the IR's own (set in `movingLineVariants` / build-view.ts);
+// we select against them so the strip and the consultation readout draw the
+// per-line text from one derivation.
+const TRADITIONAL_CHINESE = 'Traditional Chinese'
+const WILHELM_BAYNES = 'English, Wilhelm-Baynes'
 
 // Indent prose payload by two spaces and preserve embedded newlines from
 // the Wilhelm-Baynes verse (multi-line stanzas) by re-indenting their
@@ -62,20 +62,32 @@ function indentParagraph(text: string): string {
   return `  ${text.replaceAll('\n', '\n  ')}`
 }
 
+// The IR guarantees both labels for a one-moving-line hexagram. A miss means the
+// IR's variant set drifted out from under us — surface it rather than render a
+// blank block (mirrors this panel's no-defensive-clamp stance).
+function requireVariant(
+  variants: readonly TextVariant[],
+  language: string,
+): TextVariant {
+  const found = variants.find((variant) => variant.language === language)
+  if (found === undefined)
+    throw new Error(
+      `readings panel: IR has no "${language}" moving-line variant`,
+    )
+  return found
+}
+
 function buildContent(
   standing: Hexagram,
   movingLineIndex: 0 | 1 | 2 | 3 | 4 | 5,
 ): string {
-  const { Text: HexText } = getHexagramRecord(standing)
-  const lineKey = LINE_KEYS[movingLineIndex]
-  const traditionalScripture =
-    HexText.Chinese.Traditional.Scripture.Lines[lineKey]
-  const englishScripture =
-    HexText.English.WilhelmBaynes.Scripture.Lines[lineKey]
-  const traditionalExegesis =
-    HexText.Chinese.Traditional.Exegesis.Imagery.Lines[lineKey]
-  const englishExegesis =
-    HexText.English.WilhelmBaynes.Exegesis.Imagery.Lines[lineKey]
+  // Source the per-line reading text from the IR sub-builder — the single home
+  // of that derivation (ADR-0018) — instead of re-traversing the hexagram
+  // record. The host only mounts this strip when `standing` has exactly one
+  // moving line, which is the line `movingLineIndex` names.
+  const variants = movingLineVariants(standing)
+  const traditional = requireVariant(variants, TRADITIONAL_CHINESE)
+  const wilhelmBaynes = requireVariant(variants, WILHELM_BAYNES)
 
   // Single blank rows separate the six blocks; embed ANSI colour
   // markers inline so wrapAnsi treats them as zero-width and breaks
@@ -85,15 +97,15 @@ function buildContent(
     '',
     '(Scripture)',
     '',
-    `${BOLD_WHITE}${indentParagraph(traditionalScripture)}${NORMAL}`,
+    `${BOLD_WHITE}${indentParagraph(traditional.scripture)}${NORMAL}`,
     '',
-    `${NORMAL_GREY}${indentParagraph(englishScripture)}${NORMAL}`,
+    `${NORMAL_GREY}${indentParagraph(wilhelmBaynes.scripture)}${NORMAL}`,
     '',
     '(Exegesis — 象傳)',
     '',
-    `${BOLD_WHITE}${indentParagraph(traditionalExegesis)}${NORMAL}`,
+    `${BOLD_WHITE}${indentParagraph(traditional.exegesis)}${NORMAL}`,
     '',
-    `${NORMAL_GREY}${indentParagraph(englishExegesis)}${NORMAL}`,
+    `${NORMAL_GREY}${indentParagraph(wilhelmBaynes.exegesis)}${NORMAL}`,
   ].join('\n')
 }
 
