@@ -8,7 +8,6 @@ import { generateRandomConsultation } from '@hexagram/core/random-casting'
 import {
   assertIsCastingRecord,
   assertIsHexagram,
-  type AdvanceableLineState,
   type CastingRecord,
   type Hexagram,
 } from '@hexagram/core/types'
@@ -622,11 +621,10 @@ export function ConsultationViewer({
       flowKind={state.flowKind}
       manualRevealMs={manualRevealMs}
       unpartedStalks={stalkCountFor(currentMax)}
-      // Mid-casting `state.lineState` is always advanceable (the reducer resets
-      // to initialLineState after each line; a line in flight is 0th/1st/2nd
-      // cast), so this assert never narrows away a real '3rd-cast'. Same
-      // narrowing `currentRecordedMax(state.lineState)` above relies on.
-      lineState={state.lineState as AdvanceableLineState}
+      // `state.lineState` is typed `AdvanceableLineState` (the reducer never
+      // parks a resolved '3rd-cast'), so it fits the prompt's prop directly —
+      // no cast. Same field `currentRecordedMax(state.lineState)` above consumes.
+      lineState={state.lineState}
       tickMs={deriveTickMs(sliderSweepMs, reachablePickMax)}
       commitRevealMs={sliderCommitRevealMs}
       horizontalOffset={horizontalOffset}

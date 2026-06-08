@@ -1,10 +1,10 @@
 import { initialLineState, performCast, recordedMaxFor } from '@hexagram/core'
 import {
   emptyPartialCastingRecord,
+  type AdvanceableLineState,
   type CastingRecord,
   type Hexagram,
   type Line,
-  type LineState,
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/core/types'
@@ -52,7 +52,14 @@ export interface FlowState {
   // it advances this via the pure `performCast` and derives the recorded ceiling
   // and resolved `Line` itself. Reset to `initialLineState` after every 3rd
   // cast and on `lineRewound`. Replaces the old `useLineGenerator` refs.
-  lineState: LineState
+  //
+  // Typed as the ADVANCEABLE subset, not the full `LineState`: the reducer never
+  // parks a resolved `'3rd-cast'` here (it resets to `initialLineState` the
+  // moment a line resolves — see `splitCommitted`), so the type, not a scatter
+  // of runtime guards, owns the "always castable" invariant. `performCast`'s own
+  // runtime throw stays as the algorithm-of-record tripwire for `@ts-expect-error`
+  // bypass; this field needs no such guard because the host controls its shape.
+  lineState: AdvanceableLineState
   // The predetermined plan for a random flow — stored on `querySubmit` and
   // read cast-by-cast during `casting`. `null` for an interactive flow.
   castingPlan: CastingPlan | null
@@ -117,16 +124,13 @@ export const EMPTY_SECTIONS: ConsultationSections = {
 }
 
 /**
- * The recorded ceiling for the CURRENT cast (`stalks - 1` for this round),
- * total over `LineState`. `lineState` is never in the resolved `'3rd-cast'`
- * phase mid-casting (the reducer resets it after every 3rd cast), so the
- * fallback to the round-1 recordedMax is unreachable in practice — it only
- * satisfies `recordedMaxFor`'s advanceable input domain for the type checker.
+ * The recorded ceiling for the CURRENT cast (`stalks - 1` for this round).
+ * Takes the advanceable `FlowState.lineState` directly — the reducer never
+ * parks a resolved `'3rd-cast'` there, so this is a thin host-side accessor
+ * over `recordedMaxFor` with no impossible-phase fallback to carry.
  */
-export function currentRecordedMax(lineState: LineState): number {
-  return lineState.phase === '3rd-cast'
-    ? recordedMaxFor(initialLineState)
-    : recordedMaxFor(lineState)
+export function currentRecordedMax(lineState: AdvanceableLineState): number {
+  return recordedMaxFor(lineState)
 }
 
 export function initialFlowState(
@@ -181,17 +185,16 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
       // The reducer is the SINGLE owner of the per-line algorithm: it advances
       // `lineState` through the pure `performCast` and derives the recorded
       // recorded ceiling and resolved `Line` itself. The action carries only the pick.
+      // `before` is the advanceable `FlowState.lineState` — the reducer resets
+      // it to `initialLineState` the moment a line resolves, so a `splitCommitted`
+      // can never arrive on a resolved line. That invariant lives in the field's
+      // type now (`AdvanceableLineState`), not in a runtime guard here.
       const before = state.lineState
-      // Defensive: the reducer resets `lineState` after every 3rd cast, so a
-      // `splitCommitted` can never arrive on a resolved line (this also
-      // satisfies `performCast`/`recordedMaxFor`'s advanceable input domain).
-      if (before.phase === '3rd-cast') return state
-
       const recordedMax = recordedMaxFor(before)
       const after = performCast(before, action.pick)
       const split: SplitRecord = { pick: action.pick, recordedMax }
       const line = after.phase === '3rd-cast' ? after.line : undefined
-      const nextLineState: LineState =
+      const nextLineState: AdvanceableLineState =
         after.phase === '3rd-cast' ? initialLineState : after
 
       const partialCasting = state.partialCasting.map(
