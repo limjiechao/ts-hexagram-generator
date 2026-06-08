@@ -1,6 +1,8 @@
 import { sxzz } from '@sxzz/eslint-config'
 import oxlint from 'eslint-plugin-oxlint'
 
+import { cliBoundaryBans } from './eslint.boundary.js'
+
 // S17 drift-guard (ADR-0004/0005): every relative import must carry an explicit
 // `.js` extension. Hoisted to a module-level const because ESLint flat config
 // does NOT merge two configs' `no-restricted-imports` — the last matching config
@@ -30,18 +32,6 @@ const barrelRootBans = [
     message:
       'Import the concrete subpath — @hexagram/readout/{consultation-readout,output-composers,serialize-ansi,standing-line-color} — not the bare package; it has no root barrel. Casting-table row geometry lives at @hexagram/consultation-view/ledger-geometry (S9, no-barrel-files).',
   },
-]
-
-// The seven cli/* package names (ADR-0019 boundary). domain/* may not import any
-// of them: the dependency arrow points cli → domain, never the reverse.
-const cliPackageNames = [
-  '@hexagram/viewer-core',
-  '@hexagram/readout',
-  '@hexagram/casting-ui',
-  '@hexagram/history-ui',
-  '@hexagram/playground-ui',
-  '@hexagram/shell',
-  '@hexagram/test-utils',
 ]
 
 export default sxzz().append(
@@ -112,12 +102,10 @@ export default sxzz().append(
       'no-restricted-imports': [
         'error',
         {
-          patterns: [explicitJsExtensionPattern],
-          paths: cliPackageNames.map((name) => ({
-            name,
-            message:
-              'domain/* must not import cli/* (ADR-0019): the dependency arrow points cli → domain. Express the intent medium-neutrally (consultation-view IR or text-layout) and let a cli/* serializer render it.',
-          })),
+          // cliBoundaryBans bans each cli/* package by bare name AND by subpath
+          // glob (S14) — `paths[].name` alone misses `@hexagram/readout/x`.
+          patterns: [explicitJsExtensionPattern, ...cliBoundaryBans.patterns],
+          paths: cliBoundaryBans.paths,
         },
       ],
     },
