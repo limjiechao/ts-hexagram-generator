@@ -22,15 +22,24 @@ import { PlaygroundApp } from './playground-app.js'
  * never calls `process.exit()` itself so it stays focused and
  * unit-testable.
  *
+ * `dir` is the repo-root-anchored consultations directory the bin resolves
+ * at the shell edge (via `workspaceConsultationsDir()`) and threads in as
+ * `<PlaygroundApp>`'s `saveDir`, so a playground save lands in
+ * `<repo-root>/consultations` regardless of the invocation cwd — matching
+ * `runHistoryViewer({ dir })` and the casting bins (ADR-0020). Omitting it
+ * falls back to the component's cwd-based default.
+ *
  * `exitOnCtrlC: false` matches `runHistoryViewer` and `runHexagram` — the
  * playground screen owns Ctrl+C (currently as a quit, but the
  * compose-friendly wiring leaves room for a future discard-confirm).
  */
-export async function runPlaygroundApp(env?: EnvSnapshot): Promise<boolean> {
+export async function runPlaygroundApp(
+  args: { dir?: string; env?: EnvSnapshot } = {},
+): Promise<boolean> {
   // `env` defaults to the live snapshot; tests inject one to reach refusal.
-  const snapshot: EnvSnapshot = env ?? liveSnapshot()
+  const snapshot: EnvSnapshot = args.env ?? liveSnapshot()
   if (!warnIfNonInteractive('hexagram-playground', snapshot)) return false
-  const instance = render(createElement(PlaygroundApp), {
+  const instance = render(createElement(PlaygroundApp, { saveDir: args.dir }), {
     exitOnCtrlC: false,
     alternateScreen: true,
   })
