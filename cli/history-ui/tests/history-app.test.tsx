@@ -3,7 +3,9 @@ import path from 'node:path'
 import process from 'node:process'
 
 import {
+  loadConsultationFile,
   markdownConsultationBody,
+  saveConsultationFile,
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file'
@@ -12,7 +14,7 @@ import { yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
-import { HistoryApp } from '../src/history-app.js'
+import { HistoryApp, rerenderOnDisk } from '../src/history-app.js'
 
 // Matches ANSI SGR escape sequences (ESC[...m). Stripped before assertions
 // so text matching is robust to Ink's colour codes.
@@ -160,6 +162,9 @@ async function writeFresh(envelope: ConsultationEnvelope): Promise<string> {
     envelope.query,
     envelope.hexagram,
     envelope.casting,
+    // Mirror the save path (file.ts) — threading the reason keeps the fixture
+    // body faithful to a real save so a null-casting fixture can't mask drift.
+    envelope.castingAbsence,
   )
   const filePath = path.join(
     tmpDir,
@@ -349,6 +354,38 @@ describe('<HistoryApp> — loaded readout', () => {
       .filter((l) => l.includes(`${ESC}[7m`))
     expect(inverseLines.some((l) => l.includes('Berlin'))).toBe(true)
     expect(inverseLines.some((l) => l.includes('happen'))).toBe(false)
+  })
+})
+
+describe('rerenderOnDisk — save→load→rerender body fidelity', () => {
+  it('preserves the casting-absence reason for a null-casting save (no silent body downgrade)', async () => {
+    // Save a playground consultation through the REAL save path: casting null,
+    // reason 'playground'. saveConsultationFile threads the reason into the
+    // body, so the saved file reads "(playground exploration)".
+    const filePath = await saveConsultationFile({
+      query: 'A playground exploration with no casting.',
+      hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+      casting: null,
+      castingAbsence: 'playground',
+      dir: tmpDir,
+    })
+    const savedFile = await fs.readFile(filePath, 'utf8')
+    expect(savedFile).toContain(
+      '_Casting not recorded (playground exploration)._',
+    )
+
+    const loaded = await loadConsultationFile(filePath)
+    expect(loaded.ok).toBe(true)
+    if (!loaded.ok) return
+
+    // Self-heal on first load must not drift a freshly-saved file. Before the
+    // B5 fix, rerenderOnDisk re-rendered the body WITHOUT the absence reason
+    // (the 4th arg defaulted to null), downgrading it to a bare "Casting not
+    // recorded." — a rewrite that lossily strips the reason while the footer
+    // claims "data unchanged."
+    const result = await rerenderOnDisk(filePath, loaded.envelope)
+    expect(result.rewrote).toBe(false)
+    expect(await fs.readFile(filePath, 'utf8')).toBe(savedFile)
   })
 })
 

@@ -26,6 +26,10 @@ export async function rerenderOnDisk(
     envelope.query,
     envelope.hexagram,
     envelope.casting,
+    // Thread the absence reason so the self-healed body matches the save path
+    // (file.ts passes it too). Omitting it downgrades a null-casting body to a
+    // bare "Casting not recorded." while the footer claims "data unchanged."
+    envelope.castingAbsence,
   )
   const desired = serializeFrontmatter(envelope, body)
   const current = await fs.readFile(filePath, 'utf8')
