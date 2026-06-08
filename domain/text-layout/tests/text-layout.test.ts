@@ -25,10 +25,17 @@ describe('visualWidth', () => {
     // 0xac00 '가' is in the AC00–D7AF fullwidth block.
     expect(visualWidth('가')).toBe(2)
   })
-  it('does not special-case combining marks (counts each code point)', () => {
-    // 'e' + COMBINING ACUTE ACCENT (U+0301) — two code points, each width 1.
-    // This pins the function's real (limited) behaviour, not an ideal.
-    expect(visualWidth(`e${String.fromCodePoint(0x0301)}`)).toBe(2)
+  it('treats a combining mark as zero-width (string-width-backed, ADR-0021)', () => {
+    // 'e' + COMBINING ACUTE ACCENT (U+0301): the mark stacks onto the base
+    // glyph, occupying no column of its own. The old hand-rolled ranges
+    // counted each code point (→ 2); the string-width table the function now
+    // delegates to measures this correctly as 1.
+    expect(visualWidth(`e${String.fromCodePoint(0x0301)}`)).toBe(1)
+  })
+  it('counts supplementary-plane CJK as two columns', () => {
+    // U+20000 is a CJK Extension B ideograph above the BMP — outside every
+    // old hand-rolled range, so the previous impl under-counted it as 1.
+    expect(visualWidth(String.fromCodePoint(0x20000))).toBe(2)
   })
 })
 

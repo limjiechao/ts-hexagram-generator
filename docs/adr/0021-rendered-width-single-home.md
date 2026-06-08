@@ -93,15 +93,16 @@ each its own small single-intent change.
 
 ## Where it's enforced
 
-_(Targets; implementation sequenced as follow-up slices.)_
+_(Implemented in two single-intent follow-up slices, B4.)_
 
 - `eslint.config.js` — the `cli/**`-scoped `no-restricted-imports` override (viewer-core
-  ignored) extends to forbid `slice-ansi` alongside `string-width`.
-- `cli/viewer-core/` — gains a pan/slice helper (the single home for slicing a row to a
-  display-column window) beside `terminalWidth` and `wrapToWidth`; `terminalWidth`
-  becomes a thin re-export of `domain/text-layout`'s `visualWidth`.
+  ignored) forbids `slice-ansi` alongside `string-width`.
+- `cli/viewer-core/` — exposes `panToWindow` (the single home for slicing a row to a
+  display-column window) beside `terminalWidth` and `wrapToWidth`; `terminalWidth` is a
+  thin re-export of `domain/text-layout`'s `visualWidth`, and the truncate/pad helpers
+  measure through it (no direct `string-width` import remains).
 - `domain/text-layout/` — `visualWidth` is the single width function, backed by
-  `string-width`.
+  `string-width` (the domain layer's first runtime dependency).
 - `cli/playground-ui/src/hexagram-display.tsx`, `cli/readout/src/consultation-readout.tsx`,
   `cli/casting-ui/src/slider-prompt.tsx`, `cli/casting-ui/src/manual-prompt.tsx` — route
   their pan through the viewer-core helper instead of importing `slice-ansi`.

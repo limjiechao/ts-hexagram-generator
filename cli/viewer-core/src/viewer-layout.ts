@@ -1,18 +1,21 @@
+import { visualWidth } from '@hexagram/text-layout'
 import sliceAnsi from 'slice-ansi'
-import stringWidth from 'string-width'
 import wrapAnsi from 'wrap-ansi'
 
 /**
  * Display width of a terminal string in columns. ANSI-aware: embedded SGR
- * escapes count as zero; wide CJK glyphs count as two. The single home for
- * rendered-string width in the CLI layer — components import this, never the
+ * escapes count as zero; wide CJK glyphs count as two. A thin re-export of the
+ * `visualWidth` function in `@hexagram/text-layout` — the single home for
+ * rendered-string width across the codebase (ADR-0021). The CLI layer imports
+ * width via this wrapper (or the truncate/pad helpers below), never the
  * `string-width` package directly (raw imports are blocked by the ESLint
  * `no-restricted-imports` fence in `eslint.config.js`, scoped to `cli/**`
- * except `viewer-core`; see ADR-0019). Distinct from @hexagram/text-layout's
- * `visualWidth`, which measures raw (ANSI-free) diagram text.
+ * except `viewer-core`; see ADR-0019/0021). Because `visualWidth` and
+ * `terminalWidth` now share one `string-width`-backed table, the saved `.md`
+ * diagrams and the live viewer can never disagree on a glyph's width.
  */
 export function terminalWidth(text: string): number {
-  return stringWidth(text)
+  return visualWidth(text)
 }
 
 // Pure layout primitives used by the Ink viewer. Kept separate so the
@@ -89,7 +92,7 @@ export function computeWrapWidth(
  */
 export function truncateEnd(text: string, width: number): string {
   if (width <= 0) return ''
-  if (stringWidth(text) <= width) return text
+  if (terminalWidth(text) <= width) return text
   return `${sliceAnsi(text, 0, Math.max(0, width - 1))}${ELLIPSIS}`
 }
 
@@ -100,7 +103,7 @@ export function truncateEnd(text: string, width: number): string {
  */
 export function truncateStart(text: string, width: number): string {
   if (width <= 0) return ''
-  const total = stringWidth(text)
+  const total = terminalWidth(text)
   if (total <= width) return text
   return `${ELLIPSIS}${sliceAnsi(text, total - Math.max(0, width - 1), total)}`
 }
@@ -132,7 +135,7 @@ export function panToWindow(
  * `text` unchanged when it already meets or exceeds `width`.
  */
 export function padEndToWidth(text: string, width: number): string {
-  const current = stringWidth(text)
+  const current = terminalWidth(text)
   if (current >= width) return text
   return text + ' '.repeat(width - current)
 }

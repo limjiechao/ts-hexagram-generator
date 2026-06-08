@@ -22,5 +22,8 @@
     "build": "tsdown",
     "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "string-width": "^8.2.1"
   }
 }

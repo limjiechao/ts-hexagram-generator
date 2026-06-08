@@ -276,6 +276,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../../domain/text-layout
       ink:
         specifier: ^7.0.3
         version: 7.0.3(@types/react@19.2.14)(react@19.2.6)
@@ -285,9 +288,6 @@ importers:
       slice-ansi:
         specifier: ^9.0.0
         version: 9.0.0
-      string-width:
-        specifier: ^8.2.1
-        version: 8.2.1
       wrap-ansi:
         specifier: ^10.0.0
         version: 10.0.0
@@ -338,7 +338,11 @@ importers:
 
   domain/core: {}
 
-  domain/text-layout: {}
+  domain/text-layout:
+    dependencies:
+      string-width:
+        specifier: ^8.2.1
+        version: 8.2.1
 
 packages:
 
