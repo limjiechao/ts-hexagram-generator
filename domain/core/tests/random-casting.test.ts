@@ -90,20 +90,25 @@ describe('rng distribution (slow)', () => {
     { timeout: 90_000 },
     () => {
       /*
-      Line | Fraction | Canonical | Band      | Observed (n=1M)
-      -----|----------|-----------|-----------|----------------
-      6    |  1/16    | 6.25%     | 2-10%     | ~4.8%
-      7    |  5/16    | 31.25%    | 25-35%    | ~27.8%
-      8    |  7/16    | 43.75%    | 39-49%    | ~45.2%
-      9    |  3/16    | 18.75%    | 14-26%    | ~22.2%
+      Line distribution of the RNG flow WITH the never-zero clamp (the
+      shipped behavior: each pick is drawn over [1, recordedMax - 1], so the
+      empty-right-heap split is excluded). Observed over n=1M:
 
-      The observed distribution drifts ~1-3pp from the canonical Wilhelm-
-      Baynes probabilities because this implementation sets aside 0 stalks
-      from an empty right pile (when `pick === length - 1` empties the
-      right pile after the "suspend one" step). The competing canonical
-      interpretation treats an empty pile as "set aside 4". The bands here
-      are wide enough to accommodate either reading while still catching
-      a grossly broken generator.
+      Line | equiprobable-remainder model | Band  | observed (n=1M, with clamp)
+      -----|------------------------------|-------|----------------------------
+      6    |  1/16 = 6.25%                | 2-10% | ~5.2%
+      7    |  5/16 = 31.25%               | 25-35%| ~28.8%
+      8    |  7/16 = 43.75%               | 39-49%| ~44.9%
+      9    |  3/16 = 18.75%               | 14-26%| ~21.1%
+
+      The "equiprobable-remainder model" column is a reference, not a target:
+      those fractions assume uniform sort remainders, whereas this code models
+      a uniform split point, so the observed figures differ by design. The
+      clamp's effect on the distribution (a with-vs-without percentage-point
+      comparison and the provenance of the never-zero rule) is documented in
+      ADR-0006's amendment "the never-zero clamp shifts the line distribution".
+      The bands below are a wide smoke test against a grossly broken generator,
+      not a tight distributional assertion.
      */
 
       const report = generateRandomLines(1_000_000)

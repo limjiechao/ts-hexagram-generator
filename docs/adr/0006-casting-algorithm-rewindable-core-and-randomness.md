@@ -118,3 +118,72 @@ flow's pick now passes through `performCast`'s `assertSelectablePick` guard like
 every other cast. The `useLineGenerator` hook is deleted. The change is
 byte-identical — the manual≡interactive saved-output test
 (`cli/casting-ui/tests/viewer.test.tsx`) is the regression gate.
+
+## Amendment — 2026-06-08: the never-zero clamp shifts the line distribution (S1)
+
+The never-zero-remainder invariant above is stated as a structural rule (a
+remainder is 1..4, never 0). It also has a **measurable effect on the line
+frequencies** the RNG flow produces, which was previously recorded only as a band
+width in `domain/core/tests/random-casting.test.ts`. This amendment moves that
+fact into the record and states the decision explicitly.
+
+**What the clamp does, restated.** The RNG draws each pick uniformly over the
+_selectable_ range `[1, recordedMax − 1]`. Dropping the top of that range
+(`pick = recordedMax`) excludes exactly the one split that would empty the right
+heap after the suspended stalk (掛一) is set aside — the split whose right-heap
+remainder would be 0. The excluded split is not redirected anywhere; it simply
+never occurs.
+
+**Provenance.** The invariant entered the code as the fix for a bug report:
+whole consultations could surface a heap that sorted to a remainder of 0, which
+the procedure (揲之以四) never yields. The fix capped the pick. What was _not_
+recorded at the time is that capping the pick also reweights the four line
+outcomes, because the excluded split is not distributed uniformly across line
+results.
+
+**The shift, measured.** Empirical line frequencies over n = 1,000,000 lines,
+`node:crypto` RNG, drawing the pick uniformly over the split range, **with** the
+clamp (`[1, recordedMax − 1]`, the shipped behavior) versus **without** it
+(`[1, recordedMax]`, allowing the empty-right-heap split with a 0 remainder).
+Figures vary roughly ±0.1 pp run-to-run.
+
+| Line (value)   | with clamp (shipped) | without clamp | shift (pp) |
+| -------------- | -------------------- | ------------- | ---------- |
+| 6 (old yin)    | ~5.2%                | ~4.8%         | +0.4       |
+| 7 (young yang) | ~28.8%               | ~27.9%        | +0.9       |
+| 8 (young yin)  | ~44.9%               | ~45.1%        | −0.2       |
+| 9 (old yang)   | ~21.1%               | ~22.2%        | −1.1       |
+
+The clamp raises the two odd-numbered lines (6, 7) and lowers the two
+even-positioned tails (8, 9); the largest single move is line 9 at ~1.1 pp.
+
+**One neutral reference point, not a target.** The figures most printed I Ching
+references give for these lines — 1/16, 5/16, 7/16, 3/16 (6.25% / 31.25% /
+43.75% / 18.75%) — come from an _equiprobable-remainder_ model: it assumes the
+sort remainders are uniform, not that the _split point_ is uniform. This codebase
+models a uniform split point (it simulates the physical division 分而為二), so
+**neither** the with- nor the without-clamp distribution reproduces those
+fractions; they are a different modeling assumption, not a correctness oracle for
+this implementation. For reference only: relative to those fractions, the clamp
+happens to move every line _toward_ them, but that is an observation, not the
+reason for the clamp.
+
+**Decision.** Keep the clamp. The binding rule is the ritual one — a sort
+remainder is never 0 — and the ~0.2–1.1 pp reweighting it induces is an accepted,
+now-documented consequence, not an unrecorded side effect. The alternative
+readings were considered and rejected:
+
+- _Allow the empty-heap split and treat its remainder as "set aside 4"_ (the
+  other never-zero-preserving reading). Rejected here: it would change the
+  central single-sourced invariant (`selectablePickMax` / `assertSelectablePick`
+  / `neverZeroMod4`) and the recorded-max semantics for a sub-1.1 pp move, and it
+  still would not reach the equiprobable-remainder fractions (the uniform
+  split-point model, not the clamp, is the dominant reason those fractions are
+  not hit).
+- _Draw the line outcomes from the equiprobable-remainder model directly._
+  Rejected: it abandons the "simulate the four operations 四營" fidelity this whole
+  pipeline is built on and makes the recorded splits synthetic rather than a real
+  division.
+
+The wide assertion bands in `random-casting.test.ts` stay a smoke test against a
+grossly broken generator; the precise figures and their provenance live here.
