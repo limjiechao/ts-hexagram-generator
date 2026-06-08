@@ -1,4 +1,8 @@
-import { isGlobalExitKey, terminalWidth } from '@hexagram/viewer-core'
+import {
+  isGlobalExitKey,
+  panToWindow,
+  terminalWidth,
+} from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import {
   useCallback,
@@ -8,7 +12,6 @@ import {
   useSyncExternalStore,
   type ReactElement,
 } from 'react'
-import sliceAnsi from 'slice-ansi'
 
 import {
   BouncingSliderStore,
@@ -474,7 +477,7 @@ export function SliderCastingPrompt({
   )
 
   const slice = (s: string): string =>
-    sliceAnsi(s, horizontalOffset, horizontalOffset + innerContentWidth)
+    panToWindow(s, horizontalOffset, innerContentWidth)
 
   const titleRow = slice(padCenter(title, titleWidth, renderWidth))
   const barRow = slice(padCenter(bar, barWidth, renderWidth))

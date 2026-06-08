@@ -106,6 +106,25 @@ export function truncateStart(text: string, width: number): string {
 }
 
 /**
+ * Slice `text` to the display-column window `[offset, offset + width)` for
+ * horizontal panning. ANSI-aware: embedded SGR codes are zero-width and ride
+ * along with the visible columns they wrap, so the pan steps by glyph, not by
+ * byte. The single home for rendered-string slicing in the CLI layer —
+ * panning components import this, never the `slice-ansi` package directly
+ * (raw imports are blocked by the ESLint `no-restricted-imports` fence in
+ * `eslint.config.js`, scoped to `cli/**` except `viewer-core`; see ADR-0021).
+ * Does NOT pad: a caller that needs the window filled to `width` must pad the
+ * row to `width` columns before calling (see `manual-prompt.tsx`).
+ */
+export function panToWindow(
+  text: string,
+  offset: number,
+  width: number,
+): string {
+  return sliceAnsi(text, offset, offset + width)
+}
+
+/**
  * Pad `text` with trailing spaces until its *display width* reaches `width`
  * columns. Display-width-aware: wide CJK glyphs count as two columns and
  * embedded SGR codes count as zero — so a padded line fills an inverse

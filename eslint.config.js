@@ -111,9 +111,10 @@ export default sxzz().append(
     },
   },
   {
-    // ADR-0019 boundary: only cli/viewer-core may import `string-width` directly;
-    // every other cli/* measures rendered width through viewer-core's ANSI-aware
-    // `terminalWidth` wrapper. Re-lists the extension pattern for the same
+    // ADR-0019 + ADR-0021 boundary: only cli/viewer-core may import the
+    // rendered-width packages (`string-width`, `slice-ansi`) directly; every
+    // other cli/* measures via viewer-core's ANSI-aware `terminalWidth` and
+    // pans via its `panToWindow`. Re-lists the extension pattern for the same
     // flat-config replace-semantics reason as above.
     files: ['cli/**/src/**/*.{ts,tsx}'],
     ignores: ['cli/viewer-core/**'],
@@ -128,6 +129,11 @@ export default sxzz().append(
               name: 'string-width',
               message:
                 'Import rendered-string width via @hexagram/viewer-core (terminalWidth and the truncate/pad helpers), not string-width directly (ADR-0019). viewer-core is the sole exempt wrapper.',
+            },
+            {
+              name: 'slice-ansi',
+              message:
+                'Pan/slice a rendered string by display column via @hexagram/viewer-core (panToWindow), not slice-ansi directly (ADR-0021). viewer-core is the sole exempt wrapper.',
             },
           ],
         },

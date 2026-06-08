@@ -12,6 +12,7 @@ import {
   MARGIN_HEADER_TO_QUERY,
   MARGIN_QUERY_TO_TABS,
   NORMAL,
+  panToWindow,
   QUERY_ACCENT_PREFIX_WIDTH,
   QUERY_BORDER_HEIGHT,
   ScreenShell,
@@ -36,7 +37,6 @@ import {
   type ReactElement,
   type ReactNode,
 } from 'react'
-import sliceAnsi from 'slice-ansi'
 
 import { computeAutoScrollOffset } from './auto-scroll-offset.js'
 import type { ConsultationSections } from './output-composers.js'
@@ -389,9 +389,7 @@ export function ConsultationReadout({
 
   const visibleRows = rowsWithBreathers
     .slice(offset, offset + viewportHeight)
-    .map((row) =>
-      sliceAnsi(row, horizontalOffset, horizontalOffset + innerCols),
-    )
+    .map((row) => panToWindow(row, horizontalOffset, innerCols))
 
   const scrollActiveBy = (delta: number): void => {
     offsetsRef.current[activeIndex] = clamp(

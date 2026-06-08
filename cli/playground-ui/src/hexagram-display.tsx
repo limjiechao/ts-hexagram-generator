@@ -4,9 +4,9 @@
 // re-renders this component when it changes.
 
 import type { Hexagram } from '@hexagram/core/types'
+import { panToWindow } from '@hexagram/viewer-core'
 import { Box, Text } from 'ink'
 import type { ReactElement } from 'react'
-import sliceAnsi from 'slice-ansi'
 
 import { buildPlaygroundDisplay } from './playground-display.js'
 
@@ -33,8 +33,8 @@ interface HexagramDisplayProps {
 
 /**
  * Render the playground's top-half block as `<Text>`-per-row, sliced
- * horizontally. ANSI codes are zero-width, so `sliceAnsi` slices by display
- * columns.
+ * horizontally. ANSI codes are zero-width, so the pan slices by display
+ * columns (via viewer-core's `panToWindow`).
  */
 export function HexagramDisplay({
   standing,
@@ -53,9 +53,7 @@ export function HexagramDisplay({
     hasMoving,
   })
   const window = Math.max(1, innerCols)
-  const sliced = rows.map((row) =>
-    sliceAnsi(row, panOffset, panOffset + window),
-  )
+  const sliced = rows.map((row) => panToWindow(row, panOffset, window))
 
   return (
     <Box flexDirection="column" flexShrink={0}>
