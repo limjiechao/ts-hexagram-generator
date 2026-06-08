@@ -1,15 +1,15 @@
+// pattern: Functional Core
 // Pure bounce-trajectory maths for the casting slider — no React, no Ink, no
-// timers. The interactive slider's triangle wave used to live imperatively
-// inside `BouncingSliderStore.startTicking()`; this module extracts it as a
-// deterministic function of the tick count so the random-casting playback can
-// auto-land on the RNG-predetermined pick without teleporting. The store
-// consults `firstLandingTick` once and stops on exactly that tick, so the
-// visible motion and the landing are the SAME wave.
+// timers. This module is the SOLE home of the slider's triangle wave:
+// `BouncingSliderStore` consults `positionAtTick` for the cursor every tick and
+// `firstLandingTick` once for the random-casting auto-land, so the visible
+// motion and the landing are the SAME wave (no teleport, no second copy of the
+// reflection maths in the store).
 //
-// The reference imperative loop (kept bit-for-bit faithful here). The `max - 1`
-// / `min + 1` are geometric reflection at the slider walls — "one cell inward
-// after bouncing off the wall" — NOT a pick clamp; `max` is the reachable
-// cursor ceiling (already === selectablePickMax(currentMax)), not a heap size:
+// The wave it encodes (reflection at the slider walls). The `max - 1` / `min +
+// 1` are geometric reflection — "one cell inward after bouncing off the wall" —
+// NOT a pick clamp; `max` is the reachable cursor ceiling (already ===
+// selectablePickMax(currentMax)), not a heap size:
 //   start `position = min`, `direction = +1`
 //   each tick: `next = position + direction`
 //     if `next > max` → `direction = -1`, `next = max - 1`
