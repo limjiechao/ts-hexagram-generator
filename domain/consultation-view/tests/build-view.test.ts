@@ -101,6 +101,48 @@ describe('buildConsultationView section order + gate', () => {
   })
 })
 
+describe('buildConsultationView medium divergence (S5)', () => {
+  // The IR's ONE deliberate medium-aware divergence (ADR-0018 + the visibility
+  // matrix above buildConsultationView): for a STATIC hexagram the same
+  // hexagram-level scripture is emitted as `text:hexagram` (ANSI-only) AND
+  // `text:lines:none` (Markdown-only). Without this guard a refactor that
+  // "unified" the media flags would change neither section order nor kind —
+  // so nothing else here would catch it — yet it would break each medium's
+  // legacy byte layout. Pin the divergence as an executable invariant.
+  const textSection = (h: Hexagram, role: string, variant: string) =>
+    buildConsultationView('Q', h, casting).sections.find(
+      (s): s is TextSection =>
+        s.kind === 'text' &&
+        (s as TextSection).role === role &&
+        (s as TextSection).variant === variant,
+    )!
+
+  it('static hexagram: scripture is ANSI via text:hexagram, Markdown via text:lines:none — same words', () => {
+    const staticHex: Hexagram = [7, 8, 7, 8, 7, 8]
+    const hexagramText = textSection(staticHex, 'hexagram', 'hexagram')
+    const linesNone = textSection(staticHex, 'lines', 'none')
+
+    expect(hexagramText.media).toEqual(['ansi'])
+    expect(linesNone.media).toEqual(['markdown'])
+    // Same words, two section identities — the divergence is medium, not content.
+    expect(linesNone.variants).toEqual(hexagramText.variants)
+  })
+
+  it('one moving line: LINES carries the line reading and renders in both media', () => {
+    const movingHex: Hexagram = [6, 7, 8, 7, 8, 7]
+    // Standing + emerging hexagram scripture stay ANSI-only.
+    for (const s of buildConsultationView('Q', movingHex, casting).sections)
+      if (s.kind === 'text' && s.role === 'hexagram')
+        expect(s.media).toEqual(['ansi'])
+    // The LINES block now carries the moving-line reading (not the hexagram
+    // scripture) and is shared by both media — no divergence in this case.
+    expect(textSection(movingHex, 'lines', 'one').media).toEqual([
+      'ansi',
+      'markdown',
+    ])
+  })
+})
+
 describe('buildConsultationView absence reason', () => {
   it('threads the reason into the casting section when casting is null', () => {
     const view = buildConsultationView(
