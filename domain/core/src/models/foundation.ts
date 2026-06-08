@@ -1,6 +1,9 @@
-type Yin = '1'
-type Yang = '2'
-type Line = Yin | Yang
+// Polarity → key-digit, matching the runtime source of truth: a hexagram KEY
+// uses `1` for yang and `2` for yin (e.g. #1 乾 = `H111111`, all-yang). See
+// getters.HexagramLineToKey, which maps yang lines 7/9 → `1`, yin 6/8 → `2`.
+type Yang = '1'
+type Yin = '2'
+type Line = Yang | Yin
 type Trigram = `${Line}${Line}${Line}`
 export type Hexagram = `${Trigram}${Trigram}`
 
