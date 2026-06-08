@@ -42,4 +42,4 @@ The rules:
 - `.gitignore` — the `consultations` entry (carries a pointer to this ADR).
 - `AGENTS.md` — the "Data hygiene — DO NOT commit personal data" section (the full
   policy text).
-- `packages/consultation-file/tests/fixtures/` — invented-scenario fixtures.
+- `domain/consultation-file/tests/fixtures/` — invented-scenario fixtures.

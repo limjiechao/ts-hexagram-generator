@@ -83,21 +83,21 @@ conservation, and the saved file are untouched.
 
 ## Where it's enforced
 
-- `packages/core/src/index.ts` — `performCast` (calls `assertSelectablePick`),
+- `domain/core/src/index.ts` — `performCast` (calls `assertSelectablePick`),
   `initialLineState`, `maxPickFor` (the _recorded_ max, not the selectable
   ceiling), `makeLineGenerator` wrapper.
-- `packages/core/src/casting-derivation.ts` — `selectablePickMax` +
+- `domain/core/src/casting-derivation.ts` — `selectablePickMax` +
   `assertSelectablePick` (single source of truth for the never-zero-remainder
   invariant), alongside `neverZeroMod4` / `deriveSplit`.
-- `packages/core/src/types.ts` — `LineState` / `AdvanceableLineState` unions.
-- `packages/core/src/crypto-random.ts` — `cryptoRandom` + the `2^48 − 1` bound.
-- `packages/core/src/random-casting.ts` — `randomInt`-driven splits, clamped via
+- `domain/core/src/types.ts` — `LineState` / `AdvanceableLineState` unions.
+- `domain/core/src/crypto-random.ts` — `cryptoRandom` + the `2^48 − 1` bound.
+- `domain/core/src/random-casting.ts` — `randomInt`-driven splits, clamped via
   `selectablePickMax`.
-- `packages/casting-ui/src/viewer.tsx`, `src/interactive-flow.ts` — slider/typed
+- `cli/casting-ui/src/viewer.tsx`, `src/interactive-flow.ts` — slider/typed
   and plain Inquirer prompts cap the pick at `selectablePickMax`.
-- `packages/casting-ui/src/viewer-flow.ts` — `splitCommitted` runs `performCast`
+- `cli/casting-ui/src/viewer-flow.ts` — `splitCommitted` runs `performCast`
   over `FlowState.lineState` (the per-line algorithm's single owner).
-- `packages/consultation-file/src/legacy-converter.ts` — replay guards each
+- `domain/consultation-file/src/legacy-converter.ts` — replay guards each
   recorded pick with `assertSelectablePick`.
 
 ## Amendment — 2026-06-04: the reducer owns the per-line `LineState`
@@ -117,4 +117,4 @@ resets the algorithm in one pure dispatch (no ordering handshake); and the rando
 flow's pick now passes through `performCast`'s `assertSelectablePick` guard like
 every other cast. The `useLineGenerator` hook is deleted. The change is
 byte-identical — the manual≡interactive saved-output test
-(`packages/casting-ui/tests/viewer.test.tsx`) is the regression gate.
+(`cli/casting-ui/tests/viewer.test.tsx`) is the regression gate.

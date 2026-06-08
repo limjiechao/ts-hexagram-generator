@@ -4,7 +4,7 @@ Status: Accepted
 Date: 2026-05-29
 
 The 64 hexagram and 8 trigram records are **authored in TypeScript**
-(`packages/core/src/models/*.ts`) and **generated into JSON**
+(`domain/core/src/models/*.ts`) and **generated into JSON**
 (`hexagrams.json` / `trigrams.json`) by `pnpm generate-json-files`. The JSON is
 the runtime source consumed via `resolveJsonModule`; the TypeScript is the editing
 source.
@@ -39,7 +39,7 @@ these getters. See [ADR-0008](0008-consultation-file-format.md).
 
 ## Where it's enforced
 
-- `packages/core/src/models/*.ts` — the authoring source.
-- `packages/core/src/models/*.json` — generated runtime data.
-- `packages/core/package.json` `generate-json-files` script — regenerates + `oxfmt`.
-- `packages/core/src/getters.ts` — `getHexagramRecord` lookup entrypoint.
+- `domain/core/src/models/*.ts` — the authoring source.
+- `domain/core/src/models/*.json` — generated runtime data.
+- `domain/core/package.json` `generate-json-files` script — regenerates + `oxfmt`.
+- `domain/core/src/getters.ts` — `getHexagramRecord` lookup entrypoint.

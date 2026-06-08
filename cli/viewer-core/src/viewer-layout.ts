@@ -6,9 +6,10 @@ import wrapAnsi from 'wrap-ansi'
  * Display width of a terminal string in columns. ANSI-aware: embedded SGR
  * escapes count as zero; wide CJK glyphs count as two. The single home for
  * rendered-string width in the CLI layer — components import this, never the
- * `string-width` package directly (raw imports are blocked by
- * `boundaries:check`). Distinct from @hexagram/text-layout's `visualWidth`,
- * which measures raw (ANSI-free) diagram text.
+ * `string-width` package directly (raw imports are blocked by the ESLint
+ * `no-restricted-imports` fence in `eslint.config.js`, scoped to `cli/**`
+ * except `viewer-core`; see ADR-0019). Distinct from @hexagram/text-layout's
+ * `visualWidth`, which measures raw (ANSI-free) diagram text.
  */
 export function terminalWidth(text: string): number {
   return stringWidth(text)

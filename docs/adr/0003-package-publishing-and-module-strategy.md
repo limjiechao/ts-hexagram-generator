@@ -19,8 +19,9 @@ built `.mjs`/`.d.mts`. (`vitest` is wired to honour `source` — see
 
 Packages with more than one concern expose **multiple entry points** rather than a
 single barrel, so consumers import exactly what they need and bundlers can
-tree-shake: `core` ships seven (`index`, `types`, `random-casting`,
-`crypto-random`, `getters`, `hexagrams`, `trigrams`), `consultation-file` ships several
+tree-shake: `core` ships ten (`index`, `casting-derivation`, `crypto-random`,
+`getters`, `line-semantics`, `manual-validation`, `hexagrams`, `random-casting`,
+`trigrams`, `types`), `consultation-file` ships several
 (`index`, `file`, `markdown`, `frontmatter`, `legacy-converter`), and `bin` ships
 one per CLI command. tsdown builds each entry to its own `.mjs` + `.d.mts`; all
 configs target `platform: 'node'`.
@@ -48,6 +49,6 @@ configs target `platform: 'node'`.
 
 ## Where it's enforced
 
-- each `packages/*/package.json` `exports` — `source`/`types`/`import` conditions.
-- each `packages/*/tsdown.config.ts` — entry list + `platform: 'node'`.
+- each `domain/*`/`cli/*` `package.json` `exports` — `source`/`types`/`import` conditions.
+- each `domain/*`/`cli/*` `tsdown.config.ts` — entry list + `platform: 'node'`.
 - `vitest.config.base.ts` — resolves the `source` condition for no-build tests.
