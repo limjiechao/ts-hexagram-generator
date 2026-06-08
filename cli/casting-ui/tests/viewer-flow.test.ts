@@ -1,4 +1,4 @@
-import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
+import { initialLineState, performCast, recordedMaxFor } from '@hexagram/core'
 import type {
   AdvanceableLineState,
   CastingRecord,
@@ -8,9 +8,9 @@ import type {
 import { describe, expect, it } from 'vitest'
 
 import {
+  currentRecordedMax,
   flowReducer,
   initialFlowState,
-  recordedMaxFor,
   type CastingPlan,
   type FlowKind,
   type FlowState,
@@ -35,7 +35,7 @@ function realPlan(picksByLine: readonly (readonly number[])[]): CastingPlan {
   const casting = picksByLine.map((linePicks) => {
     let s: LineState = initialLineState
     return linePicks.map((pick) => {
-      const recordedMax = maxPickFor(s as AdvanceableLineState)
+      const recordedMax = recordedMaxFor(s as AdvanceableLineState)
       s = performCast(s as AdvanceableLineState, pick)
       return { pick, recordedMax }
     })
@@ -369,11 +369,11 @@ describe('flowReducer — lineRewound resets the per-line algorithm', () => {
     let state = manualCasting()
     // First cast advances the line: the round-2 selectable recordedMax drops below 48.
     state = flowReducer(state, { type: 'splitCommitted', pick: 20 })
-    expect(recordedMaxFor(state.lineState)).toBeLessThan(48)
+    expect(currentRecordedMax(state.lineState)).toBeLessThan(48)
 
     // One pure dispatch resets BOTH the slot pointer and the lineState.
     state = flowReducer(state, { type: 'lineRewound' })
-    expect(recordedMaxFor(state.lineState)).toBe(48)
+    expect(currentRecordedMax(state.lineState)).toBe(48)
     expect(state.lineIndex).toBe(0)
     expect(state.castIndex).toBe(0)
     expect(state.partialCasting[0]).toEqual([null, null, null])
@@ -382,10 +382,10 @@ describe('flowReducer — lineRewound resets the per-line algorithm', () => {
   it('after rewind, a fresh first cast rebuilds the same round-2 recordedMax', () => {
     let state = manualCasting()
     state = flowReducer(state, { type: 'splitCommitted', pick: 20 })
-    const round2Max = recordedMaxFor(state.lineState)
+    const round2Max = currentRecordedMax(state.lineState)
     state = flowReducer(state, { type: 'lineRewound' })
     state = flowReducer(state, { type: 'splitCommitted', pick: 20 })
-    expect(recordedMaxFor(state.lineState)).toBe(round2Max)
+    expect(currentRecordedMax(state.lineState)).toBe(round2Max)
   })
 })
 

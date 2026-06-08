@@ -1,4 +1,4 @@
-import { initialLineState, maxPickFor, performCast } from '@hexagram/core'
+import { initialLineState, performCast, recordedMaxFor } from '@hexagram/core'
 import {
   emptyPartialCastingRecord,
   type CastingRecord,
@@ -117,16 +117,16 @@ export const EMPTY_SECTIONS: ConsultationSections = {
 }
 
 /**
- * The recorded ceiling for the current cast (`stalks - 1` for this round).
- * `lineState` is never in the resolved `'3rd-cast'` phase mid-casting (the
- * reducer resets it after every 3rd cast), so the fallback to the round-1
- * recordedMax is unreachable in practice — it only satisfies `maxPickFor`'s advanceable
- * input domain for the type checker.
+ * The recorded ceiling for the CURRENT cast (`stalks - 1` for this round),
+ * total over `LineState`. `lineState` is never in the resolved `'3rd-cast'`
+ * phase mid-casting (the reducer resets it after every 3rd cast), so the
+ * fallback to the round-1 recordedMax is unreachable in practice — it only
+ * satisfies `recordedMaxFor`'s advanceable input domain for the type checker.
  */
-export function recordedMaxFor(lineState: LineState): number {
+export function currentRecordedMax(lineState: LineState): number {
   return lineState.phase === '3rd-cast'
-    ? maxPickFor(initialLineState)
-    : maxPickFor(lineState)
+    ? recordedMaxFor(initialLineState)
+    : recordedMaxFor(lineState)
 }
 
 export function initialFlowState(
@@ -184,10 +184,10 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
       const before = state.lineState
       // Defensive: the reducer resets `lineState` after every 3rd cast, so a
       // `splitCommitted` can never arrive on a resolved line (this also
-      // satisfies `performCast`/`maxPickFor`'s advanceable input domain).
+      // satisfies `performCast`/`recordedMaxFor`'s advanceable input domain).
       if (before.phase === '3rd-cast') return state
 
-      const recordedMax = maxPickFor(before)
+      const recordedMax = recordedMaxFor(before)
       const after = performCast(before, action.pick)
       const split: SplitRecord = { pick: action.pick, recordedMax }
       const line = after.phase === '3rd-cast' ? after.line : undefined

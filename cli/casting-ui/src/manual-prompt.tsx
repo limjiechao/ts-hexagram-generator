@@ -1,4 +1,4 @@
-import { maxPickFor, performCast } from '@hexagram/core'
+import { performCast, recordedMaxFor } from '@hexagram/core'
 import { validateManualSplit } from '@hexagram/core/manual-validation'
 import type { AdvanceableLineState } from '@hexagram/core/types'
 import { terminalWidth } from '@hexagram/viewer-core'
@@ -324,7 +324,7 @@ export function ManualCastingPrompt({
       // pipeline consumes that same number as `partStalksAtIndex` (the cut
       // point) — they coincide because the left-heap size IS the partition
       // index. Run the algorithm of record to display the next-round count:
-      // for casts 1–2 the next round's unparted is `maxPickFor(after) + 1`; on
+      // for casts 1–2 the next round's unparted is `recordedMaxFor(after) + 1`; on
       // the resolving 3rd cast `after` is the terminal `'3rd-cast'` state (no
       // `unparted`), whose final remaining count is `line · 4` — the same value
       // the old closed form produced. DISPLAY ONLY — the reducer's own
@@ -332,7 +332,7 @@ export function ManualCastingPrompt({
       // computation, two presentation purposes.
       const after = performCast(lineState, validation.pick)
       const next =
-        after.phase === '3rd-cast' ? after.line * 4 : maxPickFor(after) + 1
+        after.phase === '3rd-cast' ? after.line * 4 : recordedMaxFor(after) + 1
       setCommitted({
         pick: validation.pick,
         next,

@@ -84,7 +84,7 @@ conservation, and the saved file are untouched.
 ## Where it's enforced
 
 - `domain/core/src/index.ts` — `performCast` (calls `assertSelectablePick`),
-  `initialLineState`, `maxPickFor` (the _recorded_ max, not the selectable
+  `initialLineState`, `recordedMaxFor` (the _recorded_ max, not the selectable
   ceiling), `makeLineGenerator` wrapper.
 - `domain/core/src/casting-derivation.ts` — `selectablePickMax` +
   `assertSelectablePick` (single source of truth for the never-zero-remainder
@@ -109,7 +109,7 @@ the flow reducer. That was two state machines kept in lockstep by convention,
 and the manual Ctrl+R rewind needed a ref-reset-**before**-dispatch ordering to
 keep the next render's max correct.
 
-Because `performCast`/`maxPickFor` are pure, the per-line state now lives in the
+Because `performCast`/`recordedMaxFor` are pure, the per-line state now lives in the
 reducer itself (`FlowState.lineState`, advanced inside the `splitCommitted`
 case). The reducer is the **single owner** of the casting algorithm: it derives
 the recorded `max` and the resolved `Line` from just `{ pick }`; `lineRewound`
