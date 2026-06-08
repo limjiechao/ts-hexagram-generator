@@ -137,11 +137,15 @@ describe('parseFrontmatter', () => {
   })
 
   it('reports `unreadable` when schemaVersion mismatches', () => {
-    const text = serializeFrontmatter(
-      { ...envelope, schemaVersion: 99 },
-      'BODY',
+    // The envelope type now pins schemaVersion to the one accepted literal
+    // (finding S3), so a mismatching version can only arrive from disk bytes,
+    // not an in-memory envelope. Inject it the same way the malformed-hexagram
+    // test below does — by rewriting the serialized text.
+    const bad = serializeFrontmatter(envelope, 'BODY').replace(
+      'schemaVersion: 1',
+      'schemaVersion: 99',
     )
-    const result = parseFrontmatter(text)
+    const result = parseFrontmatter(bad)
     expect(result.ok).toBe(false)
     if (!result.ok) expect(result.reason).toBe('schema-version-mismatch')
   })

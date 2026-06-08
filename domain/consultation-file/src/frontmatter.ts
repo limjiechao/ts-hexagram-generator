@@ -68,7 +68,14 @@ export function hexagramFromYaml(yaml: YamlHexagram): Hexagram {
 }
 
 export interface ConsultationEnvelope {
-  schemaVersion: number
+  /**
+   * Exactly the one version the loader accepts. The load gate is strict-equal
+   * against `CURRENT_SCHEMA_VERSION` with no migration branch (ADR-0008
+   * rejected versioned migrations), so a validated envelope can only ever
+   * carry that literal — `number` would advertise a migration dimension the
+   * code does not implement (finding S3). Pinned by `envelope-types.test-d.ts`.
+   */
+  schemaVersion: typeof CURRENT_SCHEMA_VERSION
   timestamp: string
   query: string
   hexagram: Hexagram
@@ -187,7 +194,10 @@ export function parseFrontmatter(text: string): ParseResult {
     ok: true,
     data: {
       envelope: {
-        schemaVersion,
+        // The strict-equal guard above rejected every other value, so the
+        // validated envelope carries the canonical constant (not the `unknown`
+        // we destructured) — keeping the field literal-typed.
+        schemaVersion: CURRENT_SCHEMA_VERSION,
         timestamp,
         query,
         hexagram: hexagramTuple,

@@ -4,6 +4,7 @@ import { render } from 'ink-testing-library'
 import { describe, expect, it, vi } from 'vitest'
 
 import { HistoryList } from '../src/history-list.js'
+import type { HistoryEntry } from '../src/history-scan.js'
 
 // Matches ANSI SGR escape sequences (ESC[...m) — e.g. the inverse-video codes
 // Ink emits for the focused row. Built from char code 0x1b so the literal
@@ -28,7 +29,7 @@ function trackHeight(frame: string): number {
 
 const ESC = String.fromCodePoint(0x1b)
 
-const fakeEntries = [
+const fakeEntries: HistoryEntry[] = [
   {
     path: '/x/a.md',
     envelope: {
@@ -405,18 +406,21 @@ describe('<HistoryList>', () => {
   })
 
   it('windows a long list and uses the scrollbar gutter (no "… N more" indicator)', () => {
-    const many = Array.from({ length: 40 }, (_, i) => ({
-      path: `/x/${i}.md`,
-      envelope: {
-        schemaVersion: 1,
-        timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
-        query: `Question number ${i}`,
-        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
-        casting: [] as never,
-        castingAbsence: null,
-      },
-      body: '',
-    }))
+    const many = Array.from(
+      { length: 40 },
+      (_, i): HistoryEntry => ({
+        path: `/x/${i}.md`,
+        envelope: {
+          schemaVersion: 1,
+          timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
+          query: `Question number ${i}`,
+          hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+          casting: [] as never,
+          castingAbsence: null,
+        },
+        body: '',
+      }),
+    )
     const { lastFrame } = render(
       <HistoryList
         entries={many}
@@ -437,18 +441,21 @@ describe('<HistoryList>', () => {
   })
 
   it('renders the scrollbar track at the full content height', async () => {
-    const many = Array.from({ length: 40 }, (_, i) => ({
-      path: `/x/${i}.md`,
-      envelope: {
-        schemaVersion: 1,
-        timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
-        query: `Question number ${i}`,
-        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
-        casting: [] as never,
-        castingAbsence: null,
-      },
-      body: '',
-    }))
+    const many = Array.from(
+      { length: 40 },
+      (_, i): HistoryEntry => ({
+        path: `/x/${i}.md`,
+        envelope: {
+          schemaVersion: 1,
+          timestamp: `2026-03-${String(40 - i).padStart(2, '0')}T10:00:00+0800`,
+          query: `Question number ${i}`,
+          hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+          casting: [] as never,
+          castingAbsence: null,
+        },
+        body: '',
+      }),
+    )
     const { lastFrame, stdin } = render(
       <HistoryList
         entries={many}
@@ -471,18 +478,21 @@ describe('<HistoryList>', () => {
   })
 
   it('footer status row shows the scroll position counted in consultations', () => {
-    const many = Array.from({ length: 20 }, (_, i) => ({
-      path: `/x/${i}.md`,
-      envelope: {
-        schemaVersion: 1,
-        timestamp: `2026-03-${String(20 - i).padStart(2, '0')}T10:00:00+0800`,
-        query: `Consultation ${i}`,
-        hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
-        casting: [] as never,
-        castingAbsence: null,
-      },
-      body: '',
-    }))
+    const many = Array.from(
+      { length: 20 },
+      (_, i): HistoryEntry => ({
+        path: `/x/${i}.md`,
+        envelope: {
+          schemaVersion: 1,
+          timestamp: `2026-03-${String(20 - i).padStart(2, '0')}T10:00:00+0800`,
+          query: `Consultation ${i}`,
+          hexagram: [7, 7, 7, 7, 7, 7] as Hexagram,
+          casting: [] as never,
+          castingAbsence: null,
+        },
+        body: '',
+      }),
+    )
     const { lastFrame } = render(
       <HistoryList
         entries={many}
@@ -646,7 +656,7 @@ describe('<HistoryList>', () => {
   // ── Issue #17: palette-colored rows + full-width inverse focus bar ───────────
 
   // A static entry with moving lines (lines 9 and 6 are moving).
-  const movingEntry = {
+  const movingEntry: HistoryEntry = {
     path: '/x/moving.md',
     envelope: {
       schemaVersion: 1,
@@ -660,7 +670,7 @@ describe('<HistoryList>', () => {
   }
 
   // A static entry with NO moving lines (all young lines).
-  const staticEntry = {
+  const staticEntry: HistoryEntry = {
     path: '/x/static.md',
     envelope: {
       schemaVersion: 1,
@@ -1100,18 +1110,21 @@ describe('<HistoryList>', () => {
     // A focused row that wraps overflows the content box; flexbox then shrinks
     // every row and the head (timestamp) lines overdraw. With clean two-line
     // rows the first windowHeight timestamps stay visible.
-    const many = Array.from({ length: 40 }, (_, i) => ({
-      path: `/x/${i}.md`,
-      body: '',
-      envelope: {
-        schemaVersion: 1,
-        timestamp: `2026-04-${String(i + 1).padStart(2, '0')}T09:00:00+0800`,
-        query: `Question ${i} about the path ahead`,
-        hexagram: [9, 7, 8, 9, 7, 8] as Hexagram,
-        casting: [] as never,
-        castingAbsence: null,
-      },
-    }))
+    const many = Array.from(
+      { length: 40 },
+      (_, i): HistoryEntry => ({
+        path: `/x/${i}.md`,
+        body: '',
+        envelope: {
+          schemaVersion: 1,
+          timestamp: `2026-04-${String(i + 1).padStart(2, '0')}T09:00:00+0800`,
+          query: `Question ${i} about the path ahead`,
+          hexagram: [9, 7, 8, 9, 7, 8] as Hexagram,
+          casting: [] as never,
+          castingAbsence: null,
+        },
+      }),
+    )
     const { lastFrame } = render(
       <HistoryList
         entries={many}
@@ -1718,7 +1731,7 @@ describe('<HistoryList>', () => {
     })
 
     it('after a delete, focus lands on the next row at the same clamped index', async () => {
-      const threeEntries = [
+      const threeEntries: HistoryEntry[] = [
         fakeEntries[0]!,
         fakeEntries[1]!,
         {
