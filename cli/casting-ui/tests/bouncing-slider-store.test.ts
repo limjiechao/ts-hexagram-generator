@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 
+import { positionAtTick } from '../src/bounce-trajectory.js'
 import { BouncingSliderStore } from '../src/bouncing-slider-store.js'
 
 afterEach(() => {
@@ -64,4 +65,34 @@ describe('BouncingSliderStore', () => {
     expect(store.getSnapshot().autoLanded).toBe(null)
     unsubscribe()
   })
+
+  // The store's cursor is the SAME triangle wave the pure `positionAtTick`
+  // computes — the store consults that core rather than carrying a second copy
+  // of the reflection maths (S8: no second state-management theory). Nothing
+  // else ties the two together, so this pins the equivalence: if the store's
+  // emitted position ever diverges from `positionAtTick(tick, …)`, the wave
+  // has been re-duplicated and drifted.
+  it.each([
+    [1, 4],
+    [1, 2],
+    [5, 9],
+    [10, 13],
+  ])(
+    'emits exactly positionAtTick(tick) over a sweep of range %i..%i',
+    (min, max) => {
+      vi.useFakeTimers()
+      const store = new BouncingSliderStore(min, max, 10, null)
+      const unsubscribe = store.subscribe(() => {})
+      // tick 0 (pre-tick) must already match the pure wave.
+      expect(store.getSnapshot().position).toBe(positionAtTick(0, min, max))
+      for (let tick = 1; tick <= 30; tick += 1) {
+        vi.advanceTimersByTime(10)
+        expect(store.getSnapshot().position).toBe(
+          positionAtTick(tick, min, max),
+        )
+        expect(store.getSnapshot().tickCount).toBe(tick)
+      }
+      unsubscribe()
+    },
+  )
 })

@@ -1,4 +1,15 @@
-import { armDelayTicks, firstLandingTick } from './bounce-trajectory.js'
+// pattern: Imperative Shell
+// The triangle-wave decision (where the cursor sits each tick) is the
+// Functional Core and lives in `bounce-trajectory.ts` (`positionAtTick`). This
+// file owns only the genuinely-effectful shell a `useSyncExternalStore` backing
+// store needs — the `setInterval`, the subscriber set, the cached snapshot and
+// the commit/landing flags — and DERIVES the cursor by consulting the core. It
+// keeps no copy of the reflection maths (S8: one wave, one home).
+import {
+  armDelayTicks,
+  firstLandingTick,
+  positionAtTick,
+} from './bounce-trajectory.js'
 
 /**
  * Auto-land configuration for the bouncing slider — supplied only by the
@@ -24,9 +35,10 @@ export interface SliderSnapshot {
 }
 
 /**
- * File-local store backing `useSliderBounce`. Owns the bouncing-cursor
- * position/direction/committed state and the `setInterval` that drives the
- * tick loop. Consumers attach via `subscribe`/`getSnapshot` so React's
+ * File-local store backing `useSliderBounce`. Owns the tick counter, the
+ * committed/auto-land flags and the `setInterval` that drives the tick loop;
+ * the cursor position itself is DERIVED each tick from `positionAtTick`, not
+ * stored. Consumers attach via `subscribe`/`getSnapshot` so React's
  * `useSyncExternalStore` can read the live position without the legacy
  * `useReducer((c) => c + 1, 0)` forced-rerender hack. The interval starts
  * lazily on first subscribe and clears when the last subscriber detaches —
@@ -37,8 +49,9 @@ export interface SliderSnapshot {
  * zero-frame-lag behaviour.
  */
 export class BouncingSliderStore {
-  private position: number
-  private direction: 1 | -1 = 1
+  // No mutable `position`/`direction`: the cursor is a pure function of the
+  // tick count and range (`currentPosition()` → `positionAtTick`). Only the
+  // tick counter advances; the wave is derived, never stepped imperatively.
   private committed = false
   private min: number
   private max: number
@@ -67,10 +80,21 @@ export class BouncingSliderStore {
     this.min = min
     this.max = max
     this.tickMs = tickMs
-    this.position = min
     this.autoLand = autoLand
-    this.snapshot = { position: min, tickCount: 0, autoLanded: null }
+    this.snapshot = {
+      position: this.currentPosition(),
+      tickCount: 0,
+      autoLanded: null,
+    }
     this.recomputeLandingTick()
+  }
+
+  // The cursor position for the current tick — the Functional Core. `tickCount`
+  // is the only state that advances; the wave (and its wall reflections) is
+  // computed in closed form by `positionAtTick`, so this store never holds a
+  // second, mutable copy of that maths.
+  private currentPosition(): number {
+    return positionAtTick(this.tickCount, this.min, this.max)
   }
 
   // Recompute the landing tick from the current range, tickMs and auto-land
@@ -91,9 +115,9 @@ export class BouncingSliderStore {
           )
     if (this.landingTick === 0 && !this.committed) {
       this.committed = true
-      this.autoLanded = this.position
+      this.autoLanded = this.currentPosition()
       this.snapshot = {
-        position: this.position,
+        position: this.currentPosition(),
         tickCount: this.tickCount,
         autoLanded: this.autoLanded,
       }
@@ -142,12 +166,14 @@ export class BouncingSliderStore {
     // spinner's tick counter also resets so each new cast restarts at the
     // first glyph (`⠋`).
     if (rangeChanged) {
-      this.position = min
-      this.direction = 1
       this.committed = false
       this.tickCount = 0
       this.autoLanded = null
-      this.snapshot = { position: min, tickCount: 0, autoLanded: null }
+      this.snapshot = {
+        position: this.currentPosition(),
+        tickCount: 0,
+        autoLanded: null,
+      }
     }
     // Restart the tick timer so the next tick is a full `tickMs` away and
     // picks up the new interval — matches the pre-refactor
@@ -161,30 +187,20 @@ export class BouncingSliderStore {
 
   commit(): number {
     this.committed = true
-    return this.position
+    return this.currentPosition()
   }
 
   private startTicking(): void {
     if (this.intervalId !== null) return
     this.intervalId = setInterval(() => {
       if (this.committed) return
-      // Geometric reflection at the slider walls — the cursor steps one cell,
-      // and if it would pass a wall it reverses and steps one cell back inward.
-      // `upperBound` here is the slider's UPPER BOUND (the reachable pick
-      // ceiling, already === selectablePickMax(currentMax) — see viewer.tsx),
-      // NOT a pick clamp: `upperBound - 1` is "one cell inward from the
-      // ceiling", reflection geometry, not the never-zero-remainder − 1.
-      const upperBound = this.max
-      let next = this.position + this.direction
-      if (next > upperBound) {
-        this.direction = -1
-        next = upperBound - 1
-      } else if (next < this.min) {
-        this.direction = 1
-        next = this.min + 1
-      }
-      this.position = next
+      // Advance the tick counter and let the Functional Core place the cursor.
+      // The triangle wave (including the wall reflections to `max - 1` / `min +
+      // 1`) is computed in closed form by `positionAtTick`; this shell no
+      // longer steps the cursor by hand, so the visible motion and the
+      // auto-land search read the SAME wave from one source.
       this.tickCount += 1
+      const next = this.currentPosition()
       // Auto-land — the random flow commits itself on the precomputed landing
       // tick. The cursor reached `next` by the same bounce maths the
       // trajectory module models, so `next` IS the target here: a genuine
