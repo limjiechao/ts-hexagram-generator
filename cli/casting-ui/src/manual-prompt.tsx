@@ -1,10 +1,9 @@
 import { performCast, recordedMaxFor } from '@hexagram/core'
 import { validateManualSplit } from '@hexagram/core/manual-validation'
 import type { AdvanceableLineState } from '@hexagram/core/types'
-import { terminalWidth } from '@hexagram/viewer-core'
+import { panToWindow, terminalWidth } from '@hexagram/viewer-core'
 import { Box, Text, useInput } from 'ink'
 import { useEffect, useRef, useState, type ReactElement } from 'react'
-import sliceAnsi from 'slice-ansi'
 
 import {
   bottomStripRow,
@@ -431,7 +430,7 @@ export function ManualCastingPrompt({
     onFocusedFieldChangeRef.current?.(focusedField)
   }, [focusedField])
 
-  // ── Render: row-builder composition + sliceAnsi pan ───────────────────
+  // ── Render: row-builder composition + panToWindow pan ─────────────────
 
   const innerContentWidth = Math.max(1, width - 2)
   // Natural body width: diagramWidth (42) + 8-col gap + right-pane (45 —
@@ -445,7 +444,7 @@ export function ManualCastingPrompt({
   // Center the body block (natural width 95) as one rigid unit, and the
   // title text independently, both within innerContentWidth. Both clamp to 0
   // below their natural width, where the existing pad-to-renderWidth +
-  // sliceAnsi pan takes over unchanged. The strip is built at
+  // panToWindow pan takes over unchanged. The strip is built at
   // `renderWidth - leadingPadBody` and prepended with the same pad, so its
   // left element lands at the body-left-edge while `Shift+Tab` stays pinned
   // to the box's right edge.
@@ -609,11 +608,7 @@ export function ManualCastingPrompt({
   const slicedRows = allRows.map((row) => {
     const padded =
       row + ' '.repeat(Math.max(0, renderWidth - terminalWidth(row)))
-    return sliceAnsi(
-      padded,
-      horizontalOffset,
-      horizontalOffset + innerContentWidth,
-    )
+    return panToWindow(padded, horizontalOffset, innerContentWidth)
   })
 
   return (

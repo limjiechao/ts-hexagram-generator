@@ -117,6 +117,7 @@ export {
   MARGIN_QUERY_TO_TABS,
   MIN_CONTENT_WIDTH,
   padEndToWidth,
+  panToWindow,
   QUERY_BORDER_HEIGHT,
   renderProgressBar,
   stripAnsi,

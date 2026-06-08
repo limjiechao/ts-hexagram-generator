@@ -196,7 +196,7 @@ interface CastingPromptBoxProps {
  *    padStart'd to 2 columns) for `SLIDER_COMMIT_REVEAL_MS` before
  *    `onSubmit` fires upstream — see the state list on
  *    `<SliderCastingPrompt>`. Rows are pre-built strings padded to at
- *    least the inner box width and sliced via `sliceAnsi` against
+ *    least the inner box width and sliced via `panToWindow` against
  *    `horizontalOffset`, so the box never reflows on narrow terminals
  *    (`<` / `>` in the viewer pans it).
  *  - **number**: the legacy typed-number prompt + `<NumberInput>` row.
