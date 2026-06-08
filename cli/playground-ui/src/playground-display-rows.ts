@@ -5,7 +5,7 @@ import {
 } from '@hexagram/consultation-view/vocabulary'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
-import { standingLineColor } from '@hexagram/readout'
+import { standingLineColor } from '@hexagram/readout/standing-line-color'
 import {
   BOLD_GREY,
   BOLD_WHITE,

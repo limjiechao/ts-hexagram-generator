@@ -5,10 +5,25 @@
   "description": "Consultation Readout renderer for the Yijing hexagram oracle: the tabbed readout component plus the per-section ANSI string builders",
   "license": "MIT",
   "exports": {
-    ".": {
-      "source": "./src/index.ts",
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
+    "./consultation-readout": {
+      "source": "./src/consultation-readout.tsx",
+      "types": "./dist/consultation-readout.d.mts",
+      "import": "./dist/consultation-readout.mjs"
+    },
+    "./output-composers": {
+      "source": "./src/output-composers.ts",
+      "types": "./dist/output-composers.d.mts",
+      "import": "./dist/output-composers.mjs"
+    },
+    "./serialize-ansi": {
+      "source": "./src/serialize-ansi.ts",
+      "types": "./dist/serialize-ansi.d.mts",
+      "import": "./dist/serialize-ansi.mjs"
+    },
+    "./standing-line-color": {
+      "source": "./src/standing-line-color.ts",
+      "types": "./dist/standing-line-color.d.mts",
+      "import": "./dist/standing-line-color.mjs"
     },
     "./package.json": "./package.json"
   },

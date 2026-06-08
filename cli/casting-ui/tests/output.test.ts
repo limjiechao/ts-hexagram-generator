@@ -9,7 +9,7 @@ import {
 import {
   buildConsultationSections,
   buildPartialCastingSections,
-} from '@hexagram/readout'
+} from '@hexagram/readout/output-composers'
 import { describe, expect, it } from 'vitest'
 
 import { consultationConsoleOutput } from '../src/output-composers.js'

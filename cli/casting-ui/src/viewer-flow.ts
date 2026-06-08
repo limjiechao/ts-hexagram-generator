@@ -8,7 +8,7 @@ import {
   type PartialCastingRecord,
   type SplitRecord,
 } from '@hexagram/core/types'
-import type { ConsultationSections } from '@hexagram/readout'
+import type { ConsultationSections } from '@hexagram/readout/output-composers'
 import { ANSI_PATTERN } from '@hexagram/viewer-core'
 
 /**
