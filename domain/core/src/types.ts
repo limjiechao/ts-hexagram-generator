@@ -34,14 +34,13 @@ export type LineIndex = 0 | 1 | 2 | 3 | 4 | 5
 
 /**
  * Narrow an `unknown` (or the `number` that `Array.findIndex` returns) to a
- * `LineIndex`. The `!== -1` clause is redundant given the range check but is
- * kept so this is a faithful superset of the former viewer-core guard — it
- * documents the `findIndex` "not found" sentinel as an explicit reject.
- * NOTE: this is a RANGE guard, not an integer guard (matches the prior
- * behaviour; see the S7 plan, fork A).
+ * `LineIndex`. The `>= 0` lower bound already rejects the `findIndex`
+ * "not found" sentinel `-1` along with every other negative.
+ * NOTE: this is a RANGE guard, not an integer guard — it admits non-integers
+ * within [0, 5] (matches the prior behaviour).
  */
 export function isLineIndex(value: unknown): value is LineIndex {
-  return typeof value === 'number' && value !== -1 && value >= 0 && value <= 5
+  return typeof value === 'number' && value >= 0 && value <= 5
 }
 
 /** Line positions in visual top-first order (line 6 top … line 1 bottom) — the
