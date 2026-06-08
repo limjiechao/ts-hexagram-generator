@@ -154,6 +154,46 @@ describe('flowReducer — splitCommitted advance path', () => {
     expect(state.completedLines).toEqual([PLAN.hexagram[0]])
   })
 
+  // S13: `FlowState.lineState` is typed `AdvanceableLineState`, which asserts the
+  // reducer never parks a resolved `'3rd-cast'` there. That type carries the
+  // invariant the host used to defend with three scattered runtime workarounds
+  // (a dead reducer guard, a dead `currentRecordedMax` branch, and a cast in the
+  // viewer). This test pins the runtime fact the type relies on: after every cast
+  // the field stays castable, and a resolving 3rd cast immediately resets it.
+  it('keeps lineState in an advanceable phase across a full line (never parks 3rd-cast)', () => {
+    let state: FlowState = {
+      ...initialFlowState('random', null, null),
+      mode: 'casting',
+      castingPlan: PLAN,
+    }
+    expect(state.lineState.phase).toBe('0th-cast')
+
+    state = flowReducer(state, {
+      type: 'splitCommitted',
+      pick: PLAN.casting[0][0]!.pick,
+    })
+    expect(state.lineState.phase).toBe('1st-cast')
+
+    state = flowReducer(state, {
+      type: 'splitCommitted',
+      pick: PLAN.casting[0][1]!.pick,
+    })
+    expect(state.lineState.phase).toBe('2nd-cast')
+
+    // The third cast RESOLVES the line; the reducer must reset rather than store
+    // the resolved `'3rd-cast'` state — that reset is what makes the field type sound.
+    state = flowReducer(state, {
+      type: 'splitCommitted',
+      pick: PLAN.casting[0][2]!.pick,
+    })
+    expect(state.lineState.phase).toBe('0th-cast')
+
+    // Compile-time half of the invariant: the field is assignable to the
+    // advanceable subset. If someone widens it back to `LineState`, this errors.
+    const stillAdvanceable: AdvanceableLineState = state.lineState
+    expect(stillAdvanceable.phase).not.toBe('3rd-cast')
+  })
+
   it('enters computing after the eighteenth cast and clears the plan', () => {
     let state: FlowState = {
       ...initialFlowState('random', null, null),
