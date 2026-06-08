@@ -2,11 +2,9 @@ import fs from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 
-import {
-  convertLegacyTxt,
-  markdownConsultationBody,
-  serializeFrontmatter,
-} from '@hexagram/consultation-file'
+import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
+import { convertLegacyTxt } from '@hexagram/consultation-file/legacy-converter'
+import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 
 export async function migrateLegacy(dir: string): Promise<void> {
   const entries = await fs.readdir(dir).catch(() => [])

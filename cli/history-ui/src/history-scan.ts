@@ -1,11 +1,11 @@
 import fs from 'node:fs/promises'
 import path from 'node:path'
 
-import {
-  loadConsultationFile,
-  type ConsultationEnvelope,
-  type ParseFailureReason,
-} from '@hexagram/consultation-file'
+import { loadConsultationFile } from '@hexagram/consultation-file/file'
+import type {
+  ConsultationEnvelope,
+  ParseFailureReason,
+} from '@hexagram/consultation-file/frontmatter'
 
 export interface HistoryEntry {
   path: string

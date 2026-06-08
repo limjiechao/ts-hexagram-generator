@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { CONSULTATIONS_DIR_NAME } from '@hexagram/consultation-file'
+import { CONSULTATIONS_DIR_NAME } from '@hexagram/consultation-file/file'
 
 // The consultations directory must stay anchored to the monorepo root, NOT to
 // `process.cwd()`. `defaultConsultationsDir()` (in @hexagram/consultation-file)

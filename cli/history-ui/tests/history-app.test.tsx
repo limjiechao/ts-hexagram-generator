@@ -4,11 +4,13 @@ import process from 'node:process'
 
 import {
   loadConsultationFile,
-  markdownConsultationBody,
   saveConsultationFile,
+} from '@hexagram/consultation-file/file'
+import {
   serializeFrontmatter,
   type ConsultationEnvelope,
-} from '@hexagram/consultation-file'
+} from '@hexagram/consultation-file/frontmatter'
+import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'

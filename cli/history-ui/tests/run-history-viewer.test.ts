@@ -2,10 +2,8 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-import {
-  markdownConsultationBody,
-  serializeFrontmatter,
-} from '@hexagram/consultation-file'
+import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
+import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { rerenderOnDisk } from '../src/history-app.js'

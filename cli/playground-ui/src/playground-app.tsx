@@ -31,7 +31,7 @@
 import path from 'node:path'
 import process from 'node:process'
 
-import { saveConsultationFile } from '@hexagram/consultation-file'
+import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import {
   BOLD_GREY,
   clamp,
