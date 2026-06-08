@@ -1,9 +1,14 @@
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
-import { buildConsultationView } from '../src/build-view.js'
+import {
+  buildConsultationView,
+  castingSection,
+  querySection,
+} from '../src/build-view.js'
 import type {
   CastingSection,
+  QuerySection,
   TextSection,
   TransformationSection,
 } from '../src/ir.js'
@@ -116,6 +121,41 @@ describe('buildConsultationView absence reason', () => {
       | CastingSection
       | undefined
     expect(section?.absenceReason ?? null).toBeNull()
+  })
+  // ADR-0018: buildConsultationView is the SOLE owner of each section's `media`
+  // projection. These pin that it mints query/casting via the shared public
+  // sub-builders, so a second authority (e.g. the mid-flow render in
+  // buildPartialCastingSections) can reuse them instead of hand-writing a
+  // divergent `media` literal — see seam B2 in the 2026-06-08 review.
+  it('mints the query section via the querySection sub-builder', () => {
+    const view = buildConsultationView(
+      'a question',
+      [7, 7, 7, 7, 7, 7],
+      casting,
+    )
+    const section = view.sections.find(
+      (s) => s.kind === 'query',
+    ) as QuerySection
+    expect(section).toEqual(querySection('a question'))
+  })
+  it('mints the casting section via the castingSection sub-builder', () => {
+    const view = buildConsultationView('q', [7, 7, 7, 7, 7, 7], casting)
+    const section = view.sections.find(
+      (s) => s.kind === 'casting',
+    ) as CastingSection
+    expect(section).toEqual(castingSection(casting))
+  })
+  it('mints the null/absence casting section via the sub-builder', () => {
+    const view = buildConsultationView(
+      'q',
+      [7, 7, 7, 7, 7, 7],
+      null,
+      'playground',
+    )
+    const section = view.sections.find(
+      (s) => s.kind === 'casting',
+    ) as CastingSection
+    expect(section).toEqual(castingSection(null, 'playground'))
   })
   it('never leaks a reason into a present-casting render', () => {
     const view = buildConsultationView(

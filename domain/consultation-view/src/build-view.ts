@@ -14,10 +14,12 @@ import {
 } from '@hexagram/core/types'
 
 import type {
+  CastingSection,
   ConsultationSection,
   ConsultationView,
   DiagramLineRow,
   HexagramIdentity,
+  QuerySection,
   TextSection,
   TextVariant,
 } from './ir.js'
@@ -169,6 +171,35 @@ function linesSection(hexagram: Hexagram): TextSection {
   }
 }
 
+/**
+ * Public sub-builder: the QUERY section. buildConsultationView owns the `media`
+ * literal here so the mid-flow render (buildPartialCastingSections) can mint
+ * the same section instead of hand-writing a second `media` projection — ADR-0018
+ * "buildConsultationView is the sole owner of visibility".
+ */
+export function querySection(query: string): QuerySection {
+  return { kind: 'query', media: ['ansi', 'markdown'], query }
+}
+
+/**
+ * Public sub-builder: the CASTING section (full, partial mid-flow, or null).
+ * Same single-owner rationale as `querySection`: the `media` literal and the
+ * reason-only-when-empty guardrail live here, not at the call sites.
+ */
+export function castingSection(
+  casting: PartialCastingRecord | null,
+  absenceReason: CastingAbsenceReason | null = null,
+): CastingSection {
+  return {
+    kind: 'casting',
+    media: ['ansi', 'markdown'],
+    rows: casting === null ? null : buildLedgerRows(casting),
+    // Guardrail: the reason only applies when there are no rows. Never let a
+    // reason leak into a present-casting render (would change those fixtures).
+    absenceReason: casting === null ? absenceReason : null,
+  }
+}
+
 /** Public sub-builder: the hexagram identity strings (no record traversal in consumers). */
 export function hexagramIdentity(hexagram: Hexagram): HexagramIdentity {
   return identityOf(hexagram)
@@ -223,15 +254,8 @@ export function buildConsultationView(
   // and emergingTopFirst[i] are the same position (replaces a bare `5 - i`).
   const emergingTopFirst = toTopFirst(emerging)
   const sections: ConsultationSection[] = [
-    { kind: 'query', media: ['ansi', 'markdown'], query },
-    {
-      kind: 'casting',
-      media: ['ansi', 'markdown'],
-      rows: casting === null ? null : buildLedgerRows(casting),
-      // Guardrail: the reason only applies when there are no rows. Never let a
-      // reason leak into a present-casting render (would change those fixtures).
-      absenceReason: casting === null ? absenceReason : null,
-    },
+    querySection(query),
+    castingSection(casting, absenceReason),
     {
       kind: 'transformation',
       media: ['ansi', 'markdown'],

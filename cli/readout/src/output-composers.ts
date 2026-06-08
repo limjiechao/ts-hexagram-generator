@@ -1,5 +1,8 @@
-import { buildConsultationView } from '@hexagram/consultation-view/build-view'
-import { buildLedgerRows } from '@hexagram/consultation-view/ledger-geometry'
+import {
+  buildConsultationView,
+  castingSection,
+  querySection,
+} from '@hexagram/consultation-view/build-view'
 import type {
   CastingAbsenceReason,
   CastingRecord,
@@ -66,15 +69,15 @@ export function buildPartialCastingSections(
   query: string,
   casting: PartialCastingRecord,
 ): Pick<ConsultationSections, 'query' | 'casting'> {
-  // WHY: a partial (mid-flow) casting render needs only the ledger; the
-  // hexagram isn't known yet. Build the casting section straight from
-  // buildLedgerRows instead of round-tripping a sentinel [7,7,7,7,7,7] through
-  // buildConsultationView. `media: ['ansi']` is honest (this transient render
-  // only feeds the viewer's ANSI Casting tab) and inert — both serializers are
-  // called directly here, not through the media-filtering loops.
-  const rows = buildLedgerRows(casting)
+  // WHY: a partial (mid-flow) casting render needs only the query + ledger; the
+  // hexagram isn't known yet, so we mint just those two sections via the shared
+  // sub-builders instead of round-tripping a sentinel [7,7,7,7,7,7] through
+  // buildConsultationView. The sub-builders are the SINGLE owner of the `media`
+  // literal (ADR-0018) — this composer no longer mints its own. `media` is inert
+  // here anyway: both serializers are called directly, not through the
+  // media-filtering loops.
   return {
-    query: serializeQueryAnsi({ kind: 'query', media: ['ansi'], query }),
-    casting: serializeCastingAnsi({ kind: 'casting', media: ['ansi'], rows }),
+    query: serializeQueryAnsi(querySection(query)),
+    casting: serializeCastingAnsi(castingSection(casting)),
   }
 }
