@@ -4,7 +4,7 @@
 // scroll offset. Mirrors the `useWindowSize` mocking pattern in
 // `playground-app.test.tsx` so the fake stdout never reports zero rows.
 
-import { getHexagramRecord } from '@hexagram/core/getters'
+import { movingLineVariants } from '@hexagram/consultation-view/build-view'
 import type { Hexagram } from '@hexagram/core/types'
 import { stripAnsi } from '@hexagram/viewer-core'
 import { render } from 'ink-testing-library'
@@ -28,6 +28,18 @@ vi.mock('ink', async (importOriginal) => {
 // (9→yang, 7→yang) and resolves to #1 Qian.
 const STANDING_QIAN_L1_MOVING: Hexagram = [9, 7, 7, 7, 7, 7]
 
+// The strip draws its two language columns from the IR's moving-line variants —
+// the same derivation the consultation readout uses (ADR-0018). The tests below
+// source their expectations from there too, so a drift in the IR moves the
+// expectation in lock-step with the panel instead of silently passing.
+function irVariant(standing: Hexagram, language: string) {
+  const found = movingLineVariants(standing).find(
+    (v) => v.language === language,
+  )
+  if (found === undefined) throw new Error(`IR has no "${language}" variant`)
+  return found
+}
+
 describe('buildReadingsRows', () => {
   it('produces a non-empty row array for a hexagram with a moving line', () => {
     const rows = buildReadingsRows(STANDING_QIAN_L1_MOVING, 0, 80)
@@ -41,29 +53,58 @@ describe('buildReadingsRows', () => {
   })
 
   it('includes Traditional Chinese scripture and Wilhelm-Baynes English', () => {
-    const record = getHexagramRecord(STANDING_QIAN_L1_MOVING)
-    const traditionalScripture =
-      record.Text.Chinese.Traditional.Scripture.Lines.L1
-    const englishScripture =
-      record.Text.English.WilhelmBaynes.Scripture.Lines.L1
+    const traditional = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'Traditional Chinese',
+    )
+    const wilhelmBaynes = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'English, Wilhelm-Baynes',
+    )
     const rows = buildReadingsRows(STANDING_QIAN_L1_MOVING, 0, 80)
     const joined = stripAnsi(rows.join('\n'))
     // The first few characters of each are stable and survive wrapping.
-    expect(joined).toContain(traditionalScripture.slice(0, 4))
-    expect(joined).toContain(englishScripture.slice(0, 8))
+    expect(joined).toContain(traditional.scripture.slice(0, 4))
+    expect(joined).toContain(wilhelmBaynes.scripture.slice(0, 8))
   })
 
   it('includes Traditional Chinese exegesis (象傳) and Wilhelm-Baynes English', () => {
-    const record = getHexagramRecord(STANDING_QIAN_L1_MOVING)
-    const traditionalExegesis =
-      record.Text.Chinese.Traditional.Exegesis.Imagery.Lines.L1
-    const englishExegesis =
-      record.Text.English.WilhelmBaynes.Exegesis.Imagery.Lines.L1
+    const traditional = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'Traditional Chinese',
+    )
+    const wilhelmBaynes = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'English, Wilhelm-Baynes',
+    )
     const rows = buildReadingsRows(STANDING_QIAN_L1_MOVING, 0, 80)
     const joined = stripAnsi(rows.join('\n'))
     expect(joined).toContain('(Exegesis — 象傳)')
-    expect(joined).toContain(traditionalExegesis.slice(0, 4))
-    expect(joined).toContain(englishExegesis.slice(0, 8))
+    expect(joined).toContain(traditional.exegesis.slice(0, 4))
+    expect(joined).toContain(wilhelmBaynes.exegesis.slice(0, 8))
+  })
+
+  it('draws every prose block from the IR movingLineVariants, not a second record traversal', () => {
+    // B3 regression guard. The panel previously re-read the hexagram record and
+    // had silently drifted to 2 of the IR's 4 variants. Pin the rendered prose
+    // to the IR derivation so the two encodings can never disagree again. Wide
+    // wrap (200) keeps each paragraph on one line for whole-string matching.
+    const traditional = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'Traditional Chinese',
+    )
+    const wilhelmBaynes = irVariant(
+      STANDING_QIAN_L1_MOVING,
+      'English, Wilhelm-Baynes',
+    )
+    const joined = stripAnsi(
+      buildReadingsRows(STANDING_QIAN_L1_MOVING, 0, 200).join('\n'),
+    )
+    // First line of each (Wilhelm-Baynes scripture can be a multi-line stanza).
+    expect(joined).toContain(traditional.scripture)
+    expect(joined).toContain(traditional.exegesis)
+    expect(joined).toContain(wilhelmBaynes.scripture.split('\n')[0])
+    expect(joined).toContain(wilhelmBaynes.exegesis.split('\n')[0])
   })
 
   it('grows the row count when wrapWidth is reduced', () => {

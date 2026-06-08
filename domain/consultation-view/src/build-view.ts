@@ -213,6 +213,19 @@ export function hexagramDiagramRows(
   return diagramRows(hexagram, movingFrom)
 }
 
+/**
+ * Public sub-builder: the four (Scripture / Exegesis) language variants for the
+ * single moving line of a one-moving-line hexagram (empty if the hexagram has no
+ * moving line). This is the single home of the per-line reading-text derivation
+ * — consumers that show a narrower subset (e.g. the playground's
+ * Traditional-Chinese + Wilhelm-Baynes strip) filter this list by `language`
+ * rather than re-traversing the hexagram record, so they can never disagree with
+ * the consultation readout about what a moving line says.
+ */
+export function movingLineVariants(hexagram: Hexagram): readonly TextVariant[] {
+  return oneMovingLineVariants(hexagram)
+}
+
 // ── Section → medium visibility matrix (the single survey point) ─────────────
 // buildConsultationView is the SOLE owner of which sections each medium emits
 // (ADR-0018: "Section→medium visibility is explicit, not implicit"). The
