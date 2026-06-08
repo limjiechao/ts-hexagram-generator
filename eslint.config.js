@@ -13,6 +13,20 @@ const explicitJsExtensionPattern = {
     'Relative imports must use an explicit `.js` extension (ADR-0004); bundler resolution maps it back to the `.ts`/`.tsx` source.',
 }
 
+// S9 drift-guard (no-barrel-files standard): these packages expose their public
+// API as concrete subpath `exports`, NOT a root `.` barrel. Importing the bare
+// package name is banned so the per-subpath discipline can't silently regress
+// into a re-export barrel (which is what let two import conventions coexist for
+// the same symbols). Re-listed in each scoped `paths` block below for the same
+// flat-config replace-semantics reason as the extension guard.
+const barrelRootBans = [
+  {
+    name: '@hexagram/consultation-file',
+    message:
+      'Import the concrete subpath — @hexagram/consultation-file/{file,frontmatter,markdown,legacy-converter} — not the bare package; it has no root barrel (S9, no-barrel-files).',
+  },
+]
+
 // The seven cli/* package names (ADR-0019 boundary). domain/* may not import any
 // of them: the dependency arrow points cli → domain, never the reverse.
 const cliPackageNames = [
@@ -80,7 +94,7 @@ export default sxzz().append(
     rules: {
       'no-restricted-imports': [
         'error',
-        { patterns: [explicitJsExtensionPattern] },
+        { patterns: [explicitJsExtensionPattern], paths: barrelRootBans },
       ],
     },
   },
@@ -116,6 +130,7 @@ export default sxzz().append(
         {
           patterns: [explicitJsExtensionPattern],
           paths: [
+            ...barrelRootBans,
             {
               name: 'string-width',
               message:

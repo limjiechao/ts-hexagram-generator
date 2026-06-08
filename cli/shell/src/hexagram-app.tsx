@@ -18,7 +18,7 @@ import {
   type FlowKind,
   type InputMode,
 } from '@hexagram/casting-ui'
-import { defaultConsultationsDir } from '@hexagram/consultation-file'
+import { defaultConsultationsDir } from '@hexagram/consultation-file/file'
 import { HistoryApp } from '@hexagram/history-ui'
 import { PlaygroundApp } from '@hexagram/playground-ui'
 import { useApp } from 'ink'

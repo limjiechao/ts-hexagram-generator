@@ -3,10 +3,10 @@ import path from 'node:path'
 import process from 'node:process'
 
 import {
-  markdownConsultationBody,
   serializeFrontmatter,
   type ConsultationEnvelope,
-} from '@hexagram/consultation-file'
+} from '@hexagram/consultation-file/frontmatter'
+import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 import {
   buildConsultationSections,
   ConsultationReadout,

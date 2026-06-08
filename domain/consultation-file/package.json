@@ -5,11 +5,6 @@
   "description": "Yijing hexagram oracle: consultation file format (Markdown + YAML frontmatter), renderers, and legacy converter",
   "license": "MIT",
   "exports": {
-    ".": {
-      "source": "./src/index.ts",
-      "types": "./dist/index.d.mts",
-      "import": "./dist/index.mjs"
-    },
     "./markdown": {
       "source": "./src/markdown.ts",
       "types": "./dist/markdown.d.mts",

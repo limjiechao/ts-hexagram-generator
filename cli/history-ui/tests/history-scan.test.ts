@@ -2,7 +2,7 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-import { serializeFrontmatter } from '@hexagram/consultation-file'
+import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { scanConsultations } from '../src/history-scan.js'

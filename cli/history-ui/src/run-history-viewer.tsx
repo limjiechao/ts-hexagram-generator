@@ -1,4 +1,4 @@
-import { defaultConsultationsDir } from '@hexagram/consultation-file'
+import { defaultConsultationsDir } from '@hexagram/consultation-file/file'
 import { render } from 'ink'
 
 import { HistoryApp } from './history-app.js'
