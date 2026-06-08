@@ -31,7 +31,8 @@ The envelope has six fields and nothing derived:
   casting is absent. A present `casting` carries no `castingAbsence`. **No
   `schemaVersion` bump:** a pre-field null-casting file (no `castingAbsence` key)
   defaults to `legacy-no-table` on read and gains the key on the next self-heal
-  rewrite.
+  rewrite. This optimistic default is a deliberate choice — see the
+  _2026-06-08 (S6)_ amendment below for why it is safe.
 
 Two deliberate asymmetries:
 
@@ -110,6 +111,50 @@ splits); a corrupted/hand-edited casting now fails closed rather than rendering 
 false ledger; the new reason is additive (no `schemaVersion` bump — shape and
 version checks are unchanged); `castingReplaysTo` becomes shared `consultation-file`
 API consumed by both `frontmatter.ts` (or `file.ts`) and `legacy-converter.ts`.
+
+## Amendment — 2026-06-08: the read-time absence default is deliberate (S6)
+
+The 2026-06-07 amendment introduced `castingAbsence` and made it **compulsory on
+save** (`saveConsultationFile` throws when `casting` is null without a reason). But
+the read path defaults a **missing** `castingAbsence` key to `legacy-no-table`
+(`frontmatter.ts`), and the three `casting: null` origins are structurally
+identical on disk — so a key-less file is _asserted_ to be `legacy-no-table`
+whether or not that is its true origin. A cold read (S6) flagged this as a fork:
+the default could be read as "we know it's legacy-no-table" or as "we don't know
+and are guessing." This amendment **records the choice rather than changing the
+behavior**: the optimistic default stays, and stays deliberate.
+
+It is safe because the only files that can reach it are a **frozen, shrinking
+population**:
+
+- The app can no longer _write_ a key-less null-casting file. Save fails closed
+  (above), and the history self-heal threads the reason into the re-rendered body
+  (B5 fix, `history-app.tsx` → `markdownConsultationBody`'s 4th arg), so a
+  round-trip never drops the key.
+- The default therefore fires only for **pre-field files** (`castingAbsence`
+  landed 2026-06-07) or externally hand-edited/corrupted ones. For a genuine
+  pre-field Shape-B legacy file `legacy-no-table` is simply _correct_; for a
+  pre-field playground/unreplayable save it is a **mislabel**, but a cosmetic one
+  — it changes only the "Casting not recorded (…)" notice string. The canonical
+  frontmatter is untouched, no casting data is fabricated, and the row stays
+  history-browsable. "Data unchanged" remains true.
+
+We cannot do better without a `schemaVersion` bump: a pre-field file is still
+`schemaVersion: 1` (S3 pinned the version to literal `1`), so there is no marker
+to separate "old schema, field not expected" from "field expected but dropped."
+
+- **Rejected — add a distinct `unspecified` / `unknown` absence reason for the
+  read-time default.** It would be more honest about a key-less file, but it
+  widens the closed enum with a value that is **never written** (only synthesized
+  on read), adds a notice-string + test surface, and downgrades the _common,
+  correct_ case (genuine legacy-no-table files) to a vaguer label to flag a frozen
+  edge case. The asymmetry of a read-only sentinel is not worth it given B5 has
+  closed the live key-drop path.
+
+Consequences: no code change — the read-time default and the `CastingAbsenceReason`
+enum are unchanged; the safety of the default is now load-bearing on the save-side
+compulsion and the B5 self-heal fix, and is recorded here so the default reads as
+intentional, not accidental.
 
 ## Considered options
 
