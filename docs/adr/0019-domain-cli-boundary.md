@@ -93,11 +93,14 @@ letting the renderers become thin.
   `domain/* → cli/*` import fails the build. Run by `pnpm lint:check` and wired into Turbo
   `lint:check` + `check:all` / `check:affected`.
 - `eslint.config.js` — a `no-restricted-imports` override scoped to `cli/**/src/**/*.{ts,tsx}`
-  with `cli/viewer-core/**` ignored (severity `error`) forbids the `string-width` package:
-  only `cli/viewer-core` may import it directly; every other `cli/*` measures rendered width
-  through viewer-core's ANSI-aware `terminalWidth` wrapper. Distinct by design from
-  `domain/text-layout`'s `visualWidth` (raw, un-ANSI'd diagram text), so chrome width and
-  diagram geometry stay separate homes.
+  with `cli/viewer-core/**` ignored (severity `error`) forbids the rendered-width packages
+  (`string-width`, and `slice-ansi` per [ADR-0021](0021-rendered-width-single-home.md)):
+  only `cli/viewer-core` may import them directly; every other `cli/*` measures rendered width
+  through viewer-core's ANSI-aware `terminalWidth` wrapper and pans through `panToWindow`.
+  (This ADR originally described `terminalWidth` and `domain/text-layout`'s `visualWidth` as
+  deliberately _separate homes_ — raw vs ANSI'd. ADR-0021 retired that split: `terminalWidth`
+  is now a thin re-export of `visualWidth`, the single `string-width`-backed width table, so
+  the saved `.md` diagrams and the live viewer can no longer disagree on a glyph's width.)
 - The enforcement MECHANISM moved from dependency-cruiser (`dependency-cruiser.config.cjs`,
   `pnpm boundaries:check`) to these ESLint `no-restricted-imports` overrides; the boundary
   DECISION is unchanged. As a side effect the boundary now also covers domain `tests/` and

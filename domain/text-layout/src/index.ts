@@ -1,28 +1,22 @@
+import stringWidth from 'string-width'
+
 /**
  * Compute the display width of a string, counting CJK and other fullwidth
- * characters as two columns and everything else as one. Used by
- * `padToColumn` to keep fixed-width diagrams aligned even when they contain
- * Chinese characters or fullwidth punctuation.
+ * characters as two columns and everything else as one. Used by `padToColumn`
+ * to keep fixed-width diagrams aligned even when they contain Chinese
+ * characters or fullwidth punctuation.
+ *
+ * The single home for rendered-string width across the whole codebase (ADR-0021):
+ * backed by `string-width`'s maintained East-Asian-width table, it is correct on
+ * arbitrary glyphs the old hand-rolled ranges silently mis-measured — emoji,
+ * supplementary-plane CJK (U+20000+), and zero-width combining marks. The CLI
+ * layer's `terminalWidth` is a thin re-export of this function, so the saved
+ * `.md` diagrams and the live terminal viewer can never disagree on a glyph's
+ * width. `string-width` strips ANSI internally, so this is also ANSI-aware (the
+ * diagram text fed to it is raw, so that costs nothing here).
  */
 export function visualWidth(text: string): number {
-  let width = 0
-  for (const character of text) {
-    const codePoint = character.codePointAt(0) ?? 0
-    const isFullwidth =
-      (codePoint >= 0x1100 && codePoint <= 0x115f) ||
-      (codePoint >= 0x2e80 && codePoint <= 0x303e) ||
-      (codePoint >= 0x3041 && codePoint <= 0x33ff) ||
-      (codePoint >= 0x3400 && codePoint <= 0x4dbf) ||
-      (codePoint >= 0x4e00 && codePoint <= 0x9fff) ||
-      (codePoint >= 0xa000 && codePoint <= 0xa4cf) ||
-      (codePoint >= 0xac00 && codePoint <= 0xd7af) ||
-      (codePoint >= 0xf900 && codePoint <= 0xfaff) ||
-      (codePoint >= 0xfe10 && codePoint <= 0xfe6f) ||
-      (codePoint >= 0xff01 && codePoint <= 0xff60) ||
-      (codePoint >= 0xffe0 && codePoint <= 0xffe6)
-    width += isFullwidth ? 2 : 1
-  }
-  return width
+  return stringWidth(text)
 }
 
 // Pad text to targetColumn with at least minGap spaces.
