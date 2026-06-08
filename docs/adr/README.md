@@ -33,6 +33,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0018 | Consultation view IR + renderer collapse                    | Accepted           |
 | 0019 | The boundary is domain vs CLI, not computation vs rendering | Accepted           |
 | 0020 | Consultations directory anchoring                           | Accepted           |
+| 0021 | Rendered-width operations have a single home                | Accepted           |
 
 ## Template
 
