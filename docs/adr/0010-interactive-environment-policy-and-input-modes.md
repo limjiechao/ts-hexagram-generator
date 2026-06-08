@@ -68,5 +68,3 @@ environment guard, applied to widget choice instead of startup.
   manual-only gate: the manual prompt needs ≥32 rows for its diagram + chrome,
   so the bin refuses shorter terminals. It stays in the bin (it needs
   `process.stdout.rows`) but is recorded here as policy.
-- Stale paths: the "Where it's enforced" list says `packages/…`; the tree uses
-  `cli/…` and `apps/…`.

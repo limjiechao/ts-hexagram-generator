@@ -69,9 +69,9 @@ load-bearing rule for ANSI output. `FORCE_COLOR` is also declared in `turbo.json
 
 - `vitest.config.base.ts` — timeout, `source` condition, `deps.inline` (carries a
   pointer to this ADR).
-- `packages/core/vitest.config.ts` — the 90 s override for the 1M test.
+- `domain/core/vitest.config.ts` — the 90 s override for the 1M test.
 - `package.json` — `test:flake` / `test:stress` / `generate-fixtures`, `cross-env`.
 - `turbo.json` — `test.env: ["FORCE_COLOR"]`.
 - `.github/workflows/unit-test.yml` — the OS matrix + `fail-fast: false`.
-- the fixture dirs under `packages/casting-ui/tests/` and
-  `packages/consultation-file/tests/`.
+- the fixture dirs under `cli/casting-ui/tests/` and
+  `domain/consultation-file/tests/`.

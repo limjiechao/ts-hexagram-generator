@@ -47,12 +47,12 @@ imported `@hexagram/types` now import `@hexagram/core/types`.
   is no cycle. This is the one place the fold trades a conceptual "vocabulary
   without algorithm" import for a `core` dependency; it was judged worth the
   package it deletes.
-- `core` now ships a `./types` subpath (seven entries total). See ADR-0003.
+- `core` now ships a `./types` subpath (ten entries total). See ADR-0003.
 
 ## Where it's enforced
 
-- `packages/core/src/types.ts` — the vocabulary (moved from `packages/types/src/index.ts`).
-- `packages/core/package.json` `exports` — the `./types` subpath; and
+- `domain/core/src/types.ts` — the vocabulary (moved from the former `packages/types/src/index.ts`).
+- `domain/core/package.json` `exports` — the `./types` subpath; and
   `tsdown.config.ts` — the matching entry.
-- absence of `packages/types/` — the package is deleted.
-- each consuming `packages/*/package.json` — no longer lists `@hexagram/types`.
+- absence of any `types` package — it is deleted.
+- each consuming `domain/*`/`cli/*` `package.json` — no longer lists `@hexagram/types`.

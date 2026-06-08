@@ -69,10 +69,10 @@ AI-navigability (the domain noun maps 1:1 to a package).
 
 ## Where it's enforced
 
-- `packages/readout/` — the package: `ConsultationReadout`, `output-composers`,
+- `cli/readout/` — the package: `ConsultationReadout`, `output-composers`,
   `output-sections`.
-- `packages/viewer-core/package.json` — no longer depends on `@hexagram/core`.
-- each consuming `packages/*/package.json` `dependencies` — the new `readout`
+- `cli/viewer-core/package.json` — no longer depends on `@hexagram/core`.
+- each consuming `domain/*`/`cli/*` `package.json` `dependencies` — the new `readout`
   edge.
 - [ADR-0002](0002-monorepo-structure-and-package-decomposition.md) — the package
   list and DAG.

@@ -65,8 +65,8 @@ can't drift.
 
 ## Where it's enforced
 
-- `packages/casting-ui/src/viewer-flow.ts` — the state machine + reducer.
-- `packages/casting-ui/src/viewer.tsx` — the Viewer/Readout rendering.
-- `packages/viewer-core/src/` — `ScreenShell`, palette, section builders.
-- `packages/casting-ui/src/output-composers.ts` / `output-sections.ts` — shared
+- `cli/casting-ui/src/viewer-flow.ts` — the state machine + reducer.
+- `cli/casting-ui/src/viewer.tsx` — the Viewer/Readout rendering.
+- `cli/viewer-core/src/` — `ScreenShell`, palette, section builders.
+- `cli/casting-ui/src/output-composers.ts` / `output-sections.ts` — shared
   content generation.

@@ -62,8 +62,9 @@ is a clarification, not a reversal of "No provenance field".
 **Ink-only, with a height floor.** The bin refuses non-TTY like the other Ink-only
 bins ([ADR-0010](0010-interactive-environment-policy-and-input-modes.md)) — no `--plain`, no
 `--numeric-input`, no slider knobs; the manual prompt is its own input branch. It
-additionally requires ~34 terminal rows (the flow diagram reserves 24, chrome ~9,
-plus a content floor) and refuses shorter terminals rather than render broken.
+additionally requires 32 terminal rows (`MANUAL_MIN_TERMINAL_ROWS`; the flow
+diagram reserves 24, with chrome and a content floor making up the rest) and
+refuses shorter terminals rather than render broken.
 
 **Pure row-builder layout.** The prompt is assembled from pure text row-builders
 (diagram rows, question/hint rows, input box, bottom strip), which keeps it
@@ -89,7 +90,7 @@ On terminals wider than the natural body width, the body block (diagram + right 
 
 - The manual and interactive flows must keep saving byte-identically — the Phase-7
   test guards this; don't add a manual-only field without revisiting it.
-- The 34-row floor is a real constraint on the diagram's height budget; growing the
+- The 32-row floor is a real constraint on the diagram's height budget; growing the
   diagram means revisiting the floor.
 - Rewind semantics live in the reducer/hook, not in the component — extend undo
   there.
@@ -100,11 +101,11 @@ On terminals wider than the natural body width, the body block (diagram + right 
 
 ## Where it's enforced
 
-- `packages/casting-ui/src/manual-prompt.tsx` — `ManualCastingPrompt`, `MANUAL_REVEAL_MS`.
-- `packages/casting-ui/src/manual-diagram.ts` — the pure row-builders.
-- `packages/casting-ui/src/manual-validation.ts` — the validation tiers.
-- `packages/casting-ui/src/casting-prompt-box.tsx` — `CastingPromptBox` dispatch + `getCastingPromptHeight`.
-- `packages/casting-ui/src/viewer-flow.ts` — `lineRewound` action (resets the
+- `cli/casting-ui/src/manual-prompt.tsx` — `ManualCastingPrompt`, `MANUAL_REVEAL_MS`.
+- `cli/casting-ui/src/manual-diagram.ts` — the pure row-builders.
+- `domain/core/src/manual-validation.ts` — the validation tiers (hoisted below the UI line per ADR-0019).
+- `cli/casting-ui/src/casting-prompt-box.tsx` — `CastingPromptBox` dispatch + `getCastingPromptHeight`.
+- `cli/casting-ui/src/viewer-flow.ts` — `lineRewound` action (resets the
   slot pointer and `FlowState.lineState`; the per-line algorithm's single owner).
-- `packages/casting-ui/tests/viewer.test.tsx` — manual≡interactive byte-identity test.
+- `cli/casting-ui/tests/viewer.test.tsx` — manual≡interactive byte-identity test.
 - `apps/cli/src/manual.ts` — non-TTY guard + the row floor.

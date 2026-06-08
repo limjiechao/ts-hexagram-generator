@@ -56,7 +56,7 @@ just the root's Ctrl+C handler) and silently swallowed.
 
 ## Where it's enforced
 
-- `packages/test-utils/src/` — the helper package.
+- `cli/test-utils/src/` — the helper package.
 - `eslint.config.js` — the `await tick(...)` ban (carries a pointer to this ADR).
 - component `onReady` props across `casting-ui` / `history-ui` / `viewer-core` /
   `shell`.
