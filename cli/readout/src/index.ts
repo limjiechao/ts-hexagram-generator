@@ -26,6 +26,11 @@ export {
 // consultationConsoleOutput).
 export { serializeConsoleOutput } from './serialize-ansi.js'
 
+// The standing-column moving-line colour rule — the single home of "a standing
+// line is red iff it is moving", shared with @hexagram/playground-ui so the
+// playground's line rows and these serializers can never disagree (seam B3).
+export { standingLineColor } from './standing-line-color.js'
+
 // Casting-table row geometry helpers, re-exported from their canonical home
 // (@hexagram/consultation-view) so the viewer's auto-follow scroll keeps
 // resolving them via @hexagram/readout.

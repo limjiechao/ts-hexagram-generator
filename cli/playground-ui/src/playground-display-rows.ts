@@ -5,9 +5,9 @@ import {
 } from '@hexagram/consultation-view/vocabulary'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
+import { standingLineColor } from '@hexagram/readout'
 import {
   BOLD_GREY,
-  BOLD_RED,
   BOLD_WHITE,
   NORMAL,
   NORMAL_GREY,
@@ -70,12 +70,14 @@ export function buildLineRow(input: LineRowInputs): string {
   const moving = isMovingLine(standingLine)
   const chevron = focused ? '› ' : '  '
 
-  // Mirror `transformationSection`'s colour scheme: standing moving lines are
-  // BOLD_RED (no pulse-dim flicker — that was always a no-op here); the
-  // emerging side is BOLD_WHITE normally, NORMAL_GREY when the standing has no
-  // moving lines (the "ghost mirror"). The position label is uncoloured on the
-  // left and coloured on the right (NORMAL, or NORMAL_GREY in the ghost mirror).
-  const standingColor = moving ? BOLD_RED : BOLD_WHITE
+  // Standing-line colour is the shared readout rule (`standingLineColor`): red
+  // iff moving, else white — the single home the transformation serializer also
+  // uses, so the two can never disagree (no pulse-dim flicker; that was always
+  // a no-op here). The emerging side is the playground's own concern — BOLD_WHITE
+  // normally, NORMAL_GREY when the standing has no moving lines (the "ghost
+  // mirror") — and the position label is uncoloured on the left and coloured on
+  // the right (NORMAL, or NORMAL_GREY in the ghost mirror).
+  const standingColor = standingLineColor(moving)
   const emergingColor = hasMoving ? BOLD_WHITE : NORMAL_GREY
   const positionColor = hasMoving ? NORMAL : NORMAL_GREY
   const gap = moving ? MOVING_ARROW : STATIC_GAP

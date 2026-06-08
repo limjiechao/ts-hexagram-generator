@@ -6,6 +6,7 @@
 // removal in this task.
 
 import type { Line } from '@hexagram/core/types'
+import { standingLineColor } from '@hexagram/readout'
 import { describe, expect, it } from 'vitest'
 
 import { buildLineRow } from '../src/playground-display-rows.js'
@@ -76,4 +77,32 @@ describe('buildLineRow output is stable across the input matrix', () => {
   // The pulse-inertness invariant was proven in the pre-rewrite snapshot run
   // (pulse=true and pulse=false produced byte-identical rows). `pulse` is now
   // gone from LineRowInputs, so there is nothing left to assert here.
+})
+
+// B3 parity guard: the playground's standing-line colour must be the shared
+// readout rule (`standingLineColor`), not a re-hardcoded copy. These assertions
+// fail the moment someone reintroduces a divergent literal, closing the
+// "nothing pins the playground colouring to the serializer" gap.
+describe('buildLineRow standing colour follows the shared readout rule', () => {
+  it('paints a moving standing line in standingLineColor(true)', () => {
+    const row = buildLineRow({
+      standingLine: 9,
+      emergingLine: 8,
+      position: 3,
+      focused: false,
+      hasMoving: true,
+    })
+    expect(row).toContain(standingLineColor(true))
+  })
+
+  it('paints a static standing line without the moving colour', () => {
+    const row = buildLineRow({
+      standingLine: 7,
+      emergingLine: 7,
+      position: 3,
+      focused: false,
+      hasMoving: true,
+    })
+    expect(row).not.toContain(standingLineColor(true))
+  })
 })

@@ -31,7 +31,6 @@ import { padToColumn } from '@hexagram/text-layout'
 import {
   BOLD_CYAN,
   BOLD_GREY,
-  BOLD_RED,
   BOLD_WHITE,
   HEADING_GREY,
   NORMAL,
@@ -41,6 +40,7 @@ import {
 } from '@hexagram/viewer-core'
 
 import type { ConsultationSections } from './output-composers.js'
+import { standingLineColor } from './standing-line-color.js'
 
 export function serializeCastingAnsi(section: CastingSection): string {
   if (section.rows === null) {
@@ -121,7 +121,7 @@ ${NORMAL}(No transformation)
 
   const lineRows = rows
     .map(({ standing: s, emerging: e }) => {
-      const standingColor = s.moving ? BOLD_RED : BOLD_WHITE
+      const standingColor = standingLineColor(s.moving)
       return transformationRow(
         s,
         e,
@@ -169,7 +169,7 @@ export function serializeHexagramAnsi(section: HexagramSection): string {
   const label = section.role === 'standing' ? 'STANDING' : 'EMERGING'
   const id = section.identity
   const colorOf = (moving: boolean): string =>
-    section.role === 'standing' && moving ? BOLD_RED : BOLD_WHITE
+    section.role === 'standing' ? standingLineColor(moving) : BOLD_WHITE
   // rows are top-first: [pos6, pos5, pos4, pos3, pos2, pos1].
   const [r6, r5, r4, r3, r2, r1] = section.rows
 
