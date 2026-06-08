@@ -1,5 +1,5 @@
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
-import { buildConsultationSections } from '@hexagram/readout'
+import { buildConsultationSections } from '@hexagram/readout/output-composers'
 import { waitFor, waitForReady, yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import stringWidth from 'string-width'

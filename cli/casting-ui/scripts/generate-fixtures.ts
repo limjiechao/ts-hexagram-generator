@@ -4,7 +4,7 @@ import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
 import { isMovingLine } from '@hexagram/core/line-semantics'
-import { buildConsultationSections } from '@hexagram/readout'
+import { buildConsultationSections } from '@hexagram/readout/output-composers'
 
 import { consultationConsoleOutput } from '../src/output-composers.js'
 import { cases } from '../tests/fixtures/cases.js'

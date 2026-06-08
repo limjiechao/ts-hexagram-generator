@@ -25,6 +25,11 @@ const barrelRootBans = [
     message:
       'Import the concrete subpath — @hexagram/consultation-file/{file,frontmatter,markdown,legacy-converter} — not the bare package; it has no root barrel (S9, no-barrel-files).',
   },
+  {
+    name: '@hexagram/readout',
+    message:
+      'Import the concrete subpath — @hexagram/readout/{consultation-readout,output-composers,serialize-ansi,standing-line-color} — not the bare package; it has no root barrel. Casting-table row geometry lives at @hexagram/consultation-view/ledger-geometry (S9, no-barrel-files).',
+  },
 ]
 
 // The seven cli/* package names (ADR-0019 boundary). domain/* may not import any

@@ -1,6 +1,6 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
-import { serializeConsoleOutput } from '@hexagram/readout'
+import { serializeConsoleOutput } from '@hexagram/readout/serialize-ansi'
 
 /**
  * Compose the full plain console output by projecting the medium-neutral

@@ -1,4 +1,5 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
+import { castingTableFollowRow } from '@hexagram/consultation-view/ledger-geometry'
 import {
   selectablePickMax,
   stalkCountFor,
@@ -12,13 +13,14 @@ import {
   type Hexagram,
 } from '@hexagram/core/types'
 import {
-  buildConsultationSections,
-  buildPartialCastingSections,
-  castingTableFollowRow,
   ConsultationReadout,
   type CastingPromptPan,
+} from '@hexagram/readout/consultation-readout'
+import {
+  buildConsultationSections,
+  buildPartialCastingSections,
   type ConsultationSections,
-} from '@hexagram/readout'
+} from '@hexagram/readout/output-composers'
 import {
   ConfirmModal,
   HelpOverlay,

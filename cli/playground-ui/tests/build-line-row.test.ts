@@ -6,7 +6,7 @@
 // removal in this task.
 
 import type { Line } from '@hexagram/core/types'
-import { standingLineColor } from '@hexagram/readout'
+import { standingLineColor } from '@hexagram/readout/standing-line-color'
 import { describe, expect, it } from 'vitest'
 
 import { buildLineRow } from '../src/playground-display-rows.js'
