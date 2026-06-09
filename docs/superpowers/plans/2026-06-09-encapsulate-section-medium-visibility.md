@@ -40,7 +40,7 @@ This is one atomic refactor: removing a shared field forces all its readers to c
 - Test: `domain/consultation-view/tests/build-view.test.ts` (rewrite `.media` assertions + add executable-matrix test)
 - Test: `domain/consultation-file/tests/markdown-sections.test.ts` (use `querySection` sub-builder)
 
-- [ ] **Step 1: Write the failing tests in `build-view.test.ts`**
+- [x] **Step 1: Write the failing tests in `build-view.test.ts`**
 
 Replace the entire `describe('buildConsultationView medium divergence (S5)', ...)` block (lines 104–144) with the block below, and add the import of `sectionsForMedium` + the `ConsultationView` type. Update the import block at the top (lines 4–14) to:
 
@@ -206,12 +206,12 @@ with:
   // in buildPartialCastingSections) reuses them rather than re-deriving sections.
 ```
 
-- [ ] **Step 2: Run the consultation-view tests to verify they fail**
+- [x] **Step 2: Run the consultation-view tests to verify they fail**
 
 Run: `pnpm --filter @hexagram/consultation-view test`
 Expected: FAIL — `sectionsForMedium` is not exported from `build-view.js` (compile / import error).
 
-- [ ] **Step 3: Add `sectionVisibility` + `sectionsForMedium` in `build-view.ts`**
+- [x] **Step 3: Add `sectionVisibility` + `sectionsForMedium` in `build-view.ts`**
 
 In `domain/consultation-view/src/build-view.ts`, add `SectionMedium` to the type import from `./ir.js` (the existing block at lines 16–25):
 
@@ -282,7 +282,7 @@ export function sectionsForMedium(
 }
 ```
 
-- [ ] **Step 4: Remove every `media:[...]` literal in `build-view.ts`**
+- [x] **Step 4: Remove every `media:[...]` literal in `build-view.ts`**
 
 In `querySection` (line 181):
 
@@ -339,7 +339,7 @@ function linesSection(hexagram: Hexagram): TextSection {
 
 In `buildConsultationView`, remove the `media` line from each of the four inline sections — the transformation section (delete `media: ['ansi', 'markdown'],` at line 274), the standing hexagram (delete at line 292), the standing `text:hexagram` (delete `media: ['ansi'],` at line 300), and inside the `if (moving)` block the emerging hexagram (delete at line 310) and emerging `text:hexagram` (delete `media: ['ansi'],` at line 318). Leave every other field on those sections unchanged.
 
-- [ ] **Step 5: Remove the `media` field from the IR interfaces in `ir.ts`**
+- [x] **Step 5: Remove the `media` field from the IR interfaces in `ir.ts`**
 
 In `domain/consultation-view/src/ir.ts`, delete the `readonly media: readonly SectionMedium[]` line from each of: `CastingSection` (line 33), `TransformationSection` (line 93), `HexagramSection` (line 108), `TextSection` (line 127), `QuerySection` (line 137). Keep the `SectionMedium` export (line 10) and update its doc comment:
 
@@ -367,7 +367,7 @@ export interface ConsultationView {
 }
 ```
 
-- [ ] **Step 6: Route the ANSI serializer through `sectionsForMedium`**
+- [x] **Step 6: Route the ANSI serializer through `sectionsForMedium`**
 
 In `cli/readout/src/serialize-ansi.ts`, add an import of the projector (alongside the existing `@hexagram/consultation-view/*` imports near the top):
 
@@ -416,7 +416,7 @@ export function serializeConsoleOutput(view: ConsultationView): string {
 }
 ```
 
-- [ ] **Step 7: Route the Markdown serializer through `sectionsForMedium`**
+- [x] **Step 7: Route the Markdown serializer through `sectionsForMedium`**
 
 In `domain/consultation-file/src/serialize-markdown.ts`, add the import (alongside the existing `@hexagram/consultation-view/*` imports near the top):
 
@@ -434,7 +434,7 @@ Replace the loop header + media check in `serializeConsultationMarkdownBody` (li
 
 (Delete the `if (!s.media.includes('markdown')) continue` line; leave the rest of the switch unchanged.)
 
-- [ ] **Step 8: Fix the hand-constructed query section in `markdown-sections.test.ts`**
+- [x] **Step 8: Fix the hand-constructed query section in `markdown-sections.test.ts`**
 
 In `domain/consultation-file/tests/markdown-sections.test.ts`, add `querySection` to the existing value import from `@hexagram/consultation-view/build-view` (line 1):
 
@@ -452,17 +452,17 @@ const queryMarkdownSection = (query: string): string =>
   serializeQueryMarkdown(querySection(query))
 ```
 
-- [ ] **Step 9: Run the three package test suites to verify they pass**
+- [x] **Step 9: Run the three package test suites to verify they pass**
 
 Run: `pnpm --filter @hexagram/consultation-view test && pnpm --filter @hexagram/readout test && pnpm --filter @hexagram/consultation-file test`
 Expected: PASS. The consultation-file fixture suite (`md-body-*.md` / `md-file-*.md`) and the readout/consultation-view unit tests are all green, proving the Markdown + ANSI bytes are unchanged.
 
-- [ ] **Step 10: Type-check the three packages**
+- [x] **Step 10: Type-check the three packages**
 
 Run: `pnpm --filter @hexagram/consultation-view type:check && pnpm --filter @hexagram/readout type:check && pnpm --filter @hexagram/consultation-file type:check`
 Expected: PASS — no `media` references remain; `sectionsForMedium` resolves across package boundaries.
 
-- [ ] **Step 11: Commit**
+- [x] **Step 11: Commit**
 
 ```bash
 git add domain/consultation-view/src/ir.ts domain/consultation-view/src/build-view.ts \
@@ -488,17 +488,17 @@ No code change — this task proves the refactor preserved every rendered byte a
 
 **Files:** none (verification only)
 
-- [ ] **Step 1: Run the casting-ui plain-output + Ink-section fixtures**
+- [x] **Step 1: Run the casting-ui plain-output + Ink-section fixtures**
 
 Run: `pnpm --filter @hexagram/casting-ui test`
 Expected: PASS. The `plain-output-*.txt` and `ink-sections-*.json` fixtures lock the ANSI/plain bytes; green here confirms `serializeConsoleOutput` / `serializeConsultationTabs` still emit identical output. Do **not** run `pnpm generate-fixtures`.
 
-- [ ] **Step 2: Run the full workspace test + type + lint gates**
+- [x] **Step 2: Run the full workspace test + type + lint gates**
 
 Run: `pnpm type:check && pnpm lint:check && pnpm test`
 Expected: PASS across all packages. (Note: `pnpm test` includes the ~40 s slow RNG distribution block — this is expected, see CLAUDE.md.)
 
-- [ ] **Step 3: Confirm no stray `media` field references remain**
+- [x] **Step 3: Confirm no stray `media` field references remain**
 
 Run: `git grep -n "\.media\b\|media:\s*\[" -- 'domain/**' 'cli/**'`
 Expected: no matches in `src/` or `tests/` (only prose mentions in docs/comments, which Task 3 addresses). If any code match remains, fix it before proceeding.
@@ -515,7 +515,7 @@ The ASCII matrix is gone; ADR-0018 and a few comments still describe the old `me
 - Modify: `cli/readout/src/serialize-ansi.ts` (header + tab/console comments referencing "the matrix")
 - Modify: `domain/consultation-file/src/serialize-markdown.ts` (header comment referencing the `media` flag)
 
-- [ ] **Step 1: Update ADR-0018**
+- [x] **Step 1: Update ADR-0018**
 
 In `docs/adr/0018-consultation-view-ir.md`, replace the bullet at lines 77–87 (`- **Section→medium visibility is explicit, not implicit.** ...`) with:
 
@@ -535,7 +535,7 @@ In `docs/adr/0018-consultation-view-ir.md`, replace the bullet at lines 77–87 
   the same `sectionsForMedium('ansi')` projection — not a second rule.
 ```
 
-- [ ] **Step 2: Update the `buildPartialCastingSections` comment**
+- [x] **Step 2: Update the `buildPartialCastingSections` comment**
 
 In `cli/readout/src/output-composers.ts`, replace the `WHY:` comment lines that read `The sub-builders are the SINGLE owner of the media literal (ADR-0018) — this composer no longer mints its own. media is inert here anyway: both serializers are called directly, not through the media-filtering loops.` with:
 
@@ -548,14 +548,14 @@ In `cli/readout/src/output-composers.ts`, replace the `WHY:` comment lines that 
   // sectionsForMedium projection (visibility is moot for a 2-section mid-flow render).
 ```
 
-- [ ] **Step 3: Update the serialize-ansi.ts comments that name "the matrix"**
+- [x] **Step 3: Update the serialize-ansi.ts comments that name "the matrix"**
 
 In `cli/readout/src/serialize-ansi.ts`:
 - The `serializeTextAnsi` comment (lines 233–235) `a lines:none section is markdown-only (media filtered out upstream)` → `a lines:none section is Markdown-only (filtered out by sectionsForMedium upstream)`.
 - The `serializeConsultationTabs` comment (lines 251–256) `when its media includes 'ansi'` → `when sectionsForMedium('ansi') includes it`.
 - The `serializeConsoleOutput` comment (lines 299–300) `Visibility (which sections reach this ANSI walk) is owned upstream — see the section→medium matrix above buildConsultationView` → `Visibility is owned upstream by sectionsForMedium / sectionVisibility in @hexagram/consultation-view`.
 
-- [ ] **Step 4: Update the serialize-markdown.ts header comment**
+- [x] **Step 4: Update the serialize-markdown.ts header comment**
 
 In `domain/consultation-file/src/serialize-markdown.ts`, replace the `Body projection:` comment (lines 7–12) with:
 
@@ -569,12 +569,12 @@ In `domain/consultation-file/src/serialize-markdown.ts`, replace the `Body proje
 
 Also remove the now-redundant `// Visibility is owned upstream — see the section→medium matrix above buildConsultationView ...` comment above `serializeConsultationMarkdownBody` (lines 183–184), since the header already states it.
 
-- [ ] **Step 5: Re-run lint + type-check (comments only, but confirm nothing broke)**
+- [x] **Step 5: Re-run lint + type-check (comments only, but confirm nothing broke)**
 
 Run: `pnpm lint:check && pnpm type:check`
 Expected: PASS.
 
-- [ ] **Step 6: Commit**
+- [x] **Step 6: Commit**
 
 ```bash
 git add docs/adr/0018-consultation-view-ir.md \
