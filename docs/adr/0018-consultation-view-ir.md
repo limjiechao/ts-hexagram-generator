@@ -74,17 +74,19 @@ without pulling in any terminal code.
   owning ANSI serialization + the Ink `ConsultationReadout` component. The
   byte-identity fixtures that ADR-0016 relied on remain the regression gate; they
   now prove the serializers match the IR rather than each other.
-- **Section→medium visibility is explicit, not implicit.** Each IR section carries a
-  `media: ('ansi'|'markdown')[]` flag; serializers filter on it rather than skipping
-  sections in their switch arms. Hexagram-level text is emitted as `text:hexagram`
-  (ANSI-only; Markdown folds it into the trailing LINES block via the no-moving
-  `lines:none` section, Markdown-only). `buildConsultationView` is the sole owner of
-  visibility. The per-section `media:[...]` literals are tabulated once as a section→medium
-  matrix comment directly above `buildConsultationView` — the single survey point
-  for "which sections each medium shows." `serializeConsultationTabs`
-  (`cli/readout/src/serialize-ansi.ts`) is a third, order-independent re-grouping
-  of the same sections by `kind`/`role` into the four viewer tabs; it consults the
-  same `media` flag (it does not introduce a second visibility rule).
+- **Section→medium visibility is encapsulated and exhaustive.** Sections carry NO
+  per-section media flag. `buildConsultationView` (its module) owns one decision
+  function, `sectionVisibility`, and exposes a single projector,
+  `sectionsForMedium(view, medium)`. Serializers route through `sectionsForMedium`;
+  they cannot read a flag (there is none) and cannot call `sectionVisibility` (it is
+  not exported), so no consumer can introduce a divergent visibility rule. The
+  visibility constants are `Record`s over the closed `SectionMedium` union, so adding
+  a medium turns them into compile errors until the owner decides that medium's
+  per-section visibility. Hexagram-level text is emitted as `text:hexagram` (ANSI-only;
+  Markdown folds it into the trailing LINES block via the no-moving `lines:none`
+  section, Markdown-only). `serializeConsultationTabs` (`cli/readout/src/serialize-ansi.ts`)
+  re-groups the same sections by `kind`/`role` into the four viewer tabs and consults
+  the same `sectionsForMedium('ansi')` projection — not a second rule.
 - **Mid-flow casting renders from the `buildLedgerRows` subset**, not a
   sentinel-hexagram round-trip through the full assembly.
 

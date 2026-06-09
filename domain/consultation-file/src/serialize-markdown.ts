@@ -4,12 +4,11 @@
 // from @hexagram/text-layout. The byte output is locked by the consultation-file
 // md-body-*.md / md-file-*.md fixtures.
 //
-// Body projection: markdown emits every section whose `media` includes
-// 'markdown'. Hexagram-level text is ANSI-only (`text:hexagram`, media=['ansi'])
-// because markdown folds that scripture into the trailing LINES block via the
-// no-moving `lines:none` section (media=['markdown']). The result is query,
-// casting, transformation, standing diagram, [emerging diagram], LINES — exactly
-// the legacy markdownConsultationBody order.
+// Body projection: markdown emits the sections sectionsForMedium(view,'markdown')
+// returns. Hexagram-level text is ANSI-only (text:hexagram) because markdown folds
+// that scripture into the trailing LINES block via the no-moving `lines:none`
+// section. The result is query, casting, transformation, standing diagram,
+// [emerging diagram], LINES — exactly the legacy markdownConsultationBody order.
 
 import { sectionsForMedium } from '@hexagram/consultation-view/build-view'
 import {
@@ -178,11 +177,9 @@ ${blocks}
 }
 
 // Compose the Markdown body from the IR, joining sections with '\n' (matching
-// the legacy `parts.join('\n')`). Sections are filtered by their `media` flag:
+// the legacy `parts.join('\n')`). sectionsForMedium('markdown') does the filtering:
 // only `text:lines` reaches the `text` case (hexagram-level text is ANSI-only
 // and markdown folds it into the trailing LINES block).
-// Visibility is owned upstream — see the section→medium matrix above
-// buildConsultationView in @hexagram/consultation-view.
 export function serializeConsultationMarkdownBody(
   view: ConsultationView,
 ): string {
