@@ -20,6 +20,7 @@ import type {
   DiagramLineRow,
   HexagramIdentity,
   QuerySection,
+  SectionMedium,
   TextSection,
   TextVariant,
 } from './ir.js'
@@ -139,17 +140,16 @@ function oneMovingLineVariants(hexagram: Hexagram): readonly TextVariant[] {
   ]
 }
 
-// The no-moving `lines:none` branch is the Markdown half of S6's one
-// divergence — see the visibility matrix above buildConsultationView.
+// The no-moving `lines:none` branch is the Markdown half of the one medium
+// divergence — see `sectionVisibility` below.
 function linesSection(hexagram: Hexagram): TextSection {
   const movingCount = hexagram.filter(isMovingLine).length
   if (movingCount === 0)
-    // No moving lines: markdown-only. The `media` flag encodes that the LINES
-    // block carries the hexagram-level text in markdown, while ANSI renders that
-    // text via the separate text:hexagram section instead.
+    // No moving lines: the LINES block carries the hexagram-level text in
+    // Markdown, while ANSI renders that text via the separate text:hexagram
+    // section instead (see sectionVisibility: MARKDOWN_ONLY here).
     return {
       kind: 'text',
-      media: ['markdown'],
       role: 'lines',
       variant: 'none',
       variants: hexagramTextVariants(hexagram),
@@ -157,14 +157,12 @@ function linesSection(hexagram: Hexagram): TextSection {
   if (movingCount === 1)
     return {
       kind: 'text',
-      media: ['ansi', 'markdown'],
       role: 'lines',
       variant: 'one',
       variants: oneMovingLineVariants(hexagram),
     }
   return {
     kind: 'text',
-    media: ['ansi', 'markdown'],
     role: 'lines',
     variant: 'multi',
     variants: [],
@@ -172,19 +170,19 @@ function linesSection(hexagram: Hexagram): TextSection {
 }
 
 /**
- * Public sub-builder: the QUERY section. buildConsultationView owns the `media`
- * literal here so the mid-flow render (buildPartialCastingSections) can mint
- * the same section instead of hand-writing a second `media` projection — ADR-0018
- * "buildConsultationView is the sole owner of visibility".
+ * Public sub-builder: the QUERY section. buildConsultationView owns section
+ * visibility (see `sectionVisibility`), so the mid-flow render
+ * (buildPartialCastingSections) mints the same section via this sub-builder
+ * instead of re-deriving it — ADR-0018 "buildConsultationView is the sole owner".
  */
 export function querySection(query: string): QuerySection {
-  return { kind: 'query', media: ['ansi', 'markdown'], query }
+  return { kind: 'query', query }
 }
 
 /**
  * Public sub-builder: the CASTING section (full, partial mid-flow, or null).
- * Same single-owner rationale as `querySection`: the `media` literal and the
- * reason-only-when-empty guardrail live here, not at the call sites.
+ * Same single-owner rationale as `querySection`: the reason-only-when-empty
+ * guardrail lives here, not at the call sites.
  */
 export function castingSection(
   casting: PartialCastingRecord | null,
@@ -192,7 +190,6 @@ export function castingSection(
 ): CastingSection {
   return {
     kind: 'casting',
-    media: ['ansi', 'markdown'],
     rows: casting === null ? null : buildLedgerRows(casting),
     // Guardrail: the reason only applies when there are no rows. Never let a
     // reason leak into a present-casting render (would change those fixtures).
@@ -226,34 +223,55 @@ export function movingLineVariants(hexagram: Hexagram): readonly TextVariant[] {
   return oneMovingLineVariants(hexagram)
 }
 
-// ── Section → medium visibility matrix (the single survey point) ─────────────
-// buildConsultationView is the SOLE owner of which sections each medium emits
-// (ADR-0018: "Section→medium visibility is explicit, not implicit"). The
-// serializers do NOT decide visibility — they filter on each section's `media`
-// flag. This table is what those scattered `media:[...]` literals add up to:
+// ── Section → medium visibility (the single, executable decision) ────────────
+// buildConsultationView (this module) is the SOLE owner of which media emit each
+// section (ADR-0018). `sectionVisibility` is that decision in code — the former
+// ASCII matrix made executable, so it can never drift from per-section literals.
+// Serializers MUST route through `sectionsForMedium`: there is no per-section
+// flag to read, and `sectionVisibility` is not exported, so no consumer can
+// introduce a divergent visibility rule.
 //
-//   section (kind / role / variant)        ansi   markdown
-//   query                                    ✓        ✓
-//   casting                                  ✓        ✓
-//   transformation                           ✓        ✓
-//   hexagram / standing                      ✓        ✓
-//   text / hexagram   (standing scripture)   ✓        ✗   ← ANSI-only
-//   hexagram / emerging  (moving only)       ✓        ✓
-//   text / hexagram   (emerging, moving)     ✓        ✗   ← ANSI-only
-//   text / lines / none  (no moving lines)   ✗        ✓   ← Markdown-only
-//   text / lines / one   (one moving line)   ✓        ✓
-//   text / lines / multi (multi moving)      ✓        ✓
+// Exhaustiveness teeth: each constant is a Record over the CLOSED SectionMedium
+// union. Adding a new medium turns every constant below into a compile error
+// until the owner decides that medium's visibility for each section group.
 //
 // The ONE deliberate divergence: for a STATIC (no-moving) hexagram the
 // hexagram-level scripture is rendered ANSI-side by `text:hexagram` and
 // Markdown-side by `text:lines:none` (Markdown folds that scripture into the
-// trailing `## LINES` block). Same words, different sections, by design — so
-// the bytes match each medium's legacy layout. Consumers of this flag:
-//   • cli/readout/src/serialize-ansi.ts        serializeConsoleOutput  (ansi)
-//   • domain/consultation-file/src/serialize-markdown.ts  body composer (md)
-//   • cli/readout/src/serialize-ansi.ts        serializeConsultationTabs
-//     — a THIRD, order-independent re-grouping by kind/role that consults the
-//     SAME flag (the `lines.media.includes('ansi')` guard), not a new rule.
+// trailing `## LINES` block). Same words, different sections, by design.
+type SectionVisibility = Record<SectionMedium, boolean>
+const BOTH_MEDIA: SectionVisibility = { ansi: true, markdown: true }
+const ANSI_ONLY: SectionVisibility = { ansi: true, markdown: false }
+const MARKDOWN_ONLY: SectionVisibility = { ansi: false, markdown: true }
+
+function sectionVisibility(section: ConsultationSection): SectionVisibility {
+  switch (section.kind) {
+    case 'query':
+    case 'casting':
+    case 'transformation':
+    case 'hexagram':
+      return BOTH_MEDIA
+    case 'text':
+      // Hexagram-level scripture is ANSI-only; Markdown folds it into the
+      // trailing LINES block via the no-moving `lines:none` section.
+      if (section.role === 'hexagram') return ANSI_ONLY
+      return section.variant === 'none' ? MARKDOWN_ONLY : BOTH_MEDIA
+  }
+}
+
+/**
+ * The ONE sanctioned way to project the view for a render medium. Serializers
+ * filter through this instead of reading a per-section flag, so visibility stays
+ * owned here (ADR-0018). `view.sections` remains the canonical, ordered,
+ * medium-neutral list for content/order inspection.
+ */
+export function sectionsForMedium(
+  view: ConsultationView,
+  medium: SectionMedium,
+): readonly ConsultationSection[] {
+  return view.sections.filter((s) => sectionVisibility(s)[medium])
+}
+
 export function buildConsultationView(
   query: string,
   hexagram: Hexagram,
@@ -271,7 +289,6 @@ export function buildConsultationView(
     castingSection(casting, absenceReason),
     {
       kind: 'transformation',
-      media: ['ansi', 'markdown'],
       body: moving
         ? {
             rows: diagramRows(hexagram).map((standing, i) => ({
@@ -289,7 +306,6 @@ export function buildConsultationView(
     },
     {
       kind: 'hexagram',
-      media: ['ansi', 'markdown'],
       role: 'standing',
       wenWang: identityOf(hexagram).wenWang,
       rows: diagramRows(hexagram),
@@ -297,7 +313,6 @@ export function buildConsultationView(
     },
     {
       kind: 'text',
-      media: ['ansi'],
       role: 'hexagram',
       variant: 'hexagram',
       variants: hexagramTextVariants(hexagram),
@@ -307,7 +322,6 @@ export function buildConsultationView(
     sections.push(
       {
         kind: 'hexagram',
-        media: ['ansi', 'markdown'],
         role: 'emerging',
         wenWang: identityOf(emerging).wenWang,
         rows: diagramRows(emerging),
@@ -315,7 +329,6 @@ export function buildConsultationView(
       },
       {
         kind: 'text',
-        media: ['ansi'],
         role: 'hexagram',
         variant: 'hexagram',
         variants: hexagramTextVariants(emerging),

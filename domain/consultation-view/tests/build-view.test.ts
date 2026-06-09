@@ -5,9 +5,12 @@ import {
   buildConsultationView,
   castingSection,
   querySection,
+  sectionsForMedium,
 } from '../src/build-view.js'
 import type {
   CastingSection,
+  ConsultationSection,
+  ConsultationView,
   QuerySection,
   TextSection,
   TransformationSection,
@@ -102,15 +105,13 @@ describe('buildConsultationView section order + gate', () => {
 })
 
 describe('buildConsultationView medium divergence (S5)', () => {
-  // The IR's ONE deliberate medium-aware divergence (ADR-0018 + the visibility
-  // matrix above buildConsultationView): for a STATIC hexagram the same
-  // hexagram-level scripture is emitted as `text:hexagram` (ANSI-only) AND
-  // `text:lines:none` (Markdown-only). Without this guard a refactor that
-  // "unified" the media flags would change neither section order nor kind —
-  // so nothing else here would catch it — yet it would break each medium's
-  // legacy byte layout. Pin the divergence as an executable invariant.
-  const textSection = (h: Hexagram, role: string, variant: string) =>
-    buildConsultationView('Q', h, casting).sections.find(
+  // The IR's ONE deliberate medium-aware divergence (ADR-0018): for a STATIC
+  // hexagram the same hexagram-level scripture is emitted as `text:hexagram`
+  // (ANSI-only) AND `text:lines:none` (Markdown-only). Pin it as an executable
+  // invariant via the sectionsForMedium projection (there is no per-section
+  // media flag to assert on — visibility is owned by sectionVisibility).
+  const textSection = (view: ConsultationView, role: string, variant: string) =>
+    view.sections.find(
       (s): s is TextSection =>
         s.kind === 'text' &&
         (s as TextSection).role === role &&
@@ -119,26 +120,104 @@ describe('buildConsultationView medium divergence (S5)', () => {
 
   it('static hexagram: scripture is ANSI via text:hexagram, Markdown via text:lines:none — same words', () => {
     const staticHex: Hexagram = [7, 8, 7, 8, 7, 8]
-    const hexagramText = textSection(staticHex, 'hexagram', 'hexagram')
-    const linesNone = textSection(staticHex, 'lines', 'none')
+    const view = buildConsultationView('Q', staticHex, casting)
+    const hexagramText = textSection(view, 'hexagram', 'hexagram')
+    const linesNone = textSection(view, 'lines', 'none')
 
-    expect(hexagramText.media).toEqual(['ansi'])
-    expect(linesNone.media).toEqual(['markdown'])
+    expect(sectionsForMedium(view, 'ansi')).toContain(hexagramText)
+    expect(sectionsForMedium(view, 'markdown')).not.toContain(hexagramText)
+    expect(sectionsForMedium(view, 'markdown')).toContain(linesNone)
+    expect(sectionsForMedium(view, 'ansi')).not.toContain(linesNone)
     // Same words, two section identities — the divergence is medium, not content.
     expect(linesNone.variants).toEqual(hexagramText.variants)
   })
 
   it('one moving line: LINES carries the line reading and renders in both media', () => {
     const movingHex: Hexagram = [6, 7, 8, 7, 8, 7]
+    const view = buildConsultationView('Q', movingHex, casting)
+    const ansi = sectionsForMedium(view, 'ansi')
+    const markdown = sectionsForMedium(view, 'markdown')
     // Standing + emerging hexagram scripture stay ANSI-only.
-    for (const s of buildConsultationView('Q', movingHex, casting).sections)
-      if (s.kind === 'text' && s.role === 'hexagram')
-        expect(s.media).toEqual(['ansi'])
-    // The LINES block now carries the moving-line reading (not the hexagram
-    // scripture) and is shared by both media — no divergence in this case.
-    expect(textSection(movingHex, 'lines', 'one').media).toEqual([
-      'ansi',
-      'markdown',
+    for (const s of view.sections)
+      if (s.kind === 'text' && s.role === 'hexagram') {
+        expect(ansi).toContain(s)
+        expect(markdown).not.toContain(s)
+      }
+    // The LINES block carries the moving-line reading and is shared by both.
+    const linesOne = textSection(view, 'lines', 'one')
+    expect(ansi).toContain(linesOne)
+    expect(markdown).toContain(linesOne)
+  })
+})
+
+describe('sectionsForMedium visibility matrix (executable)', () => {
+  // The former ASCII matrix, now an executable regression guard. Each label is
+  // `kind` (or `kind:role` / `text:role:variant`) in canonical section order.
+  const label = (s: ConsultationSection): string => {
+    if (s.kind === 'text') return `text:${s.role}:${s.variant}`
+    if (s.kind === 'hexagram') return `hexagram:${s.role}`
+    return s.kind
+  }
+
+  it('static hexagram', () => {
+    const v = buildConsultationView('Q', [7, 8, 7, 8, 7, 8], casting)
+    expect(sectionsForMedium(v, 'ansi').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'text:hexagram:hexagram',
+    ])
+    expect(sectionsForMedium(v, 'markdown').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'text:lines:none',
+    ])
+  })
+
+  it('one moving line', () => {
+    const v = buildConsultationView('Q', [6, 7, 8, 7, 8, 7], casting)
+    expect(sectionsForMedium(v, 'ansi').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'text:hexagram:hexagram',
+      'hexagram:emerging',
+      'text:hexagram:hexagram',
+      'text:lines:one',
+    ])
+    expect(sectionsForMedium(v, 'markdown').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'hexagram:emerging',
+      'text:lines:one',
+    ])
+  })
+
+  it('multi moving lines', () => {
+    const v = buildConsultationView('Q', [6, 9, 7, 8, 7, 8], casting)
+    expect(sectionsForMedium(v, 'ansi').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'text:hexagram:hexagram',
+      'hexagram:emerging',
+      'text:hexagram:hexagram',
+      'text:lines:multi',
+    ])
+    expect(sectionsForMedium(v, 'markdown').map(label)).toEqual([
+      'query',
+      'casting',
+      'transformation',
+      'hexagram:standing',
+      'hexagram:emerging',
+      'text:lines:multi',
     ])
   })
 })
@@ -164,11 +243,10 @@ describe('buildConsultationView absence reason', () => {
       | undefined
     expect(section?.absenceReason ?? null).toBeNull()
   })
-  // ADR-0018: buildConsultationView is the SOLE owner of each section's `media`
-  // projection. These pin that it mints query/casting via the shared public
-  // sub-builders, so a second authority (e.g. the mid-flow render in
-  // buildPartialCastingSections) can reuse them instead of hand-writing a
-  // divergent `media` literal — see seam B2 in the 2026-06-08 review.
+  // ADR-0018: buildConsultationView is the SOLE owner of section visibility
+  // (now `sectionVisibility`). These pin that it mints query/casting via the
+  // shared public sub-builders, so a second authority (e.g. the mid-flow render
+  // in buildPartialCastingSections) reuses them rather than re-deriving sections.
   it('mints the query section via the querySection sub-builder', () => {
     const view = buildConsultationView(
       'a question',
