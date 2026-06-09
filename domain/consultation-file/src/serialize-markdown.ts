@@ -11,6 +11,7 @@
 // casting, transformation, standing diagram, [emerging diagram], LINES — exactly
 // the legacy markdownConsultationBody order.
 
+import { sectionsForMedium } from '@hexagram/consultation-view/build-view'
 import {
   hexagramDiagramRowStrings,
   transformationRow,
@@ -186,8 +187,7 @@ export function serializeConsultationMarkdownBody(
   view: ConsultationView,
 ): string {
   const parts: string[] = []
-  for (const s of view.sections) {
-    if (!s.media.includes('markdown')) continue
+  for (const s of sectionsForMedium(view, 'markdown')) {
     switch (s.kind) {
       case 'query':
         parts.push(serializeQueryMarkdown(s))

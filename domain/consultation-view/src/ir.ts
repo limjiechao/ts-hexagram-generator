@@ -6,7 +6,8 @@ import type {
   PartialCastingRecord,
 } from '@hexagram/core/types'
 
-/** Which render media emit this section. buildConsultationView is the sole owner. */
+/** Render media the view can be projected onto. Closed union: adding a member
+ *  forces an owner-side visibility decision in `sectionVisibility`. */
 export type SectionMedium = 'ansi' | 'markdown'
 
 // ── Casting ledger ─────────────────────────────────────────────────────────
@@ -30,7 +31,6 @@ export interface LedgerRow {
 
 export interface CastingSection {
   readonly kind: 'casting'
-  readonly media: readonly SectionMedium[]
   /** null → "Casting not recorded" caption; otherwise the 18 ledger rows. */
   readonly rows: readonly LedgerRow[] | null
   /**
@@ -90,7 +90,6 @@ export interface HexagramIdentity {
 /** TRANSFORMATION: two diagrams side by side + the paired identity footer. */
 export interface TransformationSection {
   readonly kind: 'transformation'
-  readonly media: readonly SectionMedium[]
   /** null when there are no moving lines → "(No transformation)". */
   readonly body: {
     readonly rows: readonly {
@@ -105,7 +104,6 @@ export interface TransformationSection {
 /** STANDING / EMERGING hexagram: one diagram + name block. */
 export interface HexagramSection {
   readonly kind: 'hexagram'
-  readonly media: readonly SectionMedium[]
   readonly role: 'standing' | 'emerging'
   readonly wenWang: string
   readonly rows: readonly DiagramLineRow[]
@@ -124,7 +122,6 @@ export interface TextVariant {
 /** HEXAGRAM text (always) or the per-line LINES text. */
 export interface TextSection {
   readonly kind: 'text'
-  readonly media: readonly SectionMedium[]
   readonly role: 'hexagram' | 'lines'
   /** For LINES: 'none' | 'one' | 'multi'; for HEXAGRAM always 'hexagram'. */
   readonly variant: 'hexagram' | 'one' | 'multi' | 'none'
@@ -134,7 +131,6 @@ export interface TextSection {
 
 export interface QuerySection {
   readonly kind: 'query'
-  readonly media: readonly SectionMedium[]
   readonly query: string
 }
 
@@ -148,9 +144,10 @@ export type ConsultationSection =
 /**
  * The whole consultation as an ordered list of section descriptors. The order
  * is the single authoritative section order; the emerging gate is already
- * applied (no emerging hexagram / no LINES-moving sections when static). Each
- * section also carries an explicit `media` projection (owned by
- * buildConsultationView) that serializers filter on rather than special-casing.
+ * applied (no emerging hexagram / no LINES-moving sections when static).
+ * Sections are medium-neutral and carry NO visibility flag — project the view
+ * for a medium with `sectionsForMedium(view, medium)` (owned by
+ * buildConsultationView), the single sanctioned visibility entry point.
  */
 export interface ConsultationView {
   readonly sections: readonly ConsultationSection[]

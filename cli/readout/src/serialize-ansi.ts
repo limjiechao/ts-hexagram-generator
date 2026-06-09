@@ -4,6 +4,7 @@
 // @hexagram/consultation-view. The byte output is locked by the casting-ui
 // plain-output-*.txt + ink-sections-*.json fixtures (see the slice plan).
 
+import { sectionsForMedium } from '@hexagram/consultation-view/build-view'
 import {
   hexagramDiagramRowStrings,
   transformationRow,
@@ -257,6 +258,7 @@ export function serializeConsultationTabs(
   view: ConsultationView,
 ): ConsultationSections {
   const ss = view.sections
+  const ansiSections = new Set(sectionsForMedium(view, 'ansi'))
   const query = ss.find((s) => s.kind === 'query')! as QuerySection
   const casting = ss.find((s) => s.kind === 'casting')! as CastingSection
   const transformation = ss.find(
@@ -273,7 +275,7 @@ export function serializeConsultationTabs(
   const standing = [
     serializeHexagramAnsi(hexes[0]!),
     serializeTextAnsi(hexTexts[0]!),
-    ...(lines.media.includes('ansi') ? [serializeTextAnsi(lines)] : []),
+    ...(ansiSections.has(lines) ? [serializeTextAnsi(lines)] : []),
   ]
     .join('\n\n')
     .trim()
@@ -300,8 +302,7 @@ export function serializeConsultationTabs(
 // section→medium matrix above buildConsultationView in @hexagram/consultation-view.
 export function serializeConsoleOutput(view: ConsultationView): string {
   const parts: string[] = []
-  for (const s of view.sections) {
-    if (!s.media.includes('ansi')) continue
+  for (const s of sectionsForMedium(view, 'ansi')) {
     switch (s.kind) {
       case 'query':
         parts.push(serializeQueryAnsi(s))

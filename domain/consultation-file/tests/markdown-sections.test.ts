@@ -1,4 +1,7 @@
-import { buildConsultationView } from '@hexagram/consultation-view/build-view'
+import {
+  buildConsultationView,
+  querySection,
+} from '@hexagram/consultation-view/build-view'
 import type {
   CastingSection,
   HexagramSection,
@@ -32,7 +35,7 @@ const castingMarkdownSection = (
     )! as CastingSection,
   )
 const queryMarkdownSection = (query: string): string =>
-  serializeQueryMarkdown({ kind: 'query', media: ['ansi', 'markdown'], query })
+  serializeQueryMarkdown(querySection(query))
 const transformationMarkdownSection = (hexagram: Hexagram): string =>
   serializeTransformationMarkdown(
     buildConsultationView('', hexagram, null).sections.find(
