@@ -148,6 +148,13 @@ export type ConsultationSection =
  * Sections are medium-neutral and carry NO visibility flag — project the view
  * for a medium with `sectionsForMedium(view, medium)` (owned by
  * buildConsultationView), the single sanctioned visibility entry point.
+ *
+ * "Medium-neutral" means the IR emits NO ANSI/Markdown bytes: section and row
+ * STRUCTURE (order, `showLine`/`trailingRule`, cell presence) is shared; glyphs,
+ * colour and padding are each serializer's job. The one structural-but-
+ * presentation-leaning artifact — the casting table's row-COUNT geometry for the
+ * viewer's auto-scroll — lives in `ledger-geometry.ts` and is consumed by the
+ * ANSI readout AND the live viewer; it is still row counts, not bytes (finding S10).
  */
 export interface ConsultationView {
   readonly sections: readonly ConsultationSection[]
