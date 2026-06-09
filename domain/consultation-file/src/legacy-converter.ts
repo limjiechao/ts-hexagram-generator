@@ -10,6 +10,7 @@ import {
 
 import {
   CURRENT_SCHEMA_VERSION,
+  type CastingPresence,
   type ConsultationEnvelope,
 } from './frontmatter.js'
 
@@ -43,6 +44,13 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
   // reconstruct → 'legacy-unreplayable'. The fact OF unreplayability is
   // recorded even though the casting data itself is not recovered.
   const extracted = extractCasting(text, hexagram)
+  // Narrow `extracted` into one correlated `CastingPresence` member before
+  // building the envelope: spreading the two fields independently would
+  // decorrelate them against the union (finding S3).
+  const presence: CastingPresence =
+    extracted.casting === null
+      ? { casting: null, castingAbsence: extracted.absence }
+      : { casting: extracted.casting, castingAbsence: null }
   return {
     ok: true,
     envelope: {
@@ -50,8 +58,7 @@ export function convertLegacyTxt(input: ConvertInput): LegacyConvertResult {
       timestamp: filenameTimestampToIso(input.filenameTimestamp),
       query,
       hexagram,
-      casting: extracted.casting,
-      castingAbsence: extracted.absence,
+      ...presence,
     },
   }
 }

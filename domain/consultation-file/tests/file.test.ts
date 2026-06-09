@@ -121,17 +121,11 @@ describe('saveConsultationFile + loadConsultationFile', () => {
     if (loaded.ok) expect(loaded.envelope.castingAbsence).toBe('playground')
   })
 
-  it('throws if a null casting is saved without a reason', async () => {
-    await expect(
-      saveConsultationFile({
-        query: 'q',
-        hexagram: [7, 7, 7, 7, 7, 7],
-        casting: null,
-        dir: tmpDir,
-        // castingAbsence intentionally omitted
-      } as never),
-    ).rejects.toThrow(/castingAbsence/)
-  })
+  // "A null casting without a reason" is no longer a runtime throw — it is a
+  // compile error. `saveConsultationFile`'s params are a discriminated union
+  // (S3): the null-casting branch requires `castingAbsence`. The invariant is
+  // now locked at the type level in `envelope-types.test-d.ts`, so there is no
+  // runtime path left to exercise here.
 
   it('a present casting carries a null castingAbsence on load', async () => {
     const line = [
