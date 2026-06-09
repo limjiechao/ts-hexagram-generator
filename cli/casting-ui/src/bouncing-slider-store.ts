@@ -44,6 +44,14 @@ export interface SliderSnapshot {
  * lazily on first subscribe and clears when the last subscriber detaches —
  * no leaked timers.
  *
+ * Bounds are CALLER-OWNED. The store bounces over whatever `[min, max]` it is
+ * given and holds no divination knowledge: `max` arrives already clamped to the
+ * selectable pick ceiling (`selectablePickMax`, threaded by `viewer.tsx`), and
+ * the authoritative backstop against an illegal pick is `performCast`'s
+ * `assertSelectablePick` (ADR-0006; the S4 layered-defence model). A store-level
+ * clamp would be redundant and would invert the layering — this is a generic UI
+ * primitive, not a casting-rule enforcer (finding S9).
+ *
  * `setRange` is invoked from the hook's render phase so a cast-boundary
  * range change rewinds the cursor synchronously, matching the prior
  * zero-frame-lag behaviour.
