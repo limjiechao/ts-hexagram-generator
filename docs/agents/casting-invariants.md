@@ -21,6 +21,14 @@ There are **two different "maxes"** for each cast — keep them straight:
 
 ## Rules
 
+Enforcement is **layered — defence in depth, then one final authority**. The
+input flows pre-clamp every pick (rule 1) and the manual validator derives the
+legal range structurally — the early, UX-facing lines of defence — while
+`performCast` holds the single FINAL authoritative runtime check (rule 3) that
+every path funnels through and that also runs on replay. A bad pick would have
+to slip every pre-clamp AND the final enforcer to corrupt a line; in practice it
+is stopped at the first layer.
+
 1. **Never offer or draw `pick === recordedMax`.** Clamp every user- or
    RNG-chosen pick to `selectablePickMax(recordedMax)` from
    `@hexagram/core/casting-derivation`. Do **not** hand-roll the `− 1` — import
@@ -29,10 +37,13 @@ There are **two different "maxes"** for each cast — keep them straight:
 2. **Still record the full `recordedMax`** in the `SplitRecord`. The cap is on
    the _pick_, not the recorded max — readout, conservation, and file format
    depend on the recorded value being `stalks − 1`.
-3. **`performCast` is the single runtime enforcer.** It calls
+3. **`performCast` is the single FINAL authoritative runtime enforcer.** It calls
    `assertSelectablePick(recordedMax, pick)` and throws `RangeError` on a bad
-   pick. Any new path that advances casting goes through `performCast` (directly
-   or via `makeLineGenerator`); don't add a competing validator.
+   pick — the last line of defence, the only layer that also runs on replay. The
+   pre-clamp (rule 1) and the manual validator's structural derivation are
+   defence-in-depth for UX, not competing rules. Any new path that advances
+   casting goes through `performCast` (directly or via `makeLineGenerator`);
+   don't add a competing validator.
 4. **`deriveSplit` stays tolerant — do not add a throw there.** It reconstructs
    possibly-historical `SplitRecord`s for _display_; a legacy file may carry a
    degenerate pick, and the history browser must still render it. The throw lives
