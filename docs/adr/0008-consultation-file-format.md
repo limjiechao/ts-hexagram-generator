@@ -112,6 +112,36 @@ false ledger; the new reason is additive (no `schemaVersion` bump — shape and
 version checks are unchanged); `castingReplaysTo` becomes shared `consultation-file`
 API consumed by both `frontmatter.ts` (or `file.ts`) and `legacy-converter.ts`.
 
+## Amendment — 2026-06-09: the S7 replay-validation has landed
+
+The 2026-06-08 (S7) amendment above was decision-capture only ("No code yet;
+this records WHY before the fix lands"). The fix has now landed, exactly as
+ruled:
+
+- `castingReplaysTo` (and its private `replayLine`) moved out of
+  `legacy-converter.ts` into a shared, package-internal `casting-replay.ts`;
+  both load paths import the one definition.
+- `parseFrontmatter` replays a present casting against the stored hexagram and
+  returns the new `casting-unreplayable` `ParseFailureReason` on mismatch — it
+  fails closed to `[unreadable]` (the history scan surfaces the reason verbatim),
+  additive, no `schemaVersion` bump.
+- Both alternatives the S7 amendment rejected (keep shape-check-only; downgrade
+  to `casting: null` + an absence reason) stay rejected.
+
+Implementation note discovered while landing it: the test suite carried
+**synthetic** castings throughout (e.g. picks `1, 2, 3`) that never actually
+replayed — nothing had ever checked, because nothing replayed on load. Those
+fixtures are now physically real, built from a small set of replay-valid
+per-line blocks (`tests/fixtures/real-casting.ts`, locked by
+`tests/real-casting.test.ts`); the byte-identity `.plain`/`.md` fixtures were
+regenerated accordingly. The boundary forbids a single shared test helper across
+`domain/*` and `cli/*` (ADR-0019), so the block table is mirrored once per side,
+each cross-referencing the canonical, self-checked copy.
+
+Consequences: Seam 1 (the only genuine code-behind-doc gap in the
+theory-reconstruction inventory) is closed — "the casting is validated" is now
+true at BOTH boundaries.
+
 ## Amendment — 2026-06-08: the read-time absence default is deliberate (S6)
 
 The 2026-06-07 amendment introduced `castingAbsence` and made it **compulsory on
@@ -230,7 +260,10 @@ legacy converter narrow into.
 
 - `domain/consultation-file/src/frontmatter.ts` — envelope, `CURRENT_SCHEMA_VERSION`,
   the `L6..L1` converters, strict-equal load, `castingAbsence` serialize/parse +
-  the `legacy-no-table` read-time default.
+  the `legacy-no-table` read-time default, and the `casting-unreplayable` replay
+  check on a present casting (S7).
+- `domain/consultation-file/src/casting-replay.ts` — `castingReplaysTo`, the one
+  authoritative replay rule shared by the `.md` parser and the legacy converter (S7).
 - `domain/consultation-file/src/file.ts` — save/load, body re-render + self-heal;
   `saveConsultationFile` requires `castingAbsence` when `casting` is null.
 - `domain/consultation-file/src/legacy-converter.ts` — Shape A/B migration, tagging
