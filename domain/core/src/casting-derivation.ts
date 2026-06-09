@@ -77,7 +77,13 @@ export interface DerivedSplit {
   held: 1
   /** `1 + leftRemainder + rightRemainder` (歸奇於扐) */
   setAside: number
-  /** `leftPiles + rightPiles`; on the third cast this is the line value (6/7/8/9) */
+  /**
+   * `leftPiles + rightPiles`. On the third cast this EQUALS the line value
+   * (6/7/8/9) — but only as a reconstruction: the generator computes the line
+   * as `unpartedStalks.length / 4` (`performCast`), never via `deriveSplit`.
+   * The two agree by the identity `4·combinedPiles === unpartedStalks.length`,
+   * locked in `perform-cast.test.ts`. `deriveSplit` is display/replay only.
+   */
   combinedPiles: number
 }
 

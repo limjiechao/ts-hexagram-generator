@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'vitest'
 
-import { selectablePickMax } from '../src/casting-derivation.js'
+import { deriveSplit, selectablePickMax } from '../src/casting-derivation.js'
 import {
   initialLineState,
   performCast,
@@ -121,6 +121,33 @@ describe('performCast', () => {
     if (s3.phase !== '3rd-cast') throw new Error('replay did not resolve')
     expect(s3.line).toBe(full.line)
   })
+})
+
+describe('deriveSplit bridges to the generation-path line', () => {
+  // The generator computes the line as `unpartedStalks.length / 4`
+  // (`performCast`, index.ts) and NEVER calls `deriveSplit` — that is the
+  // display/replay reconstruction path. They are reconciled by the identity
+  // `4·combinedPiles === unpartedStalks.length`, so on the third cast
+  // `combinedPiles === line`. Lock that identity so the two readings of
+  // casting-derivation.ts ("is the line value" vs "reconstruction only")
+  // cannot silently drift apart.
+  test.each([
+    [24, 17, 9], // → line 8
+    [24, 20, 12], // → line 6
+    [12, 8, 4], // → line 6
+  ])(
+    'cast 3: combinedPiles === line === unparted/4 for picks %o',
+    (...picks) => {
+      const s1 = performCast(initialLineState, picks[0])
+      const s2 = performCast(s1, picks[1])
+      const recordedMax3 = recordedMaxFor(s2)
+      const s3 = performCast(s2, picks[2])
+      if (s3.phase !== '3rd-cast') throw new Error('phase narrowing failed')
+      const d = deriveSplit({ pick: picks[2], recordedMax: recordedMax3 })
+      expect(4 * d.combinedPiles).toBe(s3.rounds[2].unpartedStalks.length)
+      expect(d.combinedPiles).toBe(s3.line)
+    },
+  )
 })
 
 describe('performCast — type-level invariants', () => {
