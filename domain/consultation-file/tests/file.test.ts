@@ -11,6 +11,7 @@ import {
   loadConsultationFile,
   saveConsultationFile,
 } from '../src/file.js'
+import { realCastingFor } from './fixtures/real-casting.js'
 
 describe('defaultConsultationsDir', () => {
   it('is <cwd>/consultations', () => {
@@ -43,38 +44,8 @@ describe('saveConsultationFile + loadConsultationFile', () => {
     const savedPath = await saveConsultationFile({
       query: 'Will it rain?',
       hexagram: [7, 8, 7, 8, 7, 8],
-      casting: [
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-        [
-          { pick: 1, recordedMax: 48 },
-          { pick: 2, recordedMax: 43 },
-          { pick: 3, recordedMax: 39 },
-        ],
-      ],
+      // Replay-valid divisions: load now replays the casting (ADR-0008 S7).
+      casting: realCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
     })
 
@@ -128,22 +99,10 @@ describe('saveConsultationFile + loadConsultationFile', () => {
   // runtime path left to exercise here.
 
   it('a present casting carries a null castingAbsence on load', async () => {
-    const line = [
-      { pick: 1, recordedMax: 48 },
-      { pick: 2, recordedMax: 43 },
-      { pick: 3, recordedMax: 39 },
-    ] as const
     const savedPath = await saveConsultationFile({
       query: 'q',
       hexagram: [7, 8, 7, 8, 7, 8],
-      casting: [
-        [...line],
-        [...line],
-        [...line],
-        [...line],
-        [...line],
-        [...line],
-      ],
+      casting: realCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
     })
     const loaded = await loadConsultationFile(savedPath)
