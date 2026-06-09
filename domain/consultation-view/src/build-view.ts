@@ -311,6 +311,9 @@ export function buildConsultationView(
       rows: diagramRows(hexagram),
       identity: identityOf(hexagram),
     },
+    // ANSI half of the one medium divergence: this hexagram-level scripture is
+    // ANSI-only. For a STATIC hexagram the SAME words also render Markdown-side,
+    // folded into the `lines:none` block (see `linesSection` + `sectionVisibility`).
     {
       kind: 'text',
       role: 'hexagram',
