@@ -3,8 +3,9 @@
 // getters.HexagramLineToKey, which maps yang lines 7/9 → `1`, yin 6/8 → `2`.
 type Yang = '1'
 type Yin = '2'
-type Line = Yang | Yin
-type Trigram = `${Line}${Line}${Line}`
+/** Polarity KEY-PAIR to represent both trigrams and hexagrams: `1` = yang, `2` = yin (see header note). */
+type Polarity = Yang | Yin
+type Trigram = `${Polarity}${Polarity}${Polarity}`
 export type Hexagram = `${Trigram}${Trigram}`
 
 // eslint-disable-next-line unused-imports/no-unused-vars
