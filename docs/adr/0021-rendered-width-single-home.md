@@ -36,9 +36,7 @@ ANSI internally, the raw-vs-ANSI distinction that justified two functions dissol
 — one function, one table, used identically by the saved `.md` and the live viewer.
 
 This amends ADR-0019's `string-width`-only fence and retires its "separate homes"
-enforcement note. The decision is captured here; the implementation is sequenced as
-follow-up slices (one for the `slice-ansi` fence + helper, one for the width collapse),
-each its own small single-intent change.
+enforcement note.
 
 ## Considered options
 
@@ -87,13 +85,10 @@ each its own small single-intent change.
   ever differs from the old hand-rolled ranges on a glyph that actually appears in a
   saved diagram. On current data the diff is empty; a future glyph would surface it
   via `pnpm generate-fixtures` with a justified diff rather than a silent skew.
-- **Implementation is pending.** This commit captures the decision only. The
-  `slice-ansi` fence + viewer-core pan helper and the `visualWidth`/`terminalWidth`
-  collapse land as separate follow-up changes.
 
 ## Where it's enforced
 
-_(Implemented in two single-intent follow-up slices, B4.)_
+_Implemented in two single-intent follow-up slices._
 
 - `eslint.config.js` — the `cli/**`-scoped `no-restricted-imports` override (viewer-core
   ignored) forbids `slice-ansi` alongside `string-width`.
