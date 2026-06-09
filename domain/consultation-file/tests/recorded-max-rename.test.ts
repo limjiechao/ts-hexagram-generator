@@ -2,31 +2,20 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
-import type { CastingRecord } from '@hexagram/core/types'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { loadConsultationFile, saveConsultationFile } from '../src/file.js'
+import { realCastingFor } from './fixtures/real-casting.js'
 
-// A fully-populated casting built with the renamed in-memory field. The
+// A fully-populated, replay-valid casting for the round-trip hexagram. The
 // converter passes each SplitRecord through opaquely, so the on-disk YAML key
-// tracks this field name — these tests pin BOTH the in-memory field and the
-// on-disk key as recordedMax, so a future converter change can't silently
-// re-introduce the lying `max:` key.
-const lc = (p1: number, p2: number, p3: number) =>
-  [
-    { pick: p1, recordedMax: 48 },
-    { pick: p2, recordedMax: 43 },
-    { pick: p3, recordedMax: 39 },
-  ] as const
-
-const casting = [
-  lc(27, 28, 30),
-  lc(22, 23, 29),
-  lc(17, 24, 14),
-  lc(22, 34, 25),
-  lc(10, 26, 33),
-  lc(12, 20, 18),
-] as unknown as CastingRecord
+// tracks the in-memory field name — these tests pin BOTH the in-memory field
+// and the on-disk key as recordedMax, so a future converter change can't
+// silently re-introduce the lying `max:` key. The first split of every line is
+// recordedMax 48, which is what both assertions below check. The casting must
+// replay to its hexagram now that `.md` load validates it (ADR-0008 S7), so it
+// is built from real divisions rather than synthetic picks.
+const casting = realCastingFor([7, 8, 7, 8, 7, 8])
 
 let tmpDir: string
 

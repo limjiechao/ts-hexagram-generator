@@ -12,6 +12,7 @@ import {
   type YamlCasting,
   type YamlHexagram,
 } from '../src/frontmatter.js'
+import { realCastingFor } from './fixtures/real-casting.js'
 
 const sampleLine = (a: number, b: number, c: number): LineCasting => [
   { pick: a, recordedMax: 48 },
@@ -89,7 +90,11 @@ const envelope: ConsultationEnvelope = {
   timestamp: '2026-05-19T14:23:11+0800',
   query: 'Will the harvest be plentiful?',
   hexagram: [7, 8, 7, 8, 7, 8],
-  casting: sampleCasting,
+  // A replay-valid casting for this hexagram — `parseFrontmatter` now replays
+  // the splits and rejects a casting that does not reproduce `hexagram`
+  // (ADR-0008 S7), so the round-trip envelope must carry real divisions, not
+  // the synthetic `sampleCasting` used by the YAML-conversion tests above.
+  casting: realCastingFor([7, 8, 7, 8, 7, 8]),
   // A present casting carries no absence reason.
   castingAbsence: null,
 }
@@ -258,15 +263,21 @@ describe('castingAbsence frontmatter', () => {
   })
 
   it('a present casting carries a null castingAbsence', () => {
-    const text =
-      '---\nschemaVersion: 1\ntimestamp: 2026-01-01T00:00:00+0800\nquery: q\n' +
-      'hexagram:\n  L6: 7\n  L5: 7\n  L4: 7\n  L3: 7\n  L2: 7\n  L1: 7\n' +
-      'casting:\n  L6:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
-      '  L5:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
-      '  L4:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
-      '  L3:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
-      '  L2:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n' +
-      '  L1:\n    - {pick: 24, recordedMax: 48}\n    - {pick: 20, recordedMax: 43}\n    - {pick: 16, recordedMax: 39}\n---\n\nbody\n'
+    // Serialize a real (replay-valid) envelope rather than hand-write synthetic
+    // splits: `parseFrontmatter` now replays the casting against the stored
+    // hexagram (ADR-0008 S7), so a physically-impossible casting would be
+    // rejected as `casting-unreplayable` before this assertion runs.
+    const text = serializeFrontmatter(
+      {
+        schemaVersion: 1,
+        timestamp: '2026-01-01T00:00:00+0800',
+        query: 'q',
+        hexagram: [7, 7, 7, 7, 7, 7],
+        casting: realCastingFor([7, 7, 7, 7, 7, 7]),
+        castingAbsence: null,
+      },
+      'body',
+    )
     const parsed = parseFrontmatter(text)
     expect(parsed.ok).toBe(true)
     if (parsed.ok) {
