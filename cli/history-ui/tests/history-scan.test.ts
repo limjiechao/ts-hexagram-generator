@@ -6,6 +6,7 @@ import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { scanConsultations } from '../src/history-scan.js'
+import { realCastingFor } from './fixtures/real-casting.js'
 
 let tmpDir: string
 
@@ -31,38 +32,10 @@ describe('scanConsultations', () => {
           timestamp: ts,
           query,
           hexagram: [7, 8, 7, 8, 7, 8],
-          casting: [
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-            [
-              { pick: 1, recordedMax: 48 },
-              { pick: 2, recordedMax: 43 },
-              { pick: 3, recordedMax: 39 },
-            ],
-          ],
+          // Replay-valid casting: scanConsultations parses each `.md`, which now
+          // replay-validates the splits (ADR-0008 S7); a synthetic casting would
+          // land these rows in `unreadable` instead of `entries`.
+          casting: realCastingFor([7, 8, 7, 8, 7, 8]),
           castingAbsence: null,
         },
         'BODY',
