@@ -48,8 +48,10 @@ export function polarityOf(line: Line): LinePolarity {
 }
 
 /**
- * Flip polarity preserving motion: 7↔8, 9↔6. Orthogonal to the cycle's motion
- * axis, so composing flip + cycle reaches any state in ≤2 steps from any other.
+ * Flip polarity, preserving motion: 7↔8, 9↔6. Only the yang↔yin axis moves;
+ * the old/young (moving/static) axis is untouched. (Reachability is provided by
+ * the cycle alone — a 4-cycle, so any state is ≤2 steps from any other; flip is
+ * an independent shortcut across the polarity axis, not needed for it.)
  */
 export function flipPolarity(line: Line): Line {
   switch (line) {
@@ -81,12 +83,14 @@ export function getEmergingHexagram(hexagram: Hexagram): Hexagram {
   return hexagram.map((line) => EMERGING_LINE[line]) as Hexagram
 }
 
-/** The four `Line` values in the cycle's total order (spec's digit-tour). */
+/** The four `Line` values in the playground cycle's total order. */
 const CYCLE_FORWARD: readonly Line[] = [7, 9, 8, 6] as const
 
 /**
- * Forward cycle: 7 → 9 → 8 → 6 → 7. Not a Gray code — the spec chose this
- * digit-tour order, grouping yang values (7, 9) then yin values (8, 6).
+ * Forward cycle: 7 → 9 → 8 → 6 → 7. Deliberately not a Gray code: this project
+ * orders the playground tour by polarity — yang (7, 9) first, then yin (8, 6) —
+ * not by single-bit transitions. No external spec fixes this order; it is our
+ * UI convention, locked by line-semantics.test.
  */
 export function cycleLineForward(line: Line): Line {
   const index = CYCLE_FORWARD.indexOf(line)
