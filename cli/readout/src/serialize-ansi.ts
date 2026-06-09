@@ -231,9 +231,9 @@ export function serializeTextAnsi(section: TextSection): string {
     return `${BOLD_GREY}HEXAGRAM:
 ${section.variants.map(textVariantBlockAnsi).join('\n\n')}`
   }
-  // role === 'lines' — a lines:none section is markdown-only (media filtered
-  // out upstream), so it never reaches here; ANSI renders that text via the
-  // separate text:hexagram section.
+  // role === 'lines' — a lines:none section is Markdown-only (filtered out by
+  // sectionsForMedium upstream), so it never reaches here; ANSI renders that
+  // text via the separate text:hexagram section.
   if (section.variant === 'multi')
     return `${BOLD_GREY}LINES:
 
@@ -251,9 +251,9 @@ ${section.variants.map(textVariantBlockAnsi).join('\n\n')}`
 
 // Compose the four viewer tab strings from the IR, matching the legacy
 // buildConsultationSections grouping exactly: the LINES text section rides
-// inside the `standing` tab string when its `media` includes 'ansi' (the
-// no-moving lines:none section is markdown-only, so it is filtered out here);
-// `emerging` is null when there are no moving lines.
+// inside the `standing` tab string when sectionsForMedium('ansi') includes it
+// (the no-moving lines:none section is markdown-only, so it is filtered out
+// here); `emerging` is null when there are no moving lines.
 export function serializeConsultationTabs(
   view: ConsultationView,
 ): ConsultationSections {
@@ -298,8 +298,8 @@ export function serializeConsultationTabs(
 // tab grouping and the saved `.md` body. This is the slice's one sanctioned
 // behaviour change: the legacy plain output emitted LINES *before* the emerging
 // block; harmonizing it here makes every surface speak one order.
-// Visibility (which sections reach this ANSI walk) is owned upstream — see the
-// section→medium matrix above buildConsultationView in @hexagram/consultation-view.
+// Visibility is owned upstream by sectionsForMedium / sectionVisibility in
+// @hexagram/consultation-view.
 export function serializeConsoleOutput(view: ConsultationView): string {
   const parts: string[] = []
   for (const s of sectionsForMedium(view, 'ansi')) {

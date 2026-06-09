@@ -72,10 +72,9 @@ export function buildPartialCastingSections(
   // WHY: a partial (mid-flow) casting render needs only the query + ledger; the
   // hexagram isn't known yet, so we mint just those two sections via the shared
   // sub-builders instead of round-tripping a sentinel [7,7,7,7,7,7] through
-  // buildConsultationView. The sub-builders are the SINGLE owner of the `media`
-  // literal (ADR-0018) — this composer no longer mints its own. `media` is inert
-  // here anyway: both serializers are called directly, not through the
-  // media-filtering loops.
+  // buildConsultationView. These sub-builders are the single section-mint point
+  // (ADR-0018); both serializers are called directly here, bypassing the
+  // sectionsForMedium projection (visibility is moot for a 2-section mid-flow render).
   return {
     query: serializeQueryAnsi(querySection(query)),
     casting: serializeCastingAnsi(castingSection(casting)),
