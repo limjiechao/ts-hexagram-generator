@@ -11,6 +11,8 @@ import {
 import matter from 'gray-matter'
 import jsYaml from 'js-yaml'
 
+import { castingReplaysTo } from './casting-replay.js'
+
 /**
  * Explicit YAML engine for gray-matter. `stringify` pins `sortKeys: false` so
  * frontmatter key order stays insertion order (`schemaVersion` → `casting`)
@@ -115,6 +117,9 @@ export type ParseFailureReason =
   | 'schema-version-mismatch'
   | 'invalid-yaml'
   | 'invalid-shape'
+  // The casting is well-shaped but does not replay to the stored hexagram
+  // (a hand-edited or corrupted `.md`). Refused, not salvaged — see ADR-0008 S7.
+  | 'casting-unreplayable'
 
 /**
  * Serialize an envelope + body into the full Markdown text. The frontmatter
@@ -208,6 +213,15 @@ export function parseFrontmatter(text: string): ParseResult {
     const castingRecord = castingFromYaml(casting)
     if (!isCastingRecord(castingRecord)) {
       return { ok: false, reason: 'invalid-shape' }
+    }
+    // Prove, don't trust (ADR-0008 S7): a `.md` is our own output and always
+    // replays unless tampered with or corrupted. Replaying the 18 splits
+    // through the algorithm and confirming they reproduce the stored hexagram
+    // is the SAME check the legacy `.txt` path runs — closing the asymmetry
+    // where a hand-edited casting rendered a trusted but physically-impossible
+    // ledger. A mismatch is corruption, so it fails closed to `[unreadable]`.
+    if (!castingReplaysTo(castingRecord, hexagramTuple)) {
+      return { ok: false, reason: 'casting-unreplayable' }
     }
     presence = { casting: castingRecord, castingAbsence: null }
   }
