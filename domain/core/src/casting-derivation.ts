@@ -12,14 +12,22 @@ export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
 /**
  * selectablePickMax(recordedMax) = recordedMax − 1 is the DEFINITIONAL home of
  * the never-zero-remainder rule (a pick of `recordedMax` would leave the right heap one
- * suspended stalk, nothing to count by fours, remainder 0). The slider, typed,
- * plain-Inquirer, and RNG flows clamp to this value. assertSelectablePick —
- * called by performCast, the algorithm of record — is the single RUNTIME
- * enforcer. The manual validator derives the same [1, recordedMax−1] range
- * structurally from its four typed fields (it cannot call a pick-clamp because
- * it has no pick); its agreement with the guard is locked by manual-validation
- * .test ("manual 'ok' picks satisfy the core never-zero guard"). One definition,
- * one runtime enforcer; see ADR-0006.
+ * suspended stalk, nothing to count by fours, remainder 0).
+ *
+ * Enforcement is LAYERED — defence in depth, then one final authority:
+ *  1. PRE-CLAMPS (early, per-flow): the slider, typed, plain-Inquirer, and RNG
+ *     flows clamp every pick to this value, and the manual validator derives the
+ *     same [1, recordedMax−1] range structurally from its four typed fields (it
+ *     has no pick to clamp). These keep a bad pick from ever being offered — a
+ *     UX guard, not the last word.
+ *  2. THE FINAL ENFORCER: assertSelectablePick — called by performCast, the
+ *     algorithm of record — is the single AUTHORITATIVE runtime check. Every
+ *     path funnels through it, and it is the only layer that also runs on replay,
+ *     so a pick that slips every pre-clamp still cannot corrupt a line.
+ *
+ * The manual validator's agreement with the final enforcer is locked by
+ * manual-validation.test ("manual 'ok' picks satisfy the core never-zero
+ * guard"). One definition, many pre-clamps, one final enforcer; see ADR-0006.
  */
 export const selectablePickMax = (recordedMax: number): number =>
   recordedMax - 1
