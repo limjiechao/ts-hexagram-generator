@@ -36,7 +36,17 @@ export type YamlCasting = {
   L1: LineCasting
 }
 
-/** Convert bottom-first `CastingRecord` → top-first YAML mapping (`L6` first). */
+/**
+ * The bottom-first-tuple ↔ top-first flip at the DISK boundary. This is the SAME
+ * flip the view layer owns as `POSITIONS_TOP_FIRST`/`toTopFirst`
+ * (`@hexagram/core/types`), but a DIFFERENT operation — those reorder a 6-tuple
+ * for presentation; these map tuple indices ↔ the on-disk `L6..L1` YAML keys
+ * (ADR-0008). Deliberately not unified: different output shapes, opposite sides
+ * of the domain/core ↔ consultation-file boundary. Both directions are locked
+ * (round-trip + tuple-index↔L-key) in `frontmatter.test.ts`.
+ *
+ * Convert bottom-first `CastingRecord` → top-first YAML mapping (`L6` first).
+ */
 export function castingToYaml(casting: CastingRecord): YamlCasting {
   const [L1, L2, L3, L4, L5, L6] = casting
   return { L6, L5, L4, L3, L2, L1 }
