@@ -156,6 +156,53 @@ enum are unchanged; the safety of the default is now load-bearing on the save-si
 compulsion and the B5 self-heal fix, and is recorded here so the default reads as
 intentional, not accidental.
 
+## Amendment — 2026-06-09: casting/castingAbsence exclusivity is a type, not a guard (S3/S11)
+
+The envelope originally typed `casting` and `castingAbsence` as two independent
+nullable fields (`CastingRecord | null`, `CastingAbsenceReason | null`). Their
+"non-null IFF the other is null" relationship — stated in the prose above — lived
+only at runtime: the serializer's conditional spread, `saveConsultationFile`'s
+throw, and the parser's branch. The type admitted two impossible states (both
+null, both set), so a cold read (S3) could not tell from the type that the fields
+were exclusive — and a sibling finding (S11) flagged the two DIFFERENT runtime
+responses to the illegal "null casting, no reason" state: the serializer silently
+defaulted to `legacy-no-table` while `saveConsultationFile` threw.
+
+**We will make the exclusivity a discriminated union** on the envelope —
+`{ casting: CastingRecord; castingAbsence: null } | { casting: null;
+castingAbsence: CastingAbsenceReason }` (exported as `CastingPresence`) — and on
+`saveConsultationFile`'s params (the recorded branch forbids the reason via
+`never`, the absent branch requires it). The impossible states become
+unrepresentable; the parser, the legacy converter, and the save path each
+construct one correlated union member.
+
+This **dissolves S11**: with both-null unrepresentable, the serializer's
+`?? 'legacy-no-table'` defensive default is dead code and is removed — serialize
+is now fail-closed by construction. `saveConsultationFile`'s runtime throw is
+likewise removed: the "null casting, no reason" call is now a compile error.
+
+This changes **neither the on-disk format nor the read-time default**. The two
+YAML keys are unchanged (still mutually exclusive on disk); no `schemaVersion`
+bump; and the S6 read-time default (a missing `castingAbsence` key parses back as
+`legacy-no-table`) is preserved exactly — it now feeds the absent branch of the
+union rather than a nullable field. The `.md` byte-identity fixtures are
+unchanged, proving no output drift.
+
+- **Rejected — collapse to one tagged field** (`casting: { kind: 'recorded';
+record } | { kind: 'absent'; reason }`). Cleaner in the abstract, but it
+  diverges from the two on-disk keys, needs extra converter plumbing, and churns
+  every reader (history, readout, legacy converter). The two-field union matches
+  the disk shape and the legacy converter's existing internal union.
+- **Rejected — keep the flat type, add a smart constructor + assertion.** Least
+  code, but the impossible states stay representable; it documents the invariant
+  instead of removing it. The human chose to make the illegal state
+  unrepresentable.
+
+Consequences: exclusivity is compile-enforced end to end (locked by
+`envelope-types.test-d.ts`); one runtime throw and one silent write-side default
+are gone; `CastingPresence` is the single shared shape the parser, save path, and
+legacy converter narrow into.
+
 ## Considered options
 
 - **JSON / TOML / pure YAML.** Rejected: Markdown+frontmatter is human-readable as

@@ -12,6 +12,7 @@ import {
   CURRENT_SCHEMA_VERSION,
   parseFrontmatter,
   serializeFrontmatter,
+  type CastingPresence,
   type ConsultationEnvelope,
   type ParseFailureReason,
 } from './frontmatter.js'
@@ -46,34 +47,46 @@ export function defaultConsultationsDir(): string {
 }
 
 /**
+ * Save-call argument. `casting` and `castingAbsence` are a discriminated union
+ * (finding S3): a recorded casting forbids the reason (`never`); a null casting
+ * requires one. This replaces the former separate `casting | null` +
+ * optional-reason params and their runtime throw — the impossible "null casting,
+ * no reason" call is now a compile error, so the boundary is type-enforced.
+ */
+export type SaveConsultationParams = {
+  query: string
+  hexagram: Hexagram
+  dir?: string
+} & (
+  | { casting: CastingRecord; castingAbsence?: never }
+  | { casting: null; castingAbsence: CastingAbsenceReason }
+)
+
+/**
  * Persist a consultation as `consultation-<timestamp>.md` under `dir`.
  *
  * `params.dir` defaults to `<cwd>/consultations` (matches the legacy
  * path; the caller's cwd is the convention every CLI inherited from
  * the original implementation).
  */
-export async function saveConsultationFile(params: {
-  query: string
-  hexagram: Hexagram
-  casting: CastingRecord | null
-  /** Required when `casting` is null — why casting is absent (ADR-0008). */
-  castingAbsence?: CastingAbsenceReason
-  dir?: string
-}): Promise<string> {
-  if (params.casting === null && params.castingAbsence === undefined) {
-    throw new Error(
-      'saveConsultationFile: castingAbsence is required when casting is null',
-    )
-  }
+export async function saveConsultationFile(
+  params: SaveConsultationParams,
+): Promise<string> {
   const dir = params.dir ?? defaultConsultationsDir()
   await fs.mkdir(dir, { recursive: true })
   const fileSafe = getFilesystemSafeTimestamp()
   const filePath = path.join(dir, `consultation-${fileSafe}.md`)
+  // Narrow the input union into the envelope's CastingPresence member once, so
+  // the body render and the serialized envelope share one correlated value.
+  const presence: CastingPresence =
+    params.casting === null
+      ? { casting: null, castingAbsence: params.castingAbsence }
+      : { casting: params.casting, castingAbsence: null }
   const body = markdownConsultationBody(
     params.query,
     params.hexagram,
-    params.casting,
-    params.casting === null ? params.castingAbsence! : null,
+    presence.casting,
+    presence.casting === null ? presence.castingAbsence : null,
   )
   const text = serializeFrontmatter(
     {
@@ -81,8 +94,7 @@ export async function saveConsultationFile(params: {
       timestamp: getIsoTimestamp(),
       query: params.query,
       hexagram: params.hexagram,
-      casting: params.casting,
-      castingAbsence: params.casting === null ? params.castingAbsence! : null,
+      ...presence,
     },
     body,
   )

@@ -67,7 +67,7 @@ export function hexagramFromYaml(yaml: YamlHexagram): Hexagram {
   return [yaml.L1, yaml.L2, yaml.L3, yaml.L4, yaml.L5, yaml.L6]
 }
 
-export interface ConsultationEnvelope {
+interface EnvelopeCommon {
   /**
    * Exactly the one version the loader accepts. The load gate is strict-equal
    * against `CURRENT_SCHEMA_VERSION` with no migration branch (ADR-0008
@@ -79,15 +79,22 @@ export interface ConsultationEnvelope {
   timestamp: string
   query: string
   hexagram: Hexagram
-  /** `null` when the consultation has no recorded casting (e.g. migrated from
-   * a legacy `.txt` that predates the CASTING table). */
-  casting: CastingRecord | null
-  /**
-   * Why `casting` is absent — non-null IFF `casting` is null (ADR-0008). A
-   * pre-field null-casting file (no key) parses back as 'legacy-no-table'.
-   */
-  castingAbsence: CastingAbsenceReason | null
 }
+
+/**
+ * `casting` and `castingAbsence` are mutually exclusive (ADR-0008): a recorded
+ * casting carries no absence reason, and an absent casting must record WHY
+ * (e.g. a legacy `.txt` that predates the CASTING table, or a playground save).
+ * The discriminated union makes the impossible states — both null, or both set
+ * — unrepresentable, so exclusivity no longer rides on runtime guards alone
+ * (finding S3). The recorded branch pins `castingAbsence: null` so the field is
+ * present in both branches, matching the on-disk shape and the parser output.
+ */
+export type CastingPresence =
+  | { casting: CastingRecord; castingAbsence: null }
+  | { casting: null; castingAbsence: CastingAbsenceReason }
+
+export type ConsultationEnvelope = EnvelopeCommon & CastingPresence
 
 export type ParseResult =
   | { ok: true; data: { envelope: ConsultationEnvelope; body: string } }
@@ -116,11 +123,13 @@ export function serializeFrontmatter(
     hexagram: hexagramToYaml(envelope.hexagram),
     // Exactly one of `casting` / `castingAbsence` is present. A null casting
     // omits the casting key and records WHY it is absent (ADR-0008). The
-    // defensive default keeps serialize total even if a caller forgot the
-    // reason. `castingAbsence` takes the casting key's insertion slot so byte
-    // order stays schemaVersion → timestamp → query → hexagram → (one of two).
+    // envelope is a discriminated union (finding S3), so the `casting === null`
+    // branch narrows `castingAbsence` to non-null — serialize is fail-closed by
+    // construction, no defensive default needed (this is what dissolved S11).
+    // `castingAbsence` takes the casting key's insertion slot so byte order
+    // stays schemaVersion → timestamp → query → hexagram → (one of two).
     ...(envelope.casting === null
-      ? { castingAbsence: envelope.castingAbsence ?? 'legacy-no-table' }
+      ? { castingAbsence: envelope.castingAbsence }
       : { casting: castingToYaml(envelope.casting) }),
   }
   // Prepend a newline so that matter.stringify emits a blank line between
@@ -169,11 +178,13 @@ export function parseFrontmatter(text: string): ParseResult {
   // casting is absent, `castingAbsence` records why — defaulting to
   // 'legacy-no-table' for pre-field files (ADR-0008). A present-but-unknown
   // castingAbsence value is corruption → invalid-shape. When present, casting
-  // must be a valid `L6..L1` mapping and carries no absence reason.
-  let castingRecord: CastingRecord | null
-  let absence: CastingAbsenceReason | null
+  // must be a valid `L6..L1` mapping and carries no absence reason. Each branch
+  // builds one member of the `CastingPresence` union directly, so the two
+  // fields stay correlated (finding S3) rather than being assembled from two
+  // independently-nullable locals.
+  let presence: CastingPresence
   if (casting === undefined) {
-    castingRecord = null
+    let absence: CastingAbsenceReason
     if (castingAbsence === undefined) {
       absence = 'legacy-no-table'
     } else if (isCastingAbsenceReason(castingAbsence)) {
@@ -181,13 +192,14 @@ export function parseFrontmatter(text: string): ParseResult {
     } else {
       return { ok: false, reason: 'invalid-shape' }
     }
+    presence = { casting: null, castingAbsence: absence }
   } else {
     if (!isYamlCasting(casting)) return { ok: false, reason: 'invalid-shape' }
-    castingRecord = castingFromYaml(casting)
+    const castingRecord = castingFromYaml(casting)
     if (!isCastingRecord(castingRecord)) {
       return { ok: false, reason: 'invalid-shape' }
     }
-    absence = null
+    presence = { casting: castingRecord, castingAbsence: null }
   }
 
   return {
@@ -201,8 +213,7 @@ export function parseFrontmatter(text: string): ParseResult {
         timestamp,
         query,
         hexagram: hexagramTuple,
-        casting: castingRecord,
-        castingAbsence: absence,
+        ...presence,
       },
       body: content,
     },
