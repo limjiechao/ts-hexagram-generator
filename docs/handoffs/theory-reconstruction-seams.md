@@ -53,7 +53,27 @@ diverged with no ADR), or `STRAINED-CONFORMANCE` (matches the letter, strains th
 
 ---
 
-### 🔴 SEAM 1 — `.md`-load does NOT replay-validate casting  [SEVERITY: HIGHEST]
+### ✅ SEAM 1 — `.md`-load does NOT replay-validate casting  [RESOLVED 2026-06-09]
+**Resolved by** commit `3c1fee3` (feature) + `704a074` (real-fixture prep), branch
+`claude/zero-knowledge-gate-a-5gq3sh`. Gate A decision = **implement** (per the user).
+Outcome recorded in `docs/adr/0008-consultation-file-format.md` (amendment
+*2026-06-09: the S7 replay-validation has landed*).
+
+**What landed:** `castingReplaysTo` hoisted from `legacy-converter.ts` into a shared
+`domain/consultation-file/src/casting-replay.ts`; `parseFrontmatter` now replays a
+present casting against the stored hexagram and returns the new
+`casting-unreplayable` `ParseFailureReason` (fails closed to `[unreadable]`,
+additive — no `schemaVersion` bump). Verified: full suite green (serialised
+`turbo run test`, 23/23), type/lint/format clean.
+
+**Verify-before-trust payoff:** the ADR called the fix "small, well-bounded — needs a
+fixture." A probe found the de-facto truth the ADR missed: the **entire** test suite
+carried *synthetic* castings (picks `1, 2, 3`; some threw on replay) because nothing
+had ever replay-checked. Those were made physically real first (`704a074`) via a
+self-checked per-line block table mirrored once per domain/cli boundary side.
+
+*Original finding retained below for the record.*
+
 **Direction: CODE-BEHIND-DOC** — the only genuine code/doc disagreement, and the only
 seam with *no reconciling comment*.
 
@@ -221,10 +241,11 @@ the ADRs:
 Gate the design-decisions first; the mechanical cleanups can then run as a reviewable
 sequence of small single-intent diffs.
 
-1. **DECISION GATE A — Seam 1 (correctness).** Brainstorm: implement the `.md` replay
-   amendment vs retract the ADR. *This is the only correctness gap — do it first.* If
-   implementing, it's one self-contained slice (shared predicate + call site + parse
-   reason + fixture). Record the outcome (an ADR amendment either way).
+1. ~~**DECISION GATE A — Seam 1 (correctness).**~~ ✅ **DONE 2026-06-09** — decision was
+   *implement*; landed in `3c1fee3` (+ `704a074` fixture prep), recorded in ADR-0008.
+   See the RESOLVED block in §2. The "one self-contained slice" estimate held for the
+   production code, but the real work was making the suite's pervasively-synthetic
+   castings physically real first.
 
 2. **DECISION GATE B — Seam 2 (architecture).** Brainstorm/grill the "medium-neutral"
    claim against ADR-0018/0019 + CONTEXT.md. Decide: narrow the ADR claim (likely) or
@@ -245,8 +266,10 @@ sequence of small single-intent diffs.
 4. **BATCH D — optional DRY pass (Seams 5, 6).** Only if desired. Single-source the
    `length − 1` derivation; otherwise leave documented and move on.
 
-**Critical-path:** Gate A (correctness) → ships first. Gate B (design) and Batch C
-(hygiene) parallelisable. Batch D last/optional.
+**Critical-path:** ~~Gate A (correctness) → ships first.~~ ✅ shipped. **Next recommended
+target: DECISION GATE B (Seam 2)** — the remaining design gate; or BATCH C (mechanical
+hygiene) if you want low-risk wins first. Gate B and Batch C are parallelisable; Batch D
+last/optional.
 
 ---
 
