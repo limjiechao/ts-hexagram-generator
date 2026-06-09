@@ -1,13 +1,11 @@
-import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
 import {
-  assertIsLine,
   isHexagram,
   type CastingRecord,
   type Hexagram,
-  type Line,
   type LineCasting,
 } from '@hexagram/core/types'
 
+import { castingReplaysTo } from './casting-replay.js'
 import {
   CURRENT_SCHEMA_VERSION,
   type CastingPresence,
@@ -186,44 +184,4 @@ function parseSplitTable(text: string): Record<number, RawSplits> | null {
   }
   if ([1, 2, 3, 4, 5, 6].some((line) => rows[line] === undefined)) return null
   return rows
-}
-
-/**
- * Replay the 18 recorded splits through `makeLineGenerator` and check the
- * resulting 6-line tuple equals `expected`. Any throw during replay (e.g. a
- * `pick` outside the round's stalk range) counts as a mismatch.
- */
-function castingReplaysTo(casting: CastingRecord, expected: Hexagram): boolean {
-  try {
-    const replayed = casting.map((lineCasting) => replayLine(lineCasting))
-    return replayed.every((line, index) => line === expected[index])
-  } catch {
-    return false
-  }
-}
-
-/** Drive `makeLineGenerator` for one line with its three `(pick)` splits. */
-function replayLine(lineCasting: LineCasting): Line {
-  const [cast1, cast2, cast3] = lineCasting
-  // Each recorded pick is validated by `performCast` inside `makeLineGenerator`
-  // (the single runtime enforcer): a degenerate pick that empties the right heap
-  // after suspension throws `RangeError`, which `castingReplaysTo` catches as a
-  // mismatch, so `extractCasting` resolves to a `legacy-unreplayable` null: the
-  // converted file carries `casting: null` with the reason recorded (the casting
-  // data itself is still not recovered — there is no `castingRecovered` field).
-  // A legacy file that recorded an empty right heap is therefore not recovered,
-  // by design (see ADR-0006), but the fact of unreplayability IS kept.
-  const generator = makeLineGenerator({
-    unpartedStalks: stalksBeforeParting,
-    suspendedFromNextRound: [],
-    partStalksAtIndex: cast1.pick,
-  })
-  const roundOne = generator.next()
-  if (roundOne.done) throw new Error('replay: generator ended early')
-  const roundTwo = generator.next(cast2.pick)
-  if (roundTwo.done) throw new Error('replay: generator ended early')
-  generator.next(cast3.pick)
-  const line = generator.next().value
-  assertIsLine(line)
-  return line
 }
