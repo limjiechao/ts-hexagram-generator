@@ -1,6 +1,5 @@
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
-
-import { realCastingFor } from './real-casting.js'
 
 // Fixed timestamp string used in the full-file fixtures so the bytes stay locked.
 export const FIXTURE_TIMESTAMP = '2026-05-19T14:23:11+0800'
@@ -12,8 +11,8 @@ export interface ConsultationCase {
   casting: CastingRecord
 }
 
-// Each casting is the replay-valid set of 18 stalk divisions that the
-// algorithm produces for the case's hexagram (see real-casting.ts). They are
+// Each casting is the replay-valid set of 18 stalk divisions that the algorithm
+// produces for the case's hexagram (`@hexagram/core/sample-casting`). They are
 // derived from the hexagram, not hand-written, so the byte-identity fixtures
 // (`.plain` + `.md`) encode physically-real divinations and survive `.md`
 // load replay-validation (ADR-0008 S7) — a synthetic casting would not.
@@ -25,7 +24,7 @@ const buildCase = (
   name,
   query,
   hexagram,
-  casting: realCastingFor(hexagram),
+  casting: sampleCastingFor(hexagram),
 })
 
 export const cases: ConsultationCase[] = [

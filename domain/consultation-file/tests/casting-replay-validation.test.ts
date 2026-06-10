@@ -1,7 +1,7 @@
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import { describe, expect, it } from 'vitest'
 
 import { parseFrontmatter, serializeFrontmatter } from '../src/frontmatter.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 // ADR-0008 S7: `.md` load replay-validates its casting, closing the asymmetry
 // where a corrupted/hand-edited `.md` rendered a trusted-but-impossible ledger
@@ -19,7 +19,7 @@ describe('parseFrontmatter — casting replay validation', () => {
         timestamp: '2026-01-01T00:00:00+0800',
         query: 'q',
         hexagram: [8, 8, 8, 8, 8, 8],
-        casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+        casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
         castingAbsence: null,
       },
       'body',
@@ -33,7 +33,7 @@ describe('parseFrontmatter — casting replay validation', () => {
     // A `pick` that empties the right heap after suspension throws inside the
     // generator; `castingReplaysTo` catches the throw as a mismatch, so the
     // load fails closed rather than surfacing a `RangeError`.
-    const real = realCastingFor([7, 7, 7, 7, 7, 7])
+    const real = sampleCastingFor([7, 7, 7, 7, 7, 7])
     real[0][0] = { pick: 999, recordedMax: 48 }
     const text = serializeFrontmatter(
       {
@@ -60,7 +60,7 @@ describe('parseFrontmatter — casting replay validation', () => {
         timestamp: '2026-01-01T00:00:00+0800',
         query: 'q',
         hexagram: [6, 9, 7, 8, 7, 8],
-        casting: realCastingFor([6, 9, 7, 8, 7, 8]),
+        casting: sampleCastingFor([6, 9, 7, 8, 7, 8]),
         castingAbsence: null,
       },
       'body',

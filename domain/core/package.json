@@ -45,6 +45,11 @@
       "types": "./dist/random-casting.d.mts",
       "import": "./dist/random-casting.mjs"
     },
+    "./sample-casting": {
+      "source": "./src/sample-casting.ts",
+      "types": "./dist/sample-casting.d.mts",
+      "import": "./dist/sample-casting.mjs"
+    },
     "./trigrams": {
       "source": "./src/models/trigrams.ts",
       "types": "./dist/models/trigrams.d.mts",

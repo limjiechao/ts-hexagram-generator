@@ -1,3 +1,4 @@
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import type { CastingRecord, Hexagram, LineCasting } from '@hexagram/core/types'
 import { describe, expect, it } from 'vitest'
 
@@ -12,7 +13,6 @@ import {
   type YamlCasting,
   type YamlHexagram,
 } from '../src/frontmatter.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 const sampleLine = (a: number, b: number, c: number): LineCasting => [
   { pick: a, recordedMax: 48 },
@@ -94,7 +94,7 @@ const envelope: ConsultationEnvelope = {
   // the splits and rejects a casting that does not reproduce `hexagram`
   // (ADR-0008 S7), so the round-trip envelope must carry real divisions, not
   // the synthetic `sampleCasting` used by the YAML-conversion tests above.
-  casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+  casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
   // A present casting carries no absence reason.
   castingAbsence: null,
 }
@@ -273,7 +273,7 @@ describe('castingAbsence frontmatter', () => {
         timestamp: '2026-01-01T00:00:00+0800',
         query: 'q',
         hexagram: [7, 7, 7, 7, 7, 7],
-        casting: realCastingFor([7, 7, 7, 7, 7, 7]),
+        casting: sampleCastingFor([7, 7, 7, 7, 7, 7]),
         castingAbsence: null,
       },
       'body',

@@ -4,7 +4,7 @@
 **Repo:** `/home/user/ts-hexagram-generator` (`limjiechao/ts-hexagram-generator`)
 **Branch:** `claude/zero-knowledge-theory-reconstruction-evuyib`
 **Date:** 2026-06-09
-**Working tree:** clean — this was a *measurement*, no code changed.
+**Working tree:** clean — this was a _measurement_, no code changed.
 
 ---
 
@@ -19,17 +19,17 @@ questions directly against code.
 
 The **full ranked findings, coverage statement, prior-contamination flags, and
 cross-run variance analysis live in the conversation transcript** (the assistant's
-final report immediately before this handoff). This document is the *actionable
-distillation* for brainstorming/planning — it does not re-derive the analysis.
+final report immediately before this handoff). This document is the _actionable
+distillation_ for brainstorming/planning — it does not re-derive the analysis.
 
-**Meta-finding that frames everything:** this codebase has *institutionalised*
+**Meta-finding that frames everything:** this codebase has _institutionalised_
 theory-reconstruction. ADRs and inline comments are saturated with prior cold-read
 seam IDs (S1, S3, S6, S7, S9, S10, S11, S12, S14; see `git log` for S6/S9/S10/S12
 commits). Its standing strategy for conceptual integrity is **annotated seams** —
-when a fork is found it gets *documented* in an ADR amendment or comment rather than
+when a fork is found it gets _documented_ in an ADR amendment or comment rather than
 dissolved. My 5 fresh runs re-derived most of these independently → they are real,
 stable fault lines. Therefore: **do not "fix" a seam that an ADR already owns as
-deliberate** — those are conformant. The work below is only the *divergences*.
+deliberate** — those are conformant. The work below is only the _divergences_.
 
 ---
 
@@ -53,11 +53,12 @@ diverged with no ADR), or `STRAINED-CONFORMANCE` (matches the letter, strains th
 
 ---
 
-### ✅ SEAM 1 — `.md`-load does NOT replay-validate casting  [RESOLVED 2026-06-09]
+### ✅ SEAM 1 — `.md`-load does NOT replay-validate casting [RESOLVED 2026-06-09]
+
 **Resolved by** commit `3c1fee3` (feature) + `704a074` (real-fixture prep), branch
 `claude/zero-knowledge-gate-a-5gq3sh`. Gate A decision = **implement** (per the user).
 Outcome recorded in `docs/adr/0008-consultation-file-format.md` (amendment
-*2026-06-09: the S7 replay-validation has landed*).
+_2026-06-09: the S7 replay-validation has landed_).
 
 **What landed:** `castingReplaysTo` hoisted from `legacy-converter.ts` into a shared
 `domain/consultation-file/src/casting-replay.ts`; `parseFrontmatter` now replays a
@@ -68,19 +69,23 @@ additive — no `schemaVersion` bump). Verified: full suite green (serialised
 
 **Verify-before-trust payoff:** the ADR called the fix "small, well-bounded — needs a
 fixture." A probe found the de-facto truth the ADR missed: the **entire** test suite
-carried *synthetic* castings (picks `1, 2, 3`; some threw on replay) because nothing
+carried _synthetic_ castings (picks `1, 2, 3`; some threw on replay) because nothing
 had ever replay-checked. Those were made physically real first (`704a074`) via a
-self-checked per-line block table mirrored once per domain/cli boundary side.
+self-checked per-line block table. That fixture was finally single-homed as
+`sampleCastingFor` (`@hexagram/core/sample-casting`) — the casting algorithm's
+deterministic inverse, importable by every test — after a wrong first home in
+`cli/test-utils` forced a needless domain/cli mirror (Seam-4d-adjacent; see the
+fixture-home commit on the branch).
 
-*Original finding retained below for the record.*
+_Original finding retained below for the record._
 
 **Direction: CODE-BEHIND-DOC** — the only genuine code/doc disagreement, and the only
-seam with *no reconciling comment*.
+seam with _no reconciling comment_.
 
-- **Doc claim (Accepted):** `docs/adr/0008` amendment *2026-06-08 (S7)* says `.md` loads
-  *will* replay the 18 splits through `makeLineGenerator`, must reproduce the stored
-  hexagram, surface `casting-unreplayable` on failure, and that `castingReplaysTo` *"is
-  hoisted to a shared location so both load paths use one definition."*
+- **Doc claim (Accepted):** `docs/adr/0008` amendment _2026-06-08 (S7)_ says `.md` loads
+  _will_ replay the 18 splits through `makeLineGenerator`, must reproduce the stored
+  hexagram, surface `casting-unreplayable` on failure, and that `castingReplaysTo` _"is
+  hoisted to a shared location so both load paths use one definition."_
 - **Code reality (verified this session):**
   - `domain/consultation-file/src/frontmatter.ts:209` — load is **shape-check only**
     (`isCastingRecord`), no replay.
@@ -90,12 +95,12 @@ seam with *no reconciling comment*.
   - Independently corroborated by the cold "data-formats" run (it found shape-check-only).
 - **Real consequence:** a hand-edited/corrupted `.md` carrying a well-shaped but
   physically-impossible casting **loads and renders a trusted false ledger** — exactly
-  the asymmetry ADR-0008 says it *closed* but didn't. Legacy `.txt` is replay-validated;
+  the asymmetry ADR-0008 says it _closed_ but didn't. Legacy `.txt` is replay-validated;
   our own `.md` is trusted on shape alone.
-- **Decision needed (brainstorm first):** *implement* the amendment (hoist
+- **Decision needed (brainstorm first):** _implement_ the amendment (hoist
   `castingReplaysTo` to shared `consultation-file` API, call it in `frontmatter.ts`/`file.ts`,
   add the `casting-unreplayable` parse reason, fail closed to `[unreadable]`) **OR**
-  *retract/downgrade* the ADR amendment to "Proposed/Rejected" if the team decided
+  _retract/downgrade_ the ADR amendment to "Proposed/Rejected" if the team decided
   against it. The ADR text reads as a firm decision, so default expectation = implement.
 - **Scope if implemented:** small, well-bounded. One shared predicate, one call site,
   one new parse reason, additive (no `schemaVersion` bump per the ADR). Needs a fixture
@@ -103,26 +108,27 @@ seam with *no reconciling comment*.
 
 ---
 
-### 🟠 SEAM 2 — "Medium-neutral" IR carries monospace terminal geometry  [SEVERITY: HIGH]
+### 🟠 SEAM 2 — "Medium-neutral" IR carries monospace terminal geometry [SEVERITY: HIGH]
+
 **Direction: BOTH — code has a real terminal commitment AND doc framing is broader;
 currently bridged only by an inline comment.** Lowest cross-run legibility (readers
-split on what the package *is* depending on read depth).
+split on what the package _is_ depending on read depth).
 
 - **Doc claim:** `docs/adr/0018`/`0019` — `consultation-view` is medium-neutral; IR
   payloads are "pure data (no ANSI, no Markdown)"; litmus = a Next.js HTML serializer
   reuses the whole structure.
 - **Code reality (verified this session):**
   - `domain/consultation-view/src/vocabulary.ts:39-52` — **12 hardcoded monospace column
-    widths** with comment *"so the content fits the 120-col default wrap (111 visual cols)."*
+    widths** with comment _"so the content fits the 120-col default wrap (111 visual cols)."_
   - `domain/consultation-view/src/ledger-template.ts` — builds **padded cells + `'═'.repeat(width)`** rule rows in the domain.
   - `domain/consultation-view/src/ledger-geometry.ts:11-23` — **ANSI-table row-count
     geometry** for the viewer's auto-scroll.
   - `domain/consultation-view/src/ir.ts:11` — `SectionMedium = 'ansi' | 'markdown'` (the
     neutral layer names its two consumers and decides their per-section visibility).
-  - `ir.ts:152-157` **self-confesses** the geometry leak as *"finding S10"* and defends
+  - `ir.ts:152-157` **self-confesses** the geometry leak as _"finding S10"_ and defends
     it as "still row counts, not bytes."
-- **Honest de-facto label:** *a shared monospace-text-layout builder for two media
-  (ANSI + Markdown code-fence) that defer only colour* — not a medium-neutral IR. An HTML
+- **Honest de-facto label:** _a shared monospace-text-layout builder for two media
+  (ANSI + Markdown code-fence) that defer only colour_ — not a medium-neutral IR. An HTML
   host would inherit a 12-column ledger sized in monospace character cells.
 - **Decision needed (brainstorm/grill against the ADR):** either (a) **formally narrow**
   the ADR-0018/0019 "medium-neutral" claim to "neutral at the byte level; monospace
@@ -134,46 +140,48 @@ split on what the package *is* depending on read depth).
 
 ---
 
-### 🟡 SEAM 3 — Entrypoint discipline forks across bins  [SEVERITY: MEDIUM-HIGH]
+### 🟡 SEAM 3 — Entrypoint discipline forks across bins [SEVERITY: MEDIUM-HIGH]
+
 **Direction: UNDOCUMENTED-DRIFT** — no ADR covers these; one is a live user-facing bug.
 
 - **3a (bug):** `--manual-reveal-ms` is **silently dropped** on the `hexagram` home-hub
   manual path. `cli/shell/src/hexagram-app.tsx` `CastingFlags` has no `manualRevealMs`
   field; `resolveManualRevealMs`/`manualRevealMs` appear nowhere in `cli/shell/`. Works
   on the standalone `hexagram-manual` bin (`apps/cli/src/manual.ts:46-48`), inert via the
-  hub. This is structurally the *same class* of bug `buildRandomViewerArgs`
+  hub. This is structurally the _same class_ of bug `buildRandomViewerArgs`
   (`cli/casting-ui/src/utils-mode.ts:235-249`) was built to prevent — the fix was applied
   to the random flow only.
 - **3b:** TTY-guard placement is inconsistent — external for history
   (`apps/cli/src/history.ts:22`), internal for playground/hexagram
   (`run-playground-app.ts:41`, `run-hexagram.tsx:60`). A comment in
-  `run-playground-app.ts:4-5` claims it *"Mirrors `runHistoryViewer` … exactly"* — **false**
+  `run-playground-app.ts:4-5` claims it _"Mirrors `runHistoryViewer` … exactly"_ — **false**
   (history's guard is external).
 - **3c:** Only `apps/cli/src/interactive.ts:80-88` converts Inquirer's `ExitPromptError`
   to a clean `exit(0)`; `apps/cli/src/random.ts:48-51` (also plain-mode Inquirer) treats
   it as `exit(1)`. Ctrl-C on the query prompt → different exit codes per bin.
 - **Decision needed:** mostly mechanical once confirmed as drift. 3a = thread
   `manualRevealMs` through the shell's `CastingFlags` + viewer args (and consider an
-  ADR-0020-style "thread every knob" note so the *class* is closed, not the instance).
+  ADR-0020-style "thread every knob" note so the _class_ is closed, not the instance).
   3b/3c = pick the canonical pattern, align, fix/delete the false comment.
 
 ---
 
-### 🟡 SEAM 4 — Boundary enforcement is partial & reactive  [SEVERITY: MEDIUM]
+### 🟡 SEAM 4 — Boundary enforcement is partial & reactive [SEVERITY: MEDIUM]
+
 **Direction: DOC-BROADER** — enforcement narrower/more reactive than the prose implies;
-the domain↔cli *hard* wall is genuinely solid (graph-true + unit-tested), these are the
-*secondary* boundaries.
+the domain↔cli _hard_ wall is genuinely solid (graph-true + unit-tested), these are the
+_secondary_ boundaries.
 
 - **4a (latent foot-gun):** `barrelRootBans` (`eslint.config.js:24-35`) bans bare imports
   of `@hexagram/consultation-file` + `@hexagram/readout` but **omits
-  `@hexagram/consultation-view`**, which is *also* barrel-less (exports only subpaths).
+  `@hexagram/consultation-view`**, which is _also_ barrel-less (exports only subpaths).
   Same mistake against consultation-view fails at module resolution but is **not
   lint-flagged**.
 - **4b:** width fence (`string-width`/`slice-ansi`) is scoped to `cli/**/src` → **test
   files evade it** (`cli/casting-ui/tests/viewer.test.tsx:5` + two `manual-diagram-*`
-  tests import `string-width` directly). The lint *message* ("viewer-core is the sole
+  tests import `string-width` directly). The lint _message_ ("viewer-core is the sole
   exempt wrapper") overstates: `domain/text-layout` also imports `string-width` — though
-  ADR-0021 *does* sanction that domain import, so only the message is wrong.
+  ADR-0021 _does_ sanction that domain import, so only the message is wrong.
 - **4c:** Only the domain→cli rule has a unit test
   (`domain/core/tests/eslint-domain-boundary.test.ts`); the width/barrel bans are
   **untested** — the very "invisible drift" state that test's own comment warns about.
@@ -183,18 +191,19 @@ the domain↔cli *hard* wall is genuinely solid (graph-true + unit-tested), thes
   the DAG (classification ambiguity).
 - **Decision needed:** mostly mechanical. 4a = add consultation-view to `barrelRootBans`.
   4b/4c = decide whether secondary boundaries deserve tests / wider scope (or accept
-  prod-only scope and tighten the lint *message*). 4d = drop stale dep, clarify comment.
+  prod-only scope and tighten the lint _message_). 4d = drop stale dep, clarify comment.
 
 ---
 
-### 🟢 SEAM 5 — `recordedMax = length − 1` derivation duplicated 6+ times  [SEVERITY: LOW-MEDIUM]
-**Direction: STRAINED-CONFORMANCE** — *enforcement* is single-homed (no corruption risk);
-*derivation knowledge* is not.
+### 🟢 SEAM 5 — `recordedMax = length − 1` derivation duplicated 6+ times [SEVERITY: LOW-MEDIUM]
+
+**Direction: STRAINED-CONFORMANCE** — _enforcement_ is single-homed (no corruption risk);
+_derivation knowledge_ is not.
 
 - `recordedMaxFor` is the named owner (`domain/core/src/index.ts:197`), but `length − 1`
   is hand-recomputed in `random-casting.ts:26,38,50,56`, `interactive-flow.ts:19`, and
   even `index.ts:227` (`performCast` doesn't route through its own `recordedMaxFor`).
-  These operate on raw `number[]` so they *can't* call the `LineState`-typed helper
+  These operate on raw `number[]` so they _can't_ call the `LineState`-typed helper
   without a refactor.
 - ADR-0006 claims the rule "has one home" — true for the `selectablePickMax` clamp and
   `assertSelectablePick` enforcement; strained for the underlying `length − 1`.
@@ -204,7 +213,8 @@ the domain↔cli *hard* wall is genuinely solid (graph-true + unit-tested), thes
 
 ---
 
-### 🟢 SEAM 6 — Two line-value computations equal-by-test  [SEVERITY: LOW]
+### 🟢 SEAM 6 — Two line-value computations equal-by-test [SEVERITY: LOW]
+
 **Direction: STRAINED-CONFORMANCE / documented intent.**
 `performCast` computes `line = unparted.length / 4`; `deriveSplit.combinedPiles`
 reconstructs it from remainders (`casting-derivation.ts:88-95`). Tied only by a 3-pick
@@ -213,8 +223,10 @@ defensible — note for awareness, likely no action.
 
 ---
 
-### 🟢 SEAM 7 — Vestige / orphan code  [SEVERITY: LOW]
+### 🟢 SEAM 7 — Vestige / orphan code [SEVERITY: LOW]
+
 **Direction: UNDOCUMENTED-DRIFT (cosmetic).**
+
 - `flipPolarity` appears unused by the casting→emerging path (`line-semantics.ts:56`).
 - `generateRandomLines` filters for impossible `line === 5` / `line === 10` buckets
   (`random-casting.ts:148`).
@@ -227,8 +239,9 @@ defensible — note for awareness, likely no action.
 
 These were hit by multiple runs but are **documented-deliberate**; "fixing" them fights
 the ADRs:
+
 - The `stalks`/`recordedMax`/`selectablePickMax` off-by-one trio — owned by ADR-0006 +
-  ADR-0008's `max→recordedMax` rename. (Most-rediscovered seam, *and* most-documented.)
+  ADR-0008's `max→recordedMax` rename. (Most-rediscovered seam, _and_ most-documented.)
 - The three-origin `casting: null` collapse + read-time `legacy-no-table` default — owned
   by ADR-0008 amendments (S6, S3/S11).
 - `deriveSplit` tolerant while `performCast` throws — owned by ADR-0006.
@@ -242,7 +255,7 @@ Gate the design-decisions first; the mechanical cleanups can then run as a revie
 sequence of small single-intent diffs.
 
 1. ~~**DECISION GATE A — Seam 1 (correctness).**~~ ✅ **DONE 2026-06-09** — decision was
-   *implement*; landed in `3c1fee3` (+ `704a074` fixture prep), recorded in ADR-0008.
+   _implement_; landed in `3c1fee3` (+ `704a074` fixture prep), recorded in ADR-0008.
    See the RESOLVED block in §2. The "one self-contained slice" estimate held for the
    production code, but the real work was making the suite's pervasively-synthetic
    castings physically real first.
@@ -254,14 +267,14 @@ sequence of small single-intent diffs.
 
 3. **BATCH C — mechanical drift cleanups (Seams 3 + 4 + 7).** No deep design; each its
    own commit, reviewable in one pass:
-   - 3a thread `manualRevealMs` through the shell (+ consider closing the *class*).
+   - 3a thread `manualRevealMs` through the shell (+ consider closing the _class_).
    - 3b/3c align TTY-guard placement & `ExitPromptError` handling; fix the false
      "mirrors exactly" comment.
    - 4a add `consultation-view` to `barrelRootBans`.
    - 4d drop stale `wrap-ansi` dep; clarify `test-utils` classification.
    - 7 delete confirmed-dead `flipPolarity` / impossible-bucket filters.
-   *(4b/4c — width-fence test coverage/scope — is a smaller design call; fold into Gate B
-   or split out only if the team wants secondary boundaries hardened.)*
+     _(4b/4c — width-fence test coverage/scope — is a smaller design call; fold into Gate B
+     or split out only if the team wants secondary boundaries hardened.)_
 
 4. **BATCH D — optional DRY pass (Seams 5, 6).** Only if desired. Single-source the
    `length − 1` derivation; otherwise leave documented and move on.
@@ -311,5 +324,5 @@ last/optional.
 - **The branch** `claude/zero-knowledge-theory-reconstruction-evuyib` currently holds no
   code changes from this session (measurement only). Confirm with the user whether
   remediation lands here or on a fresh branch before committing.
-- **Verify, don't trust the ADR:** this codebase's ADRs occasionally run *ahead* of the
+- **Verify, don't trust the ADR:** this codebase's ADRs occasionally run _ahead_ of the
   code (Seam 1 is proof). For any "the ADR says it's fixed" claim, grep the code first.
