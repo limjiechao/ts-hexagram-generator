@@ -3,6 +3,7 @@ import os from 'node:os'
 import path from 'node:path'
 import process from 'node:process'
 
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import {
@@ -11,7 +12,6 @@ import {
   loadConsultationFile,
   saveConsultationFile,
 } from '../src/file.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 describe('defaultConsultationsDir', () => {
   it('is <cwd>/consultations', () => {
@@ -45,7 +45,7 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       query: 'Will it rain?',
       hexagram: [7, 8, 7, 8, 7, 8],
       // Replay-valid divisions: load now replays the casting (ADR-0008 S7).
-      casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+      casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
     })
 
@@ -102,7 +102,7 @@ describe('saveConsultationFile + loadConsultationFile', () => {
     const savedPath = await saveConsultationFile({
       query: 'q',
       hexagram: [7, 8, 7, 8, 7, 8],
-      casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+      casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
     })
     const loaded = await loadConsultationFile(savedPath)

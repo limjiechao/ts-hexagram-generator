@@ -1,48 +1,5 @@
-import type {
-  CastingRecord,
-  Hexagram,
-  Line,
-  LineCasting,
-} from '@hexagram/core/types'
-
-// Real, replay-valid stalk-division building blocks — one per line value.
-// CANONICAL copy lives at
-// `domain/consultation-file/tests/fixtures/real-casting.ts` and is locked by
-// `domain/consultation-file/tests/real-casting.test.ts` (it replays each block
-// through the algorithm). This is a verbatim mirror: ADR-0019 forbids a
-// `cli/*` file from importing a `domain/*` test fixture and vice-versa, so the
-// helper exists once per side of the boundary.
-const REAL_LINE_CASTING: Record<Line, LineCasting> = {
-  6: [
-    { pick: 4, recordedMax: 48 },
-    { pick: 3, recordedMax: 39 },
-    { pick: 3, recordedMax: 31 },
-  ],
-  7: [
-    { pick: 1, recordedMax: 48 },
-    { pick: 3, recordedMax: 43 },
-    { pick: 3, recordedMax: 35 },
-  ],
-  8: [
-    { pick: 1, recordedMax: 48 },
-    { pick: 1, recordedMax: 43 },
-    { pick: 3, recordedMax: 39 },
-  ],
-  9: [
-    { pick: 1, recordedMax: 48 },
-    { pick: 1, recordedMax: 43 },
-    { pick: 1, recordedMax: 39 },
-  ],
-}
-
-// Build the replay-valid casting the algorithm produces for `hexagram`, so the
-// `.plain` byte-identity fixtures depict the same physically-real divinations
-// as the `.md` fixtures (ADR-0008 S7) rather than illustrative picks.
-const realCastingFor = (hexagram: Hexagram): CastingRecord =>
-  hexagram.map(
-    (line) =>
-      REAL_LINE_CASTING[line].map((split) => ({ ...split })) as LineCasting,
-  ) as CastingRecord
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
+import type { CastingRecord, Hexagram } from '@hexagram/core/types'
 
 export interface ConsultationCase {
   name: string
@@ -52,8 +9,11 @@ export interface ConsultationCase {
 }
 
 // The four scenarios the plain-output fixtures are captured from, shared by the
-// byte-identity test (`output.test.ts`) and the fixture regeneration
-// script (`scripts/generate-fixtures.ts`).
+// byte-identity test (`output.test.ts`) and the fixture regeneration script
+// (`scripts/generate-fixtures.ts`). Each casting is the replay-valid set of 18
+// stalk divisions the algorithm produces for the case's hexagram (so the
+// fixtures depict physically-real divinations and survive `.md` load
+// replay-validation, ADR-0008 S7).
 const buildCase = (
   name: string,
   query: string,
@@ -62,7 +22,7 @@ const buildCase = (
   name,
   query,
   hexagram,
-  casting: realCastingFor(hexagram),
+  casting: sampleCastingFor(hexagram),
 })
 
 export const cases: ConsultationCase[] = [

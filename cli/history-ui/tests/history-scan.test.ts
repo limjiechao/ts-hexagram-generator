@@ -3,10 +3,10 @@ import os from 'node:os'
 import path from 'node:path'
 
 import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { scanConsultations } from '../src/history-scan.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 let tmpDir: string
 
@@ -35,7 +35,7 @@ describe('scanConsultations', () => {
           // Replay-valid casting: scanConsultations parses each `.md`, which now
           // replay-validates the splits (ADR-0008 S7); a synthetic casting would
           // land these rows in `unreadable` instead of `entries`.
-          casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+          casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
           castingAbsence: null,
         },
         'BODY',

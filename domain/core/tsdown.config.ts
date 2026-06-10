@@ -10,6 +10,7 @@ export default defineConfig({
     './src/manual-validation.ts',
     './src/models/hexagrams.ts',
     './src/random-casting.ts',
+    './src/sample-casting.ts',
     './src/models/trigrams.ts',
     './src/types.ts',
   ],
