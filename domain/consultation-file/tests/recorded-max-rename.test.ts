@@ -2,10 +2,10 @@ import fs from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
 
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 
 import { loadConsultationFile, saveConsultationFile } from '../src/file.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 // A fully-populated, replay-valid casting for the round-trip hexagram. The
 // converter passes each SplitRecord through opaquely, so the on-disk YAML key
@@ -15,7 +15,7 @@ import { realCastingFor } from './fixtures/real-casting.js'
 // recordedMax 48, which is what both assertions below check. The casting must
 // replay to its hexagram now that `.md` load validates it (ADR-0008 S7), so it
 // is built from real divisions rather than synthetic picks.
-const casting = realCastingFor([7, 8, 7, 8, 7, 8])
+const casting = sampleCastingFor([7, 8, 7, 8, 7, 8])
 
 let tmpDir: string
 

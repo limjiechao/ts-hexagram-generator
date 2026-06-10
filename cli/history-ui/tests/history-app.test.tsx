@@ -11,13 +11,13 @@ import {
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file/frontmatter'
 import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
+import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import type { Hexagram } from '@hexagram/core/types'
 import { yieldMacrotask } from '@hexagram/test-utils'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { HistoryApp, rerenderOnDisk } from '../src/history-app.js'
-import { realCastingFor } from './fixtures/real-casting.js'
 
 // Matches ANSI SGR escape sequences (ESC[...m). Stripped before assertions
 // so text matching is robust to Ink's colour codes.
@@ -127,7 +127,7 @@ const MOVING_ENVELOPE: ConsultationEnvelope = {
   timestamp: '2025-08-13T09:02:14+0800',
   query: 'Why did this happen?',
   hexagram: [6, 7, 8, 9, 7, 8] as Hexagram,
-  casting: realCastingFor([6, 7, 8, 9, 7, 8]),
+  casting: sampleCastingFor([6, 7, 8, 9, 7, 8]),
   castingAbsence: null,
 }
 
@@ -147,7 +147,7 @@ const SECOND_ENVELOPE: ConsultationEnvelope = {
   timestamp: '2024-06-09T18:45:00+0800',
   query: 'Should I take the contract in Berlin?',
   hexagram: [7, 8, 7, 8, 7, 8] as Hexagram,
-  casting: realCastingFor([7, 8, 7, 8, 7, 8]),
+  casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
   castingAbsence: null,
 }
 
