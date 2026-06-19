@@ -12,3 +12,18 @@ export async function getUserQuery(): Promise<string> {
     required: true,
   })
 }
+
+/**
+ * Whether `error` is the `ExitPromptError` Inquirer throws when the user
+ * presses Ctrl+C at a prompt (rather than a real failure). Plain-mode bins
+ * map this to a clean `exit(0)`. Single-homed here, beside the Inquirer
+ * prompts that produce it, so the random and interactive bins can't drift on
+ * what counts as a user-initiated quit.
+ */
+export function isUserExitPromptError(error: unknown): boolean {
+  return (
+    error instanceof Error &&
+    error.name === 'ExitPromptError' &&
+    error.message.startsWith('User has exited the prompt')
+  )
+}

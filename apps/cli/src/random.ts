@@ -4,6 +4,7 @@ import process from 'node:process'
 
 import {
   getUserQuery,
+  isUserExitPromptError,
   logAndSaveConsultationOutput,
   resolveOutputMode,
   resolveRandomViewerArgs,
@@ -46,6 +47,10 @@ async function main(): Promise<void> {
 
     process.exit(0)
   } catch (error) {
+    // Ctrl+C at the plain-mode Inquirer query prompt is a clean user quit, not
+    // a failure — match `interactive.ts` and exit 0 instead of 1.
+    if (isUserExitPromptError(error)) process.exit(0)
+
     console.error(error)
     process.exit(1)
   }

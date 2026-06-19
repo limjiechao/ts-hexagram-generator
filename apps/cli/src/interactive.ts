@@ -4,6 +4,7 @@ import process from 'node:process'
 
 import {
   getHexagramViaInteraction,
+  isUserExitPromptError,
   logAndSaveConsultationOutput,
   resolveInputMode,
   resolveOutputMode,
@@ -78,13 +79,8 @@ async function main(): Promise<void> {
 
     process.exit(0)
   } catch (error) {
-    if (
-      error instanceof Error &&
-      error.name === 'ExitPromptError' &&
-      error.message.startsWith('User has exited the prompt')
-    ) {
-      process.exit(0)
-    }
+    // Ctrl+C at the Inquirer query prompt is a clean user quit, not a failure.
+    if (isUserExitPromptError(error)) process.exit(0)
 
     console.error('An error occurred:', error)
     process.exit(1)

@@ -14,8 +14,9 @@ export { logAndSaveConsultationOutput } from './log-and-save.js'
 // save composer kept local to this package.
 export { consultationConsoleOutput } from './output-composers.js'
 
-// Inquirer prompt for the user's consultation query.
-export { getUserQuery } from './prompts.js'
+// Inquirer prompt for the user's consultation query, plus the predicate that
+// recognises its Ctrl+C `ExitPromptError` so plain-mode bins exit cleanly.
+export { getUserQuery, isUserExitPromptError } from './prompts.js'
 
 // CLI flag resolution (output mode, input mode, wrap width, slider sweep ms,
 // cast bounce ms, cast reveal ms, manual reveal ms).
