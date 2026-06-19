@@ -171,7 +171,34 @@ split on what the package _is_ depending on read depth).
 
 ---
 
-### 🟡 SEAM 3 — Entrypoint discipline forks across bins [SEVERITY: MEDIUM-HIGH]
+### ✅ SEAM 3 — Entrypoint discipline forks across bins [RESOLVED 2026-06-19 (Batch C)]
+
+**Resolved on branch `claude/great-davinci-t8wmyq`:**
+
+- **3a** (the live bug) — `fix(shell): honour --manual-reveal-ms on the hub's
+Manual flow` (`4339ceb`). Added `manualRevealMs` to `CastingFlags`, resolved it
+  in `run-hexagram.tsx`, and threaded it to `<ConsultationViewer>`. The viewer
+  already accepted the prop end-to-end; only the hub assembly was dropping it.
+  Verified: shell type-check + 66 shell tests green.
+- **3b** — `docs(playground): correct the run-entry guard-mirroring comment`
+  (`5bd64be`). **VERIFY-BEFORE-TRUST CORRECTION:** the guard _placement_ is NOT
+  drift — `env-policy.ts:89-97` documents the two refusal forms as deliberate
+  (`refuseIfNonInteractive` = external one-liner for bins; `warnIfNonInteractive`
+  = internal boolean for run-entries). `runHistoryViewer` has **no** internal
+  guard (its bin guards externally); `runPlaygroundApp`/`runHexagram` self-guard.
+  So 3b reduced to fixing the one false comment that claimed `runPlaygroundApp`
+  "Mirrors `runHistoryViewer` … exactly". No code realignment was done (it would
+  have fought the documented split). _If_ the team later wants the three
+  run-entries to share one guard shape, that is a separate considered change, not
+  Batch-C drift cleanup.
+- **3c** — `fix(cli): exit 0 on Ctrl+C at the random bin's query prompt`
+  (`cd3f719`). Single-homed the `ExitPromptError` predicate as
+  `isUserExitPromptError` in `cli/casting-ui/src/prompts.ts` (beside the Inquirer
+  prompts that throw it), exported it, and used it in both `random.ts` and
+  `interactive.ts`. Added `cli/casting-ui/tests/prompts.test.ts`. Verified: full
+  casting-ui suite (394) green.
+
+_Original finding retained below for the record._
 
 **Direction: UNDOCUMENTED-DRIFT** — no ADR covers these; one is a live user-facing bug.
 
@@ -197,7 +224,35 @@ split on what the package _is_ depending on read depth).
 
 ---
 
-### 🟡 SEAM 4 — Boundary enforcement is partial & reactive [SEVERITY: MEDIUM]
+### 🟡 SEAM 4 — Boundary enforcement is partial & reactive [PARTIALLY RESOLVED 2026-06-19 (Batch C)]
+
+**Resolved on branch `claude/great-davinci-t8wmyq`:**
+
+- **4a** — `fix(lint): ban bare @hexagram/consultation-view imports` (`7e176eb`).
+  Added `@hexagram/consultation-view` to `barrelRootBans` in `eslint.config.js`
+  (it is barrel-less: exports only `./build-view`, `./ir`, `./vocabulary`). No
+  bare import exists today, so this only closes the foot-gun. Verified: lint:check
+  0 errors.
+- **4d** (split into two single-intent commits):
+  - `chore(casting-ui): drop the unused wrap-ansi dependency` (`5f6b83e`) —
+    casting-ui declared `wrap-ansi` with zero imports; the only consumer is
+    `viewer-core`, which declares its own. Lockfile updated (3-line importer
+    removal; package retained for viewer-core).
+  - `docs(lint): explain why test-utils is in the cli boundary list` (`f382f41`)
+    — clarified that `@hexagram/test-utils` is a dev-only test-helper leaf
+    outside the runtime DAG, listed in `cliPackageNames` **on purpose** so the
+    domain→cli ban also stops a domain test reaching across the wall (the
+    `@hexagram/core/sample-casting` home decision from Seam 1).
+
+**STILL OPEN — 4b / 4c (deferred by design, not part of Batch C):** the width-fence
+test-coverage/scope question. 4b confirmed: `cli/casting-ui/tests/{viewer,
+manual-diagram-right-pane,manual-diagram-bottom-strip}.test.tsx` import
+`string-width` directly (the fence is scoped to `cli/**/src`). 4c: the barrel/width
+bans remain untested. The handoff sequence flags these as "a smaller design call;
+fold into Gate B or split out only if the team wants secondary boundaries
+hardened" — left for a deliberate decision, not closed here.
+
+_Original finding retained below for the record._
 
 **Direction: DOC-BROADER** — enforcement narrower/more reactive than the prose implies;
 the domain↔cli _hard_ wall is genuinely solid (graph-true + unit-tested), these are the
@@ -254,15 +309,28 @@ defensible — note for awareness, likely no action.
 
 ---
 
-### 🟢 SEAM 7 — Vestige / orphan code [SEVERITY: LOW]
+### ✅ SEAM 7 — Vestige / orphan code [RESOLVED 2026-06-19 (Batch C) — NO-OP, not dead]
 
-**Direction: UNDOCUMENTED-DRIFT (cosmetic).**
+**VERIFY-BEFORE-TRUST OUTCOME: nothing was deleted. All three "vestiges" are
+live or deliberate — the handoff's "confirm dead, then delete" was wrong on
+verification.**
 
-- `flipPolarity` appears unused by the casting→emerging path (`line-semantics.ts:56`).
-- `generateRandomLines` filters for impossible `line === 5` / `line === 10` buckets
-  (`random-casting.ts:148`).
-- Generator-nesting that a plain array would cover (flagged by the core run).
-- **Decision needed:** confirm dead, then delete (single trivial diffs).
+- `flipPolarity` (`line-semantics.ts:56`) is the **playground's SPACE binding**
+  (`cli/playground-ui/src/playground-state.ts:206`,
+  `playground-keymap.ts:137`). It is unused by the casting→emerging path only —
+  not unused. Deleting it would break the playground. (Its own doc comment at
+  `line-semantics.ts:50-54` already explains it is an independent polarity-axis
+  shortcut, not part of reachability.)
+- The `[5, 6, 7, 8, 9, 10]` buckets in `generateRandomLines`
+  (`random-casting.ts:148`) are a **deliberate, tested** sanity check:
+  `domain/core/tests/random-casting.test.ts:118-122` asserts `Line 5` and
+  `Line 10` are `0.000%` (proving the RNG never emits an out-of-range line
+  value). Removing the impossible buckets would delete that guarantee.
+- "Generator-nesting a plain array would cover" — the generator pipeline is the
+  documented algorithm shape (CLAUDE.md / ADR-0006's rewindable core); not a
+  vestige. Left as-is.
+
+**Decision taken:** no deletions. Seam 7 closed as a false alarm.
 
 ---
 
@@ -299,24 +367,36 @@ sequence of small single-intent diffs.
    pending** (slice via `writing-plans`; zero-diff fixture regen is the proof). See the
    updated Seam 2 block in §2.
 
-3. **BATCH C — mechanical drift cleanups (Seams 3 + 4 + 7).** No deep design; each its
-   own commit, reviewable in one pass:
-   - 3a thread `manualRevealMs` through the shell (+ consider closing the _class_).
-   - 3b/3c align TTY-guard placement & `ExitPromptError` handling; fix the false
-     "mirrors exactly" comment.
-   - 4a add `consultation-view` to `barrelRootBans`.
-   - 4d drop stale `wrap-ansi` dep; clarify `test-utils` classification.
-   - 7 delete confirmed-dead `flipPolarity` / impossible-bucket filters.
-     _(4b/4c — width-fence test coverage/scope — is a smaller design call; fold into Gate B
-     or split out only if the team wants secondary boundaries hardened.)_
+3. ~~**BATCH C — mechanical drift cleanups (Seams 3 + 4 + 7).**~~ ✅ **DONE 2026-06-19**
+   on branch `claude/great-davinci-t8wmyq` — six single-intent commits, full suite
+   (25 turbo tasks incl. the byte-identity save-path gate), type:check, lint, and
+   format all green:
+   - 3a `4339ceb` — thread `manualRevealMs` through the shell hub (the live bug).
+   - 3b `5bd64be` — fix the false "mirrors exactly" comment. _Guard placement was
+     verified deliberate (env-policy.ts), so NOT realigned._
+   - 3c `cd3f719` — single-home `isUserExitPromptError`; both bins exit 0 on Ctrl+C.
+   - 4a `7e176eb` — add `consultation-view` to `barrelRootBans`.
+   - 4d `5f6b83e` (drop stale `wrap-ansi`) + `f382f41` (clarify `test-utils`).
+   - 7 — **NO-OP**: `flipPolarity` is live (playground SPACE) and the impossible
+     buckets are tested; nothing was dead. See the RESOLVED Seam 7 block.
+   - **Still open:** 4b/4c (width-fence test coverage/scope) — a smaller design
+     call, deliberately not folded into Batch C; decide separately if secondary
+     boundaries should be hardened.
 
 4. **BATCH D — optional DRY pass (Seams 5, 6).** Only if desired. Single-source the
    `length − 1` derivation; otherwise leave documented and move on.
 
-**Critical-path:** ~~Gate A (correctness) → ships first.~~ ✅ shipped. **Next recommended
-target: DECISION GATE B (Seam 2)** — the remaining design gate; or BATCH C (mechanical
-hygiene) if you want low-risk wins first. Gate B and Batch C are parallelisable; Batch D
-last/optional.
+**Critical-path:** ~~Gate A (correctness) → ships first.~~ ✅ shipped.
+~~Next: Gate B (Seam 2) or Batch C.~~ Both Gate A and Batch C ✅ shipped. **Gate B
+(Seam 2 text-grid extraction) ALSO appears to have landed on `main`** —
+verified-before-trust this session via `git log` (`499987c`→`bf9f484`) and the
+live tree (`@hexagram/text-grid` exists, `eslint.config.js` bans it, CLAUDE.md
+describes it). The Seam 2 block above still says "implementation pending" because
+it was written pre-merge; treat Seam 2 as DONE pending a confirmation pass.
+
+**Next recommended target: BATCH D** (optional DRY pass — Seams 5 & 6: single-source
+the `length − 1` derivation), or the deferred **4b/4c** secondary-boundary
+hardening if the team wants it. Both are low-stakes; Batch D is explicitly optional.
 
 ---
 
