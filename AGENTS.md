@@ -95,12 +95,13 @@ This is a **Turborepo + pnpm-workspaces monorepo**. The root is private. Package
 ts-hexagram-generator/             # workspace root (private)
 ├── domain/                        # medium-neutral, reusable — below the UI line
 │   ├── core/                      # @hexagram/core — type vocabulary (./types), algorithm, random, getters, line-semantics, manual-validation, hexagram/trigram records
-│   ├── consultation-file/         # @hexagram/consultation-file — file format (Markdown + YAML frontmatter), IR→Markdown serializer, legacy converter
+│   ├── consultation-file/         # @hexagram/consultation-file — canonical YAML envelope (frontmatter + injected Markdown body), file save/load, legacy converter
 │   ├── text-layout/               # @hexagram/text-layout — CJK-aware column width + padding/centring helpers (no divination meaning)
-│   └── consultation-view/         # @hexagram/consultation-view — medium-neutral Consultation-view IR (presentation vocabulary, section order, ledger geometry) + buildConsultationView
+│   └── consultation-view/         # @hexagram/consultation-view — medium-neutral Consultation-view IR (presentation vocabulary, section order, glyph vocabulary) + buildConsultationView + buildLedgerRows
 ├── cli/                           # medium-bound terminal-layer libraries — thin serializers of the domain
 │   ├── viewer-core/               # @hexagram/viewer-core — generic terminal-UI primitives (ScreenShell, palette, chrome, keymap, layout)
 │   ├── readout/                   # @hexagram/readout — ANSI serializer of the Consultation-view IR (ConsultationReadout + IR→ANSI serializers)
+│   ├── text-grid/                 # @hexagram/text-grid — medium-bound monospace renderer: column geometry, the ledger/diagram rendering skeletons, the auto-scroll row math, and the Markdown body serializer of the consultation-view IR
 │   ├── casting-ui/                # @hexagram/casting-ui — Ink casting viewer + interactive/manual flows, plain-mode renderers
 │   ├── history-ui/                # @hexagram/history-ui — Ink history browser
 │   ├── playground-ui/             # @hexagram/playground-ui — Ink interactive playground (4-state line explorer)
@@ -110,7 +111,7 @@ ts-hexagram-generator/             # workspace root (private)
     └── cli/                       # @hexagram/cli (private) — hexagram + hexagram-random + hexagram-interactive + hexagram-manual + hexagram-history + hexagram-playground bins; workspace-root anchors consultations/ to the repo root
 ```
 
-The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; the domain-vs-CLI boundary that names the two buckets is `docs/adr/0019-domain-cli-boundary.md`. See `docs/adr/` for the full set of architecture decisions. The consultation presentation IR — `@hexagram/core` + `@hexagram/text-layout` → `@hexagram/consultation-view` → `@hexagram/readout` + `@hexagram/consultation-file` + `@hexagram/playground-ui`, each a thin serializer of the shared IR — is recorded in `docs/adr/0018-consultation-view-ir.md`.
+The decision behind this decomposition (and the dependency DAG) is recorded in `docs/adr/0002-monorepo-structure-and-package-decomposition.md`; the domain-vs-CLI boundary that names the two buckets is `docs/adr/0019-domain-cli-boundary.md`. See `docs/adr/` for the full set of architecture decisions. The consultation presentation IR — `@hexagram/core` + `@hexagram/text-layout` → `@hexagram/consultation-view` (medium-neutral IR) → `@hexagram/text-grid` (medium-bound monospace serializer: column geometry, ledger/diagram skeletons, auto-scroll row math, IR→Markdown body) → `@hexagram/readout` + `@hexagram/playground-ui`; `@hexagram/consultation-file` owns only the canonical YAML envelope and receives the rendered Markdown body as an argument (no dependency on `consultation-view`) — is recorded in `docs/adr/0018-consultation-view-ir.md` and `docs/adr/0022-monospace-text-grid-is-medium-bound.md`.
 
 Library packages publish via `package.json#exports` only (no `main`/`module`/`types`). Each entry carries `source` / `types` / `import` conditions: `source` (`./src/index.ts`) for `tsx`/`vitest` no-build dev, `types` (`./dist/*.d.mts`) and `import` (`./dist/*.mjs`) for consumers.
 
@@ -121,7 +122,7 @@ contain private or identifying details from real consultations. NEVER:
 
 - Copy a real consultation into a fixture, doc, example, or comment.
 - Author a fixture query that includes real-world identifying details.
-  Use invented names and generic scenarios — see `domain/consultation-file/tests/fixtures/cases.ts`
+  Use invented names and generic scenarios — see `cli/text-grid/tests/fixtures/cases.ts`
   for the generic style, and the `legacy-real-*.txt` corpus for the
   fictional-but-scenario-rich style (Greyfen Hold, Steward Aelric, etc.).
 - Paste a snippet from `consultations/` into a commit message, PR body,
@@ -251,11 +252,11 @@ Both CLIs capture the eighteen stalk divisions (3 per line × 6 lines) as a `Cas
 
 - **Plain (`--plain` / `--no-ui`, or any non-TTY stdout)** — keeps the classic Inquirer-driven terminal flow. `getHexagramViaInteraction()` / `generateRandomConsultation()` collect the data, then `logAndSaveConsultationOutput()` prints the formatted reading. `--wrap-width` and `--numeric-input` have no effect here (the slider is a viewer-only feature; plain mode is always typed).
 
-Either way the reading is saved as a timestamped `.md` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `cli/readout/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `cli/readout/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` (in `cli/casting-ui/src/output-composers.ts`) composes the plain output from the same `@hexagram/readout` section builders. The `--plain` stdout output is locked byte-for-byte by fixtures in `cli/casting-ui/tests/fixtures/`. The `.md` save output (frontmatter + body) is locked separately by fixtures in `domain/consultation-file/tests/fixtures/`. Regenerate both sets together with `pnpm generate-fixtures` after intentionally changing a section builder (driven by the shared cases in `cli/casting-ui/tests/fixtures/cases.ts`).
+Either way the reading is saved as a timestamped `.md` file under `consultations/`. Content generation is split from rendering: `buildConsultationSections()` in `cli/readout/src/output-composers.ts` produces the per-tab strings, `castingSection()` in `cli/readout/src/output-sections.ts` accepts a `PartialCastingRecord` so the same renderer is reused while the table is being filled in (`·` placeholders for null cells), and `consultationConsoleOutput()` (in `cli/casting-ui/src/output-composers.ts`) composes the plain output from the same `@hexagram/readout` section builders. The `--plain` stdout output is locked byte-for-byte by fixtures in `cli/casting-ui/tests/fixtures/`. The `.md` save output (frontmatter + body) is locked separately by fixtures in `cli/text-grid/tests/fixtures/`. Regenerate both sets together with `pnpm generate-fixtures` after intentionally changing a section builder (driven by the shared cases in `cli/text-grid/tests/fixtures/cases.ts`).
 
 ### Consultation file format — `@hexagram/consultation-file`
 
-Every saved consultation is a Markdown file with a YAML frontmatter envelope. The frontmatter is the canonical model — five fields:
+`@hexagram/consultation-file` owns the canonical YAML envelope; the Markdown body is rendered by `@hexagram/text-grid` (`markdownConsultationBody`) and injected into `saveConsultationFile` as an opaque string — the package does not depend on `@hexagram/consultation-view`. Every saved consultation is a Markdown file with a YAML frontmatter envelope. The frontmatter is the canonical model — five fields:
 
 - `schemaVersion: 1` (strict-equal on load; mismatch surfaces row as `[unreadable]` in `hexagram-history`)
 - `timestamp` (ISO 8601 with offset, e.g. `2026-05-19T14:23:11+0800`)
@@ -263,9 +264,9 @@ Every saved consultation is a Markdown file with a YAML frontmatter envelope. Th
 - `hexagram` (mapping keyed `L6..L1` — visual top-first, like `casting`; a converter inverts to/from the bottom-first `Hexagram` tuple at the package boundary)
 - `casting` (mapping keyed `L6..L1` — visual top-first; a converter inverts to/from the bottom-first `CastingRecord` tuple at the package boundary)
 
-The Markdown body below the frontmatter is **decorative**: re-rendered from the envelope by `markdownConsultationBody` on every load. On open, the history flow byte-compares the freshly-rendered body against disk and rewrites if they differ (so renderer upgrades self-heal old files). Derived data — hex name, emerging hex, scripture/exegesis text, translations — is never persisted; it's recomputed via `@hexagram/core/getters` every render.
+The Markdown body below the frontmatter is **decorative**: re-rendered from the envelope by `markdownConsultationBody` (from `@hexagram/text-grid`) on every load. On open, the history flow byte-compares the freshly-rendered body against disk and rewrites if they differ (so renderer upgrades self-heal old files). Derived data — hex name, emerging hex, scripture/exegesis text, translations — is never persisted; it's recomputed via `@hexagram/core/getters` every render.
 
-Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation-file/file`.
+Filename: `consultation-<timestamp>.md`, under `<cwd>/consultations/`. Saving is `saveConsultationFile({ query, hexagram, casting, body })`; loading is `loadConsultationFile(filePath)`. Both are exported from `@hexagram/consultation-file/file`. The `body` string is produced by `markdownConsultationBody` from `@hexagram/text-grid` and passed in by the caller — `consultation-file` treats it as opaque.
 
 Legacy `.txt` files (pre-Markdown era) are migrated by `pnpm hexagram-history --convert-legacy`, which parses each `.txt` via `convertLegacyTxt`, writes the corresponding `.md`, and moves the original into `consultations/legacy/`. The migration handles both **Shape A** (recent format with CASTING table — full casting recovered) and **Shape B** (older format without CASTING — sets `casting: null`, `castingAbsence: legacy-no-table`). `consultations/legacy/` is never scanned by `hexagram-history`. A `casting: null` envelope arises from THREE origins — a legacy Shape-B conversion, a Shape-A table that fails replay-validation, and a Playground save (the playground writes a hexagram with `casting: null`) — now distinguished by the compulsory `castingAbsence` reason field (`legacy-no-table` / `legacy-unreplayable` / `playground`, respectively; see ADR-0008). All three are history-browsable rows that render a reason-aware "Casting not recorded (<reason>)" notice.
 
@@ -305,12 +306,13 @@ Lookup entrypoint: `getHexagramRecord(hexagram: Hexagram)` in `domain/core/src/g
 
 ### Build
 
-Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/core` → `@hexagram/consultation-file` → `@hexagram/viewer-core` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
+Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ensures `@hexagram/core` → `@hexagram/consultation-file` + `@hexagram/consultation-view` → `@hexagram/viewer-core` + `@hexagram/text-grid` → `@hexagram/readout` → `@hexagram/casting-ui` + `@hexagram/history-ui` + `@hexagram/playground-ui` → `@hexagram/shell` → `@hexagram/cli` build in topological order. tsdown emits `.mjs` (ESM) and `.d.mts` (TypeScript declarations); the `package.json#exports` map points at those paths.
 
 - `domain/core/tsdown.config.ts` — ten entries: `index`, `casting-derivation`, `crypto-random`, `getters`, `line-semantics`, `manual-validation`, `hexagrams`, `random-casting`, `trigrams`, `types` (one per exported subpath; `types` is the domain vocabulary; the `hexagrams`/`trigrams` entries ship from `src/models/` but are exported at the top-level subpath).
 - `domain/consultation-file/tsdown.config.ts` — five entries: `index`, `markdown`, `frontmatter`, `file`, `legacy-converter` (matching the exported subpaths).
 - `cli/viewer-core/tsdown.config.ts` — single `./src/index.ts` entry.
 - `cli/readout/tsdown.config.ts` — single `./src/index.ts` entry (the `ConsultationReadout` component + the per-section string builders).
+- `cli/text-grid/tsdown.config.ts` — single `./src/index.ts` entry (column geometry, ledger/diagram skeletons, auto-scroll row math, `markdownConsultationBody`).
 - `cli/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `cli/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `apps/cli/tsdown.config.ts` — six entries (`hexagram`, `interactive`, `random`, `manual`, `history`, `playground`) matching the six `bin` map entries.
