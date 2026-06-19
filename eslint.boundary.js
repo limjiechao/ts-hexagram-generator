@@ -5,7 +5,12 @@
 // The dependency arrow points cli → domain, never the reverse: a `domain/*`
 // file may not import any `cli/*` package.
 
-// The eight cli/* package names (ADR-0019).
+// The eight cli/* package names (ADR-0019). Seven are runtime packages in the
+// cli → domain DAG; `@hexagram/test-utils` is a private, dev-only test-helper
+// leaf that sits OUTSIDE the runtime DAG. It is listed here deliberately, not
+// by oversight: the boundary ban must also stop a domain test from importing a
+// cli test helper, so a shared helper a domain test needs is homed in domain
+// (e.g. @hexagram/core/sample-casting) rather than reached for across the wall.
 export const cliPackageNames = [
   '@hexagram/viewer-core',
   '@hexagram/readout',
