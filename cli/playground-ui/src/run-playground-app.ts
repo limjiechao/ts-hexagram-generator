@@ -1,8 +1,11 @@
 // `runPlaygroundApp()` — the run entry for `hexagram-playground`. Pure
 // I/O wrapper: a TTY-guard returning a boolean (so the bin can map exit
 // codes), a single `render()` on the alternate screen, and an await on
-// the app's exit. Mirrors `runHistoryViewer` and `runHexagram` exactly so
-// every Ink-only run-entry behaves consistently.
+// the app's exit. Mirrors `runHexagram` exactly — both self-guard with
+// `warnIfNonInteractive` and return the boolean for the bin to map. NOT
+// `runHistoryViewer`, which carries no internal guard: its bin guards
+// externally with `refuseIfNonInteractive` (the two refusal forms are the
+// deliberate split documented on those helpers in viewer-core).
 
 import {
   liveSnapshot,
