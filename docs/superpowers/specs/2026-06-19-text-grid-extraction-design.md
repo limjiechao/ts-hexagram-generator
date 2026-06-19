@@ -33,8 +33,8 @@ pure character-counting — an HTML host with a proportional font would get ragg
 emit a `<table>` and let CSS lay it out, not reuse `width: 6`.
 
 **The decisive structural fact:** the saved-`.md` Markdown body renderer lives in
-`domain/consultation-file` (a *domain* package) and drives the *same* monospace skeletons — the
-`.md` body literally *is* a monospace ASCII table inside a ` ```text ` fence. So this geometry is
+`domain/consultation-file` (a _domain_ package) and drives the _same_ monospace skeletons — the
+`.md` body literally _is_ a monospace ASCII table inside a ` ```text ` fence. So this geometry is
 not a CLI-only leak; it is shared with a domain consumer. The honest conclusion (Gate B decision):
 the **decorative `.md` body is itself a medium-bound monospace rendering**, mis-homed in the domain.
 The HTML litmus can never fully pass while the domain owns the `.md` body format — because that
@@ -49,8 +49,8 @@ out of the domain into a new Ink-free cli package, **`@hexagram/text-grid`** (`c
 
 The reclassification is **surgical**: ADR-0019's core insight — that presentation-of-domain
 (glyphs, labels, section order, line semantics, the semantic IR) is domain knowledge, not UI —
-stays true. We carve out **only** the monospace character-cell *geometry* and the monospace
-*serializers*. The glyph vocabulary stays in the domain because unicode glyph strings are genuinely
+stays true. We carve out **only** the monospace character-cell _geometry_ and the monospace
+_serializers_. The glyph vocabulary stays in the domain because unicode glyph strings are genuinely
 medium-neutral (an HTML host reuses them verbatim).
 
 ---
@@ -58,12 +58,14 @@ medium-neutral (an HTML host reuses them verbatim).
 ## 3. Target architecture
 
 ### `domain/consultation-view` — the true medium-neutral IR (stays; shrinks)
+
 Keeps: `ir.ts` (section descriptor types), `build-view.ts` (`buildConsultationView`,
 `sectionsForMedium`, all sub-builders), the **glyph vocabulary** (`LINE_GLYPH`, `POSITION_LABELS`,
 `LINE_LABELS`), and `buildLedgerRows` (builds `LedgerRow` IR from a casting record — no widths;
-consumed by `build-view.ts`). After this change an HTML host reuses *all* of `consultation-view`.
+consumed by `build-view.ts`). After this change an HTML host reuses _all_ of `consultation-view`.
 
 ### `cli/text-grid` — the monospace render layer (NEW, Ink-free)
+
 Owns: the monospace **geometry** (column widths + diagram/transformation connectors + dividers), the
 shared **rendering skeletons** (`ledger-template`, `diagram-template`, both driven by the existing
 `decorate`-callback pattern), the **viewport scroll math**, and the pure-text **Markdown body
@@ -72,6 +74,7 @@ Depends only on `@hexagram/consultation-view`, `@hexagram/core`, `@hexagram/text
 no `react`, no colour. It is medium-bound (to monospace text), hence `cli/*`.
 
 ### `cli/readout` — unchanged role; rewires imports
+
 `serialize-ansi.ts` stays here (it is colour-bound to the viewer-core palette) but now imports the
 geometry + skeletons from `@hexagram/text-grid` instead of from `consultation-view`. The Ink
 `<ConsultationReadout>` component is untouched. This keeps the saved-`.md` body renderer **out** of
@@ -79,9 +82,11 @@ the Ink/React package — the clean concept boundary that motivated a new packag
 `readout`.
 
 ### `cli/playground-ui` — rewires imports
+
 Imports geometry + diagram skeleton from `@hexagram/text-grid`.
 
 ### `domain/consultation-file` — becomes purely canonical
+
 - `saveConsultationFile` takes the rendered body as **injected text** instead of rendering it
   (see §4). Drops `markdown.ts` + `serialize-markdown.ts` and, with them, its
   `@hexagram/consultation-view` dependency **entirely** (verified: those are the only two files that
@@ -90,15 +95,15 @@ Imports geometry + diagram skeleton from `@hexagram/text-grid`.
 
 ### Inventory (file/symbol level)
 
-| Item | Action | Destination |
-| --- | --- | --- |
-| `ledger-template.ts` (`ledgerBlock`, `LedgerStyle`) | move | `cli/text-grid` |
-| `diagram-template.ts` (`transformationRow`, `hexagramDiagramRowStrings`, `braceSuffix`, `DecorateCell/Row`) | move | `cli/text-grid` |
-| `serialize-markdown.ts` + `markdown.ts` (`markdownConsultationBody`) | move | `cli/text-grid` |
-| `vocabulary.ts` → `LEDGER_COLUMNS`, `RIGHT_COLUMN`, `MOVING_ARROW`, `STATIC_GAP`, `TRIGRAM_DIVIDER_WIDTH` | **split out** | `cli/text-grid` |
-| `vocabulary.ts` → `LINE_GLYPH`, `POSITION_LABELS`, `LINE_LABELS` | **stays** (split into a glyphs module) | `domain/consultation-view` |
-| `ledger-geometry.ts` → `castingTableActiveRow/FollowRow`, `CASTING_HEADER_ROWS`, `CASTING_ROWS_PER_BLOCK`, `CAST1_OFFSET_IN_BLOCK` | **split out** | `cli/text-grid` |
-| `ledger-geometry.ts` → `buildLedgerRows` | **stays** (split into a ledger-rows module) | `domain/consultation-view` |
+| Item                                                                                                                               | Action                                      | Destination                |
+| ---------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------- | -------------------------- |
+| `ledger-template.ts` (`ledgerBlock`, `LedgerStyle`)                                                                                | move                                        | `cli/text-grid`            |
+| `diagram-template.ts` (`transformationRow`, `hexagramDiagramRowStrings`, `braceSuffix`, `DecorateCell/Row`)                        | move                                        | `cli/text-grid`            |
+| `serialize-markdown.ts` + `markdown.ts` (`markdownConsultationBody`)                                                               | move                                        | `cli/text-grid`            |
+| `vocabulary.ts` → `LEDGER_COLUMNS`, `RIGHT_COLUMN`, `MOVING_ARROW`, `STATIC_GAP`, `TRIGRAM_DIVIDER_WIDTH`                          | **split out**                               | `cli/text-grid`            |
+| `vocabulary.ts` → `LINE_GLYPH`, `POSITION_LABELS`, `LINE_LABELS`                                                                   | **stays** (split into a glyphs module)      | `domain/consultation-view` |
+| `ledger-geometry.ts` → `castingTableActiveRow/FollowRow`, `CASTING_HEADER_ROWS`, `CASTING_ROWS_PER_BLOCK`, `CAST1_OFFSET_IN_BLOCK` | **split out**                               | `cli/text-grid`            |
+| `ledger-geometry.ts` → `buildLedgerRows`                                                                                           | **stays** (split into a ledger-rows module) | `domain/consultation-view` |
 
 ---
 
@@ -124,10 +129,11 @@ monospace body is a medium-layer artifact on both save and load.
 ## 5. ADR-0022 (drafted alongside this spec)
 
 `docs/adr/0022-monospace-text-grid-is-medium-bound.md` records the decision and **amends** ADR-0018
-(IR) and ADR-0019 (domain/cli boundary) by reference — the boundary *decision* (domain vs cli)
+(IR) and ADR-0019 (domain/cli boundary) by reference — the boundary _decision_ (domain vs cli)
 stands; only the **classification** of the monospace geometry + `.md` body changes, and the
 over-broad "whole-structure HTML reuse" litmus is corrected to "HTML reuses the semantic IR + glyphs
-+ section order and writes its own table." README index updated; 0018/0019 marked "Amended by 0022".
+
+- section order and writes its own table." README index updated; 0018/0019 marked "Amended by 0022".
 
 ---
 
@@ -145,7 +151,7 @@ over-broad "whole-structure HTML reuse" litmus is corrected to "HTML reuses the 
 
 ## 7. Verification plan
 
-- **Zero-diff fixture regeneration is the core proof.** This is a *move*, not a behaviour change:
+- **Zero-diff fixture regeneration is the core proof.** This is a _move_, not a behaviour change:
   after the refactor, `pnpm generate-fixtures` (both the `cli/casting-ui` plain set and the
   `domain/consultation-file` `.md` set) must produce **no diff**. Any diff means something rendered
   differently — a regression.
@@ -178,9 +184,10 @@ updates. To be sliced into reviewable single-intent commits by `writing-plans`. 
 rendered byte. No change to the glyph vocabulary's home. Not touching the other seams (3–7).
 
 **Risks:**
-- *Mid-refactor boundary-lint failures* — ordering matters; the planner sequences so each commit
+
+- _Mid-refactor boundary-lint failures_ — ordering matters; the planner sequences so each commit
   compiles and the boundary lint stays green.
-- *Accidental byte drift* — guarded by zero-diff fixture regeneration + the byte-identity test.
-- *Over-rotation* — keep the glyph vocabulary and the semantic IR in the domain; do **not** sweep
+- _Accidental byte drift_ — guarded by zero-diff fixture regeneration + the byte-identity test.
+- _Over-rotation_ — keep the glyph vocabulary and the semantic IR in the domain; do **not** sweep
   all "presentation" into cli (that would contradict the legitimately-neutral glyphs and ADR-0019's
   surviving core).

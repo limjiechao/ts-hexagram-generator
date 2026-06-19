@@ -127,7 +127,7 @@ with load); `domain/consultation-view` keeps only the semantic IR + glyph vocabu
   (full inventory, save-path change, slice shape, zero-diff fixture verification plan).
 - **Verify-before-trust payoff:** confirmed all five code claims; found the decisive
   structural fact the ADR framing missed — the `.md` Markdown body renderer is a
-  *domain* consumer of the same monospace skeletons, so "extract to cli" forces
+  _domain_ consumer of the same monospace skeletons, so "extract to cli" forces
   reclassifying the `.md` body itself (it can't simply move, or `domain → cli` would
   break the ADR-0019 lint). Also confirmed `consultation-file` imports
   `consultation-view` in only the two files that move, and all three

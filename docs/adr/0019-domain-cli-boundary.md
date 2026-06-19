@@ -5,10 +5,10 @@ Date: 2026-06-04
 
 > **Amended by [ADR-0022](0022-monospace-text-grid-is-medium-bound.md) (2026-06-19).** The
 > domain-vs-cli boundary decision stands. But this ADR classified "the ledger geometry" as
-> medium-neutral domain knowledge and claimed an HTML host reuses the *whole* consultation
+> medium-neutral domain knowledge and claimed an HTML host reuses the _whole_ consultation
 > structure. ADR-0022 corrects that: the monospace character-cell geometry + the Markdown body
 > serializer are medium-bound and move to the cli package `@hexagram/text-grid`; an HTML host
-> reuses the *semantic* IR (+ glyph vocabulary + section order) and supplies its own table layout.
+> reuses the _semantic_ IR (+ glyph vocabulary + section order) and supplies its own table layout.
 
 The codebase had drawn its top-level boundary at **computation vs rendering**: the
 casting algorithm, the data tables, and the type vocabulary were single-homed in
