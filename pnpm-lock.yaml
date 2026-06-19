@@ -119,9 +119,6 @@ importers:
       react:
         specifier: ^19.2.6
         version: 19.2.6
-      wrap-ansi:
-        specifier: ^10.0.0
-        version: 10.0.0
     devDependencies:
       '@hexagram/test-utils':
         specifier: workspace:*
