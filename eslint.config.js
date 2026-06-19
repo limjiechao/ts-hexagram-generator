@@ -30,7 +30,7 @@ const barrelRootBans = [
   {
     name: '@hexagram/readout',
     message:
-      'Import the concrete subpath — @hexagram/readout/{consultation-readout,output-composers,serialize-ansi,standing-line-color} — not the bare package; it has no root barrel. Casting-table row geometry lives at @hexagram/consultation-view/ledger-geometry (S9, no-barrel-files).',
+      'Import the concrete subpath — @hexagram/readout/{consultation-readout,output-composers,serialize-ansi,standing-line-color} — not the bare package; it has no root barrel. Casting-table row geometry lives at @hexagram/text-grid/scroll-geometry (S9, no-barrel-files).',
   },
   {
     name: '@hexagram/text-grid',

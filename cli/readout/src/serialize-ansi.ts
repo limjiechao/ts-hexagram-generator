@@ -6,10 +6,6 @@
 
 import { sectionsForMedium } from '@hexagram/consultation-view/build-view'
 import {
-  hexagramDiagramRowStrings,
-  transformationRow,
-} from '@hexagram/consultation-view/diagram-template'
-import {
   CASTING_ABSENCE_LABEL,
   type CastingSection,
   type ConsultationView,
@@ -21,13 +17,17 @@ import {
   type TransformationSection,
 } from '@hexagram/consultation-view/ir'
 import {
-  ledgerBlock,
-  type LedgerStyle,
-} from '@hexagram/consultation-view/ledger-template'
+  hexagramDiagramRowStrings,
+  transformationRow,
+} from '@hexagram/text-grid/diagram-template'
 import {
   RIGHT_COLUMN,
   TRIGRAM_DIVIDER_WIDTH,
-} from '@hexagram/consultation-view/vocabulary'
+} from '@hexagram/text-grid/geometry'
+import {
+  ledgerBlock,
+  type LedgerStyle,
+} from '@hexagram/text-grid/ledger-template'
 import { padToColumn } from '@hexagram/text-layout'
 import {
   BOLD_CYAN,

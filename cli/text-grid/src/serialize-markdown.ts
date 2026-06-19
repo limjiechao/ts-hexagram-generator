@@ -12,10 +12,6 @@
 
 import { sectionsForMedium } from '@hexagram/consultation-view/build-view'
 import {
-  hexagramDiagramRowStrings,
-  transformationRow,
-} from '@hexagram/consultation-view/diagram-template'
-import {
   CASTING_ABSENCE_LABEL,
   type CastingSection,
   type ConsultationView,
@@ -25,12 +21,14 @@ import {
   type TextVariant,
   type TransformationSection,
 } from '@hexagram/consultation-view/ir'
-import {
-  ledgerBlock,
-  type LedgerStyle,
-} from '@hexagram/consultation-view/ledger-template'
-import { RIGHT_COLUMN } from '@hexagram/consultation-view/vocabulary'
 import { padToColumn } from '@hexagram/text-layout'
+
+import {
+  hexagramDiagramRowStrings,
+  transformationRow,
+} from './diagram-template.js'
+import { RIGHT_COLUMN } from './geometry.js'
+import { ledgerBlock, type LedgerStyle } from './ledger-template.js'
 
 export function serializeCastingMarkdown(section: CastingSection): string {
   if (section.rows === null) {

@@ -1,16 +1,16 @@
 import { buildConsultationView } from '@hexagram/consultation-view/build-view'
 import type { CastingSection } from '@hexagram/consultation-view/ir'
 import {
-  CAST1_OFFSET_IN_BLOCK,
-  castingTableActiveRow,
-  castingTableFollowRow,
-} from '@hexagram/consultation-view/ledger-geometry'
-import {
   emptyPartialCastingRecord,
   type CastingRecord,
   type Hexagram,
   type PartialCastingRecord,
 } from '@hexagram/core/types'
+import {
+  CAST1_OFFSET_IN_BLOCK,
+  castingTableActiveRow,
+  castingTableFollowRow,
+} from '@hexagram/text-grid/scroll-geometry'
 import { describe, expect, it } from 'vitest'
 
 import { serializeCastingAnsi } from '../src/serialize-ansi.js'

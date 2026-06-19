@@ -5,7 +5,7 @@ import {
   transformationHalfRow,
   transformationRow,
 } from '../src/diagram-template.js'
-import { MOVING_ARROW, STATIC_GAP } from '../src/vocabulary.js'
+import { MOVING_ARROW, STATIC_GAP } from '../src/geometry.js'
 
 const id = (t: string): string => t
 

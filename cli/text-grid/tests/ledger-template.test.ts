@@ -1,7 +1,7 @@
+import type { LedgerRow } from '@hexagram/consultation-view/ir'
 import { deriveSplit } from '@hexagram/core/casting-derivation'
 import { describe, expect, it } from 'vitest'
 
-import type { LedgerRow } from '../src/ir.js'
 import { ledgerBlock, type LedgerStyle } from '../src/ledger-template.js'
 
 // Identity style = the Markdown medium (plain gutter, no colour, throw on null).

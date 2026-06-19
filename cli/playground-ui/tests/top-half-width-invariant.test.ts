@@ -6,9 +6,9 @@
 // should be re-run and `IDENTITY_STACK_WIDTH` bumped (which in turn drives
 // `TOP_HALF_WIDTH`).
 
-import { MOVING_ARROW } from '@hexagram/consultation-view/vocabulary'
 import { getHexagramRecord, getTrigramRecord } from '@hexagram/core/getters'
 import type { Hexagram } from '@hexagram/core/types'
+import { MOVING_ARROW } from '@hexagram/text-grid/geometry'
 import { describe, expect, it } from 'vitest'
 
 import {

@@ -218,6 +218,9 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../../domain/core
+      '@hexagram/text-grid':
+        specifier: workspace:*
+        version: link:../text-grid
       '@hexagram/text-layout':
         specifier: workspace:*
         version: link:../../domain/text-layout

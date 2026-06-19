@@ -5,10 +5,30 @@
   "description": "Medium-bound monospace text-grid renderer: column geometry, the ledger/diagram rendering skeletons, the auto-scroll row math, and the Markdown body serializer of the consultation-view IR",
   "license": "MIT",
   "exports": {
+    "./diagram-template": {
+      "source": "./src/diagram-template.ts",
+      "types": "./dist/diagram-template.d.mts",
+      "import": "./dist/diagram-template.mjs"
+    },
+    "./geometry": {
+      "source": "./src/geometry.ts",
+      "types": "./dist/geometry.d.mts",
+      "import": "./dist/geometry.mjs"
+    },
+    "./ledger-template": {
+      "source": "./src/ledger-template.ts",
+      "types": "./dist/ledger-template.d.mts",
+      "import": "./dist/ledger-template.mjs"
+    },
     "./markdown": {
       "source": "./src/markdown.ts",
       "types": "./dist/markdown.d.mts",
       "import": "./dist/markdown.mjs"
+    },
+    "./scroll-geometry": {
+      "source": "./src/scroll-geometry.ts",
+      "types": "./dist/scroll-geometry.d.mts",
+      "import": "./dist/scroll-geometry.mjs"
     },
     "./package.json": "./package.json"
   },
