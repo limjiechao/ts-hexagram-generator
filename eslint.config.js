@@ -25,7 +25,7 @@ const barrelRootBans = [
   {
     name: '@hexagram/consultation-file',
     message:
-      'Import the concrete subpath — @hexagram/consultation-file/{file,frontmatter,markdown,legacy-converter} — not the bare package; it has no root barrel (S9, no-barrel-files).',
+      'Import the concrete subpath — @hexagram/consultation-file/{file,frontmatter,legacy-converter} — not the bare package; it has no root barrel (S9, no-barrel-files).',
   },
   {
     name: '@hexagram/readout',
