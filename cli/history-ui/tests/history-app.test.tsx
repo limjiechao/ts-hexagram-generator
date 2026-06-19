@@ -10,10 +10,10 @@ import {
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file/frontmatter'
-import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import type { Hexagram } from '@hexagram/core/types'
 import { yieldMacrotask } from '@hexagram/test-utils'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 import { render } from 'ink-testing-library'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
@@ -365,6 +365,12 @@ describe('rerenderOnDisk — save→load→rerender body fidelity', () => {
       casting: null,
       castingAbsence: 'playground',
       dir: tmpDir,
+      body: markdownConsultationBody(
+        'A playground exploration with no casting.',
+        [7, 7, 7, 7, 7, 7] as Hexagram,
+        null,
+        'playground',
+      ),
     })
     const savedFile = await fs.readFile(filePath, 'utf8')
     expect(savedFile).toContain(

@@ -54,6 +54,7 @@ expectTypeOf<
 expectTypeOf<{
   query: string
   hexagram: Hexagram
+  body: string
   casting: null
 }>().not.toExtend<SaveConsultationParams>()
 
@@ -61,6 +62,7 @@ expectTypeOf<{
 expectTypeOf<{
   query: string
   hexagram: Hexagram
+  body: string
   casting: CastingRecord
   castingAbsence: CastingAbsenceReason
 }>().not.toExtend<SaveConsultationParams>()

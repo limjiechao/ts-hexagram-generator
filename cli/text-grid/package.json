@@ -1,0 +1,35 @@
+{
+  "name": "@hexagram/text-grid",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Medium-bound monospace text-grid renderer: column geometry, the ledger/diagram rendering skeletons, the auto-scroll row math, and the Markdown body serializer of the consultation-view IR",
+  "license": "MIT",
+  "exports": {
+    "./markdown": {
+      "source": "./src/markdown.ts",
+      "types": "./dist/markdown.d.mts",
+      "import": "./dist/markdown.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "generate-fixtures": "tsx scripts/generate-fixtures.ts",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/consultation-view": "workspace:*",
+    "@hexagram/core": "workspace:*",
+    "@hexagram/text-layout": "workspace:*"
+  },
+  "devDependencies": {
+    "@hexagram/consultation-file": "workspace:*"
+  }
+}

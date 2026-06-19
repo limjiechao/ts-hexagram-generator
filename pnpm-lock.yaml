@@ -83,6 +83,9 @@ importers:
       '@hexagram/shell':
         specifier: workspace:*
         version: link:../../cli/shell
+      '@hexagram/text-grid':
+        specifier: workspace:*
+        version: link:../../cli/text-grid
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../../cli/viewer-core
@@ -101,6 +104,9 @@ importers:
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
+      '@hexagram/text-grid':
+        specifier: workspace:*
+        version: link:../text-grid
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core
@@ -141,6 +147,9 @@ importers:
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
+      '@hexagram/text-grid':
+        specifier: workspace:*
+        version: link:../text-grid
       '@hexagram/viewer-core':
         specifier: workspace:*
         version: link:../viewer-core
@@ -175,6 +184,9 @@ importers:
       '@hexagram/readout':
         specifier: workspace:*
         version: link:../readout
+      '@hexagram/text-grid':
+        specifier: workspace:*
+        version: link:../text-grid
       '@hexagram/text-layout':
         specifier: workspace:*
         version: link:../../domain/text-layout
@@ -271,6 +283,22 @@ importers:
 
   cli/test-utils: {}
 
+  cli/text-grid:
+    dependencies:
+      '@hexagram/consultation-view':
+        specifier: workspace:*
+        version: link:../../domain/consultation-view
+      '@hexagram/core':
+        specifier: workspace:*
+        version: link:../../domain/core
+      '@hexagram/text-layout':
+        specifier: workspace:*
+        version: link:../../domain/text-layout
+    devDependencies:
+      '@hexagram/consultation-file':
+        specifier: workspace:*
+        version: link:../../domain/consultation-file
+
   cli/viewer-core:
     dependencies:
       '@hexagram/core':
@@ -304,15 +332,9 @@ importers:
 
   domain/consultation-file:
     dependencies:
-      '@hexagram/consultation-view':
-        specifier: workspace:*
-        version: link:../consultation-view
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
-      '@hexagram/text-layout':
-        specifier: workspace:*
-        version: link:../text-layout
       dayjs:
         specifier: ^1.11.20
         version: 1.11.20

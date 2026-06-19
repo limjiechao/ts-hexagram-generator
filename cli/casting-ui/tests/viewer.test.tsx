@@ -1899,7 +1899,14 @@ describe('ConsultationViewer (manual flow)', () => {
     }
     const interactiveArgs = (
       consultationFileOutputMock.mock.calls as unknown as Array<
-        [{ query: string; hexagram: Hexagram; casting: CastingRecord }]
+        [
+          {
+            query: string
+            hexagram: Hexagram
+            casting: CastingRecord
+            body: string
+          },
+        ]
       >
     )[0]?.[0]
 
@@ -1946,7 +1953,14 @@ describe('ConsultationViewer (manual flow)', () => {
     }
     const manualArgs = (
       consultationFileOutputMock.mock.calls as unknown as Array<
-        [{ query: string; hexagram: Hexagram; casting: CastingRecord }]
+        [
+          {
+            query: string
+            hexagram: Hexagram
+            casting: CastingRecord
+            body: string
+          },
+        ]
       >
     )[0]?.[0]
 
@@ -1959,6 +1973,7 @@ describe('ConsultationViewer (manual flow)', () => {
     expect(manualArgs?.query).toBe(interactiveArgs?.query)
     expect(manualArgs?.hexagram).toEqual(interactiveArgs?.hexagram)
     expect(manualArgs?.casting).toEqual(interactiveArgs?.casting)
+    expect(manualArgs?.body).toBe(interactiveArgs?.body)
   }, 30_000)
 
   it('the casting footer carries the Tab/Shift+Tab field + Ctrl+R rewind line hints', async () => {

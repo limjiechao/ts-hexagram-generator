@@ -1,5 +1,6 @@
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
 import type { CastingRecord, Hexagram } from '@hexagram/core/types'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 import { BOLD_GREY, NORMAL } from '@hexagram/viewer-core'
 
 import { consultationConsoleOutput } from './output-composers.js'
@@ -23,6 +24,7 @@ export async function logAndSaveConsultationOutput(
     hexagram,
     casting,
     dir: consultationsDir,
+    body: markdownConsultationBody(question, hexagram, casting),
   })
   console.info('')
   console.info(`${BOLD_GREY}Consultation output saved to ${filePath}.${NORMAL}`)

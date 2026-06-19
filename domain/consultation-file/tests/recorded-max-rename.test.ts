@@ -33,6 +33,7 @@ describe('SplitRecord.recordedMax — in-memory and on-disk', () => {
       hexagram: [7, 8, 7, 8, 7, 8],
       casting,
       dir: tmpDir,
+      body: 'BODY-MARKER',
     })
     const loaded = await loadConsultationFile(file)
     if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
@@ -47,6 +48,7 @@ describe('SplitRecord.recordedMax — in-memory and on-disk', () => {
       hexagram: [7, 8, 7, 8, 7, 8],
       casting,
       dir: tmpDir,
+      body: 'BODY-MARKER',
     })
     const text = await fs.readFile(file, 'utf8')
     expect(text).toContain('recordedMax: 48')

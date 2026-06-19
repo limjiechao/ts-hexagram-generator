@@ -6,9 +6,9 @@ import {
   serializeFrontmatter,
   type ConsultationEnvelope,
 } from '@hexagram/consultation-file/frontmatter'
-import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
 import { ConsultationReadout } from '@hexagram/readout/consultation-readout'
 import { buildConsultationSections } from '@hexagram/readout/output-composers'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 import { QueryBox } from '@hexagram/viewer-core'
 import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import { useEffect, useState, type ReactElement } from 'react'

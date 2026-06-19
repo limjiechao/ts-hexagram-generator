@@ -6,6 +6,7 @@
   "sortImports": true,
   "sortPackageJson": false,
   "ignorePatterns": [
+    "cli/text-grid/tests/fixtures/*.md",
     "domain/consultation-file/tests/fixtures/*.md",
     "docs/superpowers/plans/*.md",
     "docs/reviews/*.md"

@@ -16,7 +16,6 @@ import {
   type ConsultationEnvelope,
   type ParseFailureReason,
 } from './frontmatter.js'
-import { markdownConsultationBody } from './markdown.js'
 import {
   getFilesystemSafeTimestamp,
   getIsoTimestamp,
@@ -56,6 +55,14 @@ export function defaultConsultationsDir(): string {
 export type SaveConsultationParams = {
   query: string
   hexagram: Hexagram
+  /**
+   * The pre-rendered Markdown body. Opaque to the domain: it is produced by the
+   * medium-bound `@hexagram/text-grid` renderer at the cli edge and written
+   * verbatim, symmetric with `loadConsultationFile` (which returns the body as
+   * opaque disk bytes). The domain owns only the canonical YAML envelope
+   * (ADR-0022).
+   */
+  body: string
   dir?: string
 } & (
   | { casting: CastingRecord; castingAbsence?: never }
@@ -77,17 +84,11 @@ export async function saveConsultationFile(
   const fileSafe = getFilesystemSafeTimestamp()
   const filePath = path.join(dir, `consultation-${fileSafe}.md`)
   // Narrow the input union into the envelope's CastingPresence member once, so
-  // the body render and the serialized envelope share one correlated value.
+  // the serialized envelope's casting/castingAbsence pair is correlated.
   const presence: CastingPresence =
     params.casting === null
       ? { casting: null, castingAbsence: params.castingAbsence }
       : { casting: params.casting, castingAbsence: null }
-  const body = markdownConsultationBody(
-    params.query,
-    params.hexagram,
-    presence.casting,
-    presence.casting === null ? presence.castingAbsence : null,
-  )
   const text = serializeFrontmatter(
     {
       schemaVersion: CURRENT_SCHEMA_VERSION,
@@ -96,7 +97,7 @@ export async function saveConsultationFile(
       hexagram: params.hexagram,
       ...presence,
     },
-    body,
+    params.body,
   )
   await fs.writeFile(filePath, text, 'utf8')
   return filePath
