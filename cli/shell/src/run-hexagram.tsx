@@ -13,6 +13,7 @@ import {
   resolveCastBounceMs,
   resolveCastRevealMs,
   resolveInputMode,
+  resolveManualRevealMs,
   resolveSliderSweepMs,
   resolveWrapWidth,
 } from '@hexagram/casting-ui'
@@ -43,9 +44,9 @@ import { HexagramApp, type CastingFlags } from './hexagram-app.js'
  *
  * On a clean run it:
  *   - snapshots the casting flags (`--numeric-input`, `--wrap-width`,
- *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`) and the
- *     `--banner-interval-ms` knob from `process.argv` via the shared
- *     resolvers,
+ *     `--slider-sweep-ms`, `--cast-bounce-ms`, `--cast-reveal-ms`,
+ *     `--manual-reveal-ms`) and the `--banner-interval-ms` knob from
+ *     `process.argv` via the shared resolvers,
  *   - renders `<HexagramApp>` ONCE on the alternate screen with
  *     `exitOnCtrlC: false` — the screens own Ctrl+C (the casting viewer's
  *     discard-confirm depends on Ctrl+C reaching its keymap, not Ink's
@@ -68,6 +69,7 @@ export async function runHexagram(
     sliderSweepMs: resolveSliderSweepMs(),
     castBounceMs: resolveCastBounceMs(),
     castRevealMs: resolveCastRevealMs(),
+    manualRevealMs: resolveManualRevealMs(),
   }
 
   // Snapshot the banner cadence in the same pre-render moment. The same `ms`
