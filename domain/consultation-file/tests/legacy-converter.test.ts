@@ -11,7 +11,6 @@ import {
   serializeFrontmatter,
 } from '../src/frontmatter.js'
 import { convertLegacyTxt } from '../src/legacy-converter.js'
-import { markdownConsultationBody } from '../src/markdown.js'
 
 const dir = path.join(path.dirname(fileURLToPath(import.meta.url)), 'fixtures')
 const read = (name: string): string =>
@@ -192,7 +191,7 @@ describe('convertLegacyTxt — filename → ISO timestamp', () => {
 })
 
 describe('converted → md round-trips through serialize', () => {
-  it('produces a parseable .md with a CASTING section for a recovered casting', () => {
+  it('produces a parseable .md envelope with a casting key for a recovered casting', () => {
     const result = convertLegacyTxt({
       text: read('legacy-real-split-casting.txt'),
       filenameTimestamp: '2026-05-15T12-07-00+0800',
@@ -200,17 +199,12 @@ describe('converted → md round-trips through serialize', () => {
     if (!result.ok) throw new Error(result.reason)
     const { envelope } = result
     expect(envelope.casting).not.toBeNull()
-    const body = markdownConsultationBody(
-      envelope.query,
-      envelope.hexagram,
-      envelope.casting,
-    )
-    const md = serializeFrontmatter(envelope, body)
+    const md = serializeFrontmatter(envelope, '')
     expect(md.startsWith('---\n')).toBe(true)
-    expect(md).toContain('## CASTING')
+    expect(md).toMatch(/^casting:/m)
   })
 
-  it('omits the casting key and shows the null caption for a no-casting file', () => {
+  it('omits the casting key for a no-casting file', () => {
     const result = convertLegacyTxt({
       text: read('legacy-real-oldest-no-casting.txt'),
       filenameTimestamp: '2025-06-10T04-09-02+0800',
@@ -218,15 +212,9 @@ describe('converted → md round-trips through serialize', () => {
     if (!result.ok) throw new Error(result.reason)
     const { envelope } = result
     expect(envelope.casting).toBeNull()
-    const body = markdownConsultationBody(
-      envelope.query,
-      envelope.hexagram,
-      envelope.casting,
-    )
-    const md = serializeFrontmatter(envelope, body)
+    const md = serializeFrontmatter(envelope, '')
     expect(md.startsWith('---\n')).toBe(true)
     expect(md).not.toMatch(/^casting:/m)
-    expect(body).toContain('_Casting not recorded._')
   })
 })
 

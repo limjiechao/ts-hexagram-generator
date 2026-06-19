@@ -20,6 +20,7 @@ import {
   buildPartialCastingSections,
   type ConsultationSections,
 } from '@hexagram/readout/output-composers'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 import {
   ConfirmModal,
   HelpOverlay,
@@ -358,6 +359,7 @@ export function ConsultationViewer({
           hexagram,
           casting,
           dir: consultationsDir,
+          body: markdownConsultationBody(state.query, hexagram, casting),
         })
         if (!cancelled)
           dispatch({ type: 'computeSucceeded', sections, savedPath })

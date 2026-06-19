@@ -32,14 +32,19 @@ const barrelRootBans = [
     message:
       'Import the concrete subpath — @hexagram/readout/{consultation-readout,output-composers,serialize-ansi,standing-line-color} — not the bare package; it has no root barrel. Casting-table row geometry lives at @hexagram/consultation-view/ledger-geometry (S9, no-barrel-files).',
   },
+  {
+    name: '@hexagram/text-grid',
+    message:
+      'Import the concrete subpath — @hexagram/text-grid/{markdown,geometry,ledger-template,diagram-template,scroll-geometry} — not the bare package; it has no root barrel (S9, no-barrel-files).',
+  },
 ]
 
 export default sxzz().append(
   {
-    // Planning docs under docs/ contain illustrative TypeScript snippets
-    // (often partial/incomplete) that should not be held to source-grade
-    // lint rules.
-    ignores: ['docs/**/*.md'],
+    // Planning docs under docs/ and agent artefacts under .superpowers/ contain
+    // illustrative TypeScript snippets (often partial/incomplete) that should
+    // not be held to source-grade lint rules.
+    ignores: ['docs/**/*.md', '.superpowers/**'],
   },
   {
     rules: {

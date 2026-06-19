@@ -32,6 +32,7 @@ import path from 'node:path'
 import process from 'node:process'
 
 import { saveConsultationFile } from '@hexagram/consultation-file/file'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 import {
   BOLD_GREY,
   clamp,
@@ -286,6 +287,7 @@ export function PlaygroundApp({
         casting: null,
         // The playground explores lines without a real yarrow cast.
         castingAbsence: 'playground',
+        body: markdownConsultationBody(query, state.lines, null, 'playground'),
       }
       if (saveDir !== undefined) params.dir = saveDir
       saveConsultationFile(params)

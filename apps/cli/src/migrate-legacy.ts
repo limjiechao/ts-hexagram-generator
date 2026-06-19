@@ -4,7 +4,7 @@ import process from 'node:process'
 
 import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
 import { convertLegacyTxt } from '@hexagram/consultation-file/legacy-converter'
-import { markdownConsultationBody } from '@hexagram/consultation-file/markdown'
+import { markdownConsultationBody } from '@hexagram/text-grid/markdown'
 
 export async function migrateLegacy(dir: string): Promise<void> {
   const entries = await fs.readdir(dir).catch(() => [])

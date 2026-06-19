@@ -5,7 +5,7 @@
 // The dependency arrow points cli → domain, never the reverse: a `domain/*`
 // file may not import any `cli/*` package.
 
-// The seven cli/* package names (ADR-0019).
+// The eight cli/* package names (ADR-0019).
 export const cliPackageNames = [
   '@hexagram/viewer-core',
   '@hexagram/readout',
@@ -14,6 +14,7 @@ export const cliPackageNames = [
   '@hexagram/playground-ui',
   '@hexagram/shell',
   '@hexagram/test-utils',
+  '@hexagram/text-grid',
 ]
 
 const boundaryMessage =

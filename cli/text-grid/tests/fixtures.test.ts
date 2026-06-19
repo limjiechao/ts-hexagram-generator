@@ -2,9 +2,9 @@ import { readFileSync } from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { serializeFrontmatter } from '@hexagram/consultation-file/frontmatter'
 import { describe, expect, it } from 'vitest'
 
-import { serializeFrontmatter } from '../src/frontmatter.js'
 import { markdownConsultationBody } from '../src/markdown.js'
 import { cases, FIXTURE_TIMESTAMP } from './fixtures/cases.js'
 

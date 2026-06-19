@@ -47,6 +47,7 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       // Replay-valid divisions: load now replays the casting (ADR-0008 S7).
       casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
+      body: 'BODY-MARKER',
     })
 
     expect(savedPath).toMatch(/consultation-.*\.md$/)
@@ -64,11 +65,12 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       casting: null,
       castingAbsence: 'playground',
       dir: tmpDir,
+      body: '## CASTING\n\n_Casting not recorded._\n',
     })
 
     const text = await fs.readFile(savedPath, 'utf8')
     expect(text).not.toMatch(/^casting:/m)
-    expect(text).toContain('_Casting not recorded')
+    expect(text).toContain('_Casting not recorded._')
 
     const loaded = await loadConsultationFile(savedPath)
     if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
@@ -84,6 +86,7 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       casting: null,
       castingAbsence: 'playground',
       dir: tmpDir,
+      body: 'BODY-MARKER',
     })
     const text = await fs.readFile(savedPath, 'utf8')
     expect(text).toMatch(/^castingAbsence: playground$/m)
@@ -104,6 +107,7 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       hexagram: [7, 8, 7, 8, 7, 8],
       casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
       dir: tmpDir,
+      body: 'BODY-MARKER',
     })
     const loaded = await loadConsultationFile(savedPath)
     if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)

@@ -1,6 +1,6 @@
 import { defineConfig } from 'tsdown'
 
 export default defineConfig({
-  entry: ['./src/frontmatter.ts', './src/file.ts', './src/legacy-converter.ts'],
+  entry: ['./src/markdown.ts'],
   platform: 'node',
 })

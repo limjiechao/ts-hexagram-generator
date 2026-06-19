@@ -42,7 +42,7 @@
     "hexagram-manual": "tsx apps/cli/src/manual.ts",
     "hexagram-playground": "tsx apps/cli/src/playground.ts",
     "generate-json-files": "turbo run generate-json-files --filter=@hexagram/core",
-    "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/casting-ui --filter=@hexagram/consultation-file"
+    "generate-fixtures": "turbo run generate-fixtures --filter=@hexagram/casting-ui --filter=@hexagram/text-grid"
   },
   "devDependencies": {
     "@sxzz/eslint-config": "^8.1.0",

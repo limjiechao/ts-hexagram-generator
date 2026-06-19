@@ -5,11 +5,6 @@
   "description": "Yijing hexagram oracle: consultation file format (Markdown + YAML frontmatter), renderers, and legacy converter",
   "license": "MIT",
   "exports": {
-    "./markdown": {
-      "source": "./src/markdown.ts",
-      "types": "./dist/markdown.d.mts",
-      "import": "./dist/markdown.mjs"
-    },
     "./frontmatter": {
       "source": "./src/frontmatter.ts",
       "types": "./dist/frontmatter.d.mts",
@@ -35,14 +30,11 @@
   },
   "scripts": {
     "build": "tsdown",
-    "generate-fixtures": "tsx scripts/generate-fixtures.ts",
     "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/consultation-view": "workspace:*",
     "@hexagram/core": "workspace:*",
-    "@hexagram/text-layout": "workspace:*",
     "dayjs": "^1.11.20",
     "gray-matter": "^4.0.3",
     "js-yaml": "^3.14.1"
