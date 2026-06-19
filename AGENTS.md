@@ -312,7 +312,7 @@ Each package has its own `tsdown.config.ts`. Turborepo's `^build` dependency ens
 - `domain/consultation-file/tsdown.config.ts` — five entries: `index`, `markdown`, `frontmatter`, `file`, `legacy-converter` (matching the exported subpaths).
 - `cli/viewer-core/tsdown.config.ts` — single `./src/index.ts` entry.
 - `cli/readout/tsdown.config.ts` — single `./src/index.ts` entry (the `ConsultationReadout` component + the per-section string builders).
-- `cli/text-grid/tsdown.config.ts` — single `./src/index.ts` entry (column geometry, ledger/diagram skeletons, auto-scroll row math, `markdownConsultationBody`).
+- `cli/text-grid/tsdown.config.ts` — five entries: `diagram-template`, `geometry`, `ledger-template`, `markdown`, `scroll-geometry` (no barrel index; each subpath is a direct concrete module).
 - `cli/casting-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `cli/history-ui/tsdown.config.ts` — single `./src/index.ts` entry.
 - `apps/cli/tsdown.config.ts` — six entries (`hexagram`, `interactive`, `random`, `manual`, `history`, `playground`) matching the six `bin` map entries.
