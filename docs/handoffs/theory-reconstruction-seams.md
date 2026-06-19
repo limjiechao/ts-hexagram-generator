@@ -283,6 +283,19 @@ _secondary_ boundaries.
 
 ### 🟢 SEAM 5 — `recordedMax = length − 1` derivation duplicated 6+ times [SEVERITY: LOW-MEDIUM]
 
+**Resolved by** commit `9ad55b4` (Batch D), branch `claude/great-davinci-t8wmyq`.
+Added one home for the derivation — `recordedMaxForUnparted(unparted)` in
+`casting-derivation.ts`, beside `selectablePickMax`/`stalkCountFor`.
+`recordedMaxFor` now delegates to it; `performCast`, the four random-casting
+sites, and the interactive prompt all route through it instead of inlining
+`length − 1`. Behaviour-preserving (returns exactly `length − 1`); the value is
+still clamped by `selectablePickMax` and enforced by `assertSelectablePick`.
+Verified: full suite (25 tasks) green incl. the byte-identity gate, plus a new
+`recordedMaxForUnparted` describe block in `casting-derivation.test.ts`;
+type/lint/format clean.
+
+_Original finding retained below for the record._
+
 **Direction: STRAINED-CONFORMANCE** — _enforcement_ is single-homed (no corruption risk);
 _derivation knowledge_ is not.
 
@@ -299,13 +312,18 @@ _derivation knowledge_ is not.
 
 ---
 
-### 🟢 SEAM 6 — Two line-value computations equal-by-test [SEVERITY: LOW]
+### ✅ SEAM 6 — Two line-value computations equal-by-test [RESOLVED 2026-06-19 (Batch D) — NO-OP, deliberate]
+
+**Confirmed as different knowledge — left unchanged (no merge).** `performCast`
+computes `line = unparted.length / 4` (generation); `deriveSplit.combinedPiles`
+reconstructs it from remainders for display/replay (`casting-derivation.ts:88-95`,
+which already documents the split and points at the `4·combinedPiles ===
+unpartedStalks.length` identity locked in `perform-cast.test.ts`). Per DRY-as-
+knowledge (AGENTS.md §5), two computations that merely agree numerically but
+encode different intents must NOT be abstracted together. Verified the doc claim
+against the code this session; no action taken.
 
 **Direction: STRAINED-CONFORMANCE / documented intent.**
-`performCast` computes `line = unparted.length / 4`; `deriveSplit.combinedPiles`
-reconstructs it from remainders (`casting-derivation.ts:88-95`). Tied only by a 3-pick
-test. ADR-0006 frames this as generation-vs-reconstruction (different knowledge), so it's
-defensible — note for awareness, likely no action.
 
 ---
 
@@ -383,20 +401,26 @@ sequence of small single-intent diffs.
      call, deliberately not folded into Batch C; decide separately if secondary
      boundaries should be hardened.
 
-4. **BATCH D — optional DRY pass (Seams 5, 6).** Only if desired. Single-source the
-   `length − 1` derivation; otherwise leave documented and move on.
+4. ~~**BATCH D — optional DRY pass (Seams 5, 6).**~~ ✅ **DONE 2026-06-19** on branch
+   `claude/great-davinci-t8wmyq`:
+   - 5 `9ad55b4` — single-sourced the `recordedMax = length − 1` derivation as
+     `recordedMaxForUnparted`; `recordedMaxFor`/`performCast`/random/interactive all
+     route through it. Behaviour-preserving; full suite + new derivation tests green.
+   - 6 — **NO-OP** (confirmed different knowledge: generation vs reconstruction;
+     AGENTS.md §5). Not merged. See the RESOLVED Seam 6 block.
 
 **Critical-path:** ~~Gate A (correctness) → ships first.~~ ✅ shipped.
-~~Next: Gate B (Seam 2) or Batch C.~~ Both Gate A and Batch C ✅ shipped. **Gate B
-(Seam 2 text-grid extraction) ALSO appears to have landed on `main`** —
-verified-before-trust this session via `git log` (`499987c`→`bf9f484`) and the
-live tree (`@hexagram/text-grid` exists, `eslint.config.js` bans it, CLAUDE.md
-describes it). The Seam 2 block above still says "implementation pending" because
-it was written pre-merge; treat Seam 2 as DONE pending a confirmation pass.
+~~Next: Gate B (Seam 2) or Batch C.~~ Gate A, Batch C, **and Batch D** ✅ shipped.
+**Gate B (Seam 2 text-grid extraction) ALSO landed on `main`** — verified this
+session via `git log` (`499987c`→`bf9f484`) and the live tree
+(`@hexagram/text-grid` exists, `eslint.config.js` bans it, CLAUDE.md describes it).
+The Seam 2 block above still says "implementation pending" because it was written
+pre-merge; treat Seam 2 as DONE pending a confirmation pass.
 
-**Next recommended target: BATCH D** (optional DRY pass — Seams 5 & 6: single-source
-the `length − 1` derivation), or the deferred **4b/4c** secondary-boundary
-hardening if the team wants it. Both are low-stakes; Batch D is explicitly optional.
+**All seams 1–7 are now resolved or confirmed-conformant.** The ONLY remaining
+open unit of work is the deferred **4b/4c** secondary-boundary hardening
+(width-fence test evasion + untested barrel/width lint bans). A written plan for
+it lives at `docs/superpowers/plans/2026-06-19-secondary-boundary-hardening.md`.
 
 ---
 
