@@ -24,7 +24,7 @@ import type {
   TextSection,
   TextVariant,
 } from './ir.js'
-import { buildLedgerRows } from './ledger-geometry.js'
+import { buildLedgerRows } from './ledger-rows.js'
 
 function capitalizeFirst(text: string): string {
   return text.length === 0 ? text : `${text[0]!.toUpperCase()}${text.slice(1)}`

@@ -1,8 +1,9 @@
+import type { LedgerRow } from '@hexagram/consultation-view/ir'
+import { LINE_LABELS } from '@hexagram/consultation-view/vocabulary'
 import type { DerivedSplit } from '@hexagram/core/casting-derivation'
 import { centerVisual, padStartVisual } from '@hexagram/text-layout'
 
-import type { LedgerRow } from './ir.js'
-import { LEDGER_COLUMNS, LINE_LABELS } from './vocabulary.js'
+import { LEDGER_COLUMNS } from './geometry.js'
 
 /** The medium a serializer injects into the shared ledger geometry. Markdown
  *  passes identity callbacks + a plain gutter; ANSI passes its palette runs. */

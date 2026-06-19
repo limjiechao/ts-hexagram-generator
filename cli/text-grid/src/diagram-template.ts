@@ -1,12 +1,11 @@
-import type { Line } from '@hexagram/core/types'
-
-import type { DiagramLineRow } from './ir.js'
+import type { DiagramLineRow } from '@hexagram/consultation-view/ir'
 import {
   LINE_GLYPH,
-  MOVING_ARROW,
   POSITION_LABELS,
-  STATIC_GAP,
-} from './vocabulary.js'
+} from '@hexagram/consultation-view/vocabulary'
+import type { Line } from '@hexagram/core/types'
+
+import { MOVING_ARROW, STATIC_GAP } from './geometry.js'
 
 type PositionKey = keyof typeof POSITION_LABELS
 

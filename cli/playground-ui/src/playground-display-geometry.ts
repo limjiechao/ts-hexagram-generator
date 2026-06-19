@@ -5,7 +5,7 @@
 import {
   MOVING_ARROW,
   TRIGRAM_DIVIDER_WIDTH,
-} from '@hexagram/consultation-view/vocabulary'
+} from '@hexagram/text-grid/geometry'
 
 /** Focus-chevron column (always reserved, even when not focused). */
 export const CHEVRON_WIDTH = 2

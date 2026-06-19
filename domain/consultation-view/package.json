@@ -10,25 +10,10 @@
       "types": "./dist/build-view.d.mts",
       "import": "./dist/build-view.mjs"
     },
-    "./diagram-template": {
-      "source": "./src/diagram-template.ts",
-      "types": "./dist/diagram-template.d.mts",
-      "import": "./dist/diagram-template.mjs"
-    },
     "./ir": {
       "source": "./src/ir.ts",
       "types": "./dist/ir.d.mts",
       "import": "./dist/ir.mjs"
-    },
-    "./ledger-geometry": {
-      "source": "./src/ledger-geometry.ts",
-      "types": "./dist/ledger-geometry.d.mts",
-      "import": "./dist/ledger-geometry.mjs"
-    },
-    "./ledger-template": {
-      "source": "./src/ledger-template.ts",
-      "types": "./dist/ledger-template.d.mts",
-      "import": "./dist/ledger-template.mjs"
     },
     "./vocabulary": {
       "source": "./src/vocabulary.ts",

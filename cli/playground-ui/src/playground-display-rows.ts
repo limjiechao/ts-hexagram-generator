@@ -1,11 +1,8 @@
-import { transformationHalfRow } from '@hexagram/consultation-view/diagram-template'
-import {
-  MOVING_ARROW,
-  STATIC_GAP,
-} from '@hexagram/consultation-view/vocabulary'
 import { isMovingLine } from '@hexagram/core/line-semantics'
 import type { Hexagram, Line } from '@hexagram/core/types'
 import { standingLineColor } from '@hexagram/readout/standing-line-color'
+import { transformationHalfRow } from '@hexagram/text-grid/diagram-template'
+import { MOVING_ARROW, STATIC_GAP } from '@hexagram/text-grid/geometry'
 import {
   BOLD_GREY,
   BOLD_WHITE,

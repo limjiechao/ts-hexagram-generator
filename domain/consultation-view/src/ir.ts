@@ -151,10 +151,9 @@ export type ConsultationSection =
  *
  * "Medium-neutral" means the IR emits NO ANSI/Markdown bytes: section and row
  * STRUCTURE (order, `showLine`/`trailingRule`, cell presence) is shared; glyphs,
- * colour and padding are each serializer's job. The one structural-but-
- * presentation-leaning artifact — the casting table's row-COUNT geometry for the
- * viewer's auto-scroll — lives in `ledger-geometry.ts` and is consumed by the
- * ANSI readout AND the live viewer; it is still row counts, not bytes (finding S10).
+ * colour and padding are each serializer's job. The monospace character-cell
+ * geometry and the casting table's auto-scroll row-math are NOT here — they are
+ * medium-bound and live in `@hexagram/text-grid` (ADR-0022).
  */
 export interface ConsultationView {
   readonly sections: readonly ConsultationSection[]

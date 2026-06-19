@@ -2,10 +2,10 @@
 // Ink — every assertion runs against the ANSI string output of
 // `buildPlaygroundDisplay`.
 
-import { TRIGRAM_DIVIDER_WIDTH } from '@hexagram/consultation-view/vocabulary'
 import { getHexagramRecord } from '@hexagram/core/getters'
 import { getEmergingHexagram } from '@hexagram/core/line-semantics'
 import type { Hexagram } from '@hexagram/core/types'
+import { TRIGRAM_DIVIDER_WIDTH } from '@hexagram/text-grid/geometry'
 import { NORMAL_GREY, stripAnsi } from '@hexagram/viewer-core'
 import { describe, expect, it } from 'vitest'
 
