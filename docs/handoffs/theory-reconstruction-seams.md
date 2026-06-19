@@ -108,7 +108,38 @@ seam with _no reconciling comment_.
 
 ---
 
-### 🟠 SEAM 2 — "Medium-neutral" IR carries monospace terminal geometry [SEVERITY: HIGH]
+### 🟠 SEAM 2 — "Medium-neutral" IR carries monospace terminal geometry [SEVERITY: HIGH — DECISION TAKEN 2026-06-19, IMPLEMENTATION PENDING]
+
+**Gate B decision (per the user): B-full — extract-the-geometry.** Reclassify the
+decorative `.md` body as a medium-bound monospace rendering; move the monospace
+layer (column-width geometry, `ledger-template`/`diagram-template` skeletons, scroll
+math) **and** the Markdown body serializer out of `domain/consultation-view` +
+`domain/consultation-file` into a new Ink-free cli package, **`@hexagram/text-grid`**
+(`cli/text-grid`). `saveConsultationFile` changes to take an injected `body` (symmetric
+with load); `domain/consultation-view` keeps only the semantic IR + glyph vocabulary +
+`buildLedgerRows`; `domain/consultation-file` becomes purely canonical and drops its
+`consultation-view` dependency.
+
+- **Recorded in:** `docs/adr/0022-monospace-text-grid-is-medium-bound.md` (amends
+  ADR-0018 + ADR-0019 by reference; README index updated; 0018/0019 marked "Amended by
+  0022").
+- **Design spec:** `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`
+  (full inventory, save-path change, slice shape, zero-diff fixture verification plan).
+- **Verify-before-trust payoff:** confirmed all five code claims; found the decisive
+  structural fact the ADR framing missed — the `.md` Markdown body renderer is a
+  *domain* consumer of the same monospace skeletons, so "extract to cli" forces
+  reclassifying the `.md` body itself (it can't simply move, or `domain → cli` would
+  break the ADR-0019 lint). Also confirmed `consultation-file` imports
+  `consultation-view` in only the two files that move, and all three
+  `saveConsultationFile` callers are already cli.
+- **What remains:** implementation, to be sliced via `writing-plans` (scaffold package →
+  move geometry/skeletons + rewire readout/playground → move Markdown serializer +
+  inject body + rewire callers → docs + eslint ban-list → zero-diff fixture regen +
+  full verification). The byte-identity fixtures must regenerate with **zero diff** (it's
+  a move, not a behaviour change); the manual≡interactive byte-identity test is the
+  save-path gate.
+
+_Original finding retained below for the record._
 
 **Direction: BOTH — code has a real terminal commitment AND doc framing is broader;
 currently bridged only by an inline comment.** Lowest cross-run legibility (readers
@@ -260,10 +291,13 @@ sequence of small single-intent diffs.
    production code, but the real work was making the suite's pervasively-synthetic
    castings physically real first.
 
-2. **DECISION GATE B — Seam 2 (architecture).** Brainstorm/grill the "medium-neutral"
-   claim against ADR-0018/0019 + CONTEXT.md. Decide: narrow the ADR claim (likely) or
-   extract geometry to `cli/*`. Independent of Gate A — can run in parallel. Outcome =
-   an ADR amendment; possibly no code change.
+2. ~~**DECISION GATE B — Seam 2 (architecture).**~~ ✅ **DECISION TAKEN 2026-06-19** —
+   decision was **extract-the-geometry (B-full)**, not narrow-the-claim. Recorded in
+   `docs/adr/0022-monospace-text-grid-is-medium-bound.md` + spec
+   `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`. New cli package
+   `@hexagram/text-grid`; `saveConsultationFile` takes an injected body. **Implementation
+   pending** (slice via `writing-plans`; zero-diff fixture regen is the proof). See the
+   updated Seam 2 block in §2.
 
 3. **BATCH C — mechanical drift cleanups (Seams 3 + 4 + 7).** No deep design; each its
    own commit, reviewable in one pass:

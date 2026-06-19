@@ -1,7 +1,15 @@
 # Consultation view IR + renderer collapse
 
-Status: Accepted
+Status: Accepted (amended by 0022)
 Date: 2026-06-05
+
+> **Amended by [ADR-0022](0022-monospace-text-grid-is-medium-bound.md) (2026-06-19).** The
+> "12-column casting-ledger geometry" listed here as medium-neutral IR, and the "pure data (no
+> ANSI, no Markdown)" / whole-structure HTML-reuse framing, were too broad: the ledger/diagram
+> geometry is a monospace character grid and the Markdown body serializer is a monospace renderer.
+> ADR-0022 moves the geometry + the Markdown serializer to the cli package `@hexagram/text-grid`,
+> leaving this package's semantic IR (descriptors, order, emerging gate, glyph vocabulary,
+> `buildLedgerRows`) genuinely medium-neutral.
 
 The consultation's **presentation vocabulary** (the line-diagram glyph map,
 position/line labels, the 12-column casting-ledger geometry, the
