@@ -21,8 +21,8 @@ the Markdown ` ```text ` code-fence (exactly the two members the IR's `SectionMe
 not by HTML. The "whole-structure HTML reuse" litmus was therefore only half true.
 
 The decisive fact is that the saved-`.md` Markdown **body** renderer lived in
-`domain/consultation-file` (a domain package) and drove the *same* monospace skeletons: the `.md`
-body literally *is* a monospace ASCII table inside a ` ```text ` fence. The geometry was not a
+`domain/consultation-file` (a domain package) and drove the _same_ monospace skeletons: the `.md`
+body literally _is_ a monospace ASCII table inside a ` ```text ` fence. The geometry was not a
 CLI-only leak; it was shared with a domain consumer. We conclude that the decorative `.md` body is
 itself a **medium-bound monospace rendering** that was mis-homed in the domain.
 
@@ -33,13 +33,13 @@ body serializer move to a new Ink-free, colour-free cli package, **`@hexagram/te
 the `.md` body is now a cli-rendered artifact, `saveConsultationFile` takes the body as **injected
 text** rather than rendering it; the domain owns only the canonical YAML envelope — symmetric with
 load, which already treated the body as opaque bytes. This **amends** ADR-0019 and ADR-0018 by
-reference: the domain/cli boundary *decision* is unchanged; only the **classification** of the
+reference: the domain/cli boundary _decision_ is unchanged; only the **classification** of the
 monospace geometry + `.md` body moves from domain to cli, and the HTML litmus is corrected to "an
 HTML host reuses the semantic IR + glyphs + section order and writes its own table."
 
 The reclassification is surgical. ADR-0019's core insight — presentation-of-domain (glyphs, labels,
 section order, line semantics, the semantic IR) is domain knowledge, not UI — stays true. Only the
-monospace character-cell *geometry* and the monospace *serializers* are medium-bound. The glyph
+monospace character-cell _geometry_ and the monospace _serializers_ are medium-bound. The glyph
 vocabulary stays in the domain because unicode glyph strings are genuinely medium-neutral (an HTML
 host reuses them verbatim).
 
@@ -63,9 +63,9 @@ host reuses them verbatim).
 ## Consequences
 
 - **`domain/consultation-view` is now medium-neutral for real.** An HTML (or PDF) host depends on it
-  + `domain/core` + `domain/text-layout`, reuses the section IR, glyph vocabulary, section order and
-  emerging gate, and writes its own table/diagram layout — without inheriting a 120-col character
-  grid.
+  - `domain/core` + `domain/text-layout`, reuses the section IR, glyph vocabulary, section order and
+    emerging gate, and writes its own table/diagram layout — without inheriting a 120-col character
+    grid.
 - **`saveConsultationFile` gains a `body` parameter** and no longer renders the body; the medium
   layer renders it and injects it. Save and load are now symmetric (both treat the body as opaque
   text). `domain/consultation-file` drops its `@hexagram/consultation-view` dependency entirely.
