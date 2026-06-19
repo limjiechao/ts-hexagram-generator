@@ -10,6 +10,18 @@ import type { SplitRecord } from './types.js'
 export const neverZeroMod4 = (heap: number): number => ((heap - 1) % 4) + 1
 
 /**
+ * recordedMaxForUnparted(unparted) = unparted.length − 1 is the single home of
+ * how a `SplitRecord.recordedMax` is BORN from a round's unparted stalks: one
+ * below the count, reserving the right heap's suspended stalk (掛一). Every flow
+ * derives `recordedMax` here — `recordedMaxFor` (the `LineState` adapter in
+ * `index.ts`) delegates to it, and `performCast`, the random flow, and the
+ * interactive prompt all route through it rather than hand-rolling `length − 1`.
+ * The value then feeds `selectablePickMax` (clamp) and `stalkCountFor` (inverse).
+ */
+export const recordedMaxForUnparted = (unparted: readonly number[]): number =>
+  unparted.length - 1
+
+/**
  * selectablePickMax(recordedMax) = recordedMax − 1 is the DEFINITIONAL home of
  * the never-zero-remainder rule (a pick of `recordedMax` would leave the right heap one
  * suspended stalk, nothing to count by fours, remainder 0).

@@ -4,10 +4,25 @@ import {
   assertSelectablePick,
   deriveSplit,
   neverZeroMod4,
+  recordedMaxForUnparted,
   selectablePickMax,
   stalkCountFor,
 } from '../src/casting-derivation.js'
 import type { SplitRecord } from '../src/types.js'
+
+describe('recordedMaxForUnparted', () => {
+  it('is one below the unparted stalk count (reserving the suspended 掛一)', () => {
+    expect(recordedMaxForUnparted(Array.from({ length: 49 }))).toBe(48)
+    expect(recordedMaxForUnparted(Array.from({ length: 44 }))).toBe(43)
+  })
+
+  it('round-trips with stalkCountFor (count = recordedMax + 1)', () => {
+    for (const count of [49, 44, 40, 33, 14]) {
+      const unparted = Array.from({ length: count })
+      expect(stalkCountFor(recordedMaxForUnparted(unparted))).toBe(count)
+    }
+  })
+})
 
 describe('selectablePickMax', () => {
   it('is one below the recorded max (reserving a second, countable stalk)', () => {
