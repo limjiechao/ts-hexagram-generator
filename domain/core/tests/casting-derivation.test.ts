@@ -11,15 +11,19 @@ import {
 import type { SplitRecord } from '../src/types.js'
 
 describe('recordedMaxForUnparted', () => {
+  // The helper only reads `.length`; contents are filled with 0 so the array is
+  // typed `number[]` (a bare `Array.from({ length })` infers `unknown[]`).
+  const stalks = (count: number): number[] =>
+    Array.from({ length: count }, () => 0)
+
   it('is one below the unparted stalk count (reserving the suspended 掛一)', () => {
-    expect(recordedMaxForUnparted(Array.from({ length: 49 }))).toBe(48)
-    expect(recordedMaxForUnparted(Array.from({ length: 44 }))).toBe(43)
+    expect(recordedMaxForUnparted(stalks(49))).toBe(48)
+    expect(recordedMaxForUnparted(stalks(44))).toBe(43)
   })
 
   it('round-trips with stalkCountFor (count = recordedMax + 1)', () => {
     for (const count of [49, 44, 40, 33, 14]) {
-      const unparted = Array.from({ length: count })
-      expect(stalkCountFor(recordedMaxForUnparted(unparted))).toBe(count)
+      expect(stalkCountFor(recordedMaxForUnparted(stalks(count)))).toBe(count)
     }
   })
 })
