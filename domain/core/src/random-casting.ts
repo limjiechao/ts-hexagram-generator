@@ -1,6 +1,9 @@
 import { randomInt } from 'node:crypto'
 
-import { selectablePickMax } from './casting-derivation.js'
+import {
+  recordedMaxForUnparted,
+  selectablePickMax,
+} from './casting-derivation.js'
 import { makeLineGenerator, stalksBeforeParting } from './index.js'
 import {
   assertIsCastingRecord,
@@ -23,7 +26,7 @@ import {
 // 1 to include the ceiling. (`length` is never below ~32 across the three
 // casts, so the ceiling is always ≥ 1 and `randomInt` has a valid `min < max`.)
 export const splitStalksRandomly = (unpartedStalks: number[]): number => {
-  const recordedMax = unpartedStalks.length - 1
+  const recordedMax = recordedMaxForUnparted(unpartedStalks)
   return randomInt(1, selectablePickMax(recordedMax) + 1)
 }
 
@@ -35,7 +38,7 @@ export const getOneRandomLine = function* (): Generator<
   // `recordedMax` mirrors the selectable range an interactive prompt would show
   // for this round ("Pick a number from 1 to recordedMax"), so RNG castings
   // replay the same way as interactive ones.
-  const firstMax = stalksBeforeParting.length - 1
+  const firstMax = recordedMaxForUnparted(stalksBeforeParting)
   const firstSplit = splitStalksRandomly(stalksBeforeParting)
   const roundOneArguments = {
     unpartedStalks: stalksBeforeParting,
@@ -47,13 +50,13 @@ export const getOneRandomLine = function* (): Generator<
 
   assertIsFourOperationsResult(roundOneResults)
 
-  const secondMax = roundOneResults.unpartedStalks.length - 1
+  const secondMax = recordedMaxForUnparted(roundOneResults.unpartedStalks)
   const secondSplit = splitStalksRandomly(roundOneResults.unpartedStalks)
   const roundTwoResults = lineGenerator.next(secondSplit).value
 
   assertIsFourOperationsResult(roundTwoResults)
 
-  const thirdMax = roundTwoResults.unpartedStalks.length - 1
+  const thirdMax = recordedMaxForUnparted(roundTwoResults.unpartedStalks)
   const thirdSplit = splitStalksRandomly(roundTwoResults.unpartedStalks)
   const roundThreeResults = lineGenerator.next(thirdSplit).value
 

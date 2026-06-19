@@ -1,4 +1,7 @@
-import { assertSelectablePick } from './casting-derivation.js'
+import {
+  assertSelectablePick,
+  recordedMaxForUnparted,
+} from './casting-derivation.js'
 import {
   assertIsLine,
   type AdvanceableLineState,
@@ -195,7 +198,7 @@ export const initialLineState: Extract<LineState, { phase: '0th-cast' }> = {
 // `casting-derivation.ts`). Only meaningful before resolution — `'3rd-cast'`
 // has nothing left to pick, so it's excluded from the input domain.
 export const recordedMaxFor = (state: AdvanceableLineState): number =>
-  state.unparted.length - 1
+  recordedMaxForUnparted(state.unparted)
 
 // Phase advancement is total over the non-terminal subdomain; the conditional
 // type binds the output phase to the input phase exactly.
@@ -224,7 +227,7 @@ export function performCast<P extends AdvanceableLineState['phase']>(
   // `recordedMax = unparted.length - 1`; see `selectablePickMax`. This is the
   // single runtime enforcement point — every input flow already clamps to it,
   // and the legacy converter's replay catches the throw as a mismatch.
-  assertSelectablePick(state.unparted.length - 1, pick)
+  assertSelectablePick(recordedMaxFor(state), pick)
 
   // All three advanceable phases share the same fourOperations call — only
   // what we do with the result differs per phase.

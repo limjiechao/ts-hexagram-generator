@@ -1,5 +1,8 @@
 import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
-import { selectablePickMax } from '@hexagram/core/casting-derivation'
+import {
+  recordedMaxForUnparted,
+  selectablePickMax,
+} from '@hexagram/core/casting-derivation'
 import {
   assertIsFourOperationsResult,
   assertIsLine,
@@ -15,7 +18,7 @@ import { getUserQuery } from './prompts.js'
 
 async function getSplitIndex(unpartedStalks: number[]): Promise<SplitRecord> {
   const min = 1
-  const recordedMax = unpartedStalks.length - 1
+  const recordedMax = recordedMaxForUnparted(unpartedStalks)
   // The selectable ceiling is one below the recorded ceiling, so the right heap
   // keeps a countable stalk after suspension and its remainder is never 0. We
   // still RECORD the full `recordedMax` so the readout and conservation are
