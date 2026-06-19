@@ -54,6 +54,13 @@ export interface CastingFlags {
    * TTY-only but still reaches number-input mode via `--numeric-input`.
    */
   castRevealMs: number
+  /**
+   * Manual-flow post-Enter "Round resolved" green-row dwell in ms — from
+   * `--manual-reveal-ms`. Only the manual casting flow consults it. Threaded
+   * here, not just on the standalone `hexagram-manual` bin, so the hub's
+   * Manual selection honours the flag too (it was silently dropped before).
+   */
+  manualRevealMs: number
 }
 
 /** The label shown after `Esc` in every child screen's footer. */
@@ -185,6 +192,7 @@ export function HexagramApp({
       sliderSweepMs={castingFlags.sliderSweepMs}
       castBounceMs={castingFlags.castBounceMs}
       castRevealMs={castingFlags.castRevealMs}
+      manualRevealMs={castingFlags.manualRevealMs}
       sliderCommitRevealMs={sliderCommitRevealMs}
       consultationsDir={consultationsDir}
       onExit={backToHome}

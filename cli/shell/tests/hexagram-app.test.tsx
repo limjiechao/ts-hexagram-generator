@@ -107,15 +107,16 @@ vi.mock('ink', async (importOriginal) => {
 })
 
 // The flags `<HexagramApp>` would receive from `runHexagram()`. `sliderSweepMs`
-// is small and `castBounceMs` / `castRevealMs` are 0 so the stubbed random
-// playback's eighteen casts auto-land / reveal fast in the test; production
-// resolves real ceremonial values.
+// is small and `castBounceMs` / `castRevealMs` / `manualRevealMs` are 0 so the
+// stubbed random playback's eighteen casts auto-land / reveal fast in the test;
+// production resolves real ceremonial values.
 const CASTING_FLAGS: CastingFlags = {
   inputMode: 'slider',
   maxWrapWidth: 120,
   sliderSweepMs: 120,
   castBounceMs: 0,
   castRevealMs: 0,
+  manualRevealMs: 0,
 }
 
 // A deterministic, interval-disabled banner override. With the interval off
