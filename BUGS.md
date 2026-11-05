@@ -319,7 +319,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-018: `pnpm format:check` is red on `main` because of unformatted Markdown docs
-- **Severity:** P3 · **Status:** in-progress · **Commit:** – · **Notes:** Found by the fix loop on 2026-11-05, while verifying BUG-001.
+- **Severity:** P3 · **Status:** blocked · **Commit:** – · **Notes:** Attempt 1: oxfmt's `*x*`→`_x_` paired with a bare `NO_COLOR` (survey-09:114), garbling the rendered text; fixed in attempt 2 by backticking `NO_COLOR`/`QUERY_NOT_PROVIDED`. Attempt 2 stop: oxfmt also adds a blank line inside the ```markdown log-template fence in BUGS-ORCHESTRATOR.md §6. **Human decides:** accept that line, or add `<!-- oxfmt-ignore -->` / change the fence's info string. A ready result (uncommitted, rendered text otherwise identical) is in `../hexagram-wt-BUG-018-a2`.
 - **Location:** `BUGS.md`, `BUGS-ORCHESTRATOR.md`, `docs/handoffs/bugs-loop-log.md`, `docs/reviews/2026-11-04-ddd-survey/{SYNTHESIS,survey-01…survey-09}.md`.
 - **What is wrong:**
   - `pnpm format:check` (oxfmt) fails with "Format issues found in above 13 files" on `bugs-loop` at `5efee17`. Twelve of the files are also on `main` (`680d450`, `d55fa65`). The thirteenth, the loop log, was added by the bootstrap.

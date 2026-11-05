@@ -115,3 +115,16 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Notes: Filed BUG-019 (TS/JSON drift). BUG-016 returned to open + needs-human pending BUG-019's decision. Not counted as blocked.
 
 ### Iteration 13 — BUG-018 — 2026-11-05 10:22
+- Attempt: 1/2 · Outcome: failed (REQUEST_CHANGES)
+- Branch: bug/BUG-018-a1 · Landed: –
+- Review: REQUEST_CHANGES (1 blocking: oxfmt paired `_adapter_` with the `_` in bare NO_COLOR at survey-09:115, changing rendered text)
+- Notes: Orchestrator self-check stripped `_` and missed it; attempt 2 adds a rendered-emphasis check.
+
+### Iteration 13b — BUG-018 attempt 2 — 2026-11-05 10:24
+- Attempt: 2/2 · Outcome: blocked
+- Branch: bug/BUG-018-a2 (uncommitted, complete result in ../hexagram-wt-BUG-018-a2) · Landed: –
+- Red test: n.a. (doc-only)
+- Review: n.a. (implementer stopped before commit)
+- Verify: format:check pass on the uncommitted result; mdast plain text identical in 13/13; tree differs in 2 (backtick edits, intended) and in the BUGS-ORCHESTRATOR.md §6 code fence (oxfmt adds a blank line to the template).
+- Notes: Needs a human call on reformatting inside the fenced template. DOC entries keep using the touched-files format gate meanwhile. Consecutive blocked: 1.
+
