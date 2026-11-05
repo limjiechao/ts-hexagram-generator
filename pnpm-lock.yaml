@@ -354,9 +354,6 @@ importers:
       '@hexagram/core':
         specifier: workspace:*
         version: link:../core
-      '@hexagram/text-layout':
-        specifier: workspace:*
-        version: link:../text-layout
 
   domain/core: {}
 

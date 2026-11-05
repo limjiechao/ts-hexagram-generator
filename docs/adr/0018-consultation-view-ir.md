@@ -118,3 +118,13 @@ without pulling in any terminal code.
   `cli/text-grid/tests/fixtures/*`) — the standing regression gate.
 - the ESLint `no-restricted-imports` `domain/**` cli-import boundary
   ([ADR-0019](0019-domain-cli-boundary.md)) — keeps `consultation-view` UI-free.
+
+## Amendment — 2026-11-05: `consultation-view` no longer depends on `text-layout`
+
+This is a factual correction, not a change of decision. The context above says
+`consultation-view` depends on `@hexagram/core` and `@hexagram/text-layout`.
+Since `11cf361` ([ADR-0022](0022-monospace-text-grid-is-medium-bound.md)) moved
+the monospace geometry and the ledger/diagram templates to `cli/text-grid`, no
+`consultation-view` source imports `text-layout`, and the leftover dependency has
+been removed. `consultation-view` depends only on `@hexagram/core`; the
+CLI-free guarantee is unchanged.

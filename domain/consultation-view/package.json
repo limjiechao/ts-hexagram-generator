@@ -34,8 +34,7 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/core": "workspace:*",
-    "@hexagram/text-layout": "workspace:*"
+    "@hexagram/core": "workspace:*"
   },
   "devDependencies": {}
 }
