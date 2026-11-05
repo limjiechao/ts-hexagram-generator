@@ -285,10 +285,10 @@ export function FooterBar({
   const full = statusStr ? `${hints}   ${statusStr}` : hints
   const status = truncateEnd(full, cols)
   // During the flow, replace the saved-path line with a one-line progress
-  // hint — there's no saved file yet.
-  const bottomLineRaw = inFlow
-    ? (flowHint ?? '')
-    : `Consultation output saved to ${savedPath}.`
+  // hint — there's no saved file yet. A hint passed once unlocked (a failed
+  // save shown unsaved) likewise replaces it.
+  const bottomLineRaw =
+    flowHint ?? (inFlow ? '' : `Consultation output saved to ${savedPath}.`)
   const bottomLine = truncateStart(bottomLineRaw, cols)
 
   return (

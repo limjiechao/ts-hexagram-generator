@@ -807,6 +807,46 @@ describe('ConsultationViewer (random flow, number-input mode)', () => {
   })
 })
 
+// BUG-005: a failed save shows the reading and an "unsaved" footer with a
+// retry key, instead of stranding the viewer in `computing`.
+describe('ConsultationViewer — failed save and retry', () => {
+  it('shows the reading on a failed save and retries on r', async () => {
+    consultationFileOutputMock.mockClear()
+    consultationFileOutputMock.mockRejectedValueOnce(new Error('disk full'))
+    const { lastFrame, stdin, unmount } = render(
+      <ConsultationViewer
+        flowKind="random"
+        inputMode="number"
+        castRevealMs={100000}
+      />,
+    )
+    stdin.write('Will the bridge hold?')
+    await yieldMacrotask()
+    stdin.write(ENTER)
+    await yieldMacrotask()
+    stdin.write(SPACE) // skip the reveal → computing → (failed) save
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('Press r to retry')
+    })
+    const failedFrame = lastFrame() ?? ''
+    expect(failedFrame).toContain('Save failed: disk full · Press r to retry')
+    // The reading is visible: the tabs are unlocked (the readout is in `done`).
+    expect(failedFrame).toContain('Standing Hexagram')
+    expect(failedFrame).not.toContain('saved to')
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(1)
+
+    await yieldMacrotask()
+    stdin.write('r')
+    await waitFor(() => {
+      expect(lastFrame() ?? '').toContain('saved to')
+    })
+    expect(lastFrame() ?? '').toContain(`saved to ${STUB_SAVED_PATH}`)
+    expect(lastFrame() ?? '').not.toContain('Save failed')
+    expect(consultationFileOutputMock).toHaveBeenCalledTimes(2)
+    unmount()
+  })
+})
+
 describe('ConsultationViewer — mid-cast discard confirmation', () => {
   beforeEach(() => {
     consultationFileOutputMock.mockClear()

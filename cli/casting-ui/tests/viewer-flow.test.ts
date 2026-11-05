@@ -444,3 +444,84 @@ describe('manual flow carries no casting plan', () => {
     expect(after.castingPlan).toBeNull()
   })
 })
+
+// BUG-005: a failed save must not strand the viewer in `computing`. The
+// sections are built before the save, so `computeFailed` carries them and the
+// reducer moves to `done` (reading visible, unsaved) with a retry path.
+describe('flowReducer — failed save and retry', () => {
+  const SECTIONS = {
+    query: 'QUERY',
+    casting: 'CASTING',
+    transformation: '',
+    standing: 'STANDING',
+    emerging: null,
+  }
+  const computing = (): FlowState => ({
+    ...initialFlowState('interactive', null, null),
+    mode: 'computing',
+    query: 'Will the bridge hold?',
+  })
+  const failed = (): FlowState =>
+    flowReducer(computing(), {
+      type: 'computeFailed',
+      sections: SECTIONS,
+      error: new Error('disk full'),
+    })
+
+  it('computeFailed with sections goes to done, unsaved, with the error', () => {
+    const state = failed()
+    expect(state.mode).toBe('done')
+    expect(state.sections).toBe(SECTIONS)
+    expect(state.savedPath).toBeNull()
+    expect(state.saveError?.message).toBe('disk full')
+  })
+
+  it('a successful retry clears saveError and sets savedPath', () => {
+    let state = flowReducer(failed(), { type: 'saveRetried' })
+    expect(state.mode).toBe('done')
+    expect(state.saveError).toBeNull()
+    expect(state.savedPath).toBeNull()
+    state = flowReducer(state, {
+      type: 'computeSucceeded',
+      sections: SECTIONS,
+      savedPath: '/tmp/consultation-retried.md',
+    })
+    expect(state.mode).toBe('done')
+    expect(state.saveError).toBeNull()
+    expect(state.savedPath).toBe('/tmp/consultation-retried.md')
+  })
+
+  it('a failed retry stays in done with the new error', () => {
+    let state = flowReducer(failed(), { type: 'saveRetried' })
+    state = flowReducer(state, {
+      type: 'computeFailed',
+      sections: SECTIONS,
+      error: new Error('still read-only'),
+    })
+    expect(state.mode).toBe('done')
+    expect(state.savedPath).toBeNull()
+    expect(state.saveError?.message).toBe('still read-only')
+  })
+
+  it('saveRetried is a no-op unless an unsaved error is shown', () => {
+    const saved: FlowState = {
+      ...computing(),
+      mode: 'done',
+      sections: SECTIONS,
+      savedPath: '/tmp/consultation-saved.md',
+    }
+    expect(flowReducer(saved, { type: 'saveRetried' })).toBe(saved)
+    const inFlight = computing()
+    expect(flowReducer(inFlight, { type: 'saveRetried' })).toBe(inFlight)
+  })
+
+  it('a render failure (no sections) keeps the existing computing + error', () => {
+    const state = flowReducer(computing(), {
+      type: 'computeFailed',
+      sections: null,
+      error: new Error('render broke'),
+    })
+    expect(state.mode).toBe('computing')
+    expect(state.saveError?.message).toBe('render broke')
+  })
+})

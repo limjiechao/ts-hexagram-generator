@@ -237,6 +237,23 @@ export function ConsultationViewer({
     },
   )
 
+  // Retry a failed save. Plain `r` is unbound in `done` (see
+  // `viewer-keymap.ts`), and this handler is live ONLY while an unsaved error
+  // is shown — not mid-retry, not behind the discard modal.
+  useInput(
+    (input, key) => {
+      if (input === 'r' && !key.ctrl && !key.meta) {
+        dispatch({ type: 'saveRetried' })
+      }
+    },
+    {
+      isActive:
+        state.mode === 'done' &&
+        state.saveError !== null &&
+        confirmingDiscard === null,
+    },
+  )
+
   // The current cast's selectable range. The interactive/manual flows derive
   // it from the reducer's `lineState` (the single owner of the per-line
   // algorithm); the random flow reads it straight from the predetermined plan
@@ -334,26 +351,52 @@ export function ConsultationViewer({
     }
   }
 
+  // A retry is in flight: `saveRetried` cleared the error of a failed save,
+  // and no file has been written yet.
+  const retryingSave =
+    state.mode === 'done' &&
+    state.savedPath === null &&
+    state.saveError === null
+
   // The compute effect builds the consultation sections and persists the
   // reading to disk. Fires exactly once per `mode === 'computing'`
-  // transition. Both flows reach `computing` with `completedLines` /
-  // `partialCasting` fully populated — the interactive flow fills them via
-  // the line generator, the random flow by playing its plan back cast-by-cast
-  // — so `computing` is identical for both.
+  // transition, and once per save retry. All three flows (random,
+  // interactive, manual) reach `computing` with `completedLines` /
+  // `partialCasting` fully populated — the interactive and manual flows fill
+  // them cast-by-cast, the random flow by playing its plan back — so
+  // `computing` is identical for all of them.
+  //
+  // The sections are built BEFORE the save, in their own `try`, so a render
+  // failure (no sections → stays in `computing`) stays distinguishable from a
+  // save failure (sections shown unsaved in `done`, retryable) — BUG-005.
   useEffect(() => {
-    if (state.mode !== 'computing') return
+    if (state.mode !== 'computing' && !retryingSave) return
     let cancelled = false
+    const toError = (error: unknown): Error =>
+      error instanceof Error ? error : new Error(String(error))
     const runCompute = async (): Promise<void> => {
+      let hexagram: Hexagram
+      let casting: CastingRecord
+      let sections: ConsultationSections
       try {
         assertIsHexagram(state.completedLines)
         assertIsCastingRecord(state.partialCasting)
-        const hexagram: Hexagram = state.completedLines
-        const casting: CastingRecord = state.partialCasting
-        const sections = buildConsultationSections(
-          state.query,
-          hexagram,
-          casting,
-        )
+        hexagram = state.completedLines
+        casting = state.partialCasting
+        // A retry reuses the sections built on the first attempt.
+        sections =
+          state.sections ??
+          buildConsultationSections(state.query, hexagram, casting)
+      } catch (error) {
+        if (!cancelled)
+          dispatch({
+            type: 'computeFailed',
+            sections: null,
+            error: toError(error),
+          })
+        return
+      }
+      try {
         const savedPath = await saveConsultationFile({
           query: state.query,
           hexagram,
@@ -365,10 +408,7 @@ export function ConsultationViewer({
           dispatch({ type: 'computeSucceeded', sections, savedPath })
       } catch (error) {
         if (!cancelled)
-          dispatch({
-            type: 'computeFailed',
-            error: error instanceof Error ? error : new Error(String(error)),
-          })
+          dispatch({ type: 'computeFailed', sections, error: toError(error) })
       }
     }
     runCompute().catch(() => {})
@@ -377,6 +417,8 @@ export function ConsultationViewer({
     }
   }, [
     state.mode,
+    retryingSave,
+    state.sections,
     state.query,
     state.completedLines,
     state.partialCasting,
@@ -693,6 +735,10 @@ export function ConsultationViewer({
       return state.saveError === null
         ? 'Saving consultation…'
         : `Save failed: ${state.saveError.message}`
+    // `done` but unsaved: a failed save (retryable) or its retry in flight.
+    if (state.saveError !== null)
+      return `Save failed: ${state.saveError.message} · Press r to retry`
+    if (retryingSave) return 'Saving consultation…'
     return null
   })()
 

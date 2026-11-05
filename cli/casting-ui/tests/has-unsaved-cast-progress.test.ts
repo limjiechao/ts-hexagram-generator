@@ -90,4 +90,12 @@ describe('hasUnsavedCastProgress', () => {
       ),
     ).toBe(false)
   })
+
+  it('is true at done when the save failed (BUG-005: reading shown unsaved)', () => {
+    expect(
+      hasUnsavedCastProgress(
+        makeState({ mode: 'done', query: 'Should I go?', savedPath: null }),
+      ),
+    ).toBe(true)
+  })
 })

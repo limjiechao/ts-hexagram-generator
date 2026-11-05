@@ -90,7 +90,17 @@ export type FlowAction =
       sections: ConsultationSections
       savedPath: string
     }
-  | { type: 'computeFailed'; error: Error }
+  // `sections` is `null` when building them threw (a render failure — the
+  // flow stays in `computing`, nothing to show); non-null when only the save
+  // failed, so the reading can be shown unsaved in `done` (BUG-005).
+  | {
+      type: 'computeFailed'
+      sections: ConsultationSections | null
+      error: Error
+    }
+  // Retry a failed save from `done`. Clears `saveError` so the shell's save
+  // effect re-fires; it resolves via `computeSucceeded` / `computeFailed`.
+  | { type: 'saveRetried' }
   // Manual-flow rewind. Resets the slot pointer AND `lineState` in one pure
   // step — no imperative ref to reset first (the per-line algorithm now lives
   // in `lineState`). Mid-line rewinds clear the current line's casts;
@@ -328,8 +338,19 @@ export function flowReducer(state: FlowState, action: FlowAction): FlowState {
         mode: 'done',
         sections: action.sections,
         savedPath: action.savedPath,
+        saveError: null,
       }
     case 'computeFailed':
-      return { ...state, saveError: action.error }
+      if (action.sections === null) return { ...state, saveError: action.error }
+      return {
+        ...state,
+        mode: 'done',
+        sections: action.sections,
+        savedPath: null,
+        saveError: action.error,
+      }
+    case 'saveRetried':
+      if (state.mode !== 'done' || state.saveError === null) return state
+      return { ...state, saveError: null }
   }
 }

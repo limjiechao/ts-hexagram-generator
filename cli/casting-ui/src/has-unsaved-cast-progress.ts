@@ -20,11 +20,12 @@ import type { FlowState } from './viewer-flow.js'
  *     after `saveConsultationFile` resolves) is what marks the work saved. A
  *     `computing` state with a pending `saveError` is the clearest case — the
  *     save has *not* succeeded — but even the in-flight case counts as unsaved.
- *   - `done` — `false`. By `done` the consultation file has been written
- *     (`computeSucceeded` carries the `savedPath`), so exiting loses nothing.
+ *   - `done` — `false` once the file has been written (`computeSucceeded`
+ *     carries the `savedPath`). `true` while `savedPath` is `null`: a failed
+ *     save (or its retry) shows the reading unsaved, and exiting would lose it.
  */
 export function hasUnsavedCastProgress(state: FlowState): boolean {
-  if (state.mode === 'done') return false
+  if (state.mode === 'done') return state.savedPath === null
   if (state.mode === 'awaitingQuery') {
     return state.queryBuffer.trim().length > 0
   }
