@@ -38,7 +38,15 @@ export async function migrateLegacy(dir: string): Promise<void> {
     )
     const md = serializeFrontmatter(envelope, body)
     const mdPath = filePath.replace(/\.txt$/, '.md')
-    await fs.writeFile(mdPath, md, 'utf8')
+    // 'wx': never replace an existing .md — the .txt moves to legacy/ next,
+    // so an overwritten consultation would be unrecoverable.
+    try {
+      await fs.writeFile(mdPath, md, { encoding: 'utf8', flag: 'wx' })
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+      process.stderr.write(`SKIP ${name}: target exists\n`)
+      continue
+    }
     await fs.rename(filePath, path.join(legacyDir, name))
     process.stdout.write(
       `OK ${name} → ${path.basename(mdPath)}${

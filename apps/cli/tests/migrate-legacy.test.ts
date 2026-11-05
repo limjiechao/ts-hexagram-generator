@@ -59,4 +59,38 @@ describe('migrateLegacy', () => {
       serializeFrontmatter(envelope, healedBody),
     )
   })
+
+  // LOCK (BUG-011): an existing `.md` of the same stem must not be
+  // overwritten — the `.txt` would then move to `legacy/` and the original
+  // consultation would be unrecoverable.
+  it('skips a .txt whose target .md already exists, leaving both untouched', async () => {
+    const clash = 'consultation-2026-01-01T00-00-00+0000'
+    const other = 'consultation-2026-01-02T00-00-00+0000'
+    const existing = 'pre-existing saved consultation\n'
+    await fs.writeFile(path.join(tmp, `${clash}.md`), existing, 'utf8')
+    await fs.copyFile(shapeBFixture, path.join(tmp, `${clash}.txt`))
+    await fs.copyFile(shapeBFixture, path.join(tmp, `${other}.txt`))
+
+    await migrateLegacy(tmp)
+
+    expect(await fs.readFile(path.join(tmp, `${clash}.md`), 'utf8')).toBe(
+      existing,
+    )
+    await expect(
+      fs.access(path.join(tmp, `${clash}.txt`)),
+    ).resolves.toBeUndefined()
+    await expect(
+      fs.access(path.join(tmp, 'legacy', `${clash}.txt`)),
+    ).rejects.toThrow()
+    expect(process.stderr.write).toHaveBeenCalledWith(
+      `SKIP ${clash}.txt: target exists\n`,
+    )
+    // The rest of the run still migrates.
+    await expect(
+      fs.access(path.join(tmp, `${other}.md`)),
+    ).resolves.toBeUndefined()
+    await expect(
+      fs.access(path.join(tmp, 'legacy', `${other}.txt`)),
+    ).resolves.toBeUndefined()
+  })
 })
