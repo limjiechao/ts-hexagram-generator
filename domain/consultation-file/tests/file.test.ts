@@ -114,4 +114,37 @@ describe('saveConsultationFile + loadConsultationFile', () => {
     expect(loaded.envelope.casting).not.toBeNull()
     expect(loaded.envelope.castingAbsence).toBeNull()
   })
+
+  // BUG-002: the filename has one-second resolution, so two saves in the same
+  // second must not truncate each other.
+  describe('two saves in the same second', () => {
+    beforeEach(() => {
+      vi.useFakeTimers({ toFake: ['Date'] })
+      vi.setSystemTime(new Date('2026-01-01T00:00:00Z'))
+    })
+    afterEach(() => {
+      vi.useRealTimers()
+    })
+
+    it('keeps both consultations at distinct paths', async () => {
+      const save = (query: string) =>
+        saveConsultationFile({
+          query,
+          hexagram: [7, 7, 7, 7, 7, 7],
+          casting: null,
+          castingAbsence: 'playground',
+          dir: tmpDir,
+          body: 'BODY-MARKER',
+        })
+      const firstPath = await save('first')
+      const secondPath = await save('second')
+
+      expect(secondPath).not.toBe(firstPath)
+      const first = await loadConsultationFile(firstPath)
+      const second = await loadConsultationFile(secondPath)
+      if (!first.ok || !second.ok) throw new Error('expected both to load')
+      expect(first.envelope.query).toBe('first')
+      expect(second.envelope.query).toBe('second')
+    })
+  })
 })

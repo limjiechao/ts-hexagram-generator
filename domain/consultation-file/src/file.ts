@@ -70,7 +70,8 @@ export type SaveConsultationParams = {
 )
 
 /**
- * Persist a consultation as `consultation-<timestamp>.md` under `dir`.
+ * Persist a consultation as `consultation-<timestamp>.md` under `dir`
+ * (suffixed `-2`, `-3`, … when a same-second save already took the name).
  *
  * `params.dir` defaults to `<cwd>/consultations` (matches the legacy
  * path; the caller's cwd is the convention every CLI inherited from
@@ -82,7 +83,6 @@ export async function saveConsultationFile(
   const dir = params.dir ?? defaultConsultationsDir()
   await fs.mkdir(dir, { recursive: true })
   const fileSafe = getFilesystemSafeTimestamp()
-  const filePath = path.join(dir, `consultation-${fileSafe}.md`)
   // Narrow the input union into the envelope's CastingPresence member once, so
   // the serialized envelope's casting/castingAbsence pair is correlated.
   const presence: CastingPresence =
@@ -99,8 +99,35 @@ export async function saveConsultationFile(
     },
     params.body,
   )
-  await fs.writeFile(filePath, text, 'utf8')
-  return filePath
+  return writeWithoutOverwrite(dir, `consultation-${fileSafe}`, text)
+}
+
+/** Enough for any burst of same-second saves; past it, fail loudly instead
+ *  of overwriting. */
+const MAX_SAME_SECOND_SAVES = 100
+
+/**
+ * Create `<stem>.md`, or `<stem>-2.md`, `<stem>-3.md`, … if taken. The
+ * filename only has one-second resolution, so the exclusive `wx` flag is what
+ * guarantees a save never truncates an existing consultation (BUG-002).
+ */
+async function writeWithoutOverwrite(
+  dir: string,
+  stem: string,
+  text: string,
+): Promise<string> {
+  for (let n = 1; n <= MAX_SAME_SECOND_SAVES; n++) {
+    const filePath = path.join(dir, n === 1 ? `${stem}.md` : `${stem}-${n}.md`)
+    try {
+      await fs.writeFile(filePath, text, { encoding: 'utf8', flag: 'wx' })
+      return filePath
+    } catch (error) {
+      if ((error as NodeJS.ErrnoException).code !== 'EEXIST') throw error
+    }
+  }
+  throw new Error(
+    `Refusing to overwrite: ${MAX_SAME_SECOND_SAVES} consultations already exist for ${stem} in ${dir}`,
+  )
 }
 
 /**
