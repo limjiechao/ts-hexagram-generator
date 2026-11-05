@@ -117,7 +117,7 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 ### Iteration 13 — BUG-018 — 2026-11-05 10:22
 - Attempt: 1/2 · Outcome: failed (REQUEST_CHANGES)
 - Branch: bug/BUG-018-a1 · Landed: –
-- Review: REQUEST_CHANGES (1 blocking: oxfmt paired `_adapter_` with the `_` in bare NO_COLOR at survey-09:115, changing rendered text)
+- Review: `REQUEST_CHANGES` (1 blocking: oxfmt paired `_adapter_` with the `_` in bare `NO_COLOR` at survey-09:115, changing rendered text)
 - Notes: Orchestrator self-check stripped `_` and missed it; attempt 2 adds a rendered-emphasis check.
 
 ### Iteration 13b — BUG-018 attempt 2 — 2026-11-05 10:24
