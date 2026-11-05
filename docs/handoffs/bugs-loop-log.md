@@ -208,3 +208,4 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: git diff shows only LICENSE:3 changed.
 - Notes: Kept year 2025 and MIT text; dropped the template author's URL with their name.
 
+### Iteration 23 — BUG-018 attempt 3 (post-decision) — 2026-11-05 13:49
