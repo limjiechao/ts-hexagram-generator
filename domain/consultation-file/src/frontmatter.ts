@@ -16,14 +16,18 @@ import { castingReplaysTo } from './casting-replay.js'
 /**
  * Explicit YAML engine for gray-matter. `stringify` pins `sortKeys: false` so
  * frontmatter key order stays insertion order (`schemaVersion` → `casting`)
- * instead of relying on js-yaml's implicit default. `parse` mirrors
- * gray-matter's built-in YAML engine (`yaml.safeLoad`) so reading is unchanged.
+ * instead of relying on js-yaml's implicit default. `parse` uses `CORE_SCHEMA`
+ * rather than gray-matter's default `safeLoad` schema so an unquoted ISO
+ * timestamp (e.g. a hand-edited `+08:00` or `Z`) stays the verbatim string the
+ * validator expects, instead of becoming a `Date` that has lost its offset
+ * (BUG-010). The envelope uses no other DEFAULT_SAFE_SCHEMA-only type.
  */
 const yamlEngine = {
   // gray-matter's `Engine` type requires `parse` to return `object`; js-yaml's
   // `safeLoad` is typed looser. The cast mirrors gray-matter's own built-in
   // YAML engine, which performs the equivalent unchecked widening.
-  parse: (str: string): object => jsYaml.safeLoad(str) as object,
+  parse: (str: string): object =>
+    jsYaml.safeLoad(str, { schema: jsYaml.CORE_SCHEMA }) as object,
   stringify: (obj: object): string => jsYaml.safeDump(obj, { sortKeys: false }),
 }
 
@@ -164,7 +168,8 @@ export function serializeFrontmatter(
 export function parseFrontmatter(text: string): ParseResult {
   const { data, content } = (() => {
     try {
-      return matter(text)
+      // Passing options also opts out of gray-matter's content-keyed cache.
+      return matter(text, { engines: { yaml: yamlEngine } })
     } catch {
       return { data: undefined as unknown, content: '' }
     }

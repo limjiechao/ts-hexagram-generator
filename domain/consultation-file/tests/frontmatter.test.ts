@@ -178,6 +178,30 @@ describe('parseFrontmatter', () => {
     const result = parseFrontmatter(bad)
     expect(result.ok).toBe(false)
   })
+
+  // BUG-010: a hand-edited, unquoted ISO timestamp must load as the verbatim
+  // string, not be coerced to a `Date` (which fails the shape check).
+  it.each(['2026-05-19T14:23:11+08:00', '2026-05-19T14:23:11Z'])(
+    'keeps an unquoted timestamp %s as a verbatim string',
+    (timestamp) => {
+      const text = serializeFrontmatter(envelope, 'BODY').replace(
+        "timestamp: '2026-05-19T14:23:11+0800'",
+        `timestamp: ${timestamp}`,
+      )
+      expect(text).toContain(`\ntimestamp: ${timestamp}\n`)
+      const result = parseFrontmatter(text)
+      if (!result.ok) throw new Error(`expected ok, got ${result.reason}`)
+      expect(result.data.envelope.timestamp).toBe(timestamp)
+    },
+  )
+
+  it("keeps the writer's quoted '+0800' timestamp unchanged", () => {
+    const text = serializeFrontmatter(envelope, 'BODY')
+    expect(text).toContain("\ntimestamp: '2026-05-19T14:23:11+0800'\n")
+    const result = parseFrontmatter(text)
+    if (!result.ok) throw new Error(`expected ok, got ${result.reason}`)
+    expect(result.data.envelope.timestamp).toBe('2026-05-19T14:23:11+0800')
+  })
 })
 
 describe('nullable casting', () => {
