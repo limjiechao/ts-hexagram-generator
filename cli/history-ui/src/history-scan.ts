@@ -56,6 +56,21 @@ export async function scanConsultations(dir: string): Promise<ScanResult> {
     }),
   )
 
-  entries.sort((a, b) => (a.envelope.timestamp < b.envelope.timestamp ? 1 : -1))
+  entries.sort((a, b) => {
+    const ta = timestampInstant(a.envelope.timestamp)
+    const tb = timestampInstant(b.envelope.timestamp)
+    return ta === tb ? 0 : tb - ta
+  })
   return { entries, unreadable }
+}
+
+/**
+ * Epoch ms of a saved timestamp. Timestamps carry the local offset at save
+ * time (`+0800`, ADR-0008), so string order is not instant order. `Date.parse`
+ * only guarantees the colon form (`+08:00`), hence the normalisation. An
+ * unparseable value maps to -Infinity so the comparator stays consistent.
+ */
+function timestampInstant(timestamp: string): number {
+  const ms = Date.parse(timestamp.replace(/([+-]\d{2})(\d{2})$/, '$1:$2'))
+  return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms
 }

@@ -57,6 +57,36 @@ describe('scanConsultations', () => {
     ])
   })
 
+  it('sorts newest-first by instant across UTC offsets', async () => {
+    const mkFile = async (ts: string, query: string): Promise<void> => {
+      const text = serializeFrontmatter(
+        {
+          schemaVersion: 1,
+          timestamp: ts,
+          query,
+          hexagram: [7, 8, 7, 8, 7, 8],
+          casting: sampleCastingFor([7, 8, 7, 8, 7, 8]),
+          castingAbsence: null,
+        },
+        'BODY',
+      )
+      await fs.writeFile(
+        path.join(tmpDir, `consultation-${ts.replaceAll(':', '-')}.md`),
+        text,
+        'utf8',
+      )
+    }
+    // 09:00+0800 is 01:00Z; 03:00+0000 is 03:00Z, so the +0000 one is newer
+    // even though it sorts lexically lower.
+    await mkFile('2026-05-19T09:00:00+0800', 'earlier instant')
+    await mkFile('2026-05-19T03:00:00+0000', 'later instant')
+    const result = await scanConsultations(tmpDir)
+    expect(result.entries.map((e) => e.envelope.query)).toEqual([
+      'later instant',
+      'earlier instant',
+    ])
+  })
+
   it('ignores the legacy/ subdir', async () => {
     await fs.mkdir(path.join(tmpDir, 'legacy'))
     await fs.writeFile(
