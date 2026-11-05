@@ -26,7 +26,7 @@ No bin mutates `process.cwd()`.
 
 ## Where it's enforced
 
-- `apps/cli/src/workspace-root.ts` — `workspaceConsultationsDir` (pure).
+- `apps/cli/src/workspace-root.ts` — `workspaceConsultationsDir` (deterministic for a given filesystem).
 - `apps/cli/src/{random,manual,interactive,hexagram}.ts` — compute + thread.
 - `cli/casting-ui/src/{viewer.tsx,log-and-save.ts}` — accept `dir`, pass to save.
 - `domain/consultation-file/src/file.ts` — `saveConsultationFile({ dir })`.
