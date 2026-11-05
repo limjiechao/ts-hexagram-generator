@@ -58,3 +58,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
 - Notes: BUG-005 skipped at pick (needs-human / defer?), held for the escalation batch.
 
+### Iteration 6 — BUG-007 — 2026-11-05 09:51
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-007-a1 · Landed: 10f5878
+- Red test: domain/consultation-file/tests/casting-replay-validation.test.ts::reports `casting-unreplayable` when a stored recordedMax disagrees with the replay — failed as expected (y)
+- Review: APPROVE (0 blocking; reviewer traced all recordedMax writers: random, interactive, viewer-flow/manual, sample-casting, legacy converter)
+- Verify: focused (consultation-file + text-grid) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: The private-data corpus sweep tests skip without consultations/legacy; only the owner can run them against real files.
+

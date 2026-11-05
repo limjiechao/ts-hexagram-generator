@@ -157,7 +157,7 @@ Shared verification commands:
 - **Refs:** ADR-0008 (timestamp format).
 
 ### BUG-007: The stored `recordedMax` is never verified on load, yet the ledger renders from it
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** **needs-human if** any legacy fixture output changes.
+- **Severity:** P2 · **Status:** fixed · **Commit:** `10f5878` · **Notes:** Test in `casting-replay-validation.test.ts`. No fixture changed; reviewer traced every recordedMax writer. Human check: the real-corpus sweep (skipped without `consultations/legacy`) was not run by the loop.
 - **Location:** `domain/consultation-file/src/casting-replay.ts:22-58` (replay reads only `.pick`); consumer `domain/core/src/casting-derivation.ts:115-136` (`deriveSplit`), via `domain/consultation-view/src/ledger-rows.ts:28`
 - **What is wrong:**
   - The "prove, don't trust" replay (ADR-0008 S7) checks only that the 18 `pick`s reproduce the hexagram.
