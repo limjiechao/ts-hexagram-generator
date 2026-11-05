@@ -98,3 +98,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
 - Notes: –
 
+### Iteration 11 — BUG-014 — 2026-11-05 10:13
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-014-a1 · Landed: 9ef9fcc
+- Red test: n.a. (test-only; Verify: casting-ui 2 skipped → 0) (y)
+- Review: APPROVE (0 blocking)
+- Verify: focused pass (394/394, 0 skipped) · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
+- Notes: Coverage gap: no test spawns apps/cli/src/interactive.ts in plain mode. Implementer's commit body wrongly claimed apps/cli tests exist; corrected in the landed message.
+

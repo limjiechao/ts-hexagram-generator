@@ -268,7 +268,7 @@ Shared verification commands:
 - **Refs:** ADR-0004.
 
 ### BUG-014: A permanently skipped `describe.skip('main')` exercises a no-op stub with pre-clamp inputs
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P3 · **Status:** fixed · **Commit:** `9ef9fcc` · **Notes:** casting-ui now 394 passed, 0 skipped. Surprise: there is **no** plain-mode test of `apps/cli/src/interactive.ts` (`apps/cli/tests` has only manual, migrate-legacy, workspace-root).
 - **Location:** `cli/casting-ui/tests/interactive.test.ts:8-13` (stub `const main = async () => {}`), `:170-…` (two skipped tests)
 - **What is wrong:**
   - The comment says `main()` was "migrating to `apps/cli/src/interactive.ts` in the next commit". That migration happened, but the block was never removed or ported.
