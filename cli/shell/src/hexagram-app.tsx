@@ -175,7 +175,13 @@ export function HexagramApp({
   // Qian, no persistence across visits. Esc with no typing run open routes
   // back to Home via `onExit`.
   if (nav.screen === 'playground') {
-    return <PlaygroundApp onExit={backToHome} exitLabel={EXIT_LABEL} />
+    return (
+      <PlaygroundApp
+        saveDir={consultationsDir}
+        onExit={backToHome}
+        exitLabel={EXIT_LABEL}
+      />
+    )
   }
 
   // ── Casting ──────────────────────────────────────────────────────────────

@@ -67,6 +67,24 @@ vi.mock('@hexagram/core/random-casting', async (importOriginal) => {
   return { ...actual, generateRandomConsultation: randomConsultationMock }
 })
 
+// Spy on `saveConsultationFile` while keeping the real write for calls that
+// name a `dir` (the casting tests rely on the real file landing in `tmpDir`).
+// A call WITHOUT `dir` would fall back to `<process.cwd()>/consultations`, so
+// the spy short-circuits it instead of writing into the real working tree —
+// this is the BUG-001 failure mode the playground test asserts against.
+const saveConsultationFileSpy = vi.hoisted(() => vi.fn())
+vi.mock('@hexagram/consultation-file/file', async (importOriginal) => {
+  const actual =
+    await importOriginal<typeof import('@hexagram/consultation-file/file')>()
+  saveConsultationFileSpy.mockImplementation(
+    (params: Parameters<typeof actual.saveConsultationFile>[0]) =>
+      params.dir === undefined
+        ? Promise.resolve('/unanchored/consultation.md')
+        : actual.saveConsultationFile(params),
+  )
+  return { ...actual, saveConsultationFile: saveConsultationFileSpy }
+})
+
 // ANSI SGR matcher — stripped before text assertions so matching is robust to
 // Ink's colour codes.
 const ANSI_PATTERN = new RegExp(
@@ -370,6 +388,52 @@ describe('<HexagramApp> — Home → casting → done → Home', () => {
       )
     })
     expect(stripAnsi(lastFrame() ?? '')).not.toContain('Past Consultations')
+
+    unmount()
+  })
+})
+
+describe('<HexagramApp> — Home → Playground → save', () => {
+  // ADR-0020: every save from the composed shell lands in the same
+  // `consultationsDir` that History scans (BUG-001).
+  it('saves a playground consultation under consultationsDir', async () => {
+    saveConsultationFileSpy.mockClear()
+    const { lastFrame, stdin, unmount } = render(
+      <HexagramApp
+        castingFlags={CASTING_FLAGS}
+        consultationsDir={tmpDir}
+        sliderCommitRevealMs={0}
+        bannerTestOverride={frozenBannerOverride()}
+      />,
+    )
+    await yieldMacrotask()
+    // Home → Playground (row 5 — interactive=0, random=1, manual=2,
+    // history=3, playground=4).
+    for (let i = 0; i < 4; i++) {
+      stdin.write(ARROW_DOWN)
+      await yieldMacrotask()
+    }
+    stdin.write(ENTER)
+    await yieldMacrotask()
+    stdin.write('S')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Save consultation')
+    })
+    stdin.write('h')
+    stdin.write('i')
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toMatch(/hi/)
+    })
+    stdin.write(ENTER)
+    await waitFor(() => {
+      expect(stripAnsi(lastFrame() ?? '')).toContain('Saved to')
+    })
+
+    expect(saveConsultationFileSpy).toHaveBeenCalledTimes(1)
+    expect(saveConsultationFileSpy).toHaveBeenCalledWith(
+      expect.objectContaining({ dir: tmpDir }),
+    )
+    expect(await fs.readdir(tmpDir)).toHaveLength(1)
 
     unmount()
   })
