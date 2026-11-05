@@ -121,6 +121,12 @@ byte-identical — the manual≡interactive saved-output test
 
 ## Amendment — 2026-06-08: the never-zero clamp shifts the line distribution (S1)
 
+> **Superseded in part by [ADR-0023](0023-random-division-equiprobable-remainder-groups.md)
+> (2026-11-05).** The random model below (a uniform split point) is replaced by
+> drawing a Remainder Group with probability ¼, then a Pick within it. That
+> reproduces the classical 1/16, 5/16, 7/16, 3/16 exactly. The never-zero clamp
+> itself is unchanged.
+
 The never-zero-remainder invariant above is stated as a structural rule (a
 remainder is 1..4, never 0). It also has a **measurable effect on the line
 frequencies** the RNG flow produces, which was previously recorded only as a band
