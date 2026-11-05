@@ -201,3 +201,10 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: core test pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: –
 
+### Iteration 22 — DOC-021 (LICENSE half) — 2026-11-05 13:49
+- Attempt: 1/1 · Outcome: fixed
+- Branch: bug/DOC-021-a1 · Landed: 35c537e
+- Review: n.a. — deviation: a one-line edit whose exact content the owner dictated; orchestrator made and checked it directly.
+- Verify: git diff shows only LICENSE:3 changed.
+- Notes: Kept year 2025 and MIT text; dropped the template author's URL with their name.
+
