@@ -22,7 +22,7 @@ const consolidateSortedStalks = (sortedStalks: SortedStalks[]): number[] =>
 
 const sortIntoFours = (stalks: number[]): SortedStalks[] => {
   const stalksCount = stalks.length
-  const sortingRemainder: 1 | 2 | 3 = (stalksCount % 4) as 1 | 2 | 3
+  const sortingRemainder = (stalksCount % 4) as 0 | 1 | 2 | 3
 
   const incompleteFours = sortingRemainder ? [sortingRemainder] : []
 

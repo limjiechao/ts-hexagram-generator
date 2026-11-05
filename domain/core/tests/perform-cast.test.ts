@@ -51,6 +51,15 @@ describe('performCast', () => {
     expect(next.suspended).toEqual(next.rounds[0].suspendedFromNextRound)
   })
 
+  test('a heap that is a multiple of four sets aside its last full group of 4', () => {
+    // pick 24 → left heap 24; right heap 25 − 1 suspended = 24. Both divide
+    // evenly by four, so each remainder is the last group of 4 (never 0):
+    // suspended = 4 + 4 + 1 = 9, leaving 49 − 9 = 40 unparted.
+    const next = performCast(initialLineState, 24)
+    expect(next.suspended).toHaveLength(9)
+    expect(next.unparted).toHaveLength(40)
+  })
+
   test('three sequential casts produce a 3rd-cast state with a valid Line', () => {
     const s1 = performCast(initialLineState, 24)
     const s2 = performCast(s1, Math.max(1, s1.unparted.length - 2))
