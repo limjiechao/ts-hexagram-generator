@@ -392,6 +392,33 @@ describe('rerenderOnDisk — save→load→rerender body fidelity', () => {
   })
 })
 
+describe('rerenderOnDisk — self-heal write atomicity (BUG-004)', () => {
+  it('leaves the canonical file intact and no temp file when the rewrite crashes mid-write', async () => {
+    const filePath = await writeStale(MOVING_ENVELOPE)
+    const original = await fs.readFile(filePath, 'utf8')
+    // Simulate a crash mid-write on whatever path is targeted: truncate it to
+    // a partial prefix, then fail. A bare rejection would prove nothing,
+    // since an in-place write's damage is the truncation itself.
+    const writeSpy = vi
+      .spyOn(fs, 'writeFile')
+      .mockImplementation(async (target, data) => {
+        const handle = await fs.open(target as string, 'w')
+        await handle.write(String(data).slice(0, 10))
+        await handle.close()
+        throw new Error('ENOSPC: simulated crash mid-write')
+      })
+    try {
+      await expect(rerenderOnDisk(filePath, MOVING_ENVELOPE)).rejects.toThrow(
+        'ENOSPC',
+      )
+    } finally {
+      writeSpy.mockRestore()
+    }
+    expect(await fs.readFile(filePath, 'utf8')).toBe(original)
+    expect(await fs.readdir(tmpDir)).toEqual([path.basename(filePath)])
+  })
+})
+
 describe('<HistoryApp> — Ctrl+D delete', () => {
   it('Ctrl+D then y unlinks the focused file and drops the row from the list', async () => {
     const movingPath = await writeFresh(MOVING_ENVELOPE)

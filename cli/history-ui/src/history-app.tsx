@@ -32,7 +32,17 @@ export async function rerenderOnDisk(
   const desired = serializeFrontmatter(envelope, body)
   const current = await fs.readFile(filePath, 'utf8')
   if (current === desired) return { rewrote: false, body }
-  await fs.writeFile(filePath, desired, 'utf8')
+  // Write-then-rename so a crash or full disk mid-write never truncates the
+  // canonical frontmatter on what is only a read path; rename is atomic on
+  // the same filesystem. The scan reads only `*.md`, so a stray tmp is inert.
+  const tmpPath = `${filePath}.tmp-${process.pid}`
+  try {
+    await fs.writeFile(tmpPath, desired, 'utf8')
+    await fs.rename(tmpPath, filePath)
+  } catch (error) {
+    await fs.unlink(tmpPath).catch(() => {})
+    throw error
+  }
   return { rewrote: true, body }
 }
 
