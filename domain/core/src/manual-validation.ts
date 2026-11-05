@@ -12,9 +12,10 @@
  * count on the same side (e.g. `pR=5, rR=0` is conservation-equivalent to
  * `pR=4, rR=4` at M=49). The I-Ching never-zero convention says a heap
  * divisible by 4 yields remainder 4, not 0, so we reject the 0 form
- * explicitly. Conservation then catches off-by-one heap totals before
- * suspended-sum; once all three pass, the derived pick is mathematically in
- * `[1, unparted - 1]`, so no `range` variant is needed.
+ * explicitly (and any other remainder outside 1..4). Conservation then
+ * catches off-by-one heap totals before suspended-sum; once all three pass,
+ * each heap holds at least one stalk, so the derived pick is in
+ * `[1, unparted - 2]` and no `range` variant is needed.
  */
 export type ManualSplitValidation =
   | { kind: 'incomplete' }
@@ -54,11 +55,18 @@ export function validateManualSplit(args: {
   if (pilesL === null || remL === null || pilesR === null || remR === null) {
     return { kind: 'incomplete' }
   }
+  // A pile count that is not a non-negative integer is not a countable
+  // transcription yet; treated like an empty field rather than a new kind.
+  if (!isPileCount(pilesL) || !isPileCount(pilesR)) {
+    return { kind: 'incomplete' }
+  }
   // I-Ching never-zero convention: a heap divisible by 4 yields remainder 4,
   // never 0. Rejected here (before conservation) because pR=N+1, rR=0 is
   // conservation-equivalent to pR=N, rR=4 — a 0 in the remainder slot would
-  // otherwise pass conservation undetected.
-  if (remL === 0 || remR === 0) {
+  // otherwise pass conservation undetected. The same shift works upward
+  // (pL=5, rL=5 balances like pL=6, rL=1), so any remainder outside 1..4
+  // takes this branch too; the kind keeps its never-zero name.
+  if (!isRemainder(remL) || !isRemainder(remR)) {
     return { kind: 'zero-remainder', remL, remR }
   }
   const leftHeapTotal = 4 * pilesL + remL
@@ -86,12 +94,20 @@ export function validateManualSplit(args: {
     const expectedLabel = castIndex === 0 ? '5 or 9' : '4 or 8'
     return { kind: 'suspended-sum', sum, remL, remR, expectedLabel }
   }
-  // Conservation + suspended-sum both pass → derived pick is in
-  // `[1, unparted - 1]`. No standalone `range` failure mode.
+  // Bounded fields + conservation + suspended-sum → derived pick is in
+  // `[1, unparted - 2]`. No standalone `range` failure mode.
   return {
     kind: 'ok',
     pick: leftHeapTotal,
     leftHeapTotal,
     rightHeapTotal,
   }
+}
+
+function isPileCount(n: number): boolean {
+  return Number.isInteger(n) && n >= 0
+}
+
+function isRemainder(n: number): boolean {
+  return Number.isInteger(n) && n >= 1 && n <= 4
 }

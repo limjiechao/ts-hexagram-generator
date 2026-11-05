@@ -166,29 +166,87 @@ describe('validateManualSplit', () => {
   })
 })
 
+// BUG-008: conservation + suspended-sum alone do not bound the fields — a
+// remainder above 4 or a negative pile count can still balance both sums.
+describe('validateManualSplit rejects out-of-range fields', () => {
+  it('rejects a remainder above 4 that conservation and suspended-sum accept', () => {
+    // 25 + 23 + 1 = 49 ✓, 1 + 5 + 3 = 9 ✓ — but a real heap of 25 has remainder 1.
+    const result = validateManualSplit({
+      pilesL: 5,
+      remL: 5,
+      pilesR: 5,
+      remR: 3,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result.kind).not.toBe('ok')
+  })
+
+  it('rejects a negative left pile count that would derive pick 0', () => {
+    const result = validateManualSplit({
+      pilesL: -1,
+      remL: 4,
+      pilesR: 11,
+      remR: 4,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result.kind).not.toBe('ok')
+  })
+
+  it('rejects a negative right pile count that would derive pick = recordedMax', () => {
+    const result = validateManualSplit({
+      pilesL: 11,
+      remL: 4,
+      pilesR: -1,
+      remR: 4,
+      unparted: 49,
+      castIndex: 0,
+    })
+    expect(result.kind).not.toBe('ok')
+  })
+})
+
 // The structurally-derived range never escapes the core never-zero guard.
+// The enumeration deliberately strays one step outside the valid field
+// ranges (piles from -1, remainders 0..5) so an unbounded field that slips
+// through to `ok` is caught here.
 describe('validateManualSplit "ok" picks satisfy assertSelectablePick', () => {
-  it('every accepted cast-0 input has a pick the core accepts', () => {
-    const unparted = 49
-    for (let pilesL = 0; pilesL <= Math.floor(unparted / 4); pilesL++) {
-      for (let remL = 1; remL <= 4; remL++) {
-        for (let pilesR = 0; pilesR <= Math.floor(unparted / 4); pilesR++) {
-          for (let remR = 1; remR <= 4; remR++) {
-            const result = validateManualSplit({
-              pilesL,
-              remL,
-              pilesR,
-              remR,
-              unparted,
-              castIndex: 0,
-            })
-            if (result.kind !== 'ok') continue
-            expect(() =>
-              assertSelectablePick(unparted - 1, result.pick),
-            ).not.toThrow()
+  const rounds: Array<{ castIndex: 0 | 1 | 2; unparted: number }> = [
+    { castIndex: 0, unparted: 49 },
+    { castIndex: 1, unparted: 44 },
+    { castIndex: 1, unparted: 40 },
+    { castIndex: 2, unparted: 40 },
+    { castIndex: 2, unparted: 36 },
+    { castIndex: 2, unparted: 32 },
+  ]
+  for (const { castIndex, unparted } of rounds) {
+    it(`every accepted castIndex ${castIndex} input at ${unparted} has a pick the core accepts`, () => {
+      const pilesMax = Math.floor(unparted / 4)
+      for (let pilesL = -1; pilesL <= pilesMax + 1; pilesL++) {
+        for (let remL = 0; remL <= 5; remL++) {
+          for (let pilesR = -1; pilesR <= pilesMax + 1; pilesR++) {
+            for (let remR = 0; remR <= 5; remR++) {
+              const result = validateManualSplit({
+                pilesL,
+                remL,
+                pilesR,
+                remR,
+                unparted,
+                castIndex,
+              })
+              if (result.kind !== 'ok') continue
+              expect(pilesL).toBeGreaterThanOrEqual(0)
+              expect(pilesR).toBeGreaterThanOrEqual(0)
+              expect([1, 2, 3, 4]).toContain(remL)
+              expect([1, 2, 3, 4]).toContain(remR)
+              expect(() =>
+                assertSelectablePick(unparted - 1, result.pick),
+              ).not.toThrow()
+            }
           }
         }
       }
-    }
-  })
+    })
+  }
 })
