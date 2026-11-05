@@ -1,32 +1,7 @@
-import fs from 'node:fs/promises'
-import process from 'node:process'
-
-import { input, number } from '@inquirer/prompts'
+import { number } from '@inquirer/prompts'
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import { getHexagramViaInteraction } from '../src/interactive-flow.js'
-
-// `main()` lived in `src/interactive.ts` and is migrating to
-// `apps/cli/src/interactive.ts` in the next commit; the tests for it
-// follow the function home. Skip them here and stub the symbol so the
-// surrounding `describe.skip('main', ...)` block continues to type-check.
-const main = async (): Promise<void> => {}
-
-vi.mock('node:fs/promises')
-const mockedFs = vi.mocked(fs)
-
-// Mock `node:process` with the surface `utils-mode.resolveCliFlags()` reads:
-// argv (no flags → defaults), stdout.isTTY (`false` so resolveOutputMode
-// returns 'plain' and the test exercises the Inquirer flow), env (empty so
-// the a11y NO_COLOR/CI override stays off).
-vi.mock('node:process', () => ({
-  default: {
-    exit: vi.fn(),
-    argv: ['node', 'cli-interactive'],
-    stdout: { isTTY: false },
-    env: {},
-  },
-}))
 
 // Mock the inquirer prompts
 vi.mock('@inquirer/prompts', () => ({
@@ -70,19 +45,8 @@ const mockNumberPrompt = ({ inputs }: MockNumberPromptInputs) => {
   })
 }
 
-const mockInputPrompt = (__input: string) => {
-  vi.mocked(input).mockImplementation(() => {
-    const promise = Promise.resolve(__input)
-    return Object.assign(promise, { cancel: () => {} })
-  })
-}
-
 const originalConsoleInfo = console.info
 const originalConsoleError = console.error
-
-const LINE_ARRAY_REGEX =
-  // oxlint-disable-next-line no-control-regex
-  /\u001B\[1;\d{2}m9, \u001B\[1;\d{2}m9, \u001B\[1;\d{2}m6, \u001B\[1;\d{2}m7, \u001B\[1;\d{2}m8, \u001B\[1;\d{2}m9\n/
 
 describe('CLI', () => {
   beforeEach(() => {
@@ -164,99 +128,6 @@ describe('CLI', () => {
         47, 42, 38, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
       ])
       expect(casting[0][0].recordedMax).toBe(48)
-    })
-  })
-
-  describe.skip('main', () => {
-    it('should run without errors with valid inputs', async () => {
-      // Mock user inputs
-      mockInputPrompt('Hello World')
-
-      const mockNumberPromptInputs: MockNumberPromptInputs = {
-        type: 'valid',
-        inputs: [
-          48, 43, 39, 1, 1, 1, 24, 19, 16, 40, 30, 20, 16, 26, 6, 43, 22, 30,
-        ],
-      }
-      mockNumberPrompt(mockNumberPromptInputs)
-
-      await main()
-
-      expect(console.info).toHaveBeenCalled()
-      expect(console.error).not.toHaveBeenCalled()
-      expect(console.error).not.toHaveBeenCalledWith(
-        'An error occurred:',
-        expect.objectContaining({ message: 'Invalid line' }),
-      )
-      expect(console.error).not.toHaveBeenCalledWith(
-        'An error occurred:',
-        expect.objectContaining({ message: 'Invalid hexagram' }),
-      )
-
-      expect(console.info).toHaveBeenCalled()
-
-      expect(console.info).toHaveBeenCalledWith(
-        expect.stringContaining('Hello World'),
-      )
-
-      // Get all calls to console.info
-      const calls = vi.mocked(console.info).mock.calls
-      // Verify the content of the calls
-      expect(calls.length).toBeGreaterThan(0)
-      // You can also verify specific content if you know what to expect
-      // For example, if you expect a hexagram output:
-      expect(calls.some((call) => call[0].match(LINE_ARRAY_REGEX))).toBe(true)
-      expect(
-        calls.some(
-          (call) =>
-            call[0].includes('9  ━━━━○━━━━') &&
-            call[0].includes('8  ━━━   ━━━') &&
-            call[0].includes('7  ━━━━━━━━━') &&
-            call[0].includes('6  ━━━ ✕ ━━━') &&
-            call[0].includes('9  ━━━━○━━━━') &&
-            call[0].includes('9  ━━━━○━━━━'),
-        ),
-      ).toBe(true)
-
-      expect(mockedFs.mkdir).toHaveBeenCalledWith(
-        expect.stringMatching(/(\/|\\)consultations$/),
-        { recursive: true },
-      )
-      expect(mockedFs.writeFile).toHaveBeenCalledWith(
-        expect.stringMatching(
-          /(\/|\\)consultations(\/|\\)consultation-\d{4}-\d{2}-\d{2}T\d{2}-\d{2}-\d{2}[+-]\d{4}\.txt$/,
-        ),
-        expect.any(String),
-        { encoding: 'utf8' },
-      )
-
-      expect(process.exit).toHaveBeenCalledWith(0)
-    })
-
-    it('should throw an invalid line error with invalid inputs', async () => {
-      mockInputPrompt('Hello World')
-      // Mock user inputs
-      const mockNumberPromptInputs: MockNumberPromptInputs = {
-        type: 'invalid',
-        inputs: [99, 99, 99],
-      }
-      mockNumberPrompt(mockNumberPromptInputs)
-
-      await main()
-
-      expect(process.exit).toHaveBeenCalledWith(1)
-
-      expect(console.error).toHaveBeenCalled()
-      expect(console.error).not.toHaveBeenCalledWith(
-        'An error occurred:',
-        expect.objectContaining({ message: 'Invalid hexagram' }),
-      )
-      expect(console.error).toHaveBeenCalledWith(
-        'An error occurred:',
-        expect.objectContaining({
-          message: 'Line generator should yield a Line',
-        }),
-      )
     })
   })
 })
