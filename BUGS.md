@@ -81,7 +81,7 @@ Shared verification commands:
 ## P2: behaviour
 
 ### BUG-003: Legacy migration renders the body without `castingAbsence`
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P2 · **Status:** fixed · **Commit:** `44c26f8` · **Notes:** Test `apps/cli/tests/migrate-legacy.test.ts`. Surprise: loaded `body` keeps the frontmatter separator newline, so the test compares the whole file against what `rerenderOnDisk` would write.
 - **Location:** `apps/cli/src/migrate-legacy.ts:33-37`
 - **What is wrong:**
   - The call is `markdownConsultationBody(envelope.query, envelope.hexagram, envelope.casting)`. The fourth parameter `absenceReason` defaults to `null` (`cli/text-grid/src/markdown.ts:18-23`).

@@ -34,3 +34,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: –
 
+### Iteration 3 — BUG-003 — 2026-11-05 09:37
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-003-a1 · Landed: 44c26f8
+- Red test: apps/cli/tests/migrate-legacy.test.ts::renders a null-casting body with its castingAbsence reason — failed as expected (y)
+- Review: APPROVE (0 blocking; nits: use envelope.casting not literal null; lint import belonged in test commit)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: Implementer amended its unpushed test commit despite the global `git commit --amend` deny; harmless, but briefs now forbid amend explicitly.
+
