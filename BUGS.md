@@ -253,7 +253,7 @@ Shared verification commands:
 - **Refs:** ADR-0004 (compiler posture), ADR-0006.
 
 ### BUG-013: `as never` casts in `HistoryApp` hide a widened state type
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P3 · **Status:** fixed · **Commit:** `1766cdf` · **Notes:** Type-only. Removing the casts surfaced a real `reason: string` vs `ParseFailureReason | 'io-error'` mismatch at the `HistoryList` seam; retyping the state as `ScanResult` fixed it.
 - **Location:** `cli/history-ui/src/history-app.tsx:119-122,134,170`
 - **What is wrong:**
   - The scan state is declared as `{ entries: HistoryEntry[]; unreadable: { path: string; reason: string }[] } | null`, with `reason` widened to `string`.

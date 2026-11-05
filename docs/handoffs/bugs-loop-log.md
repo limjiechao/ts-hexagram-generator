@@ -90,3 +90,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: Filed DOC-022: `pnpm --filter @hexagram/core test -- --exclude …` runs all 10 files (pnpm forwards the literal --).
 
+### Iteration 10 — BUG-013 — 2026-11-05 10:10
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-013-a1 · Landed: 1766cdf
+- Red test: n.a. (type-only; tsc errored with casts removed and state un-retyped) (y)
+- Review: APPROVE (0 blocking, no nits)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
+- Notes: –
+
