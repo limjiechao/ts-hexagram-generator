@@ -94,7 +94,7 @@ letting the renderers become thin.
 
 ## Where it's enforced
 
-- `pnpm-workspace.yaml` — `domain/*` + `cli/*` globs (replacing `packages/*` + `apps/*`).
+- `pnpm-workspace.yaml` — `domain/*` + `cli/*` + `apps/*` globs (replacing `packages/*` + `apps/*`).
 - `eslint.config.js` — a `no-restricted-imports` override scoped to `domain/**/*.{ts,tsx}`
   (severity `error`) lists the seven `cli/*` package names as forbidden `paths`, so any
   `domain/* → cli/*` import fails the build. Run by `pnpm lint:check` and wired into Turbo
@@ -119,7 +119,7 @@ letting the renderers become thin.
   (`@hexagram/core/manual-validation`: conservation, zero-remainder, suspended-sum),
   hoisted out of the UI packages.
 - `domain/text-layout/` — `visualWidth` and the glyph/column maths.
-- `cli/readout/` and `domain/consultation-file/`'s markdown body renderer — thin serializers
+- `cli/readout/` and `cli/text-grid/`'s markdown body renderer — thin serializers
   of the IR.
 - [ADR-0016](0016-readout-renderer-extraction.md) — superseded by this ADR.
 - [ADR-0018](0018-consultation-view-ir.md) — the consultation-view IR this boundary relies on.
