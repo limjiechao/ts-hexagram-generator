@@ -3,7 +3,7 @@ import { describe, expect, it } from 'vitest'
 import { TRIGRAM_RECORDS } from '../src/models/trigrams.js'
 
 // Pins the trigram Wen Wang order to the 說卦 sequence its source comment
-// quotes (BUG-017): 帝出乎震，齊乎巽，相見乎離，致役乎坤，説言乎兑，戰乎乾，
+// quotes (BUG-017): 帝出乎震，齊乎巽，相見乎離，致役乎坤，說言乎兌，戰乎乾，
 // 勞乎坎，成言乎艮. The map previously disagreed with that comment.
 describe('trigram Wen Wang order', () => {
   it('orders the eight trigrams as the 說卦 sequence', () => {

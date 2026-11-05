@@ -2,7 +2,7 @@
 export const FUXI_ORDER = [1, 2, 3, 4, 5, 6, 7, 8] as const
 type FuxiOrder = (typeof FUXI_ORDER)[number]
 
-// 帝出乎震，齊乎巽，相見乎離，致役乎坤，説言乎兑，戰乎乾，勞乎坎，成言乎艮。
+// 帝出乎震，齊乎巽，相見乎離，致役乎坤，說言乎兌，戰乎乾，勞乎坎，成言乎艮。
 export const WEN_WANG_ORDER = {
   1: 6, // 乾 -> 6th in Wen Wang order
   2: 5, // 兌 -> 5th in Wen Wang order
