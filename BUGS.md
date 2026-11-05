@@ -3,6 +3,7 @@
 **Date:** 2026-11-04, at HEAD `ab492eb` (main).
 
 **How this list was produced.**
+
 1. Nine read-only survey agents explored the codebase for a DDD/hexagonal readiness review. Their reports are archived in `docs/reviews/2026-11-04-ddd-survey/` (`SYNTHESIS.md`, `survey-01` … `survey-09`).
 2. Every candidate bug from those reports was then re-checked against the current code: the cited lines were re-read, and a small read-only reproduction was run where it was cheap (js-yaml timestamp parsing, lexical sort, `git merge-base`).
 3. Candidates that could not be confirmed are listed under "Rejected candidates" at the end.
@@ -10,6 +11,7 @@
 Nothing under `consultations/` was opened. Every example below is invented.
 
 **Rules for fixing.**
+
 - **One bug per commit.** Each fix is a small, single-intent commit, and its message states WHY (AGENTS.md "Legible Change" §2–§3). Write the failing test first, then the minimal fix.
 - **Keep fixes minimal.** A large DDD/hexagonal overhaul is under consideration: a Consultation aggregate, a repository port, Clock and RandomSource ports, a core casting fold. Fixes must not pre-empt that redesign. That rules out new ports, new packages and API reshaping.
 - **"defer?" items.** Entries marked **defer?** are probably better absorbed by the overhaul. Fix them now only if the human says so.
@@ -21,14 +23,15 @@ Nothing under `consultations/` was opened. Every example below is invented.
 
 **Summary:**
 
-| Severity | Count | IDs |
-|---|---|---|
-| P1 (data-loss/correctness) | 2 | BUG-001, BUG-002 |
-| P2 (behaviour) | 6 | BUG-003 … BUG-008 |
-| P3 (hygiene/data) | 9 | BUG-009 … BUG-017 |
-| Docs | 21 | DOC-001 … DOC-021 |
+| Severity                   | Count | IDs               |
+| -------------------------- | ----- | ----------------- |
+| P1 (data-loss/correctness) | 2     | BUG-001, BUG-002  |
+| P2 (behaviour)             | 6     | BUG-003 … BUG-008 |
+| P3 (hygiene/data)          | 9     | BUG-009 … BUG-017 |
+| Docs                       | 21    | DOC-001 … DOC-021 |
 
 Shared verification commands:
+
 - `pnpm --filter <pkg> test`
 - `pnpm --filter <pkg> type:check`
 - `pnpm lint:check`
@@ -42,6 +45,7 @@ Shared verification commands:
 ## P1: data loss / correctness
 
 ### BUG-001: The composed `hexagram` shell mounts Playground without `saveDir`, so its saves land under the cwd
+
 - **Severity:** P1 · **Status:** fixed · **Commit:** `206b257` · **Notes:** Test `hexagram-app.test.tsx` "saves a playground consultation under consultationsDir" (mocks saveConsultationFile). Surprise: run vitest with FORCE_COLOR=1 (package script does) or an unrelated inverse-video test fails.
 - **Location:** `cli/shell/src/hexagram-app.tsx:178`
 - **What is wrong:**
@@ -57,6 +61,7 @@ Shared verification commands:
 - **Refs:** ADR-0020, `apps/cli/src/workspace-root.ts`.
 
 ### BUG-002: Two saves in the same second silently overwrite each other
+
 - **Severity:** P1 · **Status:** fixed · **Commit:** `1659c95` · **Notes:** Test `file.test.ts` "keeps both consultations at distinct paths". Saves use `wx` + `-N` suffix (cap 100, then throw). No consumer parses the filename (reviewer grep).
 - **Location:** `domain/consultation-file/src/file.ts:84-85,102`
 - **What is wrong:**
@@ -81,6 +86,7 @@ Shared verification commands:
 ## P2: behaviour
 
 ### BUG-003: Legacy migration renders the body without `castingAbsence`
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `44c26f8` · **Notes:** Test `apps/cli/tests/migrate-legacy.test.ts`. Surprise: loaded `body` keeps the frontmatter separator newline, so the test compares the whole file against what `rerenderOnDisk` would write.
 - **Location:** `apps/cli/src/migrate-legacy.ts:33-37`
 - **What is wrong:**
@@ -99,12 +105,13 @@ Shared verification commands:
 - **Refs:** ADR-0008 (castingAbsence, B5), ADR-0015 (use only invented fixtures).
 
 ### BUG-004: History self-heal rewrites the canonical file non-atomically
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `5dcad65` · **Notes:** Atomic-write half fixed (tmp + rename; test in `history-app.test.tsx` simulates a crash mid-write). The "bypasses the consultation-file API" half stays **defer?** for the repository-port overhaul.
 - **Location:** `cli/history-ui/src/history-app.tsx:19-37` (write at `:35`)
 - **What is wrong:**
   - Opening a consultation can rewrite it in place with `fs.writeFile(filePath, desired, 'utf8')`, which truncates first and then writes.
   - A crash, kill or full disk mid-write leaves a truncated file. Its YAML frontmatter, the canonical record (ADR-0008), is lost, and the row becomes `[unreadable]`.
-  - This happens on a *read* path: the user only opened the file.
+  - This happens on a _read_ path: the user only opened the file.
 - **Reproduction / failing test:** atomicity is hard to test directly. Sketch it as a unit test:
   1. Spy on `node:fs/promises`: make `writeFile` reject after it is called.
   2. Assert that the original file content is still intact afterwards.
@@ -120,6 +127,7 @@ Shared verification commands:
 - **Refs:** ADR-0008 (self-heal; note DOC-016).
 
 ### BUG-005: A failed save leaves the viewer stuck in `computing`, and discard is the only way out
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `b724102` · **Notes:** Owner's option (c). Failed save → `done` + reading + `Save failed: <msg> · Press r to retry`; `r` only live then. Render failure unchanged. Esc now asks before discarding an unsaved reading. Discard-modal copy still casting-oriented (not changed).
 - **Location:** `cli/casting-ui/src/viewer-flow.ts:332-333`; `cli/casting-ui/src/viewer.tsx:343-372` (the compute effect) and `:692-695` (the footer)
 - **What is wrong:**
@@ -142,11 +150,12 @@ Shared verification commands:
 - **Refs:** ADR-0009 (flow state machine), ADR-0012.
 
 ### BUG-006: The history list sorts ISO timestamps lexically, which is wrong across UTC offsets
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `301e453` · **Notes:** Test `history-scan.test.ts` "sorts newest-first by instant across UTC offsets". Used `Date.parse` + `+HHMM`→`+HH:MM` (history-ui has no dayjs). Unparseable timestamps sort last.
 - **Location:** `cli/history-ui/src/history-scan.ts:59`
 - **What is wrong:**
   - The comparator is `entries.sort((a, b) => (a.envelope.timestamp < b.envelope.timestamp ? 1 : -1))`, which compares offset-bearing strings character by character.
-  - Probe: `'2026-05-19T09:00:00+0800'` (01:00Z) sorts *before* `'2026-05-19T03:00:00+0000'` (03:00Z) in "newest-first" order, but it is older.
+  - Probe: `'2026-05-19T09:00:00+0800'` (01:00Z) sorts _before_ `'2026-05-19T03:00:00+0000'` (03:00Z) in "newest-first" order, but it is older.
   - This affects users who travel or whose zone has DST, because saved timestamps carry the local offset at save time.
   - The comparator also never returns 0, which makes it inconsistent for equal keys.
 - **Reproduction / failing test:** in `cli/history-ui/tests/history-scan.test.ts`, write two valid `.md` files to a tmp dir with the two timestamps above, then call `scanConsultations(tmp)`. Assert that `entries[0]` is the `+0000` one. It fails today.
@@ -157,12 +166,13 @@ Shared verification commands:
 - **Refs:** ADR-0008 (timestamp format).
 
 ### BUG-007: The stored `recordedMax` is never verified on load, yet the ledger renders from it
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `10f5878` · **Notes:** Test in `casting-replay-validation.test.ts`. No fixture changed; reviewer traced every recordedMax writer. Human check: the real-corpus sweep (skipped without `consultations/legacy`) was not run by the loop.
 - **Location:** `domain/consultation-file/src/casting-replay.ts:22-58` (replay reads only `.pick`); consumer `domain/core/src/casting-derivation.ts:115-136` (`deriveSplit`), via `domain/consultation-view/src/ledger-rows.ts:28`
 - **What is wrong:**
   - The "prove, don't trust" replay (ADR-0008 S7) checks only that the 18 `pick`s reproduce the hexagram.
   - `recordedMax` is not compared with `recordedMaxForUnparted(unparted)` for its round.
-  - `deriveSplit` computes `stalks`, `rightHeap`, `rightRemainder` and `rightPiles` from the *stored* `recordedMax`.
+  - `deriveSplit` computes `stalks`, `rightHeap`, `rightRemainder` and `rightPiles` from the _stored_ `recordedMax`.
   - So a hand-edited `recordedMax` passes validation and renders a ledger that violates conservation, inside a ledger the loader has declared proven. Self-heal then writes that wrong ledger into the body.
 - **Reproduction / failing test:** in `domain/consultation-file/tests/casting-replay-validation.test.ts`, take a valid casting (for example from `sampleCastingFor`, or an existing fixture envelope) and change `casting[0][1].recordedMax` by +4. Assert that `castingReplaysTo(mutated, hexagram) === false`, and that `parseFrontmatter` returns `casting-unreplayable`. Both pass today, meaning the bad file is accepted.
 - **Expected:** a casting whose `recordedMax` disagrees with the replayed unparted count is refused, as for a bad pick.
@@ -177,6 +187,7 @@ Shared verification commands:
 - **Refs:** ADR-0006, ADR-0008, `docs/agents/casting-invariants.md`.
 
 ### BUG-008: `validateManualSplit` accepts out-of-range remainders and negative piles, so it can return pick 0 or pick = recordedMax
+
 - **Severity:** P2 · **Status:** fixed · **Commit:** `da42eed` · **Notes:** Tests in `manual-validation.test.ts` (3 counter-examples + enumeration over castIndex 0..2). Kind union and UI copy unchanged; a remainder >4 would show "no remainder" copy, which the UI cannot reach.
 - **Location:** `domain/core/src/manual-validation.ts:45-97`
 - **What is wrong:**
@@ -202,6 +213,7 @@ Shared verification commands:
 ## P3: hygiene / data
 
 ### BUG-009: `saveConsultationFile` reads the clock twice, so the filename and frontmatter timestamps can disagree
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `cde7577` · **Notes:** Owner decided fix-now. One `dayjs()` per save; helpers take the instant. Test steps the clock per read; green in 3 TZs. No Clock port.
 - **Location:** `domain/consultation-file/src/file.ts:84,95`; `domain/consultation-file/src/utils-timestamp.ts:9-20`
 - **What is wrong:** `getFilesystemSafeTimestamp()` and `getIsoTimestamp()` each call `dayjs()`. A save that straddles a second boundary gets a filename one second off from its canonical `timestamp`.
@@ -213,6 +225,7 @@ Shared verification commands:
 - **Refs:** ADR-0008.
 
 ### BUG-010: An unquoted YAML timestamp with a colon offset or `Z` loads as a `Date`, so the file is `invalid-shape`
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `b765c93` · **Notes:** Owner decided CORE_SCHEMA. Surprise: the custom yamlEngine.parse was never used (`matter(text)` had no options); now passed explicitly, which also bypasses gray-matter's shared-object cache. Dump side unchanged; 32 tricky query strings round-trip identically.
 - **Location:** `domain/consultation-file/src/frontmatter.ts:184`
 - **What is wrong:**
@@ -229,6 +242,7 @@ Shared verification commands:
 - **Refs:** ADR-0008.
 
 ### BUG-011: Legacy migration overwrites an existing `.md` of the same name
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `bc811a4` · **Notes:** Test in `apps/cli/tests/migrate-legacy.test.ts`. `wx` + `SKIP <name>: target exists` on stderr; the final "Migrated N" summary does not count skips (unchanged convention).
 - **Location:** `apps/cli/src/migrate-legacy.ts:39-41`
 - **What is wrong:**
@@ -242,6 +256,7 @@ Shared verification commands:
 - **Refs:** ADR-0008, ADR-0015.
 
 ### BUG-012: A type lie in the core algorithm: `(stalksCount % 4) as 1 | 2 | 3`
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `a773913` · **Notes:** Type-only; added a behaviour lock in `perform-cast.test.ts` (no prior test covered a multiple-of-four heap). Found DOC-022: the `-- --exclude` skip recipe does not exclude anything.
 - **Location:** `domain/core/src/index.ts:25`
 - **What is wrong:** the value is `0` for any multiple of four, and the next line relies on exactly that (`sortingRemainder ? [sortingRemainder] : []`). The cast hides the 0 case from the type checker.
@@ -253,6 +268,7 @@ Shared verification commands:
 - **Refs:** ADR-0004 (compiler posture), ADR-0006.
 
 ### BUG-013: `as never` casts in `HistoryApp` hide a widened state type
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `1766cdf` · **Notes:** Type-only. Removing the casts surfaced a real `reason: string` vs `ParseFailureReason | 'io-error'` mismatch at the `HistoryList` seam; retyping the state as `ScanResult` fixed it.
 - **Location:** `cli/history-ui/src/history-app.tsx:119-122,134,170`
 - **What is wrong:**
@@ -268,6 +284,7 @@ Shared verification commands:
 - **Refs:** ADR-0004.
 
 ### BUG-014: A permanently skipped `describe.skip('main')` exercises a no-op stub with pre-clamp inputs
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `9ef9fcc` · **Notes:** casting-ui now 394 passed, 0 skipped. Surprise: there is **no** plain-mode test of `apps/cli/src/interactive.ts` (`apps/cli/tests` has only manual, migrate-legacy, workspace-root).
 - **Location:** `cli/casting-ui/tests/interactive.test.ts:8-13` (stub `const main = async () => {}`), `:170-…` (two skipped tests)
 - **What is wrong:**
@@ -283,17 +300,19 @@ Shared verification commands:
 - **Refs:** ADR-0013.
 
 ### BUG-015: `@hexagram/consultation-view` declares an unused `@hexagram/text-layout` dependency
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `e39f556` · **Notes:** Owner decided drop. Dep + lockfile edge removed; AGENTS.md IR chain corrected in place; ADR-0018 dated amendment. ADR-0022 untouched (its line 66 is true). Historical plans/specs still mention the edge (point-in-time, left).
 - **Location:** `domain/consultation-view/package.json:38`
 - **What is wrong:** `git grep text-layout -- domain/consultation-view` matches only the package.json line. No `src` or test file imports it. It is a phantom edge in the Turbo graph and in the docs.
 - **Reproduction:** `git grep -n "text-layout" -- domain/consultation-view`.
 - **Expected:** declared dependencies match imports.
-- **Minimal fix:** remove the dependency, run `pnpm install` to update the lockfile, and update the DAG prose (AGENTS.md "Repository layout" paragraph, ADR-0022) in the *same* commit, because it is one piece of knowledge.
+- **Minimal fix:** remove the dependency, run `pnpm install` to update the lockfile, and update the DAG prose (AGENTS.md "Repository layout" paragraph, ADR-0022) in the _same_ commit, because it is one piece of knowledge.
 - **Blast radius:** `domain/consultation-view`, `pnpm-lock.yaml`, docs.
 - **Verify:** `pnpm install && pnpm build && pnpm --filter @hexagram/consultation-view test && pnpm type:check`.
 - **Refs:** ADR-0018, ADR-0022.
 
 ### BUG-016: Legge text typo: hexagram 2, line 3 imagery reads "tinder restraint" for "under restraint"
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `2b984a4` · **Notes:** Fixed together (owner: TS canonical, honouring 867a49f). Typo fixed in TS; JSON regenerated: exactly 3 values changed (H2 L3 typo; H1/H2 L6 §7 tails dropped). No runtime or fixture change.
 - **Location:** `domain/core/src/models/hexagram-text-english-legge.ts:59`; mirrored in `domain/core/src/models/hexagrams.json:307`
 - **What is wrong:** `"3. 'He keeps his excellence tinder restraint, …"`. Legge reads "under restraint". It is an OCR or typing error.
@@ -305,6 +324,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-017: The trigram `WEN_WANG_ORDER` map contradicts its own 說卦 comment
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `99a5d37` · **Notes:** Owner decided 說卦. Fuxi-keyed map now 乾6 兌5 離3 震1 巽2 坎7 艮8 坤4; trigrams.json regenerated (5 values). Unused at runtime; no fixture change. Observed: the quoted comment uses 説/兑 variants, not 說/兌 (left as is).
 - **Location:** `domain/core/src/models/trigram.ts:5-15`
 - **What is wrong:**
@@ -319,6 +339,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-018: `pnpm format:check` is red on `main` because of unformatted Markdown docs
+
 - **Severity:** P3 · **Status:** in-progress · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** accept the blank line oxfmt adds inside the fenced log template in BUGS-ORCHESTRATOR.md §6. History: attempt 1 garbled a bare `NO_COLOR` via oxfmt's emphasis rewrite; attempt 2 fixed that with backticks but stopped on the template; attempt 3 stopped on tracker text that itself needed backticks.
 - **Location:** `BUGS.md`, `BUGS-ORCHESTRATOR.md`, `docs/handoffs/bugs-loop-log.md`, `docs/reviews/2026-11-04-ddd-survey/{SYNTHESIS,survey-01…survey-09}.md`.
 - **What is wrong:**
@@ -333,6 +354,7 @@ Shared verification commands:
 - **Interim gate (until fixed):** the loop runs `pnpm exec oxfmt --check <files touched by the diff>` instead of the repo-wide check.
 
 ### BUG-019: `hexagrams.json` has drifted from its TS source: the Legge "7." passages for hexagrams 1 and 2 exist only in the JSON
+
 - **Severity:** P3 · **Status:** fixed · **Commit:** `2b984a4` · **Notes:** Fixed together (owner: TS canonical, honouring 867a49f). Typo fixed in TS; JSON regenerated: exactly 3 values changed (H2 L3 typo; H1/H2 L6 §7 tails dropped). No runtime or fixture change.
 - **Location:** `domain/core/src/models/hexagrams.json:151,310` (Legge Imagery L6 of hexagrams 1 and 2); source `domain/core/src/models/hexagram-text-english-legge.ts`.
 - **What is wrong:**
@@ -354,30 +376,30 @@ Shared verification commands:
 
 Each was verified against the code at `ab492eb`. Severity is P3 for all. Suggested batching: one commit per document, not one per line. AGENTS.md is long; fix its lines in one "realign AGENTS.md with code" commit. **Verify** every docs commit with `pnpm format:check`, plus a `git grep` showing that the stale path or name no longer appears.
 
-| ID | Status | Location | Defect (verified) | Correct statement |
-|---|---|---|---|---|
-| DOC-001 | open | `refactor.md:20` (untracked, the owner's file; **do not edit, tell the human**) | Points at `domain/consultation-file/src/serialize-markdown.ts`, which does not exist | `cli/text-grid/src/serialize-markdown.ts` |
-| DOC-002 | fixed `5734597` | `docs/adr/0018-consultation-view-ir.md:109-118` | Cites `domain/consultation-view/src/ledger-geometry.ts`, `domain/consultation-file/src/serialize-markdown.ts`, and `domain/consultation-file/tests/fixtures/*` as the IR byte-lock | `ledger-rows.ts`; `cli/text-grid/src/serialize-markdown.ts`; `cli/text-grid/tests/fixtures/*` |
-| DOC-003 | fixed `2cf0d99` | `AGENTS.md:240` | "`castingTableFollowRow` … exported by `@hexagram/readout`" | Exported from `cli/text-grid/src/scroll-geometry.ts:16` (`@hexagram/text-grid/scroll-geometry`) |
-| DOC-004 | fixed `2cf0d99` | `AGENTS.md:249` | `renderProgressBar()` in `cli/casting-ui/src/viewer-layout.ts` | `cli/viewer-core/src/viewer-layout.ts:149` |
-| DOC-005 | fixed `2cf0d99` | `AGENTS.md:251` | "saved via `consultationFileOutput()`"; no such function exists (it survives only as a test mock name) | Saved by the viewer's compute effect calling `saveConsultationFile` (`cli/casting-ui/src/viewer.tsx:357`) |
-| DOC-006 | fixed `2cf0d99` | `AGENTS.md:255` | `castingSection()` in `cli/readout/src/output-sections.ts`; the file does not exist | `domain/consultation-view/src/build-view.ts:187` |
-| DOC-007 | fixed `2cf0d99` | `AGENTS.md:259` | "five fields" | Six top-level keys: `castingAbsence` is present iff `casting` is absent, as ADR-0008:10 correctly says |
-| DOC-008 | fixed `2cf0d99` | `AGENTS.md:269` | Saves go "under `<cwd>/consultations/`" | Bins anchor to `<repo-root>/consultations` (ADR-0020; AGENTS.md:228). `<cwd>` is only the library fallback |
-| DOC-009 | fixed `2cf0d99` | `AGENTS.md:287` | JSON "used at runtime via `resolveJsonModule`" | No src file imports the JSON. `getters.ts:3,5` imports the TS records. The JSON is a generated artifact only |
-| DOC-010 | fixed `2cf0d99` | `AGENTS.md:309` (build-order chain) | Omits `@hexagram/text-layout` | Include `text-layout` (see BUG-015 for the consultation-view edge) |
-| DOC-011 | fixed `2cf0d99` | `AGENTS.md:311` | core "ten entries" | Eleven: add `sample-casting` (`domain/core/tsdown.config.ts:4-16`) |
-| DOC-012 | fixed `2cf0d99` | `AGENTS.md:312` | consultation-file "five entries: index, markdown, frontmatter, file, legacy-converter" | Three: `frontmatter`, `file`, `legacy-converter` (`domain/consultation-file/tsdown.config.ts:4`) |
-| DOC-013 | fixed `2cf0d99` | `AGENTS.md:193` (CI simulation) | Cites `4eae942 → 800d3fc`. Both exist as objects but neither is an ancestor of `main` (`git merge-base --is-ancestor`) | Cite the main-line cherry-picked twins (find them with `git log --grep` on main) or drop the SHAs |
-| DOC-014 | fixed `1f4588e` | `docs/adr/0007-hexagram-and-trigram-data.md:9,15,30-31,36,43` | JSON is "the runtime source consumed via `resolveJsonModule`" | TS records are the runtime source. The JSON is generated and unused at runtime. Record this as an ADR amendment, not a silent edit |
-| DOC-015 | fixed `c471c72` | `docs/adr/0006-casting-algorithm-rewindable-core-and-randomness.md:74` | "The injected-RNG test override contract is preserved" | `random-casting.ts` has no injection point (`node:crypto.randomInt` hard-wired) and no test mocks it. Remove the claim (the RNG port is overhaul work) |
-| DOC-016 | fixed `b93893e` | `docs/adr/0008-consultation-file-format.md:267` | `file.ts` owns "body re-render + self-heal" | Self-heal lives in `cli/history-ui/src/history-app.tsx:19-37` (`rerenderOnDisk`) |
-| DOC-017 | fixed `c2a85a0` | `docs/adr/0020-consultations-dir-anchoring.md:29` | `workspaceConsultationsDir` is "(pure)" | It calls `existsSync` (`apps/cli/src/workspace-root.ts:1,32`). Say "deterministic for a given filesystem" or "side-effect-free read" |
-| DOC-018 | fixed `feb2731` | `docs/adr/0019-domain-cli-boundary.md:57,84,97,122` | Says the markdown renderer lives in `domain/consultation-file`; workspace globs are "`domain/*` + `cli/*`" | Renderer is in `cli/text-grid` (ADR-0022); `pnpm-workspace.yaml` also has `apps/*` |
-| DOC-019 | fixed `f7af5a7` | `docs/adr/0009-terminal-ui-architecture-and-flow-state-machine.md:71` | Cites `cli/casting-ui/src/output-sections.ts`, which does not exist | `cli/casting-ui/src/output-composers.ts` only |
-| DOC-020 | fixed `1a31bf1` | `docs/adr/0002-monorepo-structure-and-package-decomposition.md:78-81` | "Where it's enforced" points at `packages/*` and `packages/core/package.json` (superseded ADR, dead links) | Add a one-line pointer to ADR-0019/0022 rather than rewriting a superseded ADR |
-| DOC-021 | fixed: typo `3fa1f7e`, LICENSE `35c537e` (owner decision) | `CLAUDE.md:5`; `LICENSE:3` | Typo "Claude-speciic". The LICENSE copyright holder is the template author ("三咲智子 Kevin Deng") | Fix the typo. The **LICENSE is needs-human** (a legal decision; do not edit autonomously) |
-| DOC-022 | fixed `2cf0d99` | `AGENTS.md:189` (the slow-test skip recipe) | "`pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts`" skips the slow test. Found by the fix loop on 2026-11-05: pnpm forwards the literal `--` to `vitest run`, so all 10 core test files still run, `random-casting` included | Give a recipe that actually excludes the file (e.g. `pnpm --filter @hexagram/core exec vitest run --exclude tests/random-casting.test.ts`, verified by the file count), or drop the claim. BUGS.md "Verify" lines reuse the broken recipe, which is harmless because the slow test passes |
+| ID      | Status                                                    | Location                                                                        | Defect (verified)                                                                                                                                                                                                                                        | Correct statement                                                                                                                                                                                                                                                                         |
+| ------- | --------------------------------------------------------- | ------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| DOC-001 | open                                                      | `refactor.md:20` (untracked, the owner's file; **do not edit, tell the human**) | Points at `domain/consultation-file/src/serialize-markdown.ts`, which does not exist                                                                                                                                                                     | `cli/text-grid/src/serialize-markdown.ts`                                                                                                                                                                                                                                                 |
+| DOC-002 | fixed `5734597`                                           | `docs/adr/0018-consultation-view-ir.md:109-118`                                 | Cites `domain/consultation-view/src/ledger-geometry.ts`, `domain/consultation-file/src/serialize-markdown.ts`, and `domain/consultation-file/tests/fixtures/*` as the IR byte-lock                                                                       | `ledger-rows.ts`; `cli/text-grid/src/serialize-markdown.ts`; `cli/text-grid/tests/fixtures/*`                                                                                                                                                                                             |
+| DOC-003 | fixed `2cf0d99`                                           | `AGENTS.md:240`                                                                 | "`castingTableFollowRow` … exported by `@hexagram/readout`"                                                                                                                                                                                              | Exported from `cli/text-grid/src/scroll-geometry.ts:16` (`@hexagram/text-grid/scroll-geometry`)                                                                                                                                                                                           |
+| DOC-004 | fixed `2cf0d99`                                           | `AGENTS.md:249`                                                                 | `renderProgressBar()` in `cli/casting-ui/src/viewer-layout.ts`                                                                                                                                                                                           | `cli/viewer-core/src/viewer-layout.ts:149`                                                                                                                                                                                                                                                |
+| DOC-005 | fixed `2cf0d99`                                           | `AGENTS.md:251`                                                                 | "saved via `consultationFileOutput()`"; no such function exists (it survives only as a test mock name)                                                                                                                                                   | Saved by the viewer's compute effect calling `saveConsultationFile` (`cli/casting-ui/src/viewer.tsx:357`)                                                                                                                                                                                 |
+| DOC-006 | fixed `2cf0d99`                                           | `AGENTS.md:255`                                                                 | `castingSection()` in `cli/readout/src/output-sections.ts`; the file does not exist                                                                                                                                                                      | `domain/consultation-view/src/build-view.ts:187`                                                                                                                                                                                                                                          |
+| DOC-007 | fixed `2cf0d99`                                           | `AGENTS.md:259`                                                                 | "five fields"                                                                                                                                                                                                                                            | Six top-level keys: `castingAbsence` is present iff `casting` is absent, as ADR-0008:10 correctly says                                                                                                                                                                                    |
+| DOC-008 | fixed `2cf0d99`                                           | `AGENTS.md:269`                                                                 | Saves go "under `<cwd>/consultations/`"                                                                                                                                                                                                                  | Bins anchor to `<repo-root>/consultations` (ADR-0020; AGENTS.md:228). `<cwd>` is only the library fallback                                                                                                                                                                                |
+| DOC-009 | fixed `2cf0d99`                                           | `AGENTS.md:287`                                                                 | JSON "used at runtime via `resolveJsonModule`"                                                                                                                                                                                                           | No src file imports the JSON. `getters.ts:3,5` imports the TS records. The JSON is a generated artifact only                                                                                                                                                                              |
+| DOC-010 | fixed `2cf0d99`                                           | `AGENTS.md:309` (build-order chain)                                             | Omits `@hexagram/text-layout`                                                                                                                                                                                                                            | Include `text-layout` (see BUG-015 for the consultation-view edge)                                                                                                                                                                                                                        |
+| DOC-011 | fixed `2cf0d99`                                           | `AGENTS.md:311`                                                                 | core "ten entries"                                                                                                                                                                                                                                       | Eleven: add `sample-casting` (`domain/core/tsdown.config.ts:4-16`)                                                                                                                                                                                                                        |
+| DOC-012 | fixed `2cf0d99`                                           | `AGENTS.md:312`                                                                 | consultation-file "five entries: index, markdown, frontmatter, file, legacy-converter"                                                                                                                                                                   | Three: `frontmatter`, `file`, `legacy-converter` (`domain/consultation-file/tsdown.config.ts:4`)                                                                                                                                                                                          |
+| DOC-013 | fixed `2cf0d99`                                           | `AGENTS.md:193` (CI simulation)                                                 | Cites `4eae942 → 800d3fc`. Both exist as objects but neither is an ancestor of `main` (`git merge-base --is-ancestor`)                                                                                                                                   | Cite the main-line cherry-picked twins (find them with `git log --grep` on main) or drop the SHAs                                                                                                                                                                                         |
+| DOC-014 | fixed `1f4588e`                                           | `docs/adr/0007-hexagram-and-trigram-data.md:9,15,30-31,36,43`                   | JSON is "the runtime source consumed via `resolveJsonModule`"                                                                                                                                                                                            | TS records are the runtime source. The JSON is generated and unused at runtime. Record this as an ADR amendment, not a silent edit                                                                                                                                                        |
+| DOC-015 | fixed `c471c72`                                           | `docs/adr/0006-casting-algorithm-rewindable-core-and-randomness.md:74`          | "The injected-RNG test override contract is preserved"                                                                                                                                                                                                   | `random-casting.ts` has no injection point (`node:crypto.randomInt` hard-wired) and no test mocks it. Remove the claim (the RNG port is overhaul work)                                                                                                                                    |
+| DOC-016 | fixed `b93893e`                                           | `docs/adr/0008-consultation-file-format.md:267`                                 | `file.ts` owns "body re-render + self-heal"                                                                                                                                                                                                              | Self-heal lives in `cli/history-ui/src/history-app.tsx:19-37` (`rerenderOnDisk`)                                                                                                                                                                                                          |
+| DOC-017 | fixed `c2a85a0`                                           | `docs/adr/0020-consultations-dir-anchoring.md:29`                               | `workspaceConsultationsDir` is "(pure)"                                                                                                                                                                                                                  | It calls `existsSync` (`apps/cli/src/workspace-root.ts:1,32`). Say "deterministic for a given filesystem" or "side-effect-free read"                                                                                                                                                      |
+| DOC-018 | fixed `feb2731`                                           | `docs/adr/0019-domain-cli-boundary.md:57,84,97,122`                             | Says the markdown renderer lives in `domain/consultation-file`; workspace globs are "`domain/*` + `cli/*`"                                                                                                                                               | Renderer is in `cli/text-grid` (ADR-0022); `pnpm-workspace.yaml` also has `apps/*`                                                                                                                                                                                                        |
+| DOC-019 | fixed `f7af5a7`                                           | `docs/adr/0009-terminal-ui-architecture-and-flow-state-machine.md:71`           | Cites `cli/casting-ui/src/output-sections.ts`, which does not exist                                                                                                                                                                                      | `cli/casting-ui/src/output-composers.ts` only                                                                                                                                                                                                                                             |
+| DOC-020 | fixed `1a31bf1`                                           | `docs/adr/0002-monorepo-structure-and-package-decomposition.md:78-81`           | "Where it's enforced" points at `packages/*` and `packages/core/package.json` (superseded ADR, dead links)                                                                                                                                               | Add a one-line pointer to ADR-0019/0022 rather than rewriting a superseded ADR                                                                                                                                                                                                            |
+| DOC-021 | fixed: typo `3fa1f7e`, LICENSE `35c537e` (owner decision) | `CLAUDE.md:5`; `LICENSE:3`                                                      | Typo "Claude-speciic". The LICENSE copyright holder is the template author ("三咲智子 Kevin Deng")                                                                                                                                                       | Fix the typo. The **LICENSE is needs-human** (a legal decision; do not edit autonomously)                                                                                                                                                                                                 |
+| DOC-022 | fixed `2cf0d99`                                           | `AGENTS.md:189` (the slow-test skip recipe)                                     | "`pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts`" skips the slow test. Found by the fix loop on 2026-11-05: pnpm forwards the literal `--` to `vitest run`, so all 10 core test files still run, `random-casting` included | Give a recipe that actually excludes the file (e.g. `pnpm --filter @hexagram/core exec vitest run --exclude tests/random-casting.test.ts`, verified by the file count), or drop the claim. BUGS.md "Verify" lines reuse the broken recipe, which is harmless because the slow test passes |
 
 ---
 

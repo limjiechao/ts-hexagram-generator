@@ -27,13 +27,14 @@ You are the **bug-fix orchestrator** for this repo. Your job is to drive `BUGS.m
 
 You hold **no state except what is on disk**. You keep three sources:
 
-| Source | Role |
-|---|---|
-| `BUGS.md` | **Single source of truth for status.** Each entry has `Status: open / in-progress / fixed / blocked / deferred`, plus `Commit:` and `Notes:`. Doc entries carry status in the table. |
-| `docs/handoffs/bugs-loop-log.md` | **Append-only** progress log, one entry per iteration (template in §6). Never edit past entries. |
-| `git log bugs-loop` | Commits whose messages carry `BUG-NNN` / `DOC-NNN`. |
+| Source                           | Role                                                                                                                                                                                 |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `BUGS.md`                        | **Single source of truth for status.** Each entry has `Status: open / in-progress / fixed / blocked / deferred`, plus `Commit:` and `Notes:`. Doc entries carry status in the table. |
+| `docs/handoffs/bugs-loop-log.md` | **Append-only** progress log, one entry per iteration (template in §6). Never edit past entries.                                                                                     |
+| `git log bugs-loop`              | Commits whose messages carry `BUG-NNN` / `DOC-NNN`.                                                                                                                                  |
 
 **Rebuild procedure (run it on start, after any compaction, and whenever you are unsure):**
+
 1. Run `git status --short` and `git branch --show-current`. If `bugs-loop` does not exist, run the bootstrap (§2).
 2. Run `grep -nE '^### (BUG|DOC)-|Status:|^\| DOC-' BUGS.md`. Read **only the status lines**, not the whole file.
 3. Run `tail -n 40 docs/handoffs/bugs-loop-log.md`.
@@ -62,11 +63,13 @@ Post a one-line status after **every** step, in this format:
 `[<ID> · step k/6 <name> · attempt a/2] <PASS|FAIL|SKIP> — <≤15-word reason>`
 
 ### Step 1: Pick
+
 - Pick the first entry by order **P1 → P2 → P3 → DOC** with `Status: open`. Skip entries whose Notes contain **needs-human** or **defer?**. Collect those for the escalation batch (§5) instead.
 - Set it to `in-progress` in BUGS.md and append a log entry header.
 - To extract only that entry, run `awk '/^### <ID>:/{f=1} f&&/^### /&&!/<ID>:/{exit} f' BUGS.md`. For a DOC row, extract the row with `grep '^| <ID> '`. That extract is the **bug brief**.
 
 ### Step 2: Implement (one fresh subagent)
+
 - Create an isolated worktree from the integration tip:
   ```bash
   git worktree add ../hexagram-wt-<ID> -b bug/<ID>-a<attempt> bugs-loop
@@ -78,6 +81,7 @@ Post a one-line status after **every** step, in this format:
   > You are fixing exactly one bug in `<worktree path>`. Work only in that directory.
   >
   > **Rules.**
+  >
   > - Read `AGENTS.md` sections "Engineering Guidelines: Legible Change" and "Data hygiene".
   > - Never open anything under `consultations/`.
   > - Do not touch files outside the bug's stated blast radius.
@@ -90,7 +94,8 @@ Post a one-line status after **every** step, in this format:
   > **Relevant ADR(s):** <paths from the entry's Refs line>. Read only the sections you need.
   >
   > **Method (TDD):**
-  > 1. Write the failing test described in "Reproduction / failing test". Run it and confirm it fails *for the stated reason*.
+  >
+  > 1. Write the failing test described in "Reproduction / failing test". Run it and confirm it fails _for the stated reason_.
   >    - Commit only the test: `test(<scope>): reproduce <ID> — <short>`.
   >    - Put a one-line WHY in the body and the trailer `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
   >    - Skip this step only for type-only, doc-only or data-only entries. Their "Verify" line is the test.
@@ -100,12 +105,14 @@ Post a one-line status after **every** step, in this format:
   > 3. Run the entry's "Verify" commands. Also run `pnpm lint:check` and `pnpm format:check`, and fix only issues in the files you touched.
   >
   > **Stop and report instead of proceeding** if any of the following happens:
+  >
   > - the fix needs a design decision;
   > - any byte fixture changes (`cli/casting-ui/tests/fixtures/*`, `cli/text-grid/tests/fixtures/*`, `domain/consultation-file/tests/fixtures/*`);
   > - the diff exceeds ~150 changed lines (excluding the new test file);
   > - you would touch a package not listed in the blast radius.
   >
   > **Report (≤150 words):**
+  >
   > - the two commit SHAs;
   > - the red-test output (one line) and the green result;
   > - the verify results;
@@ -118,17 +125,20 @@ Post a one-line status after **every** step, in this format:
   - **Verify red yourself.** Check out the test-only commit with `git -C <wt> checkout <test-sha>`, run the single focused test file, and confirm it fails. Then run `git -C <wt> checkout bug/<ID>-a<attempt>`.
 
 ### Step 3: Review (one fresh, independent subagent)
+
 - Dispatch a **new** `general-purpose` subagent, not the implementer. Give it **only**:
   - the bug entry;
   - the output of `git -C <wt> diff bugs-loop..HEAD`;
   - the worktree path, so it can run tests.
 
   Do **not** forward the implementer's report or reasoning.
+
 - The reviewer's brief:
 
   > Independently review this diff against this bug entry. Never open `consultations/`.
   >
   > **Check:**
+  >
   > 1. Does the test actually reproduce the described defect, and would it fail without the fix?
   > 2. Is the fix minimal and single-intent? No refactor or feature mixed in, no unrequested generality (AGENTS.md §2, §6).
   > 3. Does it break any invariant in `docs/agents/casting-invariants.md` or the cited ADR?
@@ -143,19 +153,23 @@ Post a one-line status after **every** step, in this format:
 - On `REQUEST_CHANGES`, the attempt has failed. Go to §4 (retry).
 
 ### Step 4: Verify (orchestrator runs the commands; reads only the pass/fail summary)
+
 Run these in the worktree. Pipe output to a file and `tail` it, so large logs stay out of your context.
+
 ```bash
 pnpm --filter <pkg> test            > /tmp/<ID>-test.log 2>&1; tail -n 15 /tmp/<ID>-test.log
 pnpm --filter <pkg> type:check      > /tmp/<ID>-tc.log   2>&1; tail -n 5  /tmp/<ID>-tc.log
 pnpm lint:check && pnpm format:check
 pnpm build && pnpm test             > /tmp/<ID>-full.log 2>&1; tail -n 25 /tmp/<ID>-full.log   # sequential, NOT check:all
 ```
+
 - Do this for each package in the blast radius.
 - If the diff touches any `.tsx` or Ink component (`cli/casting-ui`, `cli/history-ui`, `cli/playground-ui`, `cli/shell`, `cli/viewer-core`, `cli/readout`), also run `pnpm test:stress:once` (2–3 min).
 - Retry the stress run once only, and only when the failing test is unrelated to the diff. If it fails again, the attempt has failed.
 - For DOC entries, run `pnpm format:check` and the entry's `git grep` check instead.
 
 ### Step 5: Commit / land
+
 1. Land the bug branch on the integration branch as **one** commit:
    ```bash
    git switch bugs-loop
@@ -170,6 +184,7 @@ pnpm build && pnpm test             > /tmp/<ID>-full.log 2>&1; tail -n 25 /tmp/<
 4. Leave the `bug/<ID>-a*` branch in place, because `branch -d` is denied. Remove the worktree with `git worktree remove ../hexagram-wt-<ID>`; if denied, log it.
 
 ### Step 6: Record
+
 - **BUGS.md:** set `Status: fixed`, `Commit: <sha on bugs-loop>`, and `Notes:` with one line covering test names and anything surprising.
 - **Log:** append the iteration entry (§6).
 - Commit both as `chore(bugs): record <ID> outcome`, with the trailer.
@@ -189,6 +204,7 @@ pnpm build && pnpm test             > /tmp/<ID>-full.log 2>&1; tail -n 25 /tmp/<
 ## 5. Escalate to the human (pause and ask; do not guess)
 
 Escalate whenever any of these is true:
+
 - The entry is tagged **needs-human** or **defer?**. These are batched: present them all at once when no plain `open` entries remain. Example: BUG-005 (what a failed save should do), BUG-010, BUG-015, BUG-017, DOC-001 (the owner's untracked file), and the LICENSE half of DOC-021.
 - The fix needs a design decision, a new ADR, or an ADR amendment beyond a factual correction.
 - The fix changes any **byte fixture**, or needs `pnpm generate-fixtures` / `pnpm generate-json-files` beyond what the entry explicitly allows (BUG-016 and BUG-017 allow `generate-json-files`).
@@ -203,6 +219,7 @@ An escalation message is ≤ 10 lines: the ID, the question, 2–3 options with 
 
 ```markdown
 ### Iteration <n> — <ID> — <YYYY-MM-DD HH:mm>
+
 - Attempt: <a>/2 · Outcome: fixed | blocked | deferred | escalated
 - Branch: bug/<ID>-a<a> · Landed: <sha on bugs-loop or –>
 - Red test: <file::test name> — failed as expected (y/n)
@@ -214,12 +231,14 @@ An escalation message is ≤ 10 lines: the ID, the question, 2–3 options with 
 ## 7. Stop conditions
 
 Stop the loop and post a final summary when any of these is true:
+
 - No entry is `open`, apart from those tagged needs-human or defer?.
 - **3 consecutive bugs** end `blocked`. Something systemic is wrong, so stop and report.
 - An escalation is pending and every remaining `open` entry depends on it.
 - The human says stop.
 
 **Final summary (≤ 15 lines):**
+
 - counts by status;
 - the `bugs-loop` tip SHA, and the command for the human to land it: `git switch main && git merge --ff-only bugs-loop`;
 - leftover `bug/*` branches and worktrees to clean up;

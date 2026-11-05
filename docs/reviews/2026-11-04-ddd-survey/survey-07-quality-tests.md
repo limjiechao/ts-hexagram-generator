@@ -4,14 +4,14 @@ Surveyed 2026-11-04 at HEAD `ab492eb` (main). Everything below is from read-only
 
 ## 0. Tooling results (item 6)
 
-| Command | Result |
-|---|---|
-| `pnpm type:check` | PASS, 25/25 turbo tasks, exit 0 |
-| `pnpm lint:check` (oxlint + eslint) | PASS, exit 0: **0 errors, 8 warnings**, all in tests (7x `unicorn/consistent-function-scoping`, 1x `no-shadow`), e.g. `domain/core/tests/casting-derivation.test.ts:16`, `cli/casting-ui/tests/manual-prompt.test.tsx:117` |
-| `pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts` | PASS, 10 files / 84 tests, 6.3 s |
-| `turbo run test --filter='!@hexagram/core' --force --concurrency=2` | PASS, 24/24 tasks, 0 cached, 33 s |
-| `pnpm --filter @hexagram/casting-ui test` | 394 passed, **2 skipped** (`describe.skip('main')` at `cli/casting-ui/tests/interactive.test.ts:170`), 31 s |
-| `pnpm build` | PASS, 13/13 (turbo cache hit) |
+| Command                                                                       | Result                                                                                                                                                                                                                     |
+| ----------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `pnpm type:check`                                                             | PASS, 25/25 turbo tasks, exit 0                                                                                                                                                                                            |
+| `pnpm lint:check` (oxlint + eslint)                                           | PASS, exit 0: **0 errors, 8 warnings**, all in tests (7x `unicorn/consistent-function-scoping`, 1x `no-shadow`), e.g. `domain/core/tests/casting-derivation.test.ts:16`, `cli/casting-ui/tests/manual-prompt.test.tsx:117` |
+| `pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts` | PASS, 10 files / 84 tests, 6.3 s                                                                                                                                                                                           |
+| `turbo run test --filter='!@hexagram/core' --force --concurrency=2`           | PASS, 24/24 tasks, 0 cached, 33 s                                                                                                                                                                                          |
+| `pnpm --filter @hexagram/casting-ui test`                                     | 394 passed, **2 skipped** (`describe.skip('main')` at `cli/casting-ui/tests/interactive.test.ts:170`), 31 s                                                                                                                |
+| `pnpm build`                                                                  | PASS, 13/13 (turbo cache hit)                                                                                                                                                                                              |
 
 The slow RNG distribution test was not run, as instructed.
 
@@ -21,17 +21,18 @@ The slow RNG distribution test was not run, as instructed.
 
 **Escape hatches.** Counts are from grep over 125 git-tracked source files and 102 test files. Comment matches were filtered out by hand.
 
-| Construct | src | tests |
-|---|---|---|
-| explicit `any` | **0** (the 2 grep hits are prose in comments) | 0 |
-| `as T` casts (excluding `as const` and imports) | ~45 real casts outside the text data, mostly tuple/union re-widening | ~165 |
-| `as unknown as` | 0 | 4 |
-| `as never` | 2 (`cli/history-ui/src/history-app.tsx:134,170`) | – |
-| non-null `!` | ~11 (`cli/readout/src/serialize-ansi.ts:192,262-273`, `cli/text-grid/src/serialize-markdown.ts:126`, `domain/consultation-file/src/legacy-converter.ts:150-178`, `cli/text-grid/src/ledger-template.ts:43`, `cli/casting-ui/src/slider-prompt.tsx:173`) | ~22 |
-| `@ts-expect-error` | 0 (src); 1 deliberate negative type test (`domain/core/tests/perform-cast.test.ts:160`) | 1 |
-| lint-disable comments | 16 (mostly `react-hooks/exhaustive-deps` on onReady effects) | 30 |
+| Construct                                       | src                                                                                                                                                                                                                                                     | tests |
+| ----------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----- |
+| explicit `any`                                  | **0** (the 2 grep hits are prose in comments)                                                                                                                                                                                                           | 0     |
+| `as T` casts (excluding `as const` and imports) | ~45 real casts outside the text data, mostly tuple/union re-widening                                                                                                                                                                                    | ~165  |
+| `as unknown as`                                 | 0                                                                                                                                                                                                                                                       | 4     |
+| `as never`                                      | 2 (`cli/history-ui/src/history-app.tsx:134,170`)                                                                                                                                                                                                        | –     |
+| non-null `!`                                    | ~11 (`cli/readout/src/serialize-ansi.ts:192,262-273`, `cli/text-grid/src/serialize-markdown.ts:126`, `domain/consultation-file/src/legacy-converter.ts:150-178`, `cli/text-grid/src/ledger-template.ts:43`, `cli/casting-ui/src/slider-prompt.tsx:173`) | ~22   |
+| `@ts-expect-error`                              | 0 (src); 1 deliberate negative type test (`domain/core/tests/perform-cast.test.ts:160`)                                                                                                                                                                 | 1     |
+| lint-disable comments                           | 16 (mostly `react-hooks/exhaustive-deps` on onReady effects)                                                                                                                                                                                            | 30    |
 
 **Notable casts:**
+
 - `domain/core/src/index.ts:25`: `(stalksCount % 4) as 1 | 2 | 3`. This cast lies, because the value can be 0, and the next line depends on it being 0 (`sortingRemainder ? … : []`). It is a type lie inside the core algorithm.
 - `domain/core/src/index.ts:253,265,279`: `as Extract<LineState, {phase: NextPhase<P>}>`. The phase-typed state machine is enforced by casts, not by inference.
 - `cli/casting-ui/src/viewer-flow.ts:206-312`: 8 casts that re-widen `PartialCastingRecord`, `lineIndex` and `castIndex` after arithmetic.
@@ -39,6 +40,7 @@ The slow RNG distribution test was not run, as instructed.
 - `domain/consultation-file/src/frontmatter.ts:26`: `jsYaml.safeLoad(str) as object` at the trust boundary. It is followed by hand-written guards, so this is acceptable.
 
 **Domain types.** `Line = 6|7|8|9`, `LineIndex = 0..5` and the `Hexagram` 6-tuple are literal or tuple types, each with a guard/assert pair (`domain/core/src/types.ts:3-35`). `CastingAbsenceReason` is a closed union, and `LineState` is a discriminated union keyed by phase. There are **no branded types anywhere** (0 hits for `__brand`, `unique symbol` or `Brand<`). The following are all plain `number` or `number[]`:
+
 - `pick`, `recordedMax`, pile and remainder counts
 - stalk heaps, represented as arrays of stalk IDs (`domain/core/src/index.ts:52-56`)
 - WenWang numbers
@@ -49,18 +51,19 @@ The `recordedMax` vs selectable-max confusion that CLAUDE.md spends a whole para
 
 **Largest files.** These are the data files, which is expected: Wilhelm/Baynes text (2,204 lines), Legge (2,129), the two Chinese texts (1,804 each), metadata (1,735), `foundation.ts` (1,255) and `hexagrams.ts` (974). All are under `domain/core/src/models/`. Logic files:
 
-| File | Lines | Main component span |
-|---|---|---|
-| `cli/casting-ui/src/viewer.tsx` | 841 | `ConsultationViewer` 168→~776, a **~600-line component** |
-| `cli/casting-ui/src/manual-prompt.tsx` | 628 | `ManualCastingPrompt` 192→628, ~435 lines |
-| `cli/readout/src/consultation-readout.tsx` | 602 | `ConsultationReadout` 220→602, ~380 lines |
-| `cli/casting-ui/src/slider-prompt.tsx` | 502 | `SliderCastingPrompt` 381→502 |
-| `cli/history-ui/src/history-list.tsx` | 429 | `HistoryList` 108→429, ~320 lines |
-| `cli/playground-ui/src/playground-app.tsx` | 401 | `PlaygroundApp` 121→401, ~280 lines |
+| File                                       | Lines | Main component span                                      |
+| ------------------------------------------ | ----- | -------------------------------------------------------- |
+| `cli/casting-ui/src/viewer.tsx`            | 841   | `ConsultationViewer` 168→~776, a **~600-line component** |
+| `cli/casting-ui/src/manual-prompt.tsx`     | 628   | `ManualCastingPrompt` 192→628, ~435 lines                |
+| `cli/readout/src/consultation-readout.tsx` | 602   | `ConsultationReadout` 220→602, ~380 lines                |
+| `cli/casting-ui/src/slider-prompt.tsx`     | 502   | `SliderCastingPrompt` 381→502                            |
+| `cli/history-ui/src/history-list.tsx`      | 429   | `HistoryList` 108→429, ~320 lines                        |
+| `cli/playground-ui/src/playground-app.tsx` | 401   | `PlaygroundApp` 121→401, ~280 lines                      |
 
 Components over ~300 lines: ConsultationViewer, ManualCastingPrompt, ConsultationReadout and HistoryList. ConsultationViewer runs the compute effect, saving, slider and manual wiring, and auto-scroll. It is the main application-service logic that sits inside a React component (`cli/casting-ui/src/viewer.tsx:366`, the try/catch around save).
 
 **Dead code and unused exports.** No knip or ts-prune is installed, so these are spot checks:
+
 - `castingTableActiveRow` is exported but used only by its own module and tests (CLAUDE.md admits it "still exists").
 - `generateRandomHexagram` and `generateRandomHexagrams` are used only in `domain/core/src/random-casting.ts` and its tests. They are library API that no app consumes.
 - `cli/casting-ui/tests/interactive.test.ts:170` has a permanently skipped `describe.skip('main')`, kept only so it type-checks.
@@ -71,36 +74,39 @@ Components over ~300 lines: ConsultationViewer, ManualCastingPrompt, Consultatio
 
 Test counts per package are from the fresh run. Ink-file and fixture figures come from grep over imports.
 
-| Package | Tests run | Test files | Ink-rendering files (≈its) | Notes |
-|---|---|---|---|---|
-| domain/core | 84 + 6 slow | 10 | 0 | pure |
-| domain/consultation-file | 56 | 5 | 0 | pure plus fs (tmp dirs) |
-| domain/consultation-view | 22 | 3 | 0 | pure |
-| domain/text-layout | 13 | 1 | 0 | pure |
-| cli/text-grid | 37 | 6 | 0 | `.md` byte fixtures |
-| cli/readout | 45 | 6 | 1 (~22) | |
-| cli/viewer-core | 78 | 9 | 5 (~47) | |
-| cli/casting-ui | 394 (+2 skipped) | 24 | 9 (~210) | `--plain` byte fixtures; `viewer.test.tsx` alone is 2,119 lines |
-| cli/history-ui | 148 | 8 | 3 (~108) | `history-list.test.tsx` 1,939 lines |
-| cli/playground-ui | 140 | 11 | 5 (~61) | one vitest `.snap` |
-| cli/shell | 66 | 8 | 2 (~20) | |
-| apps/cli | 7 | 2 | 0 | spawns the bin (non-TTY guard) |
-| **Total** | **~1,096** | 103 | | |
+| Package                  | Tests run        | Test files | Ink-rendering files (≈its) | Notes                                                           |
+| ------------------------ | ---------------- | ---------- | -------------------------- | --------------------------------------------------------------- |
+| domain/core              | 84 + 6 slow      | 10         | 0                          | pure                                                            |
+| domain/consultation-file | 56               | 5          | 0                          | pure plus fs (tmp dirs)                                         |
+| domain/consultation-view | 22               | 3          | 0                          | pure                                                            |
+| domain/text-layout       | 13               | 1          | 0                          | pure                                                            |
+| cli/text-grid            | 37               | 6          | 0                          | `.md` byte fixtures                                             |
+| cli/readout              | 45               | 6          | 1 (~22)                    |                                                                 |
+| cli/viewer-core          | 78               | 9          | 5 (~47)                    |                                                                 |
+| cli/casting-ui           | 394 (+2 skipped) | 24         | 9 (~210)                   | `--plain` byte fixtures; `viewer.test.tsx` alone is 2,119 lines |
+| cli/history-ui           | 148              | 8          | 3 (~108)                   | `history-list.test.tsx` 1,939 lines                             |
+| cli/playground-ui        | 140              | 11         | 5 (~61)                    | one vitest `.snap`                                              |
+| cli/shell                | 66               | 8          | 2 (~20)                    |                                                                 |
+| apps/cli                 | 7                | 2          | 0                          | spawns the bin (non-TTY guard)                                  |
+| **Total**                | **~1,096**       | 103        |                            |                                                                 |
 
 **Ratio.** Domain packages have ~181 tests, about 17%. CLI and app packages have ~915, about 83%. Of the CLI tests, roughly 470 (~43% of all tests) render through `ink-testing-library`. The rest are pure-function tests of terminal helpers, such as keymaps, layout math, reducers and serializers. Test LOC (~19k) is about 1.4× non-data source LOC.
 
 **Byte-fixture tests:**
+
 - `cli/casting-ui/tests/output.test.ts` checks 4 cases against `plain-output-*.txt` and `ink-sections-*.json`.
 - `cli/text-grid/tests/fixtures.test.ts` checks 4 cases against `md-body-*.md` and `md-file-*.md`.
 - Both regenerate through `scripts/generate-fixtures.ts`.
 - **The case list is duplicated** in `cli/casting-ui/tests/fixtures/cases.ts` and `cli/text-grid/tests/fixtures/cases.ts`, and the two files have already diverged: only text-grid's has `FIXTURE_TIMESTAMP`.
 
 **Flakiness machinery:**
+
 - ADR-0012 adds the `onReady` witness contract, the `await tick()` lint ban, and `@hexagram/test-utils` (`waitFor`, `waitForReady`, `pressUntil`, `pumpSliderTick`, `yieldMacrotask`; 16 test files use it).
 - ADR-0013 and `vitest.config.base.ts` set a 30 s test and hook timeout, resolve the `source` condition (no-build tests), and add the `test:flake` / `test:stress` scripts. No vitest `retry` is configured, which is good.
 - This is mature, well-documented machinery. The cost is that production components carry test hooks.
 
 **Which tests survive a DDD/hexagonal move.** Tests that can be reused as domain or contract specs against a new core (~180–230 tests):
+
 - `domain/core/tests/perform-cast.test.ts`, `casting-derivation.test.ts`, `manual-validation.test.ts`, `line-semantics.test.ts`, `getters.test.ts`, `types.test.ts`, `sample-casting.test.ts`, and the invariant parts of `random-casting.test.ts` (pick ceiling at :28-43, no-zero-remainder at :46-60). These are domain specs already. They are tied only to function names, not to structure.
 - `domain/consultation-file/tests/*`: `frontmatter.test.ts`, `casting-replay-validation.test.ts`, `legacy-converter.test.ts`, `file.test.ts`. These are a ready-made **persistence-adapter contract suite**. The round-trip, the schema-version refusal and replay validation are port-level behaviour.
 - `domain/consultation-view/tests/build-view.test.ts`: the presentation-IR contract.
@@ -109,6 +115,7 @@ Test counts per package are from the fresh run. Ink-file and fixture figures com
 - The byte fixtures (`plain-output-*.txt`, `md-*.md`) are excellent **golden end-to-end characterization tests** for the overhaul. Keep them unchanged and treat them as the safety net.
 
 Tests coupled to Ink internals that would need a rewrite (~470):
+
 - `cli/casting-ui/tests/viewer.test.tsx`, `slider-prompt.test.tsx`, `manual-prompt.test.tsx`, `casting-prompt-box.test.tsx`, `number-input.test.tsx` and `query-editor.test.tsx`
 - `cli/history-ui/tests/history-list.test.tsx` and `history-app.test.tsx`
 - `cli/shell/tests/hexagram-app.test.tsx` and `home-menu.test.tsx`
@@ -129,6 +136,7 @@ They depend on `lastFrame()` text, stdin escape bytes, onReady timing and macrot
 ## 5. Error handling
 
 The approach is mixed but mostly principled, and each layer has its own convention:
+
 - **The core throws** for invariant violations: TypeError from the `assertIs*` guards (`domain/core/src/types.ts:9,23,85,158,210`), RangeError from `assertSelectablePick` (`casting-derivation.ts:69`), and the `performCast` tripwire (`index.ts:219`).
 - **The persistence layer returns tagged Results** `{ok: true, …} | {ok: false, reason}` (`domain/consultation-file/src/frontmatter.ts:112`, `file.ts:26-31`, `legacy-converter.ts:21`).
 - **Manual validation returns a different Result shape**, `{kind: 'ok' | 'incomplete' | …}` (`domain/core/src/manual-validation.ts:39,92`). The repo therefore has two Result conventions.
@@ -141,6 +149,7 @@ The approach is mixed but mostly principled, and each layer has its own conventi
 ## 6. Rating: **4 / 5**
 
 This is a strict, lint-clean, well-documented codebase. The core is pure and most invariants have tests, the ADRs record why the code is the way it is, and CI reliability work is real. It falls short of 5 for four reasons:
+
 - The application logic is concentrated in a few very large Ink components.
 - Domain numbers are not branded.
 - Testing is example-based, with no exhaustive or property-based coverage of the small, finite domain.

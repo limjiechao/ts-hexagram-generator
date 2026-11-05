@@ -9,6 +9,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 ## 1. The data model
 
 ### Keys and orderings
+
 - **[F]** A hexagram key is a 6-character string `H[12]{6}`, read bottom line first, where `1` = yang and `2` = yin. It is a template-literal type (`domain/core/src/models/foundation.ts:1-9`). The 64 keys are listed in Wen Wang order in the unexported `HEXAGRAM_KEYS` (`foundation.ts:154-221`). The type `HexagramKey<Order>` is indexed by `WenWangOrder` (1..64), which is defined at `foundation.ts:302-309`.
 - **[F]** A trigram key is `T[12]{3}`, also bottom line first (`domain/core/src/models/trigram.ts:22-34`). The trigram records are indexed by Fuxi order 1..8 (乾兌離震巽坎艮坤, `trigram.ts:1-3`).
 - **[F]** Each hexagram also carries `Order.Fuxi`, a `Binary` string (`0b…`), and its Unicode code point, pinyin and zhuyin (`domain/core/src/models/hexagram.ts:30-53`).
@@ -23,6 +24,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 - **[F]** There is a name collision. `Hexagram` in `foundation.ts:9` is the polarity-string type. `Hexagram` in `domain/core/src/types.ts:13` is the `[Line×6]` tuple.
 
 ### Record shape
+
 - **[F]** `GenericHexagramRecord` has the fields `{ Key, Name, Metadata, Text }` (`hexagram.ts:113-118`).
 - **[F]** `Text` has four variants: `Chinese.{Traditional, Simplified}` and `English.{WilhelmBaynes, Legge}` (`hexagram.ts:99-108`).
 - **[F]** The nominal per-variant shape is `Scripture{Hexagram 卦辭, Lines L1..L6 爻辭}` plus `Exegesis{Judgment 彖傳, Imagery{Hexagram 大象, Lines 小象}}` (`hexagram.ts:73-97`).
@@ -34,6 +36,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 - **[F]** The trigram record has the fields `{Key, Name, Imagery, Metadata}` (`trigram.ts:340-345`).
 
 ### Is it a clean, read-only reference catalogue?
+
 - **[I]** Mostly yes. It is pure, constant data with no I/O. Lookup is total over 64 keys, and the derived fields are consistent. That makes it a good candidate for a Published Language or Open Host.
 - **[I]** Three things work against that:
   - The shapes differ by translation.
@@ -44,6 +47,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
     - `foundation.ts` is not an exported subpath (`domain/core/package.json` exports list).
 
 ### Duplication between the TS sources and the JSON
+
 - **[F]** ADR-0007 says the JSON is "the runtime source consumed via `resolveJsonModule`" (`docs/adr/0007-hexagram-and-trigram-data.md:8-10`), and AGENTS.md:287 repeats this. That is **false today**:
   - `getters.ts:3,5` import `HEXAGRAM_RECORDS` and `TRIGRAM_RECORDS` from the `.ts` modules.
   - `git grep` finds no runtime import of `hexagrams.json` or `trigrams.json`. The only references are the generator writing them (`domain/core/scripts/generate-json-files.ts:8,12`).
@@ -56,6 +60,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 ## 2. Where the "applicable text" rule lives, and how complete it is
 
 ### Location
+
 - **[F]** The rule lives in the **IR layer** (`@hexagram/consultation-view`). It is not in the domain core.
   - `linesSection` counts the moving lines and branches on 0, 1, or 2 and more (`domain/consultation-view/src/build-view.ts:145-170`).
   - `oneMovingLineVariants` picks `Scripture.Lines[Lk]` and `Exegesis.Imagery.Lines[Lk]` (`build-view.ts:114-141`).
@@ -66,25 +71,27 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 - **[F]** A third, separate decision lives in the playground. `singleMovingIndex` is computed in `cli/playground-ui/src/playground-lines.ts:64-66` and gates the strip in `cli/playground-ui/src/playground-app.tsx:154`. The playground shows nothing for 0 or 2+ moving lines (`readings-panel.tsx:8-12`). It does reuse `movingLineVariants` for the text itself.
 
 ### Exactly what is implemented
-| Moving lines | Text shown (for all 4 language variants) |
-|---|---|
-| 0 | The standing hexagram's 卦辭 + 大象 (ANSI: the `text:hexagram` section; Markdown: the `lines:none` section) (`build-view.ts:147-156, 247-259`) |
-| 1 | The standing 卦辭 + 大象, **and** the emerging 卦辭 + 大象, **and** the moving line's 爻辭 + 小象 (`build-view.ts:314-341`) |
-| 2–6 | The standing and emerging 卦辭 + 大象, plus the notice "No available reference scripture or exegesis for multiple moving lines." (`build-view.ts:164-169`) |
+
+| Moving lines | Text shown (for all 4 language variants)                                                                                                                   |
+| ------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 0            | The standing hexagram's 卦辭 + 大象 (ANSI: the `text:hexagram` section; Markdown: the `lines:none` section) (`build-view.ts:147-156, 247-259`)             |
+| 1            | The standing 卦辭 + 大象, **and** the emerging 卦辭 + 大象, **and** the moving line's 爻辭 + 小象 (`build-view.ts:314-341`)                                |
+| 2–6          | The standing and emerging 卦辭 + 大象, plus the notice "No available reference scripture or exegesis for multiple moving lines." (`build-view.ts:164-169`) |
 
 - **[F]** The "exegesis" shown is always **Imagery (象傳)**. `Exegesis.Judgment` (彖傳), `Miscellaneous`, `Sequence` and `Extracts` are never read anywhere outside `models/`, per a `git grep` for those field names.
 - **[F]** In Wilhelm-Baynes, `Imagery.Lines` holds the combined "a) line text b) commentary" (for example `hexagram-text-english-wilhelm-baynes.ts:24`). So the English "exegesis" for a line repeats its scripture, which the Chinese variants do not.
 
 ### Gap against Zhu Xi's 考變占 (易學啟蒙), from my own knowledge
-| n | Zhu Xi's rule | Implemented? |
-|---|---|---|
-| 0 | Standing 卦辭 | Yes |
-| 1 | The moving line's 爻辭 in the standing hexagram | Yes |
-| 2 | The two moving lines' 爻辭 in the standing hexagram; the upper line is primary | No (notice) |
-| 3 | 卦辭 of standing and emerging; standing (貞) is primary, emerging (悔) secondary | Partially: both 卦辭 are always shown, but with no primacy and no rule label |
-| 4 | The two **static** lines of the **emerging** hexagram; the lower is primary | No |
-| 5 | The one static line of the **emerging** hexagram | No |
-| 6 | 乾 → 用九, 坤 → 用六; otherwise the emerging 卦辭 | No, and the data cannot express it (no 用九/用六 slot) |
+
+| n   | Zhu Xi's rule                                                                    | Implemented?                                                                 |
+| --- | -------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
+| 0   | Standing 卦辭                                                                    | Yes                                                                          |
+| 1   | The moving line's 爻辭 in the standing hexagram                                  | Yes                                                                          |
+| 2   | The two moving lines' 爻辭 in the standing hexagram; the upper line is primary   | No (notice)                                                                  |
+| 3   | 卦辭 of standing and emerging; standing (貞) is primary, emerging (悔) secondary | Partially: both 卦辭 are always shown, but with no primacy and no rule label |
+| 4   | The two **static** lines of the **emerging** hexagram; the lower is primary      | No                                                                           |
+| 5   | The one static line of the **emerging** hexagram                                 | No                                                                           |
+| 6   | 乾 → 用九, 坤 → 用六; otherwise the emerging 卦辭                                | No, and the data cannot express it (no 用九/用六 slot)                       |
 
 - **[I]** So the rule is roughly two-sevenths complete. It sits in the presentation IR, not in a pure domain "resolution" function. A REST API or PWA would have to re-derive it from `build-view.ts`, which also builds layout-specific IR.
 - **[I]** Pending `refactor.md` adds a `textKind` with the values `hexagram | no-changing-lines | one-changing-line | many-changing-lines`. That bakes "many" in as a single empty case and moves further from a 0–6 rule, so it should be weighed against the overhaul.
@@ -125,7 +132,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 - **[I]** What is missing for a stateless resource such as `GET /readings/{978876}`:
   1. A canonical permutation identifier with `parse` and `format` functions. Only array validation exists today.
   2. An `enumeratePermutations()` generator over 4^6. This is trivial to add.
-  3. A **domain-level** `resolveReading(hex) → {standing, emerging, movingPositions, rule: ZhuXiCase, applicableTexts: TextRef[]}` that returns *references* (key + passage id), not presentation strings. Today the nearest thing, `buildConsultationView`, mixes in query, casting, diagram rows, identity strings and media visibility.
+  3. A **domain-level** `resolveReading(hex) → {standing, emerging, movingPositions, rule: ZhuXiCase, applicableTexts: TextRef[]}` that returns _references_ (key + passage id), not presentation strings. Today the nearest thing, `buildConsultationView`, mixes in query, casting, diagram rows, identity strings and media visibility.
   4. Public key and record lookups: a key-string lookup, `getHexagramKey`, and a lookup by Wen Wang number. Hypermedia links (standing → emerging → line passage) need addressable passage ids such as `H111111/scripture/lines/L3`, and nothing defines them.
   5. The Zhu Xi 2–6 rules plus 用九/用六 data.
 - **[F]** Determinism: the catalogue has no I/O and no randomness, so precomputing or caching every permutation is feasible today. At 4,096 × 4 variants the data is small.
@@ -155,6 +162,7 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 **[I]** This is a proposal.
 
 **Value objects**
+
 - `Polarity` (yang | yin).
 - `LineValue` (6 | 7 | 8 | 9).
 - `LinePosition` (1..6).
@@ -167,16 +175,19 @@ Each finding is marked **[F]** (a fact, with a path:line citation) or **[I]** (a
 - `Provenance` (edition, translator, licence, URL).
 
 **Entities and aggregates (read-only)**
+
 - `HexagramEntry`: identity, orders, trigrams, Unicode, and passages by variant.
 - `TrigramEntry`.
 - `YilinVerse`: keyed by `TransformationKey`.
 - `Corpus`: variant list plus provenance.
 
 **Domain services (pure)**
+
 - `deriveTransformation(Permutation) → {standing, emerging, movingPositions}`. This belongs to the casting/oracle core, and it already exists in parts.
-- `resolveApplicableReading(Permutation, policy = ZhuXi) → {case: 0..6, primary: PassageRef[], secondary: PassageRef[]}`. This is a *policy*, so other schools could be added later.
+- `resolveApplicableReading(Permutation, policy = ZhuXi) → {case: 0..6, primary: PassageRef[], secondary: PassageRef[]}`. This is a _policy_, so other schools could be added later.
 
 **Read port (driven, implemented by in-memory/JSON, IndexedDB or HTTP adapters)**
+
 ```ts
 interface ScriptureCatalogue {
   hexagram(key: HexagramKey): HexagramEntry
@@ -188,12 +199,14 @@ interface ScriptureCatalogue {
 ```
 
 **Relation to the casting context**
+
 - Casting is upstream. It produces a `Permutation` (the cast's six line values) and knows nothing about texts.
 - The Reference context is a **Published Language / Open Host**. Casting, the REST API, the PWA and the persistence adapters consume `Permutation`, `HexagramKey` and `PassageRef` as a shared kernel of value objects.
 - Consultations persist only the `Permutation` and casting; texts stay derived, as ADR-0008 already decides.
 - The consultation-view IR becomes a downstream **conformist** that turns `resolveApplicableReading` output into presentation. It stops making its own `linesSection` decision.
 
 **Rating: 3 out of 5.** The catalogue data is consistent, pure and complete for 卦辭, 爻辭 and 象 across four variants, and the key scheme maps cleanly to pair keys. Against that:
+
 - The text-selection rule covers only 2 of the 7 Zhu Xi cases and lives in the presentation IR.
 - 用九/用六 cannot be represented.
 - The JSON is a dead, unchecked duplicate.

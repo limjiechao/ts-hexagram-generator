@@ -38,18 +38,18 @@ Not leaks, and done well: no ANSI bytes, no column widths, no `═╪═` in the
 
 ## 2. Domain knowledge vs read-model knowledge
 
-| Knowledge | Kind | Where it is computed |
-|---|---|---|
-| Emerging hexagram, moving lines | domain | core `line-semantics`, called from build-view.ts:281-282 (good) |
-| **Which text applies** (0 moving → judgment; 1 → that line's text; ≥2 → "no reference") | **oracle domain rule** | **inside the IR builder**: `linesSection` / `oneMovingLineVariants` (build-view.ts:114-170) |
-| Hexagram/trigram identity lookup | domain data | build-view.ts:33-69 (`identityOf`, called 6+ times per build: 302-303, 310-312, 329-331) |
-| Derived split quantities | domain | core `deriveSplit`, called from ledger-rows.ts:28 (good) |
-| Section order, emerging gate | read model | build-view.ts:287-341 (appropriate) |
-| Section headings/captions (`STANDING HEXAGRAM`, `(Line at bottom is first)`, `No available reference…`) | read model | **duplicated in each serializer**, not in the IR (see Q4) |
-| Tab grouping (query/casting/transformation/standing/emerging) | read model (CLI) | serialize-ansi.ts:257-293, re-deriving structure by `kind`/`role` with `!`/`as` casts and positional `hexes[0]`/`hexes[1]` |
-| Line value ⇒ "result" marker | domain fact rendered as glyph | ledger-template.ts:48-51 (`⇒` on cast 3) |
+| Knowledge                                                                                               | Kind                          | Where it is computed                                                                                                       |
+| ------------------------------------------------------------------------------------------------------- | ----------------------------- | -------------------------------------------------------------------------------------------------------------------------- |
+| Emerging hexagram, moving lines                                                                         | domain                        | core `line-semantics`, called from build-view.ts:281-282 (good)                                                            |
+| **Which text applies** (0 moving → judgment; 1 → that line's text; ≥2 → "no reference")                 | **oracle domain rule**        | **inside the IR builder**: `linesSection` / `oneMovingLineVariants` (build-view.ts:114-170)                                |
+| Hexagram/trigram identity lookup                                                                        | domain data                   | build-view.ts:33-69 (`identityOf`, called 6+ times per build: 302-303, 310-312, 329-331)                                   |
+| Derived split quantities                                                                                | domain                        | core `deriveSplit`, called from ledger-rows.ts:28 (good)                                                                   |
+| Section order, emerging gate                                                                            | read model                    | build-view.ts:287-341 (appropriate)                                                                                        |
+| Section headings/captions (`STANDING HEXAGRAM`, `(Line at bottom is first)`, `No available reference…`) | read model                    | **duplicated in each serializer**, not in the IR (see Q4)                                                                  |
+| Tab grouping (query/casting/transformation/standing/emerging)                                           | read model (CLI)              | serialize-ansi.ts:257-293, re-deriving structure by `kind`/`role` with `!`/`as` casts and positional `hexes[0]`/`hexes[1]` |
+| Line value ⇒ "result" marker                                                                            | domain fact rendered as glyph | ledger-template.ts:48-51 (`⇒` on cast 3)                                                                                   |
 
-Verdict: the main oracle rule, "which texts apply to this reading", lives in the presentation builder, not in core. Each output builds the view again (output-composers.ts:56, markdown.ts:24). Other cli consumers bypass the builder and repeat identity derivation themselves. For example, `summarizeHexParts` (cli/history-ui/src/history-list-transforms.ts:34-42) reads `getHexagramRecord` directly and has its own "WilhelmBaynes before ` / `" rule. A hexagonal core should compute a `Reading` once, holding the standing and emerging hexagrams, the changing positions, the applicable text selection and the ledger, and expose it through an output port. Today `buildConsultationView` does that job and the read-model's job in the same function.
+Verdict: the main oracle rule, "which texts apply to this reading", lives in the presentation builder, not in core. Each output builds the view again (output-composers.ts:56, markdown.ts:24). Other cli consumers bypass the builder and repeat identity derivation themselves. For example, `summarizeHexParts` (cli/history-ui/src/history-list-transforms.ts:34-42) reads `getHexagramRecord` directly and has its own "WilhelmBaynes before `/`" rule. A hexagonal core should compute a `Reading` once, holding the standing and emerging hexagrams, the changing positions, the applicable text selection and the ledger, and expose it through an output port. Today `buildConsultationView` does that job and the read-model's job in the same function.
 
 ## 3. Where should REST/HATEOAS and Typst sit?
 
@@ -57,6 +57,7 @@ Verdict: the main oracle rule, "which texts apply to this reading", lives in the
 - **Typst / PWA / Markdown / Ink are siblings at the read-model level**, but not at the monospace level. Typst and the PWA would reuse section order, headings and the text selection. They would draw their own tables from `LedgerRow`/`DerivedSplit` and their own line graphics, not from `LINE_GLYPH`. Markdown+ASCII and Ink are monospace siblings that share `text-grid`.
 
 **Recommended boundary (two tiers):**
+
 1. **Core output port**: `ConsultationResult`/`Reading`, pure domain. It holds standing and emerging `HexagramKey`, the changing positions, a `TextSelection` discriminated union (`static{judgment}` | `single{position, lineText}` | `multiple{positions}`), casting splits plus derived values, and the absence reason. It carries no strings formatted for display. It is computed once per consultation. REST maps straight from this.
 2. **Application/read-model layer** (today's `consultation-view`, slimmed): section order, captions and labels (as message keys or literal strings), language IDs, and no `SectionMedium`. Each adapter decides placement. For example, Markdown puts the judgment under LINES and Ink puts it in the Standing tab, so the duplicate `lines:none` section goes away.
 3. **Adapters**: Ink/plain (ANSI + text-grid), Markdown body (text-grid), Typst, PWA. Monospace glyph art (`LINE_GLYPH`, fullwidth `POSITION_LABELS`) and `text-layout` move into the monospace tier.
@@ -64,6 +65,7 @@ Verdict: the main oracle rule, "which texts apply to this reading", lives in the
 ## 4. DRY across ANSI / Markdown / plain; parallel switches; refactor.md
 
 Parallel dispatches over section kind:
+
 - `serializeConsoleOutput` switch (serialize-ansi.ts:303-325)
 - `serializeConsultationMarkdownBody` switch (serialize-markdown.ts:181-205), structurally identical
 - `sectionVisibility` switch (build-view.ts:247-260)
@@ -71,6 +73,7 @@ Parallel dispatches over section kind:
 - ANSI `serializeTextAnsi` branches on role/variant (serialize-ansi.ts:229-250); Markdown `serializeLinesMarkdown` on variant (serialize-markdown.ts:158-175)
 
 The switches themselves are acceptable: they are the visitor shape of a closed union, and TS exhaustiveness covers them. The real duplication is **knowledge that sits outside the IR and is re-typed in each serializer**:
+
 - The multi-line notice text: serialize-ansi.ts:238-242 vs serialize-markdown.ts:160-164.
 - The `(Query not provided)` placeholder: serialize-ansi.ts:94 vs serialize-markdown.ts:62.
 - The "Casting not recorded (why)" composition: serialize-ansi.ts:47-55 vs serialize-markdown.ts:34-38. Only the reason label is shared (ir.ts:45-49, a label table sitting in an IR types file).
@@ -83,6 +86,7 @@ The switches themselves are acceptable: they are the visitor shape of a closed u
 The shared skeletons (`ledgerBlock` with a `LedgerStyle` strategy, ledger-template.ts:10-22, and `transformationRow`/`hexagramDiagramRowStrings` with decorate callbacks) are good DRY: geometry is defined once and each medium injects its decoration.
 
 **refactor.md assessment.** It proposes replacing `role` + `variant` with a single `textKind`. Today's two fields permit illegal states such as `role:'hexagram', variant:'multi'` (ir.ts:123-130), so collapsing them is correct, small and well-scoped. Problems:
+
 - It names a **stale path**: `domain/consultation-file/src/serialize-markdown.ts` no longer exists. The serializer moved to `cli/text-grid/src/serialize-markdown.ts` under ADR-0022.
 - It **preserves the root defect**. `textKind:'hexagram'` (ANSI-only) and `'no-changing-lines'` (Markdown-only) both carry the same judgment text and exist only because of a per-medium layout difference. It also mixes two concepts in one union: the hexagram judgment, which every reading has, and line guidance, which depends on the changing-line count.
 - Better: model the domain `TextSelection` (static/single/multiple) once, and keep "hexagram judgment" as a field of the hexagram section. `sectionVisibility` and `SectionMedium` then disappear, and each serializer chooses where the judgment goes.
@@ -93,6 +97,7 @@ The shared skeletons (`ledgerBlock` with a `LedgerStyle` strategy, ledger-templa
 Timeline: ADR-0016 (2026-05-29) extracts `readout` from `viewer-core`. ADR-0019 (06-04) supersedes 0016's framing. ADR-0018 (06-05) creates `consultation-view` and `text-layout` and moves the vocabulary, geometry and Markdown serializer into the domain. A commit on 06-06 adds a "medium-neutral `ledgerBlock` template". ADR-0021 (06-08) makes width a single home with `string-width` in the domain. ADR-0022 (06-19) moves the geometry, skeletons, scroll math and Markdown serializer back out to the new `cli/text-grid`.
 
 Ledger geometry has lived in three places in three weeks: readout, then consultation-view, then text-grid. The Markdown serializer moved from consultation-file to text-grid. Four ADRs reworked one seam. Leftover traces:
+
 - ADR-0018 "Where it's enforced" still lists `ledger-geometry.ts` and `domain/consultation-file/src/serialize-markdown.ts` (0018:109-118), and neither exists.
 - `serialize-markdown.ts:3-5` still says geometry comes "from @hexagram/consultation-view" and fixtures are "consultation-file md-body".
 - `serialize-ansi.ts:4` says the same.
@@ -103,6 +108,7 @@ Assessment: the oscillation is **damping but not settled**. Each ADR fixed a mis
 ## 6. Rating
 
 **3 / 5.** The direction and local craft are strong: one assembly point, a closed union, shared monospace skeletons with strategy injection, honest ADRs that correct themselves, and fixture-gated moves. Conceptual integrity is held back by:
+
 - the oracle's text-selection rule sitting inside the view builder;
 - media names and visibility living in the "neutral" domain IR;
 - a duplicated section that exists only to satisfy one medium's layout;

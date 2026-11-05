@@ -4,18 +4,19 @@ Detail and path:line evidence are in survey-01 … survey-09 in this directory.
 
 ## Scorecard
 
-| # | Slice | Quality | Integrity / separation |
-|---|---|---|---|
-| 01 | Casting core | 4 | 3 |
-| 02 | Scripture catalogue | – | 3 |
-| 03 | Consultation persistence | 4 | 3 |
-| 04 | Presentation IR | – | 3 |
-| 05 | Application layer (use cases) | – | 2 |
-| 06 | Conceptual integrity (history and docs) | – | 3 |
-| 07 | Code quality and tests | 4 | – |
-| 08 | Dependency boundaries | – | 3 |
+| #   | Slice                                   | Quality | Integrity / separation |
+| --- | --------------------------------------- | ------- | ---------------------- |
+| 01  | Casting core                            | 4       | 3                      |
+| 02  | Scripture catalogue                     | –       | 3                      |
+| 03  | Consultation persistence                | 4       | 3                      |
+| 04  | Presentation IR                         | –       | 3                      |
+| 05  | Application layer (use cases)           | –       | 2                      |
+| 06  | Conceptual integrity (history and docs) | –       | 3                      |
+| 07  | Code quality and tests                  | 4       | –                      |
+| 08  | Dependency boundaries                   | –       | 3                      |
 
 **Verdict:** the code is well made, but it lacks one coherent design. The pure oracle kernel is real and was written by one mind: the owner's 2025-05 pipeline, `performCast`/`LineState`, and the single home for the pick clamp. Everything above that kernel grew out of agent review loops. Evidence for that:
+
 - About 93% of commits since May are AI-authored or co-authored.
 - ADRs were backfilled after the code was built.
 - One seam was moved under four separate ADRs.
@@ -23,6 +24,7 @@ Detail and path:line evidence are in survey-01 … survey-09 in this directory.
 - About 10 statements in AGENTS.md and the ADRs contradict the code.
 
 ## What is latent and worth distilling (keep)
+
 - **The four-operations pipeline (四營 → 三變 → 爻).** Pure, with phase-typed line state; over-stepping a finished line is a compile error.
 - **`selectablePickMax`.** The single owner of the never-empty-right-heap invariant.
 - **The envelope type.** It makes "casting XOR absence reason" unrepresentable any other way.
@@ -34,6 +36,7 @@ Detail and path:line evidence are in survey-01 … survey-09 in this directory.
 - **The one-to-one mapping between line tuples and hexagram pairs.** The 4,096 line tuples correspond exactly to the 4,096 (standing, emerging) pairs. That makes Yilin keying trivial and gives the REST API a natural resource identity.
 
 ## What is mis-placed or missing
+
 1. **Domain rules live outside the domain.**
    - Text selection is in the view builder (`consultation-view/build-view.ts:145-170`).
    - Replay is in consultation-file.
@@ -56,6 +59,7 @@ Detail and path:line evidence are in survey-01 … survey-09 in this directory.
 7. **Packaging is ceremonial.** There are 13 packages, but the seams that matter (oracle vs catalogue, domain vs persistence) are hidden inside single packages.
 
 ## Concrete bugs found
+
 - `cli/shell/src/hexagram-app.tsx:178` mounts PlaygroundApp without `saveDir`, so playground saves from the `hexagram` bin go to the cwd. This violates ADR-0020. Verified by me.
 - `consultation-file/file.ts:84,95` reads the clock twice (filename vs frontmatter), and two saves in the same second overwrite each other.
 - `migrate-legacy.ts:33-37` drops `castingAbsence` when it renders the body.
@@ -76,16 +80,19 @@ Generic:     Rendering (monospace / Typst / HTML), RNG, Clock, text layout
 ```
 
 **Ports**
+
 - Driven: RandomSource, Clock, IdGenerator, ConsultationRepository {save, get, list, remove}, ScriptureCatalogue {hexagram, passage, yilin, corpora}, DocumentRenderer.
 - Driving: use cases CastAtRandom, MakeDivision, TranscribeDivision, RewindLine, ResolveReading(Permutation), RecordConsultation, List/Open/DeleteConsultation, ExplorePermutation, ImportLegacy.
 
 **Core model:** replace `makeLineGenerator` with a pure fold over `Division{pick}[]`, of up to 18 divisions:
+
 - it returns Result rather than throwing;
 - `recordedMax` is derived, not stored;
 - rewind is a truncation;
 - replay is a fold plus an equality check.
 
 ## Decisions the owner must make (before any agent writes code)
+
 1. The text rules for 2–6 moving lines: Zhu Xi or another tradition; whether to add 用九/用六 data and show 彖傳.
 2. Yilin keying, and the semantics of zero moving lines: is there no emerging hexagram, or is emerging the same as standing (Yilin needs the latter)?
 3. Whether CastingRecord is the event log, and therefore whether rewind is a retraction or forbidden.
@@ -97,7 +104,9 @@ Generic:     Rendering (monospace / Typst / HTML), RNG, Clock, text layout
 9. Text licensing and provenance for a public REST API or PWA.
 
 ## Process warning (survey-06)
+
 A rewrite run through the same "agent executes, then review loops" process will probably accumulate the same kind of seams. A "Surgeon" process would order the work like this:
+
 1. The owner writes the glossary, the context map and the port signatures as ADRs first.
 2. Formal models come next (EventStorming, UML use-case/activity/sequence, DFD).
 3. Agents implement only against those fixed contracts, with exhaustive property tests over the finite domain (4,096 tuples; the pick space).
