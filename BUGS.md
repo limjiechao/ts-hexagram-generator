@@ -283,7 +283,7 @@ Shared verification commands:
 - **Refs:** ADR-0013.
 
 ### BUG-015: `@hexagram/consultation-view` declares an unused `@hexagram/text-layout` dependency
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** drop the edge. It is a leftover of `11cf361` (the ADR-0022 move of geometry and templates to `cli/text-grid`). Remove the dep and update `pnpm-lock.yaml`. Fix the AGENTS.md build-order chain and ADR-0018:33 (via a dated factual amendment) in the same commit.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `e39f556` · **Notes:** Owner decided drop. Dep + lockfile edge removed; AGENTS.md IR chain corrected in place; ADR-0018 dated amendment. ADR-0022 untouched (its line 66 is true). Historical plans/specs still mention the edge (point-in-time, left).
 - **Location:** `domain/consultation-view/package.json:38`
 - **What is wrong:** `git grep text-layout -- domain/consultation-view` matches only the package.json line. No `src` or test file imports it. It is a phantom edge in the Turbo graph and in the docs.
 - **Reproduction:** `git grep -n "text-layout" -- domain/consultation-view`.

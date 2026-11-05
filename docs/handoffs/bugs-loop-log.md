@@ -177,3 +177,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused (consultation-file + text-grid + history-ui) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: gray-matter was using its own engine; the configured parse engine had been dead code.
 
+### Iteration 19 — BUG-015 — 2026-11-05 13:34
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-015-a1 · Landed: e39f556
+- Red test: n.a. (build/doc-only; Verify = frozen install + build + lint)
+- Review: APPROVE (0 blocking; nit: AGENTS.md Build chain still lists text-layout before consultation-view, topologically valid)
+- Verify: frozen-lockfile install pass · type:check (all) pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: Integration worktree re-ran frozen install after landing the lockfile change.
+
