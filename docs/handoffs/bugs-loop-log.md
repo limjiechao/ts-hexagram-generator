@@ -242,3 +242,8 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Review: APPROVE (0 blocking)
 - Verify: format:check pass (repo-wide) · 13 .md files only · mdast SAME in 11 files; allowed diffs only (template blank line, two backtick spans)
 - Notes: Attempt 3 stopped on orchestrator-written tracker text; fixed in b186ffc. Lesson: write tracker prose with identifiers in backticks and no literal fences.
+
+### Stop — 2026-11-05 — all decided entries done
+
+- Outcome: BUG fixed 19/19 · DOC fixed 21/22 (DOC-001 is the owner's untracked refactor.md, left to the owner)
+- Tip checks: install (frozen) pass · type:check pass · lint pass · format:check pass · build+test pass · stress:once pass
