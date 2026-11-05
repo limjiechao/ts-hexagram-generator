@@ -193,3 +193,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: core test pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: –
 
+### Iteration 21 — BUG-017 — 2026-11-05 13:43
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-017-a1 · Landed: 99a5d37
+- Red test: domain/core/tests/trigram-order.test.ts::orders the eight trigrams as the 說卦 sequence — failed as expected (y)
+- Review: APPROVE (0 blocking; nit: 説/兑 variant characters in the pre-existing quote)
+- Verify: core test pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: –
+

@@ -305,7 +305,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-017: The trigram `WEN_WANG_ORDER` map contradicts its own 說卦 comment
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** use the 說卦 sequence the comment quotes: 震1 巽2 離3 坤4 兌5 乾6 坎7 艰8. Edit the map and run `pnpm generate-json-files`.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `99a5d37` · **Notes:** Owner decided 說卦. Fuxi-keyed map now 乾6 兌5 離3 震1 巽2 坎7 艮8 坤4; trigrams.json regenerated (5 values). Unused at runtime; no fixture change. Observed: the quoted comment uses 説/兑 variants, not 說/兌 (left as is).
 - **Location:** `domain/core/src/models/trigram.ts:5-15`
 - **What is wrong:**
   - The comment quotes 帝出乎震，齊乎巽，相見乎離，致役乎坤，説言乎兑，戰乎乾，勞乎坎，成言乎艮. That gives 震1 巽2 離3 坤4 兌5 乾6 坎7 艮8.
