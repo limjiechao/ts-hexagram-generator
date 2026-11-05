@@ -20,16 +20,18 @@ by one shared codec:
 ## Why
 
 - **A generated Id, not the timestamp or file path.** Divined At is not
-  unique: Recorded Consultations may be dated to the day, and BUG-002 shows
-  same-second saves overwriting each other. IndexedDB and REST have no file
-  paths. A ULID is unique without coordination and safe in filenames and
+  unique: Recorded Consultations may be dated to the day, and timestamp-named
+  files let same-second saves collide (BUG-002, since fixed in the current
+  code by refusing to overwrite; designed out here by a generated Id).
+  IndexedDB and REST have no file paths. A ULID is unique without coordination and safe in filenames and
   URLs. It carries no meaning: ordering is always by `divinedAt`.
 - **Bottom-up `transformation`.** It matches Line Positions and the REST
   identity of a Transformation. The old top-first `L6..L1` mapping inverted
   the domain's order at the storage boundary.
 - **Picks only.** `recordedMax` is derived from the Picks, so storing it
-  invited drift. BUG-007 is a stored `recordedMax` that was never verified yet
-  changed the rendered ledger.
+  invited drift. BUG-007 was a stored `recordedMax` that went unverified yet
+  changed the rendered ledger; the current code now verifies it during replay.
+  Version 2 designs it out by not storing it.
 - **Both `transformation` and `casting` for a Cast Consultation.** The
   Transformation is derivable, but keeping it lets Browse list every
   Consultation without replaying 18 Picks. Loading checks that the Casting
@@ -47,7 +49,9 @@ by one shared codec:
 - **Reading never writes.** Get and list are pure reads.
 - **Re-rendering bodies is an explicit maintenance action**, run deliberately
   after a renderer change. It is never a side effect of opening a file
-  (this replaces the old self-heal, BUG-004).
+  (this replaces the old self-heal on open; BUG-004, its non-atomic write,
+  is fixed in the current code, and the overhaul removes the write on read
+  altogether).
 - **Filenames are `<divined date>--<Consultation Id>.md`.** The date keeps a
   hand-browsed folder in a sensible order; the Id makes the name unique and
   stable. The Store never parses meaning out of a filename.
