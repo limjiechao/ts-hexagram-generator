@@ -31,6 +31,15 @@ the code would make this constraint visible, so it is recorded here.
   showing different text than the reader chose misrepresents what they are
   reading.
 
+## Amendment — 2026-11-05: every channel is private
+
+The owner decided that the PWA and the REST API, like the CLI, are **Private
+Channels**: reachable only by the owner, behind Google Sign-in restricted to
+the owner's own account (ADR-0032). "Private local use only" in the table above
+therefore means "Private Channels only". Every Edition is shown on every
+channel today, with full parity. The gate stays in the design: it would apply
+at once to any public channel, or to any user other than the owner.
+
 ## Consequences
 
 - Public channels ship only Legge until open-licensed Chinese Witnesses are

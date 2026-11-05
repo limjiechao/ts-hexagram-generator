@@ -65,11 +65,15 @@ contexts: divination-first (Casting → Transformation → passages) and text-fi
 ## Caching and negotiation
 
 - Castings, Transformations, Hexagrams, Trigrams and Work / Edition metadata
-  are immutable: `Cache-Control: public, max-age=31536000, immutable`.
+  are immutable: `Cache-Control: private, max-age=31536000, immutable`
+  (`private`, because every response requires the owner's sign-in and must
+  not sit in a shared cache).
 - Passage text varies by Reading Preference (`Accept-Language` for script,
   query parameters for Translations and Commentaries), with
   `Vary: Accept-Language` and an Edition-version `ETag`.
-- The Licence Gate applies: a public response omits gated Editions' text and
+- The engine is a Private Channel (ADR-0032): every request must carry the
+  owner's sign-in, so every Edition is served. The Licence Gate would apply only
+  if the engine were ever opened up: a public response omits gated Editions' text and
   never substitutes another.
 
 ## Considered options

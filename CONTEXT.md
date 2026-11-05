@@ -258,10 +258,18 @@ _Avoid_: version, rendering.
 **Licence Gate**:
 The rule that an Edition's text is shown only on the channels its licence
 permits — decided per Edition, never per request. Legge (public domain): every
-channel. Wilhelm–Baynes (in copyright): private local use only. The
-ctext-sourced Chinese: private local use until ctext's terms are checked. A
-public channel omits gated text; it never substitutes other text for it.
+channel. Wilhelm–Baynes (in copyright) and the ctext-sourced Chinese:
+Private Channels only. Every channel today is a Private Channel, so nothing
+is gated in practice; a public channel would omit gated text and never
+substitute other text for it.
 _Avoid_: permission check, DRM.
+
+**Private Channel**:
+A channel only the owner can reach: the local CLI, or the PWA and REST API
+behind sign-in restricted to the owner's own account. Every Edition may be
+shown on a Private Channel. All channels are private.
+_Avoid_: internal, authenticated (alone — authentication for anyone but the
+owner would not make a channel private).
 
 **Reading Preference**:
 What the person viewing wants shown with a resolution: Chinese script
@@ -339,6 +347,24 @@ uncontrolled; the method records only who divided what. A Recorded
 Consultation has none.
 _Avoid_: provenance, input mode, flow kind, random (for Automatic), manual
 (for Physical), interactive (for Virtual).
+
+**Journal**:
+The Consultations kept in one Consultation Store, together with its Deletion
+Records. The owner may have several Journals (one per device or store);
+Merging Journals unites them.
+_Avoid_: history (for the record itself), database.
+
+**Deletion Record**:
+The record that a Consultation Id was deleted, kept so that Merging Journals
+does not bring the Consultation back. A deleted Consultation's content is
+gone; only its Id and when it was deleted remain.
+_Avoid_: tombstone (in UI text), trash.
+
+**Merging Journals**:
+Uniting two Journals: the union of their Consultations by Consultation Id,
+minus every Consultation named in either Journal's Deletion Records. Because
+Consultations are immutable and Ids unique, a merge has no conflicts.
+_Avoid_: sync (no server is involved), import (alone).
 
 **Unreadable file**:
 A stored record that failed to load as a Consultation. Not a Consultation —

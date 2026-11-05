@@ -40,10 +40,12 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0025 | Hexagram identity is its Figure; invariant facts as data         | Accepted           |
 | 0026 | A Consultation is Cast or Recorded; Playground does not save     | Accepted           |
 | 0027 | A Cast Consultation records its Division Method                  | Accepted           |
-| 0028 | A Licence Gate per Edition decides which channels show text      | Accepted           |
-| 0029 | The application layer: nine use cases and four driven ports      | Accepted           |
+| 0028 | A Licence Gate per Edition decides which channels show text      | Amended by 0032    |
+| 0029 | The application layer: nine use cases and four driven ports      | Amended by 0033    |
 | 0030 | Consultation record v2, Consultation Id, Markdown Store rules    | Accepted           |
 | 0031 | The public REST engine: resources, Casting URLs, HAL + HAL-FORMS | Accepted           |
+| 0032 | Every channel is owner-only, behind Google Sign-in               | Accepted           |
+| 0033 | Journals merge by union with Deletion Records                    | Accepted           |
 
 ## Template
 
