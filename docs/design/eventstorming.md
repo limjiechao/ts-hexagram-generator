@@ -46,7 +46,6 @@ flowchart LR
   P3["Policy: whenever the machine divides,<br/>choose a Remainder Group ¼, then a Pick"]:::pol -.-> E4
   G["Google Sign-in<br/>(PWA and REST only)"]:::ext -.-> E4
   H1["Hotspot: Edition behind ctext Witness unconfirmed"]:::hot -.-> E10
-  H2["Hotspot: how does a REST client learn a Round's Remainder Groups?"]:::hot -.-> P3
 ```
 
 ### Timeline, with commands, actors and read models

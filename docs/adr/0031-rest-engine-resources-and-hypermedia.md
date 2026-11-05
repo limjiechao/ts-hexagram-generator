@@ -76,6 +76,18 @@ contexts: divination-first (Casting → Transformation → passages) and text-fi
   if the engine were ever opened up: a public response omits gated Editions' text and
   never substitutes another.
 
+## Amendment — 2026-11-05: Remainder Groups in every Casting state
+
+Every partial Casting's representation includes the next Round's **Remainder
+Groups**: the valid Picks grouped by the left Remainder they leave, e.g.
+`"remainderGroups": {"1": [1, 5, …, 45], "2": […], "3": […], "4": [4, …, 44]}`
+for 49 stalks. A client with only a uniform Random Source (the PWA's WebCrypto)
+can then perform Automatic Division (ADR-0023) by choosing a group with one
+random integer and a Pick within it with another, without bundling the
+Oracle. The engine still never generates randomness. The rejected
+alternative, a server-side "divide automatically" form, would have made the
+engine random and its responses uncacheable.
+
 ## Considered options
 
 - **All 18 Picks in one parameter** (`21-18-17.21-19-15…`). Rejected as

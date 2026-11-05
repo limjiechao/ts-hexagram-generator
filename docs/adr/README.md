@@ -11,42 +11,43 @@ plan is pruned (git history preserves the blow-by-blow).
 
 ## Index
 
-| #    | Title                                                            | Status                |
-| ---- | ---------------------------------------------------------------- | --------------------- |
-| 0001 | Shared screen shell for the Readout and history                  | Accepted              |
-| 0002 | Monorepo structure & package decomposition                       | Accepted              |
-| 0003 | Package publishing & module strategy                             | Accepted              |
-| 0004 | TypeScript compiler posture                                      | Accepted              |
-| 0005 | Lint & format toolchain                                          | Accepted              |
-| 0006 | Casting algorithm, rewindable core & randomness                  | Amended by 0023       |
-| 0007 | Hexagram & trigram data: TS source → generated JSON              | Accepted              |
-| 0008 | Consultation file format                                         | Superseded by 0030    |
-| 0009 | Terminal UI architecture & flow state machine                    | Accepted              |
-| 0010 | Interactive-environment policy & input modes                     | Accepted              |
-| 0011 | Manual casting flow design                                       | Amended by 0027       |
-| 0012 | Terminal-test reliability                                        | Accepted              |
-| 0013 | Test execution & CI posture                                      | Accepted              |
-| 0014 | Product identity                                                 | Accepted              |
-| 0015 | Data hygiene                                                     | Accepted              |
-| 0016 | Readout renderer extracted from viewer-core                      | Superseded by 0019    |
-| 0017 | Type vocabulary folded into core                                 | Accepted              |
-| 0018 | Consultation view IR + renderer collapse                         | Amended by 0022       |
-| 0019 | The boundary is domain vs CLI, not computation vs rendering      | Amended by 0022       |
-| 0020 | Consultations directory anchoring                                | Accepted              |
-| 0021 | Rendered-width operations have a single home                     | Accepted              |
-| 0022 | The monospace text-grid is medium-bound, not domain              | Accepted              |
-| 0023 | Random Divisions: Remainder Group ¼, then Pick within it         | Accepted              |
-| 0024 | Applicable Passages: every Moving Line, no ranking               | Accepted              |
-| 0025 | Hexagram identity is its Figure; invariant facts as data         | Accepted              |
-| 0026 | A Consultation is Cast or Recorded; Playground does not save     | Accepted              |
-| 0027 | A Cast Consultation records its Division Method                  | Accepted              |
-| 0028 | A Licence Gate per Edition decides which channels show text      | Amended by 0032       |
-| 0029 | The application layer: nine use cases and four driven ports      | Amended by 0033, 0034 |
-| 0030 | Consultation record v2, Consultation Id, Markdown Store rules    | Accepted              |
-| 0031 | The public REST engine: resources, Casting URLs, HAL + HAL-FORMS | Accepted              |
-| 0032 | Every channel is owner-only, behind Google Sign-in               | Accepted              |
-| 0033 | Journals merge by union with Deletion Records                    | Accepted              |
-| 0034 | The PWA is a pure client of the REST engine                      | Accepted              |
+| #    | Title                                                         | Status                |
+| ---- | ------------------------------------------------------------- | --------------------- |
+| 0001 | Shared screen shell for the Readout and history               | Accepted              |
+| 0002 | Monorepo structure & package decomposition                    | Accepted              |
+| 0003 | Package publishing & module strategy                          | Accepted              |
+| 0004 | TypeScript compiler posture                                   | Accepted              |
+| 0005 | Lint & format toolchain                                       | Accepted              |
+| 0006 | Casting algorithm, rewindable core & randomness               | Amended by 0023       |
+| 0007 | Hexagram & trigram data: TS source → generated JSON           | Accepted              |
+| 0008 | Consultation file format                                      | Superseded by 0030    |
+| 0009 | Terminal UI architecture & flow state machine                 | Accepted              |
+| 0010 | Interactive-environment policy & input modes                  | Accepted              |
+| 0011 | Manual casting flow design                                    | Amended by 0027       |
+| 0012 | Terminal-test reliability                                     | Accepted              |
+| 0013 | Test execution & CI posture                                   | Accepted              |
+| 0014 | Product identity                                              | Accepted              |
+| 0015 | Data hygiene                                                  | Accepted              |
+| 0016 | Readout renderer extracted from viewer-core                   | Superseded by 0019    |
+| 0017 | Type vocabulary folded into core                              | Accepted              |
+| 0018 | Consultation view IR + renderer collapse                      | Amended by 0022       |
+| 0019 | The boundary is domain vs CLI, not computation vs rendering   | Amended by 0022       |
+| 0020 | Consultations directory anchoring                             | Accepted              |
+| 0021 | Rendered-width operations have a single home                  | Accepted              |
+| 0022 | The monospace text-grid is medium-bound, not domain           | Accepted              |
+| 0023 | Random Divisions: Remainder Group ¼, then Pick within it      | Accepted              |
+| 0024 | Applicable Passages: every Moving Line, no ranking            | Accepted              |
+| 0025 | Hexagram identity is its Figure; invariant facts as data      | Accepted              |
+| 0026 | A Consultation is Cast or Recorded; Playground does not save  | Accepted              |
+| 0027 | A Cast Consultation records its Division Method               | Accepted              |
+| 0028 | A Licence Gate per Edition decides which channels show text   | Amended by 0032       |
+| 0029 | The application layer: nine use cases and four driven ports   | Amended by 0033, 0034 |
+| 0030 | Consultation record v2, Consultation Id, Markdown Store rules | Accepted              |
+| 0031 | The REST engine: resources, Casting URLs, HAL + HAL-FORMS     | Amended by 0035       |
+| 0032 | Every channel is owner-only, behind Google Sign-in            | Accepted              |
+| 0033 | Journals merge by union with Deletion Records                 | Accepted              |
+| 0034 | The PWA is a pure client of the REST engine                   | Accepted              |
+| 0035 | The PWA has full feature parity with the CLI                  | Accepted              |
 
 ## Template
 

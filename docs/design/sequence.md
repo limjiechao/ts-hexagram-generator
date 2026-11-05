@@ -66,7 +66,7 @@ sequenceDiagram
   R-->>W: HAL links, incl. castings
   W->>R: follow castings link → empty Casting
   R->>O: empty Casting
-  R-->>W: HAL: Round state, Remainder Groups (pending ADR), next-pick, divide
+  R-->>W: HAL: Round state, Remainder Groups, next-pick, divide
   loop 18 Rounds
     W->>RS: uniform integers
     RS-->>W: random values

@@ -93,17 +93,15 @@ flowchart LR
 
 ## Use cases by channel
 
-| Use case                              | CLI | PWA                     | REST engine            |
-| ------------------------------------- | --- | ----------------------- | ---------------------- |
-| 1 Cast (Physical, Virtual, Automatic) | ✅  | ✅ (Divisions via REST) | Perform a Casting only |
-| 2 Record                              | ✅  | ✅                      | —                      |
-| 3 Resolve / Explore                   | ✅  | ✅ (via REST)           | ✅                     |
-| 4 Browse, 5 Open, 6 Delete            | ✅  | ✅                      | —                      |
-| 7 Import legacy files                 | ✅  | —                       | —                      |
-| 8 Look up the catalogue               | ✅  | ✅ (via REST)           | ✅                     |
-| 9 Export (Typst / PDF)                | ✅  | ✅                      | —                      |
-| 10 Merge Journals                     | ✅  | ✅                      | —                      |
+| Use case                              | CLI | PWA                                        | REST engine            |
+| ------------------------------------- | --- | ------------------------------------------ | ---------------------- |
+| 1 Cast (Physical, Virtual, Automatic) | ✅  | ✅ (Divisions and Transcriptions via REST) | Perform a Casting only |
+| 2 Record                              | ✅  | ✅                                         | —                      |
+| 3 Resolve / Explore                   | ✅  | ✅ (via REST)                              | ✅                     |
+| 4 Browse, 5 Open, 6 Delete            | ✅  | ✅                                         | —                      |
+| 7 Import legacy files                 | ✅  | ✅ (shared parser, replay via REST)        | —                      |
+| 8 Look up the catalogue               | ✅  | ✅ (via REST)                              | ✅                     |
+| 9 Export (Typst / PDF)                | ✅  | ✅ (Typst compiled in the browser)         | —                      |
+| 10 Merge Journals                     | ✅  | ✅                                         | —                      |
 
-Two cells rest on assumptions no ADR has decided yet: _Import legacy files_
-is CLI-only because the legacy files live on the CLI's disk, and _Export_ in
-the PWA assumes Typst can render in the browser.
+The PWA has full parity with the CLI (ADR-0035).
