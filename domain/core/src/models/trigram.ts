@@ -4,14 +4,14 @@ type FuxiOrder = (typeof FUXI_ORDER)[number]
 
 // 帝出乎震，齊乎巽，相見乎離，致役乎坤，説言乎兑，戰乎乾，勞乎坎，成言乎艮。
 export const WEN_WANG_ORDER = {
-  1: 4, // 乾 -> 4th in Wen Wang order
+  1: 6, // 乾 -> 6th in Wen Wang order
   2: 5, // 兌 -> 5th in Wen Wang order
   3: 3, // 離 -> 3rd in Wen Wang order
-  4: 8, // 震 -> 8th in Wen Wang order
+  4: 1, // 震 -> 1st in Wen Wang order
   5: 2, // 巽 -> 2nd in Wen Wang order
-  6: 1, // 坎 -> 1st in Wen Wang order
-  7: 6, // 艮 -> 6th in Wen Wang order
-  8: 7, // 坤 -> 7th in Wen Wang order
+  6: 7, // 坎 -> 7th in Wen Wang order
+  7: 8, // 艮 -> 8th in Wen Wang order
+  8: 4, // 坤 -> 4th in Wen Wang order
 } as const
 type WenWangOrder<Order extends FuxiOrder> = (typeof WEN_WANG_ORDER)[Order]
 
