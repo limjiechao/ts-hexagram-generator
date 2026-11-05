@@ -114,3 +114,4 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: stop condition hit at `pnpm generate-json-files`: JSON diff exceeded the one line (hexagrams 1 and 2 L6 "7." passages dropped).
 - Notes: Filed BUG-019 (TS/JSON drift). BUG-016 returned to open + needs-human pending BUG-019's decision. Not counted as blocked.
 
+### Iteration 13 — BUG-018 — 2026-11-05 10:22
