@@ -99,7 +99,7 @@ Shared verification commands:
 - **Refs:** ADR-0008 (castingAbsence, B5), ADR-0015 (use only invented fixtures).
 
 ### BUG-004: History self-heal rewrites the canonical file non-atomically
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** The "bypasses the consultation-file API" half is **defer?** (overhaul: repository port).
+- **Severity:** P2 · **Status:** fixed · **Commit:** `5dcad65` · **Notes:** Atomic-write half fixed (tmp + rename; test in `history-app.test.tsx` simulates a crash mid-write). The "bypasses the consultation-file API" half stays **defer?** for the repository-port overhaul.
 - **Location:** `cli/history-ui/src/history-app.tsx:19-37` (write at `:35`)
 - **What is wrong:**
   - Opening a consultation can rewrite it in place with `fs.writeFile(filePath, desired, 'utf8')`, which truncates first and then writes.

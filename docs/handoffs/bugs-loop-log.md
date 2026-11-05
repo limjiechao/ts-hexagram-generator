@@ -42,3 +42,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: Implementer amended its unpushed test commit despite the global `git commit --amend` deny; harmless, but briefs now forbid amend explicitly.
 
+### Iteration 4 — BUG-004 — 2026-11-05 09:42
+- Attempt: 1/2 · Outcome: fixed (atomic-write half; API-bypass half left deferred per entry Notes)
+- Branch: bug/BUG-004-a1 · Landed: 5dcad65
+- Red test: cli/history-ui/tests/history-app.test.tsx::leaves the canonical file intact and no temp file when the rewrite crashes mid-write — failed as expected (y)
+- Review: APPROVE (0 blocking; nits: tmp-cleanup assertion beyond entry scope; concurrent rewrites last-rename-wins, same as before)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
+- Notes: Picked despite "defer?" in Notes because only the API half was deferred and §5 does not list BUG-004.
+
