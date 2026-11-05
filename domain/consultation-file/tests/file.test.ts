@@ -13,6 +13,22 @@ import {
   saveConsultationFile,
 } from '../src/file.js'
 
+// BUG-009: lets one test make every no-arg `dayjs()` read land one second
+// after the previous one, so a save that reads the clock twice is caught.
+const clock = vi.hoisted(() => ({ steppingFrom: null as number | null }))
+vi.mock('dayjs', async (importOriginal) => {
+  const { default: real } = await importOriginal<{
+    default: typeof import('dayjs')
+  }>()
+  const stepping = (...args: Parameters<typeof real>) => {
+    if (args.length > 0 || clock.steppingFrom === null) return real(...args)
+    const instant = real(clock.steppingFrom)
+    clock.steppingFrom += 1000
+    return instant
+  }
+  return { default: Object.assign(stepping, real) }
+})
+
 describe('defaultConsultationsDir', () => {
   it('is <cwd>/consultations', () => {
     expect(defaultConsultationsDir()).toBe(
@@ -145,6 +161,32 @@ describe('saveConsultationFile + loadConsultationFile', () => {
       if (!first.ok || !second.ok) throw new Error('expected both to load')
       expect(first.envelope.query).toBe('first')
       expect(second.envelope.query).toBe('second')
+    })
+  })
+
+  // BUG-009: the filename stamp and the frontmatter timestamp must come from
+  // one clock read, or a save straddling a second boundary disagrees.
+  describe('when the clock ticks between reads', () => {
+    beforeEach(() => {
+      clock.steppingFrom = Date.parse('2026-01-01T00:00:00Z')
+    })
+    afterEach(() => {
+      clock.steppingFrom = null
+    })
+
+    it('stamps the filename with the frontmatter timestamp', async () => {
+      const savedPath = await saveConsultationFile({
+        query: 'q',
+        hexagram: [7, 7, 7, 7, 7, 7],
+        casting: null,
+        castingAbsence: 'playground',
+        dir: tmpDir,
+        body: 'BODY-MARKER',
+      })
+      const loaded = await loadConsultationFile(savedPath)
+      if (!loaded.ok) throw new Error(`expected ok, got ${loaded.reason}`)
+      const fileSafe = loaded.envelope.timestamp.replaceAll(':', '-')
+      expect(path.basename(savedPath)).toBe(`consultation-${fileSafe}.md`)
     })
   })
 })

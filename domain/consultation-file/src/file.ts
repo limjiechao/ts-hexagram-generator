@@ -7,6 +7,7 @@ import type {
   CastingRecord,
   Hexagram,
 } from '@hexagram/core/types'
+import dayjs from 'dayjs'
 
 import {
   CURRENT_SCHEMA_VERSION,
@@ -82,7 +83,10 @@ export async function saveConsultationFile(
 ): Promise<string> {
   const dir = params.dir ?? defaultConsultationsDir()
   await fs.mkdir(dir, { recursive: true })
-  const fileSafe = getFilesystemSafeTimestamp()
+  // One clock read for both stamps, so the filename can never drift a second
+  // from the frontmatter timestamp (BUG-009).
+  const now = dayjs()
+  const fileSafe = getFilesystemSafeTimestamp(now)
   // Narrow the input union into the envelope's CastingPresence member once, so
   // the serialized envelope's casting/castingAbsence pair is correlated.
   const presence: CastingPresence =
@@ -92,7 +96,7 @@ export async function saveConsultationFile(
   const text = serializeFrontmatter(
     {
       schemaVersion: CURRENT_SCHEMA_VERSION,
-      timestamp: getIsoTimestamp(),
+      timestamp: getIsoTimestamp(now),
       query: params.query,
       hexagram: params.hexagram,
       ...presence,

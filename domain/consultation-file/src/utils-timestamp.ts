@@ -6,8 +6,8 @@ dayjs.extend(utc)
 dayjs.extend(timezone)
 
 /** Filename-safe local timestamp, e.g. `2026-05-19T14-23-11+0800`. */
-export function getFilesystemSafeTimestamp(): string {
-  return dayjs().format('YYYY-MM-DDTHH-mm-ssZZ')
+export function getFilesystemSafeTimestamp(now: dayjs.Dayjs): string {
+  return now.format('YYYY-MM-DDTHH-mm-ssZZ')
 }
 
 /**
@@ -15,6 +15,6 @@ export function getFilesystemSafeTimestamp(): string {
  * e.g. `2026-05-19T14:23:11+0800`. Note: colons in the time portion (the
  * filename version replaces them with `-` for filesystem safety).
  */
-export function getIsoTimestamp(): string {
-  return dayjs().format('YYYY-MM-DDTHH:mm:ssZZ')
+export function getIsoTimestamp(now: dayjs.Dayjs): string {
+  return now.format('YYYY-MM-DDTHH:mm:ssZZ')
 }
