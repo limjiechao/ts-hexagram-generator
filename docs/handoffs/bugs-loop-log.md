@@ -128,3 +128,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: format:check pass on the uncommitted result; mdast plain text identical in 13/13; tree differs in 2 (backtick edits, intended) and in the BUGS-ORCHESTRATOR.md §6 code fence (oxfmt adds a blank line to the template).
 - Notes: Needs a human call on reformatting inside the fenced template. DOC entries keep using the touched-files format gate meanwhile. Consecutive blocked: 1.
 
+### Iteration 14 — DOC-003..013, DOC-022 (AGENTS.md batch) — 2026-11-05 10:26
+- Attempt: 1/2 · Outcome: fixed (12 rows, one commit per BUGS.md batching guidance)
+- Branch: bug/DOC-AGENTS-a1 · Landed: 2cf0d99
+- Red test: n.a. (doc-only; each row re-verified against code by implementer and reviewer)
+- Review: APPROVE (0 blocking; nits: "casting: null" wording at :272, saveConsultationFile signature omits dir)
+- Verify: oxfmt --check AGENTS.md pass · git grep stale names none · DOC-013 twins confirmed by patch-id · DOC-022 new recipe runs 9/10 files
+- Notes: –
+
