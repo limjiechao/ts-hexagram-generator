@@ -177,7 +177,7 @@ Shared verification commands:
 - **Refs:** ADR-0006, ADR-0008, `docs/agents/casting-invariants.md`.
 
 ### BUG-008: `validateManualSplit` accepts out-of-range remainders and negative piles, so it can return pick 0 or pick = recordedMax
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** Unreachable from the current UI (digit-only input, `remMax = 4`). This is a domain-invariant gap.
+- **Severity:** P2 · **Status:** fixed · **Commit:** `da42eed` · **Notes:** Tests in `manual-validation.test.ts` (3 counter-examples + enumeration over castIndex 0..2). Kind union and UI copy unchanged; a remainder >4 would show "no remainder" copy, which the UI cannot reach.
 - **Location:** `domain/core/src/manual-validation.ts:45-97`
 - **What is wrong:**
   - The validator rejects `0` remainders but has no upper bound on `remL`/`remR` and no lower bound on piles.

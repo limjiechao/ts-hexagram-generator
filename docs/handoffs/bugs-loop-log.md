@@ -66,3 +66,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused (consultation-file + text-grid) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: The private-data corpus sweep tests skip without consultations/legacy; only the owner can run them against real files.
 
+### Iteration 7 — BUG-008 — 2026-11-05 09:56
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-008-a1 · Landed: da42eed
+- Red test: domain/core/tests/manual-validation.test.ts (9 new cases) — failed as expected (y)
+- Review: APPROVE (0 blocking; nit: zero-remainder name/copy no longer fits rem>4, unreachable)
+- Verify: focused (core + casting-ui) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a. (domain only)
+- Notes: Scoped to domain/core; no casting-ui change was needed.
+
