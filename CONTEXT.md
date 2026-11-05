@@ -219,6 +219,20 @@ _Avoid_: selection, primary line, 主爻 (no ranking exists).
 
 ## Scripture Catalogue
 
+**Work**:
+A scripture as an abstract text, independent of any Edition: the 周易 經,
+each part of the 十翼 (彖傳, 大象, 小象, 文言, …), the 焦氏易林. Each Work has
+its own Citation scheme. A Translation is an Edition of the Work it
+translates, even when several Works are printed in one book.
+_Avoid_: book, text (for the abstract work).
+
+**Citation**:
+The Edition-independent name of a passage within a Work, built on Oracle
+identities — e.g. 周易 `111111.3` (Line Statement 3 of 乾), 焦氏易林
+`111111.000000` (the verse for 乾之坤). Every Edition of the Work is aligned
+to the same Citations.
+_Avoid_: passage id, reference (alone), key.
+
 **Edition**:
 A published text of a work, in one script — e.g. the 十三經注疏 通行本, the
 base Traditional edition of the Yijing. The app never mechanically converts
