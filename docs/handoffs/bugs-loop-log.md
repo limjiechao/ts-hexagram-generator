@@ -144,3 +144,8 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: oxfmt --check on all 9 files pass · git grep stale strings none · LICENSE/refactor.md/AGENTS.md untouched
 - Notes: DOC-014/015 recorded as dated "## Amendment" sections (ADR-0006/0008 convention). ADR-0019:57 left as the decision-as-made (banner already amends). DOC-021 LICENSE half stays needs-human.
 
+### Stop — 2026-11-05 — no plain open entries remain
+- Outcome: BUG fixed 11, blocked 1 (BUG-018), open+needs-human/defer 7 (BUG-005, 009, 010, 015, 016, 017, 019) · DOC fixed 20 (+ DOC-021 typo half), open needs-human 2 (DOC-001, DOC-021 LICENSE half)
+- Tip checks: type:check pass · lint pass · build+test pass · repo-wide format:check red (BUG-018, blocked)
+- Escalations pending: BUG-005, BUG-009, BUG-010, BUG-015, BUG-016 (waits on BUG-019), BUG-017, BUG-018, BUG-019, DOC-001, DOC-021 (LICENSE)
+
