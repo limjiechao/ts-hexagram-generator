@@ -169,3 +169,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: Reviewer left a temp extract in $TMPDIR (tmp.xoHELPPCPn); rm -r is denied, left for the owner.
 
+### Iteration 18 — BUG-010 — 2026-11-05 13:28
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-010-a1 · Landed: b765c93
+- Red test: domain/consultation-file/tests/frontmatter.test.ts::keeps an unquoted timestamp … as a verbatim string (×2) — failed as expected (y)
+- Review: APPROVE (0 blocking; parse equivalence shown on fixtures + 32 query strings; cache bypass judged safer)
+- Verify: focused (consultation-file + text-grid + history-ui) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: gray-matter was using its own engine; the configured parse engine had been dead code.
+

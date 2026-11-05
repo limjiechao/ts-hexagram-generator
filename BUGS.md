@@ -213,7 +213,7 @@ Shared verification commands:
 - **Refs:** ADR-0008.
 
 ### BUG-010: An unquoted YAML timestamp with a colon offset or `Z` loads as a `Date`, so the file is `invalid-shape`
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** load the frontmatter with js-yaml `CORE_SCHEMA`, so unquoted `+08:00` / `Z` timestamps stay verbatim strings (probed: CORE keeps them as strings; the other envelope fields parse the same). Add one test per form.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `b765c93` · **Notes:** Owner decided CORE_SCHEMA. Surprise: the custom yamlEngine.parse was never used (`matter(text)` had no options); now passed explicitly, which also bypasses gray-matter's shared-object cache. Dump side unchanged; 32 tricky query strings round-trip identically.
 - **Location:** `domain/consultation-file/src/frontmatter.ts:184`
 - **What is wrong:**
   - Probe with js-yaml `safeLoad`:
