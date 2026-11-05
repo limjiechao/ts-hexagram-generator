@@ -42,7 +42,7 @@ Shared verification commands:
 ## P1: data loss / correctness
 
 ### BUG-001: The composed `hexagram` shell mounts Playground without `saveDir`, so its saves land under the cwd
-- **Severity:** P1 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P1 · **Status:** fixed · **Commit:** `206b257` · **Notes:** Test `hexagram-app.test.tsx` "saves a playground consultation under consultationsDir" (mocks saveConsultationFile). Surprise: run vitest with FORCE_COLOR=1 (package script does) or an unrelated inverse-video test fails.
 - **Location:** `cli/shell/src/hexagram-app.tsx:178`
 - **What is wrong:**
   - `if (nav.screen === 'playground') return <PlaygroundApp onExit={backToHome} exitLabel={EXIT_LABEL} />` passes no `saveDir`.
@@ -317,6 +317,20 @@ Shared verification commands:
 - **Blast radius:** `domain/core` data and generated JSON.
 - **Verify:** `pnpm generate-json-files && pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts`.
 - **Refs:** ADR-0007.
+
+### BUG-018: `pnpm format:check` is red on `main` because of unformatted Markdown docs
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** Found by the fix loop on 2026-11-05, while verifying BUG-001.
+- **Location:** `BUGS.md`, `BUGS-ORCHESTRATOR.md`, `docs/handoffs/bugs-loop-log.md`, `docs/reviews/2026-11-04-ddd-survey/{SYNTHESIS,survey-01…survey-09}.md`.
+- **What is wrong:**
+  - `pnpm format:check` (oxfmt) fails with "Format issues found in above 13 files" on `bugs-loop` at `5efee17`. Twelve of the files are also on `main` (`680d450`, `d55fa65`). The thirteenth, the loop log, was added by the bootstrap.
+  - Every DOC entry's "Verify" line and the loop's Step 4 use `pnpm format:check` as a gate, so the gate cannot pass for any change.
+- **Reproduction:** `pnpm format:check`, which exits 1.
+- **Expected:** `pnpm format:check` exits 0.
+- **Minimal fix:** run `pnpm exec oxfmt --write` on exactly those 13 Markdown files and commit the result. Formatting only, no wording changes.
+- **Blast radius:** those Markdown files only. No code and no fixtures.
+- **Verify:** `pnpm format:check` exits 0, and `git diff --stat` touches only those files.
+- **Refs:** AGENTS.md "Commands".
+- **Interim gate (until fixed):** the loop runs `pnpm exec oxfmt --check <files touched by the diff>` instead of the repo-wide check.
 
 ---
 
