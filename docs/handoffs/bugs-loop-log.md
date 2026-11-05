@@ -185,3 +185,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: frozen-lockfile install pass · type:check (all) pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: Integration worktree re-ran frozen install after landing the lockfile change.
 
+### Iteration 20 — BUG-016 + BUG-019 — 2026-11-05 13:38
+- Attempt: 1/2 (after escalation) · Outcome: fixed (both)
+- Branch: bug/BUG-016-a2 · Landed: 2b984a4
+- Red test: n.a. (data-only; Verify = generator idempotent + exactly 3 JSON values changed, 2 strict-prefix truncations)
+- Review: APPROVE (0 blocking; re-ran generate-json-files clean; byte-fixture suites unchanged)
+- Verify: core test pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: –
+

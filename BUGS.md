@@ -294,7 +294,7 @@ Shared verification commands:
 - **Refs:** ADR-0018, ADR-0022.
 
 ### BUG-016: Legge text typo: hexagram 2, line 3 imagery reads "tinder restraint" for "under restraint"
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** land with BUG-019's regeneration. The JSON's extra §7 passages are stale (see BUG-019), so `generate-json-files` dropping them is correct.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `2b984a4` · **Notes:** Fixed together (owner: TS canonical, honouring 867a49f). Typo fixed in TS; JSON regenerated: exactly 3 values changed (H2 L3 typo; H1/H2 L6 §7 tails dropped). No runtime or fixture change.
 - **Location:** `domain/core/src/models/hexagram-text-english-legge.ts:59`; mirrored in `domain/core/src/models/hexagrams.json:307`
 - **What is wrong:** `"3. 'He keeps his excellence tinder restraint, …"`. Legge reads "under restraint". It is an OCR or typing error.
 - **Reproduction:** `git grep -n "tinder restraint"`.
@@ -333,7 +333,7 @@ Shared verification commands:
 - **Interim gate (until fixed):** the loop runs `pnpm exec oxfmt --check <files touched by the diff>` instead of the repo-wide check.
 
 ### BUG-019: `hexagrams.json` has drifted from its TS source: the Legge "7." passages for hexagrams 1 and 2 exist only in the JSON
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** TS is canonical. The owner removed these passages on purpose in `867a49f` (2025-08-14, "remove two instances of paragraph 7 found in Line 6") without regenerating. Regenerate `hexagrams.json` (no runtime or fixture change), together with BUG-016.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `2b984a4` · **Notes:** Fixed together (owner: TS canonical, honouring 867a49f). Typo fixed in TS; JSON regenerated: exactly 3 values changed (H2 L3 typo; H1/H2 L6 §7 tails dropped). No runtime or fixture change.
 - **Location:** `domain/core/src/models/hexagrams.json:151,310` (Legge Imagery L6 of hexagrams 1 and 2); source `domain/core/src/models/hexagram-text-english-legge.ts`.
 - **What is wrong:**
   - The committed JSON's L6 strings end with an extra "7. '…'" passage: Legge's commentary on "using nine" for hexagram 1 and "using six" for hexagram 2.
