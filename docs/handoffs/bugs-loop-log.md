@@ -26,3 +26,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files (repo-wide format:check pre-red, see BUG-018) · full build+test pass · stress:once pass
 - Notes: Found BUG-018 (format:check red on main via 13 Markdown files). Red-check gotcha: bare `vitest run` needs FORCE_COLOR=1.
 
+### Iteration 2 — BUG-002 — 2026-11-05 09:33
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-002-a1 · Landed: 1659c95
+- Red test: domain/consultation-file/tests/file.test.ts::keeps both consultations at distinct paths — failed as expected (y)
+- Review: APPROVE (0 blocking; nits: drop bug ID from doc comment, cap 100 is generous)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: –
+

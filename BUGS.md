@@ -57,7 +57,7 @@ Shared verification commands:
 - **Refs:** ADR-0020, `apps/cli/src/workspace-root.ts`.
 
 ### BUG-002: Two saves in the same second silently overwrite each other
-- **Severity:** P1 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P1 · **Status:** fixed · **Commit:** `1659c95` · **Notes:** Test `file.test.ts` "keeps both consultations at distinct paths". Saves use `wx` + `-N` suffix (cap 100, then throw). No consumer parses the filename (reviewer grep).
 - **Location:** `domain/consultation-file/src/file.ts:84-85,102`
 - **What is wrong:**
   - The filename is `consultation-<YYYY-MM-DDTHH-mm-ssZZ>.md`, which has one-second resolution.
