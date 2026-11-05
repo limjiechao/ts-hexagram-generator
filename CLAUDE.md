@@ -2,7 +2,7 @@
 
 # CLAUDE.md
 
-Claude-speciic guidance to agents
+Claude-specific guidance to agents
 
 ## Task execution
 
