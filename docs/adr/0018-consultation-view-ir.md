@@ -106,15 +106,15 @@ without pulling in any terminal code.
 - `domain/consultation-view/src/build-view.ts` — `buildConsultationView` (section
   order + emerging gate) + the `hexagramIdentity` / `hexagramDiagramRows`
   sub-builders.
-- `domain/consultation-view/src/ledger-geometry.ts` — the 18-row ledger builder +
+- `domain/consultation-view/src/ledger-rows.ts` — the 18-row ledger builder +
   the auto-follow row math (re-exported by `readout`).
 - `cli/readout/src/serialize-ansi.ts` — the IR→ANSI serializers + the tab/console
   composers.
-- `domain/consultation-file/src/serialize-markdown.ts` — the IR→Markdown
+- `cli/text-grid/src/serialize-markdown.ts` — the IR→Markdown
   serializers + the body composer.
 - `cli/playground-ui/src/playground-display-*.ts` — the playground display as a
   serializer of the IR identity/diagram subset.
 - the byte-locked fixtures (`cli/casting-ui/tests/fixtures/*`,
-  `domain/consultation-file/tests/fixtures/*`) — the standing regression gate.
+  `cli/text-grid/tests/fixtures/*`) — the standing regression gate.
 - the ESLint `no-restricted-imports` `domain/**` cli-import boundary
   ([ADR-0019](0019-domain-cli-boundary.md)) — keeps `consultation-view` UI-free.
