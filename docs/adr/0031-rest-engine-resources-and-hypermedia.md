@@ -1,9 +1,9 @@
-# The public REST engine: resources, Casting URLs, and HAL + HAL-FORMS
+# The REST engine: resources, Casting URLs, and HAL + HAL-FORMS
 
 Status: Accepted
 Date: 2026-11-05
 
-The public REST engine serves use cases 3 (Resolve a Transformation) and 8
+The REST engine (a Private Channel, ADR-0032) serves use cases 3 (Resolve a Transformation) and 8
 (Look up the catalogue) of ADR-0029. It also offers a **pure** Casting
 resource. It keeps no state and never generates randomness: every response
 except passage text is a pure function of its URL. It is read-only (every

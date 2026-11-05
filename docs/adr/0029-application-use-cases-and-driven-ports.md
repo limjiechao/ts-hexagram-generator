@@ -34,12 +34,12 @@ pure and needs no ports.
 
 ## Driven ports
 
-| Port                                                                                                                         | Needed by                             | Adapters                                                 |
-| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------- |
-| Consultation Store (keep, list, get, remove)                                                                                 | 1, 2, 4, 5, 6, 7, 9                   | Markdown files (CLI), IndexedDB (PWA)                    |
-| Scripture Catalogue (text for passage references, names, Yilin, Editions; applies Reading Preference, then the Licence Gate) | 3, 5, 8, 9                            | bundled data (CLI, REST), lazily loaded and cached (PWA) |
-| Random Source (uniform random integers)                                                                                      | 1 (Automatic Division)                | `node:crypto`, WebCrypto                                 |
-| Clock (the current moment)                                                                                                   | 1 (Divined At of a Cast Consultation) | system clock                                             |
+| Port                                                                                                                         | Needed by                             | Adapters                                                             |
+| ---------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- | -------------------------------------------------------------------- |
+| Consultation Store (keep, list, get, remove)                                                                                 | 1, 2, 4, 5, 6, 7, 9                   | Markdown files (CLI), IndexedDB (PWA)                                |
+| Scripture Catalogue (text for passage references, names, Yilin, Editions; applies Reading Preference, then the Licence Gate) | 3, 5, 8, 9                            | bundled data (CLI, REST); the PWA reaches it through REST (ADR-0034) |
+| Random Source (uniform random integers)                                                                                      | 1 (Automatic Division)                | `node:crypto`, WebCrypto                                             |
+| Clock (the current moment)                                                                                                   | 1 (Divined At of a Cast Consultation) | system clock                                                         |
 
 ADR-0023's Remainder-Group policy is a pure rule that consumes random
 integers. Only the integers cross the port.

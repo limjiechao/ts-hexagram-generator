@@ -1,7 +1,9 @@
 # Manual casting flow design
 
 Status: Accepted
-Date: 2026-05-29
+
+> **Amended.** [ADR-0027](0027-cast-consultation-records-division-method.md) reverses "No provenance field": a Cast Consultation records its Division Method. The overhaul also moves Line Retraction out of the core into the casting use case (see `CONTEXT.md`).
+> Date: 2026-05-29
 
 `hexagram-manual` lets a user who casts with physical yarrow stalks transcribe each
 division, while the app does the arithmetic and bookkeeping. This ADR consolidates

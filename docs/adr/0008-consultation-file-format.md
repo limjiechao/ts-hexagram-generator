@@ -1,7 +1,9 @@
 # Consultation file format
 
 Status: Accepted
-Date: 2026-05-19
+
+> **Superseded in part.** [ADR-0026](0026-consultation-is-cast-or-recorded.md) replaces the `castingAbsence` reasons with Cast / Recorded Consultations, and [ADR-0030](0030-consultation-record-v2-and-markdown-store.md) replaces the record shape (version 2) and the self-heal-on-open rule.
+> Date: 2026-05-19
 
 A saved consultation is a Markdown file (`consultation-<timestamp>.md`) with a YAML
 frontmatter envelope. **The frontmatter is canonical; the Markdown body is
