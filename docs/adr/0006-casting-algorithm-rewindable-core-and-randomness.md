@@ -187,3 +187,12 @@ readings were considered and rejected:
 
 The wide assertion bands in `random-casting.test.ts` stay a smoke test against a
 grossly broken generator; the precise figures and their provenance live here.
+
+## Amendment — 2026-11-05: there is no injected-RNG override contract
+
+This is a factual correction, not a change of decision. The Consequences bullet
+"The injected-RNG test override contract is preserved across the rename" does not
+hold: `domain/core/src/random-casting.ts` calls `node:crypto`'s `randomInt`
+directly and exposes no injection point, and no test overrides the RNG. (Tests
+that need a deterministic random consultation mock `generateRandomConsultation`
+at the module boundary instead.) Disregard that bullet.
