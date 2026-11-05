@@ -264,8 +264,9 @@ legacy converter narrow into.
   check on a present casting (S7).
 - `domain/consultation-file/src/casting-replay.ts` — `castingReplaysTo`, the one
   authoritative replay rule shared by the `.md` parser and the legacy converter (S7).
-- `domain/consultation-file/src/file.ts` — save/load, body re-render + self-heal;
+- `domain/consultation-file/src/file.ts` — save/load;
   `saveConsultationFile` requires `castingAbsence` when `casting` is null.
+- `cli/history-ui/src/history-app.tsx` — `rerenderOnDisk`, body re-render + self-heal.
 - `domain/consultation-file/src/legacy-converter.ts` — Shape A/B migration, tagging
   the two null-casting origins `legacy-no-table` vs `legacy-unreplayable`.
 - `domain/core/src/types.ts` — the `CastingAbsenceReason` vocabulary + guard.
