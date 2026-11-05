@@ -142,7 +142,7 @@ Shared verification commands:
 - **Refs:** ADR-0009 (flow state machine), ADR-0012.
 
 ### BUG-006: The history list sorts ISO timestamps lexically, which is wrong across UTC offsets
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P2 · **Status:** fixed · **Commit:** `301e453` · **Notes:** Test `history-scan.test.ts` "sorts newest-first by instant across UTC offsets". Used `Date.parse` + `+HHMM`→`+HH:MM` (history-ui has no dayjs). Unparseable timestamps sort last.
 - **Location:** `cli/history-ui/src/history-scan.ts:59`
 - **What is wrong:**
   - The comparator is `entries.sort((a, b) => (a.envelope.timestamp < b.envelope.timestamp ? 1 : -1))`, which compares offset-bearing strings character by character.

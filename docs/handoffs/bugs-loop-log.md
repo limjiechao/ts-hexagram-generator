@@ -50,3 +50,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
 - Notes: Picked despite "defer?" in Notes because only the API half was deferred and §5 does not list BUG-004.
 
+### Iteration 5 — BUG-006 — 2026-11-05 09:46
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-006-a1 · Landed: 301e453
+- Red test: cli/history-ui/tests/history-scan.test.ts::sorts newest-first by instant across UTC offsets — failed as expected (y)
+- Review: APPROVE (0 blocking)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
+- Notes: BUG-005 skipped at pick (needs-human / defer?), held for the escalation batch.
+
