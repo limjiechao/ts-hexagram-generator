@@ -249,6 +249,14 @@ ctext-sourced Chinese: private local use until ctext's terms are checked. A
 public channel omits gated text; it never substitutes other text for it.
 _Avoid_: permission check, DRM.
 
+**Reading Preference**:
+What the person viewing wants shown with a resolution: Chinese script
+(Traditional by default), Translations in order (Legge by default),
+Commentaries (大象 and 小象 by default), and the Yilin Verse (off by default).
+It belongs to the viewer, never to a Consultation: the same Consultation can
+be read in any script or Translation. The Licence Gate applies after it.
+_Avoid_: settings, options (for this concept).
+
 **Received Sequence Number** (文王卦序):
 A Hexagram's place 1–64 in the received text's order (乾 1, 坤 2, 屯 3, …).
 It follows no rule and depends on the text tradition: the Mawangdui
@@ -275,6 +283,13 @@ Transformation — plus its Casting when one exists, which must yield exactly
 that Transformation. Everything else (Hexagrams, Applicable Passages) is
 derived, never kept. Every Consultation is either Cast or Recorded.
 _Avoid_: entry, reading, session, study.
+
+**Consultation Id**:
+The opaque identifier a Consultation receives once, when first kept, and
+keeps for ever — the same in every store. It carries no meaning; Consultations
+are ordered by Divined At, never by Id. A kept Consultation is never edited,
+only removed.
+_Avoid_: file name, path, key, timestamp (as identity).
 
 **Cast Consultation**:
 A Consultation divined in the app; it carries its Casting, from which its
