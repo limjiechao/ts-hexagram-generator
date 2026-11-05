@@ -294,7 +294,7 @@ Shared verification commands:
 - **Refs:** ADR-0018, ADR-0022.
 
 ### BUG-016: Legge text typo: hexagram 2, line 3 imagery reads "tinder restraint" for "under restraint"
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** This is data, not code. Other OCR artefacts were reported but not verified.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human** (escalated by the loop, attempt 1 stopped before committing): `pnpm generate-json-files` also drops the Legge "7." passages from the hexagram 1 and 2 L6 imagery in `hexagrams.json`, because the TS source lacks them (see BUG-019). Decide on BUG-019 first. This is data, not code. Other OCR artefacts were reported but not verified.
 - **Location:** `domain/core/src/models/hexagram-text-english-legge.ts:59`; mirrored in `domain/core/src/models/hexagrams.json:307`
 - **What is wrong:** `"3. 'He keeps his excellence tinder restraint, …"`. Legge reads "under restraint". It is an OCR or typing error.
 - **Reproduction:** `git grep -n "tinder restraint"`.
@@ -331,6 +331,22 @@ Shared verification commands:
 - **Verify:** `pnpm format:check` exits 0, and `git diff --stat` touches only those files.
 - **Refs:** AGENTS.md "Commands".
 - **Interim gate (until fixed):** the loop runs `pnpm exec oxfmt --check <files touched by the diff>` instead of the repo-wide check.
+
+### BUG-019: `hexagrams.json` has drifted from its TS source: the Legge "7." passages for hexagrams 1 and 2 exist only in the JSON
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human** (a scholarly decision). Found by the fix loop on 2026-11-05 while attempting BUG-016.
+- **Location:** `domain/core/src/models/hexagrams.json:151,310` (Legge Imagery L6 of hexagrams 1 and 2); source `domain/core/src/models/hexagram-text-english-legge.ts`.
+- **What is wrong:**
+  - The committed JSON's L6 strings end with an extra "7. '…'" passage: Legge's commentary on "using nine" for hexagram 1 and "using six" for hexagram 2.
+  - The TS records, which are the runtime source (DOC-009), lack those passages. So `pnpm generate-json-files` drops them from the JSON.
+  - The app therefore never shows these passages. The JSON is generated, not hand-maintained (AGENTS.md "Data model").
+- **Reproduction:** `pnpm generate-json-files && git diff --stat`. `hexagrams.json` changes in lines 151 and 310 with no TS edit.
+- **Expected:** TS and JSON agree.
+- **Options for the owner:**
+  1. Add the 用九/用六 passages to the TS source. They might belong in L6 as now, or in a separate field; that is a model question.
+  2. Accept the TS as canonical and regenerate, which drops the passages from the JSON.
+- **Blast radius:** `domain/core` data and generated JSON. Option 1 may change rendered output, and so byte fixtures.
+- **Verify:** `pnpm generate-json-files` produces no diff.
+- **Refs:** ADR-0007, BUG-016, DOC-009, DOC-014.
 
 ---
 

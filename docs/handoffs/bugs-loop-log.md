@@ -106,3 +106,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass (394/394, 0 skipped) · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
 - Notes: Coverage gap: no test spawns apps/cli/src/interactive.ts in plain mode. Implementer's commit body wrongly claimed apps/cli tests exist; corrected in the landed message.
 
+### Iteration 12 — BUG-016 — 2026-11-05 10:20
+- Attempt: 1/2 · Outcome: escalated (needs-human; no commit)
+- Branch: bug/BUG-016-a1 (uncommitted edits left in ../hexagram-wt-BUG-016) · Landed: –
+- Red test: n.a. (data-only)
+- Review: n.a.
+- Verify: stop condition hit at `pnpm generate-json-files`: JSON diff exceeded the one line (hexagrams 1 and 2 L6 "7." passages dropped).
+- Notes: Filed BUG-019 (TS/JSON drift). BUG-016 returned to open + needs-human pending BUG-019's decision. Not counted as blocked.
+
