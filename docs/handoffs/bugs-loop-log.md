@@ -74,3 +74,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused (core + casting-ui) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a. (domain only)
 - Notes: Scoped to domain/core; no casting-ui change was needed.
 
+### Iteration 8 — BUG-011 — 2026-11-05 10:03
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-011-a1 · Landed: bc811a4
+- Red test: apps/cli/tests/migrate-legacy.test.ts::skips a .txt whose target .md already exists, leaving both untouched — failed as expected (y)
+- Review: APPROVE (0 blocking)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: BUG-009 (defer?) and BUG-010 (needs-human) skipped at pick, held for escalation.
+

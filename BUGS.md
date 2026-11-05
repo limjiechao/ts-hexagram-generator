@@ -229,7 +229,7 @@ Shared verification commands:
 - **Refs:** ADR-0008.
 
 ### BUG-011: Legacy migration overwrites an existing `.md` of the same name
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** –
+- **Severity:** P3 · **Status:** fixed · **Commit:** `bc811a4` · **Notes:** Test in `apps/cli/tests/migrate-legacy.test.ts`. `wx` + `SKIP <name>: target exists` on stderr; the final "Migrated N" summary does not count skips (unchanged convention).
 - **Location:** `apps/cli/src/migrate-legacy.ts:39-41`
 - **What is wrong:**
   - `fs.writeFile(mdPath, md, 'utf8')` uses the default `'w'` flag. If `consultation-<ts>.md` already exists, for example from a partial earlier run or a same-second save, it is replaced.
