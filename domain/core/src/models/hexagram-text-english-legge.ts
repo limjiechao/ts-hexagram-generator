@@ -56,7 +56,7 @@ export const HEXAGRAM_TEXT_ENGLISH_LEGGE = {
         Lines: {
           L1: "1. 'He is treading on hoarfrost;--the strong ice will come (by and by):'--the cold (air) has begun to take form. Allow it to go on quietly according to its nature, and (the hoarfrost) will come to strong ice.",
           L2: "2. The movement indicated by the second six, (divided),is 'from the straight (line) to the square.' '(Its operation), without repeated effort, in every way advantageous,' shows the brilliant result of the way of earth.",
-          L3: "3. 'He keeps his excellence tinder restraint, but firmly maintains it:'--at the proper time he will manifest it. 'He may have occasion to engage in the king's service:--great is the glory of his wisdom.",
+          L3: "3. 'He keeps his excellence under restraint, but firmly maintains it:'--at the proper time he will manifest it. 'He may have occasion to engage in the king's service:--great is the glory of his wisdom.",
           L4: "4. 'A sack tied up;--there will be no error:'--this shows how, through carefulness, no injury will be received.",
           L5: "5. 'The Yellow lower-garment;--there will be great good fortune:'--this follows from that ornamental (colour's) being in the right and central place.",
           L6: "6. 'The dragons fight in the wild:--the (onward) course (indicated by Khwăn) is pursued to extremity.",
