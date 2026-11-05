@@ -34,6 +34,7 @@ export async function migrateLegacy(dir: string): Promise<void> {
       envelope.query,
       envelope.hexagram,
       envelope.casting,
+      envelope.castingAbsence,
     )
     const md = serializeFrontmatter(envelope, body)
     const mdPath = filePath.replace(/\.txt$/, '.md')
