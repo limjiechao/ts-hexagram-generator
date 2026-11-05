@@ -247,3 +247,10 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 
 - Outcome: BUG fixed 19/19 · DOC fixed 21/22 (DOC-001 is the owner's untracked refactor.md, left to the owner)
 - Tip checks: install (frozen) pass · type:check pass · lint pass · format:check pass · build+test pass · stress:once pass
+
+### Follow-up — BUG-017 variant characters — 2026-11-05 14:04
+
+- Outcome: fixed at the owner's request · Branch: bug/trigram-trad-chars · Landed: 6306fe3
+- Change: 説言乎兑 → 說言乎兌 in the trigram.ts comment and the trigram-order test comment. Simplified-script maps and records keep 兑 (correct there).
+- Verify: core tests 94/94 · lint pass · oxfmt pass · generate-json-files no diff
+- Review: n.a. (comment-only, owner-dictated)
