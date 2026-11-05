@@ -43,3 +43,17 @@ these getters. See [ADR-0008](0008-consultation-file-format.md).
 - `domain/core/src/models/*.json` — generated runtime data.
 - `domain/core/package.json` `generate-json-files` script — regenerates + `oxfmt`.
 - `domain/core/src/getters.ts` — `getHexagramRecord` lookup entrypoint.
+
+## Amendment — 2026-11-05: the TS records are the runtime source
+
+This is a factual correction, not a change of decision. The text above says the
+JSON is "the runtime source consumed via `resolveJsonModule`" and that a stale
+JSON means stale runtime data. Neither matches the code. `getters.ts` imports
+`HEXAGRAM_RECORDS` / `TRIGRAM_RECORDS` from the `.ts` records, the `./hexagrams`
+and `./trigrams` subpath exports and their tsdown entries point at the `.ts`
+files, and no source file imports the `.json`. The TypeScript records are the
+runtime source. The JSON is a generated artifact, still produced by
+`pnpm generate-json-files`, but unused at runtime, so it can go stale without
+affecting any lookup. Every runtime-use claim above (the opening paragraph, the
+rejected options' rationale, the first Consequence and the `*.json` enforcement
+line) should be read in that light.
