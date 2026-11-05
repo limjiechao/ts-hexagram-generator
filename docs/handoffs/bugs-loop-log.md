@@ -82,3 +82,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
 - Notes: BUG-009 (defer?) and BUG-010 (needs-human) skipped at pick, held for escalation.
 
+### Iteration 9 — BUG-012 — 2026-11-05 10:06
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-012-a1 · Landed: a773913
+- Red test: n.a. (type-only); lock test domain/core/tests/perform-cast.test.ts::a heap that is a multiple of four sets aside its last full group of 4 — green before and after (y)
+- Review: APPROVE (0 blocking; nit: could assert per-heap remainder length)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: Filed DOC-022: `pnpm --filter @hexagram/core test -- --exclude …` runs all 10 files (pnpm forwards the literal --).
+

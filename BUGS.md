@@ -242,7 +242,7 @@ Shared verification commands:
 - **Refs:** ADR-0008, ADR-0015.
 
 ### BUG-012: A type lie in the core algorithm: `(stalksCount % 4) as 1 | 2 | 3`
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** Runtime behaviour is correct, because `0` is falsy at `:26`. The type is wrong.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `a773913` · **Notes:** Type-only; added a behaviour lock in `perform-cast.test.ts` (no prior test covered a multiple-of-four heap). Found DOC-022: the `-- --exclude` skip recipe does not exclude anything.
 - **Location:** `domain/core/src/index.ts:25`
 - **What is wrong:** the value is `0` for any multiple of four, and the next line relies on exactly that (`sortingRemainder ? [sortingRemainder] : []`). The cast hides the 0 case from the type checker.
 - **Reproduction / failing test:** none at runtime. Lock the behaviour first: a `sortIntoFours`-equivalent assertion through `performCast` on a heap of 48 or 44. Existing `perform-cast.test.ts` coverage probably suffices; confirm that it exercises a multiple-of-four heap.
@@ -361,6 +361,7 @@ Each was verified against the code at `ab492eb`. Severity is P3 for all. Suggest
 | DOC-019 | open | `docs/adr/0009-terminal-ui-architecture-and-flow-state-machine.md:71` | Cites `cli/casting-ui/src/output-sections.ts`, which does not exist | `cli/casting-ui/src/output-composers.ts` only |
 | DOC-020 | open | `docs/adr/0002-monorepo-structure-and-package-decomposition.md:78-81` | "Where it's enforced" points at `packages/*` and `packages/core/package.json` (superseded ADR, dead links) | Add a one-line pointer to ADR-0019/0022 rather than rewriting a superseded ADR |
 | DOC-021 | open | `CLAUDE.md:5`; `LICENSE:3` | Typo "Claude-speciic". The LICENSE copyright holder is the template author ("三咲智子 Kevin Deng") | Fix the typo. The **LICENSE is needs-human** (a legal decision; do not edit autonomously) |
+| DOC-022 | open | `AGENTS.md:189` (the slow-test skip recipe) | "`pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts`" skips the slow test. Found by the fix loop on 2026-11-05: pnpm forwards the literal `--` to `vitest run`, so all 10 core test files still run, `random-casting` included | Give a recipe that actually excludes the file (e.g. `pnpm --filter @hexagram/core exec vitest run --exclude tests/random-casting.test.ts`, verified by the file count), or drop the claim. BUGS.md "Verify" lines reuse the broken recipe, which is harmless because the slow test passes |
 
 ---
 
