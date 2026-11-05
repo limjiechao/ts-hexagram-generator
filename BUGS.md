@@ -120,7 +120,7 @@ Shared verification commands:
 - **Refs:** ADR-0008 (self-heal; note DOC-016).
 
 ### BUG-005: A failed save leaves the viewer stuck in `computing`, and discard is the only way out
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** option (c): on a failed save, go to `done` with the reading visible, an "unsaved" footer and a retry key that re-runs the save. Build the sections before the save, so a render failure stays distinguishable.
+- **Severity:** P2 · **Status:** fixed · **Commit:** `b724102` · **Notes:** Owner's option (c). Failed save → `done` + reading + `Save failed: <msg> · Press r to retry`; `r` only live then. Render failure unchanged. Esc now asks before discarding an unsaved reading. Discard-modal copy still casting-oriented (not changed).
 - **Location:** `cli/casting-ui/src/viewer-flow.ts:332-333`; `cli/casting-ui/src/viewer.tsx:343-372` (the compute effect) and `:692-695` (the footer)
 - **What is wrong:**
   - `case 'computeFailed': return { ...state, saveError: action.error }` keeps `mode: 'computing'`.

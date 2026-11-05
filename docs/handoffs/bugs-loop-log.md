@@ -153,3 +153,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - BUG-005 → (c) show reading + retry · BUG-009 → fix now · BUG-010 → CORE_SCHEMA · BUG-015 → drop edge (leftover of 11cf361) · BUG-016+019 → regenerate JSON (honours 867a49f) · BUG-017 → 說卦 sequence · BUG-018 → accept template blank line · DOC-021 → LICENSE holder "Lim Jiechao"
 - All set back to `open` with a DECIDED note; DOC-001 (owner's untracked refactor.md:20) left to the owner.
 
+### Iteration 16 — BUG-005 — 2026-11-05 13:08
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-005-a1 · Landed: b724102
+- Red test: cli/casting-ui/tests/viewer-flow.test.ts + viewer.test.tsx (6 tests) — failed as expected (y)
+- Review: APPROVE (0 blocking; nits: stale flowHint doc comments; discard during in-flight retry may still write, pre-existing; red commit fails type:check)
+- Verify: focused (casting-ui + viewer-core) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
+- Notes: Touched cli/viewer-core FooterBar (only caller is ConsultationReadout; no other screen changes).
+
