@@ -1,6 +1,7 @@
 import { sampleCastingFor } from '@hexagram/core/sample-casting'
 import { describe, expect, it } from 'vitest'
 
+import { castingReplaysTo } from '../src/casting-replay.js'
 import { parseFrontmatter, serializeFrontmatter } from '../src/frontmatter.js'
 
 // ADR-0008 S7: `.md` load replay-validates its casting, closing the asymmetry
@@ -42,6 +43,34 @@ describe('parseFrontmatter — casting replay validation', () => {
         query: 'q',
         hexagram: [7, 7, 7, 7, 7, 7],
         casting: real,
+        castingAbsence: null,
+      },
+      'body',
+    )
+    const result = parseFrontmatter(text)
+    expect(result.ok).toBe(false)
+    if (!result.ok) expect(result.reason).toBe('casting-unreplayable')
+  })
+
+  it('reports `casting-unreplayable` when a stored recordedMax disagrees with the replay', () => {
+    // BUG-007: replay used to read only `pick`, so a hand-edited `recordedMax`
+    // passed validation while `deriveSplit` rendered a ledger from it that
+    // violates conservation. The picks here are untouched and still replay to
+    // the hexagram; only cast 2 of line 1 claims four stalks too many.
+    const hexagram = [7, 8, 7, 8, 7, 8] as const
+    const mutated = sampleCastingFor([...hexagram])
+    mutated[0][1] = {
+      ...mutated[0][1],
+      recordedMax: mutated[0][1].recordedMax + 4,
+    }
+    expect(castingReplaysTo(mutated, [...hexagram])).toBe(false)
+    const text = serializeFrontmatter(
+      {
+        schemaVersion: 1,
+        timestamp: '2026-01-01T00:00:00+0800',
+        query: 'q',
+        hexagram: [...hexagram],
+        casting: mutated,
         castingAbsence: null,
       },
       'body',

@@ -1,10 +1,12 @@
 import { makeLineGenerator, stalksBeforeParting } from '@hexagram/core'
+import { recordedMaxForUnparted } from '@hexagram/core/casting-derivation'
 import {
   assertIsLine,
   type CastingRecord,
   type Hexagram,
   type Line,
   type LineCasting,
+  type SplitRecord,
 } from '@hexagram/core/types'
 
 /**
@@ -41,6 +43,12 @@ function replayLine(lineCasting: LineCasting): Line {
   // resolves it to a `legacy-unreplayable` null (salvage of foreign input), the
   // `.md` parser to a `casting-unreplayable` parse failure (refusal of our own
   // corrupted output); see ADR-0006 and ADR-0008.
+  // The generator consumes only `pick`, but `deriveSplit` renders the ledger
+  // from the STORED `recordedMax`; an unchecked edit to it would pass replay
+  // yet break conservation in a ledger declared proven (BUG-007). So each
+  // cast's `recordedMax` must equal the one born from its replayed unparted
+  // stalks; a mismatch throws, which `castingReplaysTo` catches as `false`.
+  assertRecordedMax(cast1, stalksBeforeParting)
   const generator = makeLineGenerator({
     unpartedStalks: stalksBeforeParting,
     suspendedFromNextRound: [],
@@ -48,10 +56,24 @@ function replayLine(lineCasting: LineCasting): Line {
   })
   const roundOne = generator.next()
   if (roundOne.done) throw new Error('replay: generator ended early')
+  assertRecordedMax(cast2, roundOne.value.unpartedStalks)
   const roundTwo = generator.next(cast2.pick)
   if (roundTwo.done) throw new Error('replay: generator ended early')
+  assertRecordedMax(cast3, roundTwo.value.unpartedStalks)
   generator.next(cast3.pick)
   const line = generator.next().value
   assertIsLine(line)
   return line
+}
+
+function assertRecordedMax(
+  split: SplitRecord,
+  unparted: readonly number[],
+): void {
+  const expected = recordedMaxForUnparted(unparted)
+  if (split.recordedMax !== expected) {
+    throw new Error(
+      `replay: recordedMax ${split.recordedMax} disagrees with ${expected}`,
+    )
+  }
 }
