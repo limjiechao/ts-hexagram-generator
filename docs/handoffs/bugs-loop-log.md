@@ -235,3 +235,10 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Notes: Kept year 2025 and MIT text; dropped the template author's URL with their name.
 
 ### Iteration 23 — BUG-018 attempt 3 (post-decision) — 2026-11-05 13:49
+
+- Attempt: 4 (post-decision) · Outcome: fixed
+- Branch: bug/BUG-018-a4 · Landed: afe6de7
+- Red test: n.a. (doc-only; Verify = format:check exits 0 + mdast tree/plain-text comparison)
+- Review: APPROVE (0 blocking)
+- Verify: format:check pass (repo-wide) · 13 .md files only · mdast SAME in 11 files; allowed diffs only (template blank line, two backtick spans)
+- Notes: Attempt 3 stopped on orchestrator-written tracker text; fixed in b186ffc. Lesson: write tracker prose with identifiers in backticks and no literal fences.

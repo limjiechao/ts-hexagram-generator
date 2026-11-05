@@ -340,6 +340,7 @@ Shared verification commands:
 
 ### BUG-018: `pnpm format:check` is red on `main` because of unformatted Markdown docs
 
+- **Severity:** P3 · **Status:** fixed · **Commit:** `afe6de7` · **Notes:** Owner accepted the blank line oxfmt adds inside the BUGS-ORCHESTRATOR.md §6 template. Bare identifiers with underscores next to emphasis were backticked first (survey-09, plus tracker text in `b186ffc`). Rendered text checked with mdast: identical apart from those two allowed changes.
 - **Severity:** P3 · **Status:** in-progress · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** accept the blank line oxfmt adds inside the fenced log template in BUGS-ORCHESTRATOR.md §6. History: attempt 1 garbled a bare `NO_COLOR` via oxfmt's emphasis rewrite; attempt 2 fixed that with backticks but stopped on the template; attempt 3 stopped on tracker text that itself needed backticks.
 - **Location:** `BUGS.md`, `BUGS-ORCHESTRATOR.md`, `docs/handoffs/bugs-loop-log.md`, `docs/reviews/2026-11-04-ddd-survey/{SYNTHESIS,survey-01…survey-09}.md`.
 - **What is wrong:**
