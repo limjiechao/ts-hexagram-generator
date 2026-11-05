@@ -75,6 +75,10 @@ package depends only on layers strictly below it**. Concretely:
 
 ## Where it's enforced
 
+> The paths below predate the `domain/*` / `cli/*` / `apps/*` split; for the current
+> enforcement points see [ADR-0019](0019-domain-cli-boundary.md) and
+> [ADR-0022](0022-monospace-text-grid-is-medium-bound.md).
+
 - `pnpm-workspace.yaml` — `packages/*` + `apps/*` globs.
 - `turbo.json` — `dependsOn: ["^build"]` enforces topological build order.
 - each `packages/*/package.json` `dependencies` — the actual DAG edges.
