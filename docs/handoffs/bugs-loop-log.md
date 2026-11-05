@@ -149,3 +149,7 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Tip checks: type:check pass · lint pass · build+test pass · repo-wide format:check red (BUG-018, blocked)
 - Escalations pending: BUG-005, BUG-009, BUG-010, BUG-015, BUG-016 (waits on BUG-019), BUG-017, BUG-018, BUG-019, DOC-001, DOC-021 (LICENSE)
 
+### Decisions — 2026-11-05 — owner answered the escalation batch
+- BUG-005 → (c) show reading + retry · BUG-009 → fix now · BUG-010 → CORE_SCHEMA · BUG-015 → drop edge (leftover of 11cf361) · BUG-016+019 → regenerate JSON (honours 867a49f) · BUG-017 → 說卦 sequence · BUG-018 → accept template blank line · DOC-021 → LICENSE holder "Lim Jiechao"
+- All set back to `open` with a DECIDED note; DOC-001 (owner's untracked refactor.md:20) left to the owner.
+

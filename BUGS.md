@@ -120,7 +120,7 @@ Shared verification commands:
 - **Refs:** ADR-0008 (self-heal; note DOC-016).
 
 ### BUG-005: A failed save leaves the viewer stuck in `computing`, and discard is the only way out
-- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** **needs-human**: what should a failed save do? Also **defer?** (overhaul: save becomes a use case).
+- **Severity:** P2 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** option (c): on a failed save, go to `done` with the reading visible, an "unsaved" footer and a retry key that re-runs the save. Build the sections before the save, so a render failure stays distinguishable.
 - **Location:** `cli/casting-ui/src/viewer-flow.ts:332-333`; `cli/casting-ui/src/viewer.tsx:343-372` (the compute effect) and `:692-695` (the footer)
 - **What is wrong:**
   - `case 'computeFailed': return { ...state, saveError: action.error }` keeps `mode: 'computing'`.
@@ -202,7 +202,7 @@ Shared verification commands:
 ## P3: hygiene / data
 
 ### BUG-009: `saveConsultationFile` reads the clock twice, so the filename and frontmatter timestamps can disagree
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **defer?** (overhaul: Clock port). It is cheap enough to fix now.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** fix now. Call `dayjs()` once in `saveConsultationFile` and pass that instant to both helpers. No Clock port.
 - **Location:** `domain/consultation-file/src/file.ts:84,95`; `domain/consultation-file/src/utils-timestamp.ts:9-20`
 - **What is wrong:** `getFilesystemSafeTimestamp()` and `getIsoTimestamp()` each call `dayjs()`. A save that straddles a second boundary gets a filename one second off from its canonical `timestamp`.
 - **Reproduction / failing test:** in `file.test.ts`, mock `dayjs` (via `vi.mock('dayjs', …)`) to return two successive instants one second apart. Assert that the filename stamp equals the frontmatter `timestamp` with `:` replaced by `-`. This fails today.
@@ -213,7 +213,7 @@ Shared verification commands:
 - **Refs:** ADR-0008.
 
 ### BUG-010: An unquoted YAML timestamp with a colon offset or `Z` loads as a `Date`, so the file is `invalid-shape`
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human / defer?**: only hand-edited or externally produced files hit this.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** load the frontmatter with js-yaml `CORE_SCHEMA`, so unquoted `+08:00` / `Z` timestamps stay verbatim strings (probed: CORE keeps them as strings; the other envelope fields parse the same). Add one test per form.
 - **Location:** `domain/consultation-file/src/frontmatter.ts:184`
 - **What is wrong:**
   - Probe with js-yaml `safeLoad`:
@@ -283,7 +283,7 @@ Shared verification commands:
 - **Refs:** ADR-0013.
 
 ### BUG-015: `@hexagram/consultation-view` declares an unused `@hexagram/text-layout` dependency
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human**: the edge is drawn in the CLAUDE.md/AGENTS.md DAG and ADR-0022. Decide whether to drop the edge or keep it as intended. **defer?**
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** drop the edge. It is a leftover of `11cf361` (the ADR-0022 move of geometry and templates to `cli/text-grid`). Remove the dep and update `pnpm-lock.yaml`. Fix the AGENTS.md build-order chain and ADR-0018:33 (via a dated factual amendment) in the same commit.
 - **Location:** `domain/consultation-view/package.json:38`
 - **What is wrong:** `git grep text-layout -- domain/consultation-view` matches only the package.json line. No `src` or test file imports it. It is a phantom edge in the Turbo graph and in the docs.
 - **Reproduction:** `git grep -n "text-layout" -- domain/consultation-view`.
@@ -294,7 +294,7 @@ Shared verification commands:
 - **Refs:** ADR-0018, ADR-0022.
 
 ### BUG-016: Legge text typo: hexagram 2, line 3 imagery reads "tinder restraint" for "under restraint"
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human** (escalated by the loop, attempt 1 stopped before committing): `pnpm generate-json-files` also drops the Legge "7." passages from the hexagram 1 and 2 L6 imagery in `hexagrams.json`, because the TS source lacks them (see BUG-019). Decide on BUG-019 first. This is data, not code. Other OCR artefacts were reported but not verified.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** land with BUG-019's regeneration. The JSON's extra §7 passages are stale (see BUG-019), so `generate-json-files` dropping them is correct.
 - **Location:** `domain/core/src/models/hexagram-text-english-legge.ts:59`; mirrored in `domain/core/src/models/hexagrams.json:307`
 - **What is wrong:** `"3. 'He keeps his excellence tinder restraint, …"`. Legge reads "under restraint". It is an OCR or typing error.
 - **Reproduction:** `git grep -n "tinder restraint"`.
@@ -305,7 +305,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-017: The trigram `WEN_WANG_ORDER` map contradicts its own 說卦 comment
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human** (a scholarly decision). It is unused at runtime: only the hexagram `Order.WenWang` is read.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** use the 說卦 sequence the comment quotes: 震1 巽2 離3 坤4 兌5 乾6 坎7 艰8. Edit the map and run `pnpm generate-json-files`.
 - **Location:** `domain/core/src/models/trigram.ts:5-15`
 - **What is wrong:**
   - The comment quotes 帝出乎震，齊乎巽，相見乎離，致役乎坤，説言乎兑，戰乎乾，勞乎坎，成言乎艮. That gives 震1 巽2 離3 坤4 兌5 乾6 坎7 艮8.
@@ -319,7 +319,7 @@ Shared verification commands:
 - **Refs:** ADR-0007.
 
 ### BUG-018: `pnpm format:check` is red on `main` because of unformatted Markdown docs
-- **Severity:** P3 · **Status:** blocked · **Commit:** – · **Notes:** Attempt 1: oxfmt's `*x*`→`_x_` paired with a bare `NO_COLOR` (survey-09:114), garbling the rendered text; fixed in attempt 2 by backticking `NO_COLOR`/`QUERY_NOT_PROVIDED`. Attempt 2 stop: oxfmt also adds a blank line inside the ```markdown log-template fence in BUGS-ORCHESTRATOR.md §6. **Human decides:** accept that line, or add `<!-- oxfmt-ignore -->` / change the fence's info string. A ready result (uncommitted, rendered text otherwise identical) is in `../hexagram-wt-BUG-018-a2`.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** accept oxfmt's blank line inside the BUGS-ORCHESTRATOR.md §6 template fence. Commit the ready result in `../hexagram-wt-BUG-018-a2` (its 2 backtick edits included), after re-running oxfmt over the current BUGS.md and log. Previously: Attempt 1: oxfmt's `*x*`→`_x_` paired with a bare `NO_COLOR` (survey-09:114), garbling the rendered text; fixed in attempt 2 by backticking `NO_COLOR`/`QUERY_NOT_PROVIDED`. Attempt 2 stop: oxfmt also adds a blank line inside the ```markdown log-template fence in BUGS-ORCHESTRATOR.md §6. **Human decides:** accept that line, or add `<!-- oxfmt-ignore -->` / change the fence's info string. A ready result (uncommitted, rendered text otherwise identical) is in `../hexagram-wt-BUG-018-a2`.
 - **Location:** `BUGS.md`, `BUGS-ORCHESTRATOR.md`, `docs/handoffs/bugs-loop-log.md`, `docs/reviews/2026-11-04-ddd-survey/{SYNTHESIS,survey-01…survey-09}.md`.
 - **What is wrong:**
   - `pnpm format:check` (oxfmt) fails with "Format issues found in above 13 files" on `bugs-loop` at `5efee17`. Twelve of the files are also on `main` (`680d450`, `d55fa65`). The thirteenth, the loop log, was added by the bootstrap.
@@ -333,7 +333,7 @@ Shared verification commands:
 - **Interim gate (until fixed):** the loop runs `pnpm exec oxfmt --check <files touched by the diff>` instead of the repo-wide check.
 
 ### BUG-019: `hexagrams.json` has drifted from its TS source: the Legge "7." passages for hexagrams 1 and 2 exist only in the JSON
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **needs-human** (a scholarly decision). Found by the fix loop on 2026-11-05 while attempting BUG-016.
+- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** TS is canonical. The owner removed these passages on purpose in `867a49f` (2025-08-14, "remove two instances of paragraph 7 found in Line 6") without regenerating. Regenerate `hexagrams.json` (no runtime or fixture change), together with BUG-016.
 - **Location:** `domain/core/src/models/hexagrams.json:151,310` (Legge Imagery L6 of hexagrams 1 and 2); source `domain/core/src/models/hexagram-text-english-legge.ts`.
 - **What is wrong:**
   - The committed JSON's L6 strings end with an extra "7. '…'" passage: Legge's commentary on "using nine" for hexagram 1 and "using six" for hexagram 2.
@@ -376,7 +376,7 @@ Each was verified against the code at `ab492eb`. Severity is P3 for all. Suggest
 | DOC-018 | fixed `feb2731` | `docs/adr/0019-domain-cli-boundary.md:57,84,97,122` | Says the markdown renderer lives in `domain/consultation-file`; workspace globs are "`domain/*` + `cli/*`" | Renderer is in `cli/text-grid` (ADR-0022); `pnpm-workspace.yaml` also has `apps/*` |
 | DOC-019 | fixed `f7af5a7` | `docs/adr/0009-terminal-ui-architecture-and-flow-state-machine.md:71` | Cites `cli/casting-ui/src/output-sections.ts`, which does not exist | `cli/casting-ui/src/output-composers.ts` only |
 | DOC-020 | fixed `1a31bf1` | `docs/adr/0002-monorepo-structure-and-package-decomposition.md:78-81` | "Where it's enforced" points at `packages/*` and `packages/core/package.json` (superseded ADR, dead links) | Add a one-line pointer to ADR-0019/0022 rather than rewriting a superseded ADR |
-| DOC-021 | typo fixed `3fa1f7e`; LICENSE open (needs-human) | `CLAUDE.md:5`; `LICENSE:3` | Typo "Claude-speciic". The LICENSE copyright holder is the template author ("三咲智子 Kevin Deng") | Fix the typo. The **LICENSE is needs-human** (a legal decision; do not edit autonomously) |
+| DOC-021 | typo fixed `3fa1f7e`; LICENSE open, **DECIDED 2026-11-05 (owner): replace the holder on `LICENSE:3` with "Lim Jiechao"** | `CLAUDE.md:5`; `LICENSE:3` | Typo "Claude-speciic". The LICENSE copyright holder is the template author ("三咲智子 Kevin Deng") | Fix the typo. The **LICENSE is needs-human** (a legal decision; do not edit autonomously) |
 | DOC-022 | fixed `2cf0d99` | `AGENTS.md:189` (the slow-test skip recipe) | "`pnpm --filter @hexagram/core test -- --exclude tests/random-casting.test.ts`" skips the slow test. Found by the fix loop on 2026-11-05: pnpm forwards the literal `--` to `vitest run`, so all 10 core test files still run, `random-casting` included | Give a recipe that actually excludes the file (e.g. `pnpm --filter @hexagram/core exec vitest run --exclude tests/random-casting.test.ts`, verified by the file count), or drop the claim. BUGS.md "Verify" lines reuse the broken recipe, which is harmless because the slow test passes |
 
 ---
