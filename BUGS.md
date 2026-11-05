@@ -202,7 +202,7 @@ Shared verification commands:
 ## P3: hygiene / data
 
 ### BUG-009: `saveConsultationFile` reads the clock twice, so the filename and frontmatter timestamps can disagree
-- **Severity:** P3 · **Status:** open · **Commit:** – · **Notes:** **DECIDED 2026-11-05 (owner):** fix now. Call `dayjs()` once in `saveConsultationFile` and pass that instant to both helpers. No Clock port.
+- **Severity:** P3 · **Status:** fixed · **Commit:** `cde7577` · **Notes:** Owner decided fix-now. One `dayjs()` per save; helpers take the instant. Test steps the clock per read; green in 3 TZs. No Clock port.
 - **Location:** `domain/consultation-file/src/file.ts:84,95`; `domain/consultation-file/src/utils-timestamp.ts:9-20`
 - **What is wrong:** `getFilesystemSafeTimestamp()` and `getIsoTimestamp()` each call `dayjs()`. A save that straddles a second boundary gets a filename one second off from its canonical `timestamp`.
 - **Reproduction / failing test:** in `file.test.ts`, mock `dayjs` (via `vi.mock('dayjs', …)`) to return two successive instants one second apart. Assert that the filename stamp equals the frontmatter `timestamp` with `:` replaced by `-`. This fails today.

@@ -161,3 +161,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: focused (casting-ui + viewer-core) pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once pass
 - Notes: Touched cli/viewer-core FooterBar (only caller is ConsultationReadout; no other screen changes).
 
+### Iteration 17 — BUG-009 — 2026-11-05 13:23
+- Attempt: 1/2 · Outcome: fixed
+- Branch: bug/BUG-009-a1 · Landed: cde7577
+- Red test: domain/consultation-file/tests/file.test.ts::stamps the filename with the frontmatter timestamp — failed as expected (y)
+- Review: APPROVE (0 blocking; green under local, America/New_York, Asia/Kolkata)
+- Verify: focused pass · type:check pass · lint pass / format pass on touched files · full build+test pass · stress:once n.a.
+- Notes: Reviewer left a temp extract in $TMPDIR (tmp.xoHELPPCPn); rm -r is denied, left for the owner.
+
