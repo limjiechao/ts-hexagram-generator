@@ -254,3 +254,8 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Change: 説言乎兑 → 說言乎兌 in the trigram.ts comment and the trigram-order test comment. Simplified-script maps and records keep 兑 (correct there).
 - Verify: core tests 94/94 · lint pass · oxfmt pass · generate-json-files no diff
 - Review: n.a. (comment-only, owner-dictated)
+
+### Follow-up — DOC-001 — 2026-11-05 14:04
+
+- Outcome: fixed at the owner's explicit request · edited refactor.md:20 in the main checkout (untracked; not staged or committed)
+- Change: `domain/consultation-file/src/serialize-markdown.ts` → `cli/text-grid/src/serialize-markdown.ts` (target verified to exist)
