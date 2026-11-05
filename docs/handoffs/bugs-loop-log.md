@@ -12,3 +12,9 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 
 ## Log
 
+### Iteration 0 — baseline — 2026-11-05 12:51
+- Attempt: – · Outcome: baseline green
+- Branch: bugs-loop · Landed: 4968ce0
+- Verify: install pass · type:check pass · build pass · test pass (25/25 tasks; Turborepo full cache hit on identical inputs)
+- Notes: bugs-loop created from main d55fa65. Loop runs with the worktree deviations listed above.
+
