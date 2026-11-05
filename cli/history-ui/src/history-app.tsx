@@ -14,7 +14,11 @@ import { Box, Text, useApp, useInput, useWindowSize } from 'ink'
 import { useEffect, useState, type ReactElement } from 'react'
 
 import { HistoryList } from './history-list.js'
-import { scanConsultations, type HistoryEntry } from './history-scan.js'
+import {
+  scanConsultations,
+  type HistoryEntry,
+  type ScanResult,
+} from './history-scan.js'
 
 export async function rerenderOnDisk(
   filePath: string,
@@ -126,10 +130,7 @@ export function HistoryApp({
   const { columns, rows } = useWindowSize()
   const cols = columns || 80
   const termRows = rows || 24
-  const [scan, setScan] = useState<{
-    entries: HistoryEntry[]
-    unreadable: { path: string; reason: string }[]
-  } | null>(null)
+  const [scan, setScan] = useState<ScanResult | null>(null)
   const [state, setState] = useState<AppState>({
     mode: 'list',
     loading: false,
@@ -141,7 +142,7 @@ export function HistoryApp({
   useEffect(() => {
     scanConsultations(dir)
       .then((r) => {
-        setScan(r as never)
+        setScan(r)
       })
       .catch(() => {
         setScan({ entries: [], unreadable: [] })
@@ -177,7 +178,7 @@ export function HistoryApp({
     return (
       <HistoryList
         entries={scan.entries}
-        unreadable={scan.unreadable as never}
+        unreadable={scan.unreadable}
         cols={cols}
         rows={termRows}
         statusLine={statusLine}
