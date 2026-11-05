@@ -136,3 +136,11 @@ The owner's global Claude Code settings deny `git switch`, `git checkout`, `git 
 - Verify: oxfmt --check AGENTS.md pass · git grep stale names none · DOC-013 twins confirmed by patch-id · DOC-022 new recipe runs 9/10 files
 - Notes: –
 
+### Iteration 15 — DOC-002, DOC-014..DOC-020, DOC-021 (typo half) — 2026-11-05 10:31
+- Attempt: 1/2 · Outcome: fixed (9 commits, one per document: 5734597 1f4588e c471c72 b93893e c2a85a0 feb2731 f7af5a7 1a31bf1 3fa1f7e)
+- Branch: bug/DOC-ADR-a1 · Landed: 5734597..3fa1f7e
+- Red test: n.a. (doc-only; rows re-verified against code by implementer and reviewer)
+- Review: APPROVE (0 blocking; nits: ADR-0007 now matches its own rejected "pure TS" option, so the owner may want to supersede it; ADR-0019:97 wording)
+- Verify: oxfmt --check on all 9 files pass · git grep stale strings none · LICENSE/refactor.md/AGENTS.md untouched
+- Notes: DOC-014/015 recorded as dated "## Amendment" sections (ADR-0006/0008 convention). ADR-0019:57 left as the decision-as-made (banner already amends). DOC-021 LICENSE half stays needs-human.
+
