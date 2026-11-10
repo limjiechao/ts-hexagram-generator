@@ -234,8 +234,8 @@ to the same Citations.
 _Avoid_: passage id, reference (alone), key.
 
 **Edition**:
-A published text of a work, in one script — e.g. the 十三經注疏 通行本, the
-base Traditional edition of the Yijing. The app never mechanically converts
+A published text of a work, in one script — e.g. the 武英殿十三經注疏本
+《周易正義》 (1739), the base Traditional edition of the Yijing. The app never mechanically converts
 text from one script to another; text in each script is taken as found in a
 Witness. When the Edition behind a Witness cannot be identified, the text is
 kept and labelled **unidentified**, never presented as a known Edition.

@@ -45,7 +45,7 @@ flowchart LR
   P2["Policy: whenever the sixth Line is determined,<br/>the Casting is complete"]:::pol -.-> E7
   P3["Policy: whenever the machine divides,<br/>choose a Remainder Group ¼, then a Pick"]:::pol -.-> E4
   G["Google Sign-in<br/>(PWA and REST only)"]:::ext -.-> E4
-  H1["Hotspot: Edition behind ctext Witness unconfirmed"]:::hot -.-> E10
+  H1["Hotspot: Edition behind the Simplified text unidentified"]:::hot -.-> E10
 ```
 
 ### Timeline, with commands, actors and read models

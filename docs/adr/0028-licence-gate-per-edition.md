@@ -8,11 +8,11 @@ shown only on the channels that licence permits. The decision is made per
 Edition, never per request. A public channel omits gated text; it never
 substitutes another Translation or Edition in its place.
 
-| Edition                                          | Witness                                           | Channels                                                |
-| ------------------------------------------------ | ------------------------------------------------- | ------------------------------------------------------- |
-| Legge, _Sacred Books of the East_ vol. 16 (1882) | a scanned copy                                    | every channel (public domain)                           |
-| Wilhelm–Baynes (Princeton)                       | a personal EPUB                                   | private local use only (in copyright)                   |
-| Chinese text, Traditional and Simplified         | ctext.org; Edition of the Simplified unidentified | private local use only, until ctext's terms are checked |
+| Edition                                          | Witness                                                                                | Channels                                                |
+| ------------------------------------------------ | -------------------------------------------------------------------------------------- | ------------------------------------------------------- |
+| Legge, _Sacred Books of the East_ vol. 16 (1882) | a scanned copy                                                                         | every channel (public domain)                           |
+| Wilhelm–Baynes (Princeton)                       | a personal EPUB                                                                        | private local use only (in copyright)                   |
+| Chinese text, Traditional and Simplified         | ctext.org; Traditional follows 武英殿十三經注疏本《周易正義》, Simplified unidentified | private local use only, until ctext's terms are checked |
 
 ## Why
 
