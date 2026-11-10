@@ -237,8 +237,12 @@ _Avoid_: passage id, reference (alone), key.
 A published text of a work, in one script — e.g. the 武英殿十三經注疏本
 《周易正義》 (1739), the base Traditional edition of the Yijing. The app never mechanically converts
 text from one script to another; text in each script is taken as found in a
-Witness. When the Edition behind a Witness cannot be identified, the text is
-kept and labelled **unidentified**, never presented as a known Edition.
+Witness. Text a Witness itself converted from another script is labelled as
+that Witness's conversion of its source Edition — e.g. the Simplified text is
+ctext's character conversion of the 武英殿本 text — and carries no textual
+authority of its own. When the Edition behind a Witness cannot be identified,
+the text is kept and labelled **unidentified**, never presented as a known
+Edition.
 _Avoid_: version, rendition, variant.
 
 **Witness**:
