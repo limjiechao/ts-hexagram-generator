@@ -5,7 +5,7 @@ Date: 2026-11-16
 Supersedes: [ADR-0031](0031-rest-engine-resources-and-hypermedia.md) (with its amendment), and the engine-side parts of [ADR-0035](0035-pwa-feature-parity-with-the-cli.md)
 
 This consolidates ADR-0031, its Remainder-Groups amendment, ADR-0032's caching
-change, and the engine-side parts of ADR-0035 into one current text (ADR-0036:
+change, and the engine-side parts of ADR-0035 into one current text (ADR-0040:
 one statement per topic). Every decision and every rejected option in them is
 kept. The use cases and channels are in [ADR-0037](0037-application-layer-channels-and-journals.md).
 

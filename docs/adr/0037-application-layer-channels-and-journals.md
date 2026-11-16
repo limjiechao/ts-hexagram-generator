@@ -5,7 +5,7 @@ Date: 2026-11-16
 Supersedes: [ADR-0029](0029-application-use-cases-and-driven-ports.md), [ADR-0033](0033-merging-journals-by-union-with-deletions.md), [ADR-0034](0034-pwa-is-a-pure-rest-client.md), and the PWA-side parts of [ADR-0035](0035-pwa-feature-parity-with-the-cli.md)
 
 This consolidates ADRs 0029, 0033 and 0034, plus the parts of ADR-0035 about
-the PWA, into one current text (ADR-0036: one statement per topic). Every
+the PWA, into one current text (ADR-0040: one statement per topic). Every
 decision and every rejected option in them is kept. The REST engine itself is
 in [ADR-0038](0038-rest-engine.md).
 
