@@ -1,6 +1,6 @@
 # How the overhaul is built: the owner as architect, decision tiers, agents implement
 
-Status: Accepted
+Status: Superseded by ADR-0040
 Date: 2026-11-16
 
 The overhaul is built with Harlan Mills' surgical team (Brooks, _The Mythical

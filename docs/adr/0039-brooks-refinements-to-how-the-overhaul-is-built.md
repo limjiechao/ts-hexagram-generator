@@ -1,6 +1,6 @@
 # Brooks refinements to how the overhaul is built
 
-Status: Accepted
+Status: Superseded by ADR-0040
 Date: 2026-11-16
 Amends: [ADR-0036](0036-how-the-overhaul-is-built.md)
 

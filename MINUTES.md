@@ -1,6 +1,6 @@
 # MINUTES
 
-An append-only record of the clerk's iterations (ADR-0036): one entry per
+An append-only record of the clerk's iterations (ADR-0040): one entry per
 iteration of a Matter. Never edit past entries. If an entry was wrong, add a
 correcting entry. Never record consultation content here (ADR-0015). This is
 ephemeral-tier material: it may be cited by people, never by source code.

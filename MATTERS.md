@@ -1,6 +1,6 @@
 # MATTERS
 
-The live tracker of implementation work (ADR-0036). Each vertical slice of work
+The live tracker of implementation work (ADR-0040). Each vertical slice of work
 is a **Matter**, `M-NNN`. A Matter stays open until it is disposed of, either
 landed or withdrawn by the owner. The clerk (`docs/agents/clerk.md`) keeps this
 file. Questions a Matter raises are answered by the owner as **Rulings** in
@@ -19,11 +19,11 @@ file. Questions a Matter raises are answered by the owner as **Rulings** in
 
 ## Build order and budgets
 
-The overhaul grows serially (ADR-0036). The owner sets each phase's budget
+The overhaul grows serially (ADR-0040). The owner sets each phase's budget
 **before the phase starts**. Exceeding a budget is a Tier-A event: the clerk
 stops and asks.
 
-Two sets of figures sit side by side (ADR-0039 §5, §6):
+Two sets of figures sit side by side (ADR-0040, "Build order and budgets"):
 
 - **Budget** and the **owner-touch cap** are the owner's. The clerk never edits
   them.
@@ -70,7 +70,7 @@ manual" (R-008).
 
 - Status: pending
 - Phase: 1
-- Licensed by: ADR-0036 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
+- Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
 - Tier-A surface: drafts Tier-A files for ratification. The owner line-edits and ratifies them before anything builds on them.
 - Free to choose: _owner to ratify_, drafted with the package-layout proposal.
@@ -84,7 +84,7 @@ manual" (R-008).
 
 - Status: pending
 - Phase: 2
-- Licensed by: ADR-0036 (drift signals)
+- Licensed by: ADR-0040 (drift signals)
 - Scope: Scripts or lint rules for doc truth, glossary conformance, boundaries (build-failing) and ephemeral-ID leakage, run on every landing.
 - Tier-A surface: the boundary rules encode Tier-A dependency decisions. Propose them to the owner before enforcing them.
 - Free to choose: _owner to ratify_, drafted with the boundary-rules proposal.
