@@ -122,8 +122,8 @@ element is a question (§3). Do not start until each one has a Ruling.
 Dispatch a **tester**: a fresh `general-purpose` subagent that is never the
 implementer. Brief:
 
-> First audit the spec (use the `spec-audit` skill if you have it). From the
-> ADRs, the glossary, the Rulings and any ratified manual **only**, list every
+> First audit the spec with the `jiechao-toolkit:spec-audit` skill,
+> following its procedure and output contract. From the ADRs, the glossary, the Rulings and any ratified manual **only**, list every
 > **spec hole**: a case whose expected result those documents do not
 > determine. Look across three input domains: mainline cases, barely
 > legitimate cases (edges of the valid domain) and barely illegitimate cases
@@ -275,6 +275,9 @@ and wait.
   brief sizes against their caps.
 - When Phase 1 lands, ask the owner to set the owner-touch and brief-size caps
   from its actual figures (R-006).
+- When Phase 3 lands, ask the owner to draft and ratify `docs/manual/cli.md`
+  with the copilot. When Phase 4 lands, do the same for `docs/manual/rest.md`.
+  These are the entry gates of Phases 4 and 5 (`docs/manual/README.md`).
 
 ## 6. Stop conditions
 

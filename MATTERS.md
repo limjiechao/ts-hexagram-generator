@@ -34,18 +34,23 @@ Two sets of figures sit side by side (ADR-0040, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                           | Budget (Matters / weeks) | Estimate (clerk) | Owner touches (cap / used) | Entry gate                     | Status                      |
-| ----- | ----------------------------------------------- | ------------------------ | ---------------- | -------------------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code              | 3 Matters / 2 weeks      | –                | uncapped / 0               | –                              | pending                     |
-| 2     | Drift-signal tooling (signals 1–4)              | 2 Matters / 1 week       | –                | _set after Phase 1_ / 0    | –                              | pending                     |
-| 3     | Oracle core                                     | 5 Matters / 3 weeks      | –                | _set after Phase 1_ / 0    | –                              | not yet broken into Matters |
-| 4     | CLI at parity with today's app, on the new core | 12 Matters / 8 weeks     | –                | _set after Phase 1_ / 0    | `docs/manual/cli.md` ratified  | not yet broken into Matters |
-| 5     | REST engine (ADR-0038)                          | 6 Matters / 4 weeks      | –                | _set after Phase 1_ / 0    | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                  | 10 Matters / 8 weeks     | –                | _set after Phase 1_ / 0    | –                              | not yet broken into Matters |
+| Phase | Scope                                           | Budget (Matters / weeks) | Estimate (clerk) | Owner touches (cap / used) | Brief cap (lines)   | Entry gate                     | Status                      |
+| ----- | ----------------------------------------------- | ------------------------ | ---------------- | -------------------------- | ------------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code              | 3 Matters / 2 weeks      | –                | uncapped / 0               | uncapped            | –                              | pending                     |
+| 2     | Drift-signal tooling (signals 1–4)              | 2 Matters / 1 week       | –                | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | pending                     |
+| 3     | Oracle core                                     | 5 Matters / 3 weeks      | –                | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
+| 4     | CLI at parity with today's app, on the new core | 12 Matters / 8 weeks     | –                | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/cli.md` ratified  | not yet broken into Matters |
+| 5     | REST engine (ADR-0038)                          | 6 Matters / 4 weeks      | –                | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                  | 10 Matters / 8 weeks     | –                | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
 
 Phases 3–6 are broken into Matters by the owner, with the copilot, when
 the previous phase lands. "Parity" in Phase 4 means "matches the ratified
 manual" (R-008).
+
+The manuals behind the Phase 4 and 5 entry gates are not Matters. Each is
+drafted in a copilot session with the owner and ratified by the owner
+(`docs/manual/README.md`). The clerk raises "draft the manual" as a question
+when the phase before the gate lands.
 
 ## Entry format
 
