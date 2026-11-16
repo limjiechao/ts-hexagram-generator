@@ -48,6 +48,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0033 | Journals merge by union with Deletion Records                 | Accepted              |
 | 0034 | The PWA is a pure client of the REST engine                   | Accepted              |
 | 0035 | The PWA has full feature parity with the CLI                  | Accepted              |
+| 0036 | How the overhaul is built: owner as architect, decision tiers | Accepted              |
 
 ## Template
 
