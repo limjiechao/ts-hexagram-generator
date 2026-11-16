@@ -48,9 +48,10 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0033 | Journals merge by union with Deletion Records                 | Superseded by 0037       |
 | 0034 | The PWA is a pure client of the REST engine                   | Superseded by 0037       |
 | 0035 | The PWA has full feature parity with the CLI                  | Superseded by 0037, 0038 |
-| 0036 | How the overhaul is built: owner as architect, decision tiers | Accepted                 |
+| 0036 | How the overhaul is built: owner as architect, decision tiers | Amended by 0039          |
 | 0037 | The application layer: ten use cases, four ports, channels    | Accepted                 |
 | 0038 | The REST engine: resources, Casting URLs, HAL + HAL-FORMS     | Accepted                 |
+| 0039 | Brooks refinements to how the overhaul is built               | Accepted                 |
 
 ## Template
 

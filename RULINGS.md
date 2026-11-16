@@ -42,7 +42,7 @@ Ruling quotes the option the owner chose, word for word.
 - Ruling: "Split by aspect. Types are the standard for shape and signatures;
   ADRs and CONTEXT.md for meaning, invariants and behaviour. A disagreement is
   a drift finding, fixed by a Ruling, never silently in either file."
-- Folded into: not yet
+- Folded into: ADR-0039 §1
 
 ### R-002: Who may start a spike
 
@@ -54,7 +54,7 @@ Ruling quotes the option the owner chose, word for word.
   owner chose to explore by building. The clerk may suggest one in a question
   batch, but never starts one itself. Timeboxed to one agent session; findings
   are at most one page."
-- Folded into: not yet
+- Folded into: ADR-0039 §2
 
 ### R-003: What the legacy bug loop may still fix
 
@@ -79,7 +79,7 @@ Ruling quotes the option the owner chose, word for word.
   built' amends ADR-0036. The README index marks 0036 'Amended by 0039', which
   follows the repo's convention. Before M-001 builds on it, the two are folded
   into one consolidated text, as was done for 0037/0038."
-- Folded into: not yet
+- Folded into: ADR-0039 (Amends header); consolidation pending
 
 ### R-005: What happens to a spec hole
 
@@ -91,7 +91,7 @@ Ruling quotes the option the owner chose, word for word.
 - Ruling: "Every hole blocks. Each hole becomes a Q-id. The Matter goes to
   awaiting-ruling and implementation doesn't start until each hole has a
   Ruling."
-- Folded into: not yet
+- Folded into: ADR-0039 §4
 
 ### R-006: When the owner-touch and reading budgets are set
 
@@ -102,7 +102,7 @@ Ruling quotes the option the owner chose, word for word.
 - Ruling: "Measure in Phase 1, set at its end. The clerk records both from
   M-001 on. When Phase 1 lands, the owner sets the caps from actual figures.
   Phase 1 runs uncapped on these two."
-- Folded into: not yet
+- Folded into: ADR-0039 §§6–7
 
 ### R-007: What happens to the old ephemeral material
 
@@ -114,7 +114,7 @@ Ruling quotes the option the owner chose, word for word.
   by convention). Agents are told not to read it unless a Matter names it."
 - Note: `docs/handoffs/bugs-loop-log.md` stays where it is, because the bug
   loop still appends to it.
-- Folded into: not yet
+- Folded into: ADR-0039 §7
 
 ### R-008: What the user manual governs
 
@@ -127,4 +127,4 @@ Ruling quotes the option the owner chose, word for word.
   fixtures stay the standard for exact output. Parity means 'matches the
   manual'; where today's app differs from the manual, the manual wins after a
   Ruling. A REST manual follows before Phase 5."
-- Folded into: not yet
+- Folded into: ADR-0039 §8
