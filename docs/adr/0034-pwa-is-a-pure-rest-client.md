@@ -1,6 +1,6 @@
 # The PWA is a pure client of the REST engine
 
-Status: Accepted
+Status: Superseded by ADR-0037
 Date: 2026-11-05
 Amends: [ADR-0029](0029-application-use-cases-and-driven-ports.md) (the PWA's adapters)
 

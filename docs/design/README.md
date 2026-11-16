@@ -4,7 +4,7 @@ Formal models of the overhauled system, transcribed from the settled design.
 They hold no decisions of their own. Every term is defined in
 [`CONTEXT.md`](../../CONTEXT.md), and every decision is recorded in an ADR
 (chiefly [ADR-0023](../adr/0023-random-division-equiprobable-remainder-groups.md)
-to [ADR-0034](../adr/0034-pwa-is-a-pure-rest-client.md)). Where a model and an
+to [ADR-0038](../adr/0038-rest-engine.md)). Where a model and an
 ADR disagree, the ADR wins and the model is wrong.
 
 | Model                 | File                                 | Shows                                                                                            |

@@ -1,6 +1,6 @@
 # Journals merge by union with Deletion Records; the REST engine stays stateless
 
-Status: Accepted
+Status: Superseded by ADR-0037
 Date: 2026-11-05
 Amends: [ADR-0029](0029-application-use-cases-and-driven-ports.md) (adds use case 10, extends the Consultation Store port)
 

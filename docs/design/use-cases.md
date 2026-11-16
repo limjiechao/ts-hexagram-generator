@@ -1,9 +1,7 @@
 # UML use-case diagram
 
-Source: [ADR-0029](../adr/0029-application-use-cases-and-driven-ports.md)
-(use cases 1–9), [ADR-0033](../adr/0033-merging-journals-by-union-with-deletions.md)
-(use case 10), [ADR-0031](../adr/0031-rest-engine-resources-and-hypermedia.md)
-and [ADR-0034](../adr/0034-pwa-is-a-pure-rest-client.md) (channels).
+Source: [ADR-0037](../adr/0037-application-layer-channels-and-journals.md)
+(use cases 1–10 and channels) and [ADR-0038](../adr/0038-rest-engine.md) (the REST engine).
 
 ## Actors
 
@@ -74,11 +72,11 @@ flowchart LR
 
 - **Perform a Casting** and **Keep a Consultation** split use case 1 into
   its pure and its stateful halves. They are modelling devices drawn from
-  ADR-0031 (the pure Casting resource) and ADR-0029 (the Consultation Store),
+  ADR-0038 (the pure Casting resource) and ADR-0037 (the Consultation Store),
   not additional use cases.
 - **Perform a Casting** is the pure part of use case 1: the Divisions of all
   eighteen Rounds, ending in a Transformation. The REST engine offers it as
-  `/castings/…` (ADR-0031), without keeping anything. **Keep a Consultation**
+  `/castings/…` (ADR-0038), without keeping anything. **Keep a Consultation**
   is the stateful part, done by the channel's own Consultation Store.
 - **Transcribe a Round** applies only to Physical Division. **Retract a Line**
   is offered only during Transcription, for the incomplete Line or the
@@ -104,4 +102,4 @@ flowchart LR
 | 9 Export (Typst / PDF)                | ✅  | ✅ (Typst compiled in the browser)         | —                      |
 | 10 Merge Journals                     | ✅  | ✅                                         | —                      |
 
-The PWA has full parity with the CLI (ADR-0035).
+The PWA has full parity with the CLI (ADR-0037).

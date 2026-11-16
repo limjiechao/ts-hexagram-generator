@@ -5,7 +5,7 @@ Sources: CONTEXT.md (Casting vocabulary),
 [ADR-0026](../adr/0026-consultation-is-cast-or-recorded.md),
 [ADR-0027](../adr/0027-cast-consultation-records-division-method.md),
 [ADR-0030](../adr/0030-consultation-record-v2-and-markdown-store.md),
-[ADR-0033](../adr/0033-merging-journals-by-union-with-deletions.md).
+[ADR-0037](../adr/0037-application-layer-channels-and-journals.md).
 
 ## 1. Cast a Consultation
 

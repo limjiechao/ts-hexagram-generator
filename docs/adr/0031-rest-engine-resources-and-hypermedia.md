@@ -1,6 +1,6 @@
 # The REST engine: resources, Casting URLs, and HAL + HAL-FORMS
 
-Status: Accepted
+Status: Superseded by ADR-0038
 Date: 2026-11-05
 
 The REST engine (a Private Channel, ADR-0032) serves use cases 3 (Resolve a Transformation) and 8

@@ -94,7 +94,7 @@ value whose whole state is its Pick sequence.
 
 The **Automatic Division** policy (Remainder Group ¼, then a uniform Pick) is
 _not_ part of the Oracle. It lives in the application, beside the Random Source
-(ADR-0023, ADR-0029). The Oracle only supplies each Round's valid Picks and
+(ADR-0023, ADR-0037). The Oracle only supplies each Round's valid Picks and
 Remainder Groups.
 
 Invariants:

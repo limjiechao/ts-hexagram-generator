@@ -1,6 +1,6 @@
 # The PWA has full feature parity with the CLI
 
-Status: Accepted
+Status: Superseded by ADR-0037 and ADR-0038
 Date: 2026-11-05
 Amends: [ADR-0031](0031-rest-engine-resources-and-hypermedia.md) (adds the `transcribe` form and Line links), [ADR-0034](0034-pwa-is-a-pure-rest-client.md)
 

@@ -1,6 +1,6 @@
 # The application layer: nine use cases and four driven ports
 
-Status: Accepted
+Status: Superseded by ADR-0037
 Date: 2026-11-05
 
 The overhaul is hexagonal. The driving ports are the use cases, and CLI, REST

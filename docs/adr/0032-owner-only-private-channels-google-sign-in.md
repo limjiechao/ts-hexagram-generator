@@ -31,7 +31,7 @@ would be distribution again, so the allow-list is a single account.
 
 ## Consequences
 
-- Every REST response is `Cache-Control: private` (ADR-0031). Shared and CDN
+- Every REST response is `Cache-Control: private` (ADR-0038). Shared and CDN
   caching are off the table; client caching remains.
 - The Licence Gate stays in the design. It applies the moment any channel
   admits anyone other than the owner.
