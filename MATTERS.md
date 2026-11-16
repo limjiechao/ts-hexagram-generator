@@ -25,12 +25,12 @@ stops and asks.
 
 | Phase | Scope                                           | Budget (Matters / weeks) | Status                      |
 | ----- | ----------------------------------------------- | ------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code              | _owner to set_           | pending                     |
-| 2     | Drift-signal tooling (signals 1–4)              | _owner to set_           | pending                     |
-| 3     | Oracle core                                     | _owner to set_           | not yet broken into Matters |
-| 4     | CLI at parity with today's app, on the new core | _owner to set_           | not yet broken into Matters |
-| 5     | REST engine (ADR-0038)                          | _owner to set_           | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                  | _owner to set_           | not yet broken into Matters |
+| 1     | Walking skeleton and incision code              | 3 Matters / 2 weeks      | pending                     |
+| 2     | Drift-signal tooling (signals 1–4)              | 2 Matters / 1 week       | pending                     |
+| 3     | Oracle core                                     | 5 Matters / 3 weeks      | not yet broken into Matters |
+| 4     | CLI at parity with today's app, on the new core | 12 Matters / 8 weeks     | not yet broken into Matters |
+| 5     | REST engine (ADR-0038)                          | 6 Matters / 4 weeks      | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                  | 10 Matters / 8 weeks     | not yet broken into Matters |
 
 Phases 3–6 are broken into Matters by the owner, with the copilot, when
 the previous phase lands.
