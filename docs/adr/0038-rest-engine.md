@@ -56,12 +56,17 @@ contexts: divination-first (Casting → Transformation → passages) and text-fi
 
 ## What a Casting state offers
 
+Every partial Casting carries the Remainder Groups, the `divide` and
+`transcribe` forms, the `next-pick` link and the `line-start` link. A Casting
+whose last Line has just completed also carries `previous-line-start`. A
+complete Casting carries `transformation` instead of the forms.
+
 - **Remainder Groups.** Every partial Casting includes the next Round's
   Remainder Groups: the valid Picks grouped by the left Remainder they leave,
   e.g. `"remainderGroups": {"1": [1, 5, …, 45], "2": […], "3": […], "4": [4, …, 44]}`
-  for 49 stalks. A client with only a uniform Random Source can perform
-  Automatic Division (ADR-0023): one random integer chooses a group and
-  another a Pick within it.
+  for 49 stalks. A client with only a uniform Random Source (the PWA's
+  WebCrypto) can perform Automatic Division (ADR-0023) without bundling the
+  Oracle: one random integer chooses a group and another a Pick within it.
 - **The `divide` form** (HAL-FORMS) states the Round's valid Picks as a generic
   `min`/`max`, so a generic client can offer a correct input with no domain
   knowledge. This is the "true HATEOAS" requirement.

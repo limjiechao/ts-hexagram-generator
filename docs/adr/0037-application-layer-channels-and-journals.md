@@ -47,8 +47,8 @@ pure and needs no ports. Every channel is a Private Channel (ADR-0032).
 | Clock: the current moment                                                                                                   | 1 (Divined At of a Cast Consultation) | system clock                                         |
 
 ADR-0023's Remainder-Group policy is a pure rule that consumes random
-integers. It lives in the application, not the Oracle; only the integers
-cross the port.
+integers. It lives outside the Oracle, in the random Pick source behind the
+Random Source port (ADR-0023); only the integers cross the port.
 
 ## Channels
 
@@ -69,15 +69,18 @@ cross the port.
   Oracle nor the Scripture Catalogue, and reaches both through the REST engine
   as an ordinary HATEOAS client:
   - **Casting**: it follows the Casting links and forms (`next-pick`,
-    `divide`, `transcribe`, `line-start`), one request per Division. For
+    `divide`, `transcribe`, `line-start`, `previous-line-start`), one request
+    per Division. For
     Automatic Division it draws random integers with WebCrypto and applies the
-    Remainder-Group policy to the Remainder Groups the engine supplies.
+    Remainder-Group policy to the Remainder Groups the engine supplies, then
+    submits the Pick like any other Pick.
   - **Resolution and text**: it follows links from `/transformations/…` and
     `/works/…`.
   - **Journal**: kept locally in IndexedDB.
   - **Import legacy files**: the legacy parser is anti-corruption code, not
     Oracle code, so the CLI and the PWA share it as one library. Legacy
-    castings are replayed through the engine's Casting resource.
+    castings are replayed through the engine's Casting resource. The results
+    are kept in IndexedDB as Cast or Recorded Consultations.
   - **Export**: the PWA renders Typst source and compiles it to PDF in the
     browser with Typst's WebAssembly build.
   - **Offline**: a service worker caches every immutable response (Casting
@@ -112,10 +115,9 @@ prevents that.
 
 ## Why
 
-- **Use cases as the driving ports** keep orchestration out of UI components.
-  The survey found the save pipeline in five places.
 - **The PWA as a pure REST client is dogfooding.** The PWA is the API's first
-  real client, so any gap in the hypermedia surfaces immediately. Every Oracle
+  real client, so anything missing or awkward in the hypermedia surfaces
+  immediately. Every Oracle
   response is immutable, so offline use degrades gracefully.
 - **Parity through the engine** avoids two Oracles. In every case the
   alternative was to re-implement a domain rule in the PWA or to make the
@@ -127,8 +129,8 @@ prevents that.
 
 - **Typst as a Consultation Store**, next to Markdown and IndexedDB. Rejected.
   A store must read back what it kept, and recovering records by parsing
-  typesetting source is fragile. Typst is an output medium, reached by use
-  case 9.
+  typesetting source is fragile. Typst is an output medium in the
+  Presentation context, reached by use case 9.
 - **"Open" refreshing a stale Markdown body**, as the old history browser did.
   Rejected. A read must not write. Re-rendering bodies is an explicit
   maintenance action of the Markdown Store (ADR-0030).
