@@ -11,11 +11,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Iteration <n> — <M-NNN> — <YYYY-MM-DD HH:mm>
 
 - Attempt: <a>/2 · Outcome: landed | awaiting-ruling | awaiting-ratification | blocked | withdrawn
+- Spec audit: <n> holes · <Q-ids or none>
 - Acceptance tests: written by tester at <sha> · red before implementation (y/n)
+- Brief size (signal 7): <n> lines of required reading
 - Review: APPROVE | REQUEST_CHANGES (<n> blocking) · design findings sent to owner: <Q-ids or none>
+- Suggestions to the architect: <n> · batched for the owner (y/n)
 - Verify: type:check · lint/format · build+test · drift signals 1–4 · stress:once <pass/fail/n.a.>
 - Ratification lag (signal 5): Tier-A files touched <list or none>; each licensed by a prior ADR/Ruling (y/n)
-- Landed: <sha or –> · Budget used: <n of N Matters in phase>
+- Owner touches: <n> (rulings <n> · ratifications <n> · test-list approvals <n>)
+- Landed: <sha or –> · Budget used: <n of N Matters in phase> · Phase estimate: <Matters / weeks>
 - Notes: <at most 2 lines>
 ```
 

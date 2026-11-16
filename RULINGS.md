@@ -20,10 +20,10 @@ ch. 6). Rulings are part of the authoritative library.
 ### R-NNN: <short title>
 
 - Date: <YYYY-MM-DD>
-- Raised in: <M-NNN> (question <Q-id>)
-- Question: <the Tier-A question, as the implementer or reviewer put it>
+- Raised in: <M-NNN> (question <Q-id>), or a named non-Matter source such as a process review or a spike
+- Question: <the Tier-A question, as the tester, implementer, reviewer or copilot put it>
 - Ruling: <the owner's answer, verbatim>
-- Folded into: <ADR-NNNN / CONTEXT.md term / not yet>
+- Folded into: <ADR-NNNN / CONTEXT.md term / manual / other record / not yet>
 ```
 
 ## Rulings
