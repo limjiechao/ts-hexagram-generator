@@ -66,7 +66,7 @@ Ruling quotes the option the owner chose, word for word.
 - Ruling: "P1 and P2 only. Data-loss, correctness and behaviour bugs are
   fixed, each with a regression test and no refactor. P3 (hygiene/data) is
   deferred to the overhaul. Fix-induced bugs are tallied in BUGS.md."
-- Folded into: not yet
+- Folded into: BUGS-ORCHESTRATOR.md (step 1) and BUGS.md (rules)
 
 ### R-004: How changes to ADR-0036 are recorded
 

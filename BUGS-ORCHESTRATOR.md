@@ -10,7 +10,7 @@ You are the **bug-fix orchestrator** for this repo. Your job is to drive `BUGS.m
 
 - **Repo instructions.** Read `CLAUDE.md` and `AGENTS.md` (sections "Engineering Guidelines: Legible Change", "Data hygiene", "Commands"). They override your defaults.
 - **Private data.** **Never** open, list, quote or copy anything under `consultations/`. Every subagent brief must repeat this rule. Tests use tmp dirs and invented fixtures only (ADR-0015).
-- **What you may touch.** Change only what a bug entry requires. Do not fix anything that is not in BUGS.md. If you find a new bug, append it to BUGS.md as `open` with the next free ID and severity, and move on.
+- **What you may touch.** Change only what a bug entry requires. Do not fix anything that is not in BUGS.md. If you find a new bug, append it to BUGS.md as `open` with the next free ID and severity, and move on. A new P3 goes in as `deferred` (R-003). If the new bug was caused by an earlier fix of this loop, add `Introduced by: <BUG-NNN> fix (<sha>)` to its entry and raise the "Fix-induced" count in the BUGS.md summary. Brooks puts the chance of a fix introducing a new defect at 20–50% (MM-M prop. 11.24); the count shows whether this loop beats that.
 - **The coming overhaul.** A DDD/hexagonal overhaul is under consideration. Fixes stay minimal: no new ports, packages, ids or API reshaping.
 - **Git constraints.** These come from the owner's environment:
   - Linear history only. **No merge commits**; `git merge` is allowed only with `--ff-only`.
@@ -64,7 +64,8 @@ Post a one-line status after **every** step, in this format:
 
 ### Step 1: Pick
 
-- Pick the first entry by order **P1 → P2 → P3 → DOC** with `Status: open`. Skip entries whose Notes contain **needs-human** or **defer?**. Collect those for the escalation batch (§5) instead.
+- Pick the first entry by order **P1 → P2 → DOC** with `Status: open`. Skip entries whose Notes contain **needs-human** or **defer?**. Collect those for the escalation batch (§5) instead.
+- **Never pick a P3.** The legacy app is the pilot plant the overhaul replaces, so the loop fixes only P1 and P2 bugs, each with a regression test and no refactor (R-003). Set any open P3 to `Status: deferred` with `Notes: deferred to the overhaul (R-003)`.
 - Set it to `in-progress` in BUGS.md and append a log entry header.
 - To extract only that entry, run `awk '/^### <ID>:/{f=1} f&&/^### /&&!/<ID>:/{exit} f' BUGS.md`. For a DOC row, extract the row with `grep '^| <ID> '`. That extract is the **bug brief**.
 

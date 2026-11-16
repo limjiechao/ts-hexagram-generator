@@ -16,6 +16,7 @@ Nothing under `consultations/` was opened. Every example below is invented.
 - **Keep fixes minimal.** A large DDD/hexagonal overhaul is under consideration: a Consultation aggregate, a repository port, Clock and RandomSource ports, a core casting fold. Fixes must not pre-empt that redesign. That rules out new ports, new packages and API reshaping.
 - **"defer?" items.** Entries marked **defer?** are probably better absorbed by the overhaul. Fix them now only if the human says so.
 - **"needs-human" items.** Entries marked **needs-human** need a design decision before any code is written.
+- **P1 and P2 only (R-003).** Only P1 and P2 bugs are fixed, each with a regression test and no refactor. P3 bugs are `deferred` to the overhaul. A bug caused by an earlier fix carries `Introduced by: <BUG-NNN> fix (<sha>)` and counts in the "Fix-induced" row below.
 
 **Out of scope.** Architectural findings are not bugs and are not listed here. That covers the missing ports, the missing Consultation aggregate and identity, the save pipeline duplicated in 5 places, the 18-cast sequence implemented 4 times, and the media-aware IR. See `SYNTHESIS.md` §"What is mis-placed or missing".
 
@@ -29,6 +30,7 @@ Nothing under `consultations/` was opened. Every example below is invented.
 | P2 (behaviour)             | 6     | BUG-003 … BUG-008 |
 | P3 (hygiene/data)          | 9     | BUG-009 … BUG-017 |
 | Docs                       | 21    | DOC-001 … DOC-021 |
+| Fix-induced (R-003)        | 0     | –                 |
 
 Shared verification commands:
 
