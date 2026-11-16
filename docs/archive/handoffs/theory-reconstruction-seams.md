@@ -123,7 +123,7 @@ with load); `domain/consultation-view` keeps only the semantic IR + glyph vocabu
 - **Recorded in:** `docs/adr/0022-monospace-text-grid-is-medium-bound.md` (amends
   ADR-0018 + ADR-0019 by reference; README index updated; 0018/0019 marked "Amended by
   0022").
-- **Design spec:** `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`
+- **Design spec:** `docs/archive/superpowers/specs/2026-06-19-text-grid-extraction-design.md`
   (full inventory, save-path change, slice shape, zero-diff fixture verification plan).
 - **Verify-before-trust payoff:** confirmed all five code claims; found the decisive
   structural fact the ADR framing missed — the `.md` Markdown body renderer is a
@@ -380,7 +380,7 @@ sequence of small single-intent diffs.
 2. ~~**DECISION GATE B — Seam 2 (architecture).**~~ ✅ **DECISION TAKEN 2026-06-19** —
    decision was **extract-the-geometry (B-full)**, not narrow-the-claim. Recorded in
    `docs/adr/0022-monospace-text-grid-is-medium-bound.md` + spec
-   `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`. New cli package
+   `docs/archive/superpowers/specs/2026-06-19-text-grid-extraction-design.md`. New cli package
    `@hexagram/text-grid`; `saveConsultationFile` takes an injected body. **Implementation
    pending** (slice via `writing-plans`; zero-diff fixture regen is the proof). See the
    updated Seam 2 block in §2.
@@ -420,7 +420,7 @@ pre-merge; treat Seam 2 as DONE pending a confirmation pass.
 **All seams 1–7 are now resolved or confirmed-conformant.** The ONLY remaining
 open unit of work is the deferred **4b/4c** secondary-boundary hardening
 (width-fence test evasion + untested barrel/width lint bans). A written plan for
-it lives at `docs/superpowers/plans/2026-06-19-secondary-boundary-hardening.md`.
+it lives at `docs/archive/superpowers/plans/2026-06-19-secondary-boundary-hardening.md`.
 
 ---
 

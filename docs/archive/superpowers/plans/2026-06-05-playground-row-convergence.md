@@ -3,7 +3,7 @@
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 >
 > This plan executes the approved design spec at
-> `docs/superpowers/specs/2026-06-05-playground-row-convergence-design.md`. Read the
+> `docs/archive/superpowers/specs/2026-06-05-playground-row-convergence-design.md`. Read the
 > spec first — it carries the both-halves decision, the optional `decoratePosition`
 > knob, the byte-preservation argument, and the deliberate scope boundaries this
 > plan operationalises.

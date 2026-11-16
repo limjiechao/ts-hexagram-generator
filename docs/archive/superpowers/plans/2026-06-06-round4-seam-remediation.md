@@ -649,7 +649,7 @@ it('converted legacy files carry CURRENT_SCHEMA_VERSION, not a frozen literal', 
 
 - [ ] **Step 8: Verify (fixtures byte-identical — no behaviour change).**
 
-Run: `grep -rn "castingRecovered" . | grep -v node_modules | grep -v docs/superpowers/plans` (expect: empty) && `pnpm build && pnpm test && pnpm generate-fixtures && git diff --exit-code -- '*fixtures*'`
+Run: `grep -rn "castingRecovered" . | grep -v node_modules | grep -v docs/archive/superpowers/plans` (expect: empty) && `pnpm build && pnpm test && pnpm generate-fixtures && git diff --exit-code -- '*fixtures*'`
 Expected: empty grep; PASS; no fixture diff.
 
 - [ ] **Step 9: Commit.**

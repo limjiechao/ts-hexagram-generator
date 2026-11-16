@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, React + [Ink](https://github.com/vadimdemedes/ink) (terminal UI), Vitest + ink-testing-library, pnpm + Turborepo monorepo.
 
-**Spec:** `docs/superpowers/specs/2026-06-03-casting-table-auto-follow-scroll-design.md`
+**Spec:** `docs/archive/superpowers/specs/2026-06-03-casting-table-auto-follow-scroll-design.md`
 
 ---
 

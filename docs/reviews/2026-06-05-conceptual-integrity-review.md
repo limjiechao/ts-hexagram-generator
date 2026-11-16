@@ -8,7 +8,7 @@ baseline (Part C). This is a measurement of how legibly the code speaks, not a
 certification that the design is good.
 
 This is the condensed record that produced
-`docs/superpowers/plans/2026-06-05-seam-remediation.md`. Read it for the *why*
+`docs/archive/superpowers/plans/2026-06-05-seam-remediation.md`. Read it for the *why*
 behind each remediation task.
 
 ---

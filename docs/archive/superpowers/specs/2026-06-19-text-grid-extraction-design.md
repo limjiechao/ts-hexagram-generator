@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-19
 **Branch:** `claude/zero-knowledge-theory-reconstruction-evuyib`
-**Handoff:** `docs/handoffs/theory-reconstruction-seams.md` — Seam 2, Decision Gate B
+**Handoff:** `docs/archive/handoffs/theory-reconstruction-seams.md` — Seam 2, Decision Gate B
 **Decision:** B-full — reclassify the `.md` body as a medium-bound rendering and extract the
 monospace layer to a new cli package. Records as **ADR-0022**.
 

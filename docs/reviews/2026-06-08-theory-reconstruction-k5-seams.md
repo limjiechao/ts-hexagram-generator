@@ -17,7 +17,7 @@
 
 Intended-theory sources (reference, do not re-summarize): `docs/adr/*` (read `README.md` first), `CLAUDE.md`, `AGENTS.md`, `CONTEXT.md`. Supersession: **0016→0019**; **0002/0017 amended by 0019**; **0008** self-amended 2026-06-07; **0006** self-amended 2026-06-04.
 
-**IGNORE as intent** (they are plans/reviews, not authoritative — they corroborate but don't bind): `docs/superpowers/plans/*`, `docs/reviews/*`.
+**IGNORE as intent** (they are plans/reviews, not authoritative — they corroborate but don't bind): `docs/archive/superpowers/plans/*`, `docs/reviews/*`.
 
 ---
 

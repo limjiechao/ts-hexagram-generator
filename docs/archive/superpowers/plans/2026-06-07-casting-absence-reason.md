@@ -1084,7 +1084,7 @@ git commit  # subject: "docs: record the castingAbsence reason decision (ADR-000
 ## HANDOFF PROMPT (paste to a fresh implementation agent)
 
 > Implement the plan at
-> `docs/superpowers/plans/2026-06-07-casting-absence-reason.md` in
+> `docs/archive/superpowers/plans/2026-06-07-casting-absence-reason.md` in
 > `/home/user/ts-hexagram-generator`. It is a self-contained, TDD,
 > commit-by-commit plan to add a compulsory `castingAbsence` reason field
 > (finding S4) so the three origins of an absent casting become distinguishable.

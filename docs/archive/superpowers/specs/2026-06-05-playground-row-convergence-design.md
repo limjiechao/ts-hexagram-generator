@@ -2,7 +2,7 @@
 
 **Date:** 2026-06-05
 **Status:** Approved (pending plan)
-**Origin:** Task 10 of `docs/superpowers/plans/2026-06-05-seam-remediation.md`, deferred
+**Origin:** Task 10 of `docs/archive/superpowers/plans/2026-06-05-seam-remediation.md`, deferred
 out of that run as "optional / may split out" and spun into its own design pass
 per the plan's own recommendation.
 

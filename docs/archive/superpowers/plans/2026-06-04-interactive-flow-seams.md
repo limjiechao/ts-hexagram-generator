@@ -12,7 +12,7 @@
 
 ## Context
 
-A cold-read theory-reconstruction (4 independent agents, cleared context) of the interactive consultation flow surfaced 8 seams. Since then, `origin/main` advanced 9 commits with a **manual-flow seam resolution** (`docs/superpowers/plans/2026-06-04-manual-flow-seams.md`) built on an explicit doctrine: _every fix additive — lock-in test, pure helper, compile-time guard, or comment — zero runtime behavior change._ That work resolved 6 of the 8 interactive seams as a side effect (it centralized the never-zero-remainder pick rule into `selectablePickMax`/`assertSelectablePick` and made `performCast`'s assertion load-bearing), and even corrected the "single source of truth" comment to admit _"two layers enforce this rule, by design — there is no single owner."_
+A cold-read theory-reconstruction (4 independent agents, cleared context) of the interactive consultation flow surfaced 8 seams. Since then, `origin/main` advanced 9 commits with a **manual-flow seam resolution** (`docs/archive/superpowers/plans/2026-06-04-manual-flow-seams.md`) built on an explicit doctrine: _every fix additive — lock-in test, pure helper, compile-time guard, or comment — zero runtime behavior change._ That work resolved 6 of the 8 interactive seams as a side effect (it centralized the never-zero-remainder pick rule into `selectablePickMax`/`assertSelectablePick` and made `performCast`'s assertion load-bearing), and even corrected the "single source of truth" comment to admit _"two layers enforce this rule, by design — there is no single owner."_
 
 Re-scored against `origin/main` (the manual commits provably did **not** touch `use-line-generator.ts` or `viewer.tsx`):
 
@@ -59,10 +59,10 @@ Expected: PASS (the manual seam tests `computeManualRoundResult ≡ performCast`
 
 - [ ] **Step 3: Place this plan in the repo and commit**
 
-Save this document to `docs/superpowers/plans/2026-06-04-interactive-flow-seams.md`, then:
+Save this document to `docs/archive/superpowers/plans/2026-06-04-interactive-flow-seams.md`, then:
 
 ```bash
-git add docs/superpowers/plans/2026-06-04-interactive-flow-seams.md
+git add docs/archive/superpowers/plans/2026-06-04-interactive-flow-seams.md
 git commit -m "docs(plans): add implementation plan for interactive-flow seam resolution
 
 Captures the structural-unification plan derived from a cold-read theory-reconstruction

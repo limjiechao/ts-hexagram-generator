@@ -4,7 +4,7 @@
 
 **Goal:** Extract the monospace text-grid (column geometry, ledger/diagram rendering skeletons, auto-scroll math) and the Markdown body serializer out of `domain/consultation-view` + `domain/consultation-file` into a new Ink-free cli package `@hexagram/text-grid`, making `domain/consultation-view` a genuinely medium-neutral IR and `domain/consultation-file` a purely-canonical envelope owner.
 
-**Architecture:** The decision is recorded in `docs/adr/0022-monospace-text-grid-is-medium-bound.md` and designed in `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`. Three commits, each independently green: (1) relocate the Markdown body serializer + flip `saveConsultationFile` to an injected body; (2) move the monospace geometry + skeletons + scroll math; (3) update living docs. The split is dictated by the domain→cli boundary lint (ADR-0019): the ledger/diagram skeletons are consumed by **both** `cli/readout` (legal cli→domain) and the Markdown serializer; once the serializer leaves the domain, the skeletons can follow.
+**Architecture:** The decision is recorded in `docs/adr/0022-monospace-text-grid-is-medium-bound.md` and designed in `docs/archive/superpowers/specs/2026-06-19-text-grid-extraction-design.md`. Three commits, each independently green: (1) relocate the Markdown body serializer + flip `saveConsultationFile` to an injected body; (2) move the monospace geometry + skeletons + scroll math; (3) update living docs. The split is dictated by the domain→cli boundary lint (ADR-0019): the ledger/diagram skeletons are consumed by **both** `cli/readout` (legal cli→domain) and the Markdown serializer; once the serializer leaves the domain, the skeletons can follow.
 
 **Tech Stack:** TypeScript (ESM, `.js`-written-`.ts` specifiers), pnpm workspaces, Turborepo, tsdown (build), vitest (test), oxlint + eslint (`@sxzz/eslint-config`), oxfmt (format).
 
@@ -917,7 +917,7 @@ EOF
 
 ## Self-Review
 
-**1. Spec coverage** (against `docs/superpowers/specs/2026-06-19-text-grid-extraction-design.md`):
+**1. Spec coverage** (against `docs/archive/superpowers/specs/2026-06-19-text-grid-extraction-design.md`):
 - §3 new `cli/text-grid` package → Task 1 Steps 1–4, Task 2 Steps 1–8. ✔
 - §3 `consultation-view` shrinks to semantic IR + glyphs + `buildLedgerRows` → Task 2 Steps 4–6, 9. ✔
 - §3 `consultation-file` becomes canonical-only, drops `consultation-view` dep → Task 1 Steps 5–6. ✔

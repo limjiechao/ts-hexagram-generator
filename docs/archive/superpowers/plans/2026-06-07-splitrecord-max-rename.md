@@ -579,7 +579,7 @@ Expected: NO hit that is a `SplitRecord` literal still using `max:`. Eyeball any
 
 ## HANDOFF PROMPT (ready to paste for a fresh implementation agent)
 
-> You are implementing the S3 rename plan at `docs/superpowers/plans/2026-06-07-splitrecord-max-rename.md`. Read it fully first; it is self-contained.
+> You are implementing the S3 rename plan at `docs/archive/superpowers/plans/2026-06-07-splitrecord-max-rename.md`. Read it fully first; it is self-contained.
 >
 > **Branch:** work on `claude/cool-carson-Aig03`.
 >

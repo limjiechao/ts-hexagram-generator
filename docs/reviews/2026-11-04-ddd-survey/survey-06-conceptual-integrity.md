@@ -1,7 +1,7 @@
 # Survey 06 — Conceptual integrity through history and documents
 
 Scope: git history (read-only), CLAUDE.md, AGENTS.md, CONTEXT.md, docs/adr/\* (22 + README),
-docs/reviews, docs/handoffs, docs/superpowers. `consultations/` not opened.
+docs/reviews, docs/handoffs, docs/archive/superpowers. `consultations/` not opened.
 HEAD = `ab492eb` (main). Untracked `refactor.md` present.
 
 ---
@@ -22,7 +22,7 @@ HEAD = `ab492eb` (main). Untracked `refactor.md` present.
 
 - The owner supplies the _vocabulary and the product_: the yarrow algorithm (P1), CONTEXT.md (first written by the owner `21437a0`), the decision gates ("Cross-plan review with the owner resolved five open forks", `b9721ea`; "B4 is a Tier-2 item: a human ruling was owed", from a 06-0x commit body).
 - The _architecture_ was mostly reached through agent review loops, not drawn up first. Evidence: ADRs written after the fact (`cbe3921`); ADR-0016 (05-29) superseded by 0019 within 7 days; 0018/0019 amended by 0022 within 14 days; every ADR from 0018 on is Claude-authored (git log: 0018 7/7 edits Claude, 0019 7/7, 0020–0022 all Claude). ADR-0006 and 0008 have 8 Claude edits each against 1–2 owner edits.
-- The repo's own handoff says so: "this codebase has _institutionalised_ theory-reconstruction… Its standing strategy for conceptual integrity is **annotated seams** — when a fork is found it gets _documented_ in an ADR amendment or comment rather than dissolved" (`docs/handoffs/theory-reconstruction-seams.md:26-33`).
+- The repo's own handoff says so: "this codebase has _institutionalised_ theory-reconstruction… Its standing strategy for conceptual integrity is **annotated seams** — when a fork is found it gets _documented_ in an ADR amendment or comment rather than dissolved" (`docs/archive/handoffs/theory-reconstruction-seams.md:26-33`).
 
 **Churn, quantified (since 2026-05-01):**
 
@@ -30,7 +30,7 @@ HEAD = `ab492eb` (main). Untracked `refactor.md` present.
 - Package churn in about 5 weeks: `packages/{app,consultation,core,history-ui,playground-ui,readout,test-utils,types,viewer-core,viewer-ui}` → `@hexagram/consultation` renamed to `consultation-file` (`97ed849`); `@hexagram/app` renamed to `shell` (`f9e4d52`); `@hexagram/cli` renamed to `@hexagram/bin` (`1ee84c6`, 05-21) **and then back to `@hexagram/cli`** (`f97eec5`, 06-05); `viewer-ui` renamed to `casting-ui`; `types` created and then folded into core (`e31c4bb`); `readout` extracted (`6476624`); three buckets introduced (`domain/`, `cli/`, `apps/`); `text-layout`, `consultation-view` and `text-grid` added. Boundary enforcement moved from dependency-cruiser to ESLint (`20e4601`).
 - ADR supersession: 0016 → Superseded by 0019; 0018 and 0019 → Amended by 0022 (`docs/adr/README.md:33-39`).
 - Commit types since May: 137 feat, 131 refactor, 105 docs, 66 fix, 65 test, 27 chore, 22 style. 58 subjects mention lint/format/oxfmt, and 18 mention "seam".
-- Planning mass: 26 plans and specs under `docs/superpowers` totalling **20,347 lines**, against about 14k non-blank src lines (data models excluded). AGENTS.md is 36 KB.
+- Planning mass: 26 plans and specs under `docs/archive/superpowers` totalling **20,347 lines**, against about 14k non-blank src lines (data models excluded). AGENTS.md is 36 KB.
 
 ---
 

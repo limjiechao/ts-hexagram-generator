@@ -483,7 +483,7 @@ assertions):
 ## HANDOFF PROMPT (paste to a fresh implementation agent)
 
 > Implement the plan at
-> `docs/superpowers/plans/2026-06-07-line-index-guard-dedup.md` in
+> `docs/archive/superpowers/plans/2026-06-07-line-index-guard-dedup.md` in
 > `/home/user/ts-hexagram-generator`. It is a self-contained, TDD,
 > commit-by-commit plan that de-duplicates the `isLineIndex` line-index guard
 > (finding S7) by hoisting a single `LineIndex` type + `isLineIndex` guard into

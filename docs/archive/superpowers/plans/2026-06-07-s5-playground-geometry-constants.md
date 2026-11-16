@@ -45,7 +45,7 @@ independent, but make the comment + guard tell ONE honest story) — Approach B
 tasks are sketched at the bottom. **Do not proceed past Task 1 without that
 confirmation.**
 
-A prior round (`docs/superpowers/plans/2026-06-06-round4-seam-remediation.md`,
+A prior round (`docs/archive/superpowers/plans/2026-06-06-round4-seam-remediation.md`,
 Step 3) explicitly chose to leave `BAR_BLOCK_WIDTH` local and call the equality a
 "coincidence". S5 is the re-examination of that call: that same plan's Step 2
 *also* added the runtime `throw` for the `46` alignment, and the two decisions

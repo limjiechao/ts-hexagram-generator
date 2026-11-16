@@ -8,7 +8,7 @@
 
 **Tech Stack:** TypeScript, Turborepo + pnpm workspaces, vitest, tsdown, dependency-cruiser, Ink/React.
 
-**Spec:** `docs/superpowers/specs/2026-06-06-round3-seam-remediation-design.md`
+**Spec:** `docs/archive/superpowers/specs/2026-06-06-round3-seam-remediation-design.md`
 
 ---
 

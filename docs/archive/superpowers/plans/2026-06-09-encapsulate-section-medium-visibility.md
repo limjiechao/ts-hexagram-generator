@@ -612,7 +612,7 @@ These two mechanisms guarantee *"if you consume the view, you go through the own
 
 > **Branch note:** this repo's session is designated to develop on `claude/serene-fermat-23laje`. The current checkout is on a different branch — create/switch to the designated branch before executing.
 
-Plan complete and saved to `docs/superpowers/plans/2026-06-09-encapsulate-section-medium-visibility.md`. Two execution options:
+Plan complete and saved to `docs/archive/superpowers/plans/2026-06-09-encapsulate-section-medium-visibility.md`. Two execution options:
 
 1. **Subagent-Driven (recommended)** — I dispatch a fresh subagent per task, review between tasks, fast iteration.
 2. **Inline Execution** — Execute tasks in this session using executing-plans, batch execution with checkpoints.
