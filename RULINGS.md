@@ -1254,3 +1254,55 @@ pilesRight, remainderRight }`, each a number or `undefined`, so the step
   Division; (b) one file per function.
 - Ruling: "Q-57 to Q-62: A"
 - Folded into: not yet
+
+R-093 to R-096 were answered together: "Q-63 to Q-66: A". Each records option
+(a) of its question.
+
+### R-093: Each Division step replays its incoming Casting and refuses one that does not replay
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-63, from the slice 4 review)
+- Question: May `divide` and `transcribe` trust the partial Casting they are
+  given, when R-056 lets anyone build one? (a) each step replays the incoming
+  Picks and refuses a Casting that does not replay, with a new rule
+  `'casting'` in `DivisionRule`, so R-031's guarantee does not depend on
+  callers; (b) trust it as a documented precondition; (c) brand the partial
+  Casting, amending R-056.
+- Ruling: "Q-63 to Q-66: A"
+- Folded into: not yet
+
+### R-094: `isCompleteCasting` checks stalks and Set-aside by the Round's position
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-64, from the slice 4 review)
+- Question: Should the guard check by position? (a) yes: a Line's first Round
+  has 49 stalks and Set-aside 5 or 9, its second and third Set-aside 4 or 8,
+  as the glossary's Set-aside entry says; still shape, not replay (R-055); (b)
+  keep the loose 4|5|8|9 and 3–49 check.
+- Ruling: "Q-63 to Q-66: A"
+- Folded into: not yet
+
+### R-095: "refusal" is not a glossary term; prose writes it lowercase
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-65, from the slice 4 review)
+- Question: Is Refusal a glossary term? (a) no: prose writes "refusal"
+  lowercase, as R-087 does; `Refusal` stays the type's name; (b) add a
+  glossary entry.
+- Ruling: "Q-63 to Q-66: A"
+- Folded into: not yet
+
+### R-096: Slice 4's drafted choices, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-66, from the slice 4 review)
+- Question: Keep: (1) `./complete-casting` on its own subpath; (2) the Pick
+  checked against its own Round's stalks, the guard's comment reworded to
+  "never replays the Picks"; (3) `Refusal` without ADR-0038's valid range,
+  `nextRound` giving it; (4) `NextRound`'s `{ min, max }` and
+  `remainderGroups`; (5) the Round within its Line inline as `1 | 2 | 3`; (6)
+  the rule ids and outcome names; (7) the result tagged by `outcome`, leaving
+  `state` to the Casting; (8) a Transcription's keys required but possibly
+  `undefined`; (9) the steps taking only a partial Casting.
+- Ruling: "Q-63 to Q-66: A"
+- Folded into: not yet
