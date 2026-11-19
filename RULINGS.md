@@ -321,3 +321,24 @@ Ruling quotes the option the owner chose, word for word.
   from day one, but it's decided before the layout and with the toolchain
   support unverified (a spike could check it)."
 - Folded into: not yet (an amendment to ADR-0003)
+
+### R-020: Purity is checked, not labelled; functional-core-imperative-shell stays off
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), convention 3 of 4 under R-016
+- Question: Convention 3/4, functional-core-imperative-shell, after weighing
+  it up: how should the purity principle be secured? Benefit 1 of full
+  ratification, as discussed: purity checked inside a module, where drift
+  signal 3 (imports across contexts and ports) does not reach.
+- Ruling: "Option 1 and introduce benefit 1 to ADR-0037. Let me know if this
+  makes sense." Option 1 reads: "Check, don't label. ADR-0037's hexagonal
+  terms carry the principle; no per-file labels, and the skill stays off.
+  M-002's boundary-rules proposal (drift signal 3) must include: the Oracle and
+  the use cases import nothing effectful (node:fs, node:crypto, the system
+  clock, Math.random); effects reach them only through driven ports. Purity is
+  enforced by a lint, in one vocabulary."
+- Note: Importing driven-port interfaces (types) is not an effect; the ban
+  covers effectful modules and globals.
+- Folded into: not yet (an amendment to ADR-0037, per R-004 and R-013; the
+  lint goes in M-002's boundary rules)
