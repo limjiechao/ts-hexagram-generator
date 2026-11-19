@@ -40,7 +40,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Spec audit: deferred until the incision code is ratified (R-033)
 - Acceptance tests: n.a. (R-033) · red before implementation: n.a.
 - Brief size (signal 7): ~1,700 lines of required reading (implementer); ~240 for the revisions
-- Review: REQUEST_CHANGES (3 blocking: Cast Consultation's Divined At allows day-only; casting.ts comment misstates the replay invariant; _Avoid_ term "question" in query.ts) · design findings sent to owner: Q-M-001-25 to Q-M-001-28
+- Review: `REQUEST_CHANGES` (3 blocking: a Cast Consultation's Divined At allows day-only; a casting.ts comment misstates the replay invariant; the Avoid term "question" in query.ts) · design findings sent to owner: Q-M-001-25 to Q-M-001-29
 - Suggestions to the architect: 1 (lint the CompleteCasting cast to `oracle`) · batched for the owner (y)
 - Verify: type:check pass · lint 0 errors, 3 new dot-notation warnings · build pass · unit tests 30/30 · drift signals n.a. (before M-002) · stress:once n.a.
 - Ratification lag (signal 5): Tier-A files drafted for ratification under R-022 to R-045; none ratified yet
