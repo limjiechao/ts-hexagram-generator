@@ -144,3 +144,18 @@ Ruling quotes the option the owner chose, word for word.
   Phase 1 produces figures, so defer it to Phase 1's end alongside the R-006
   caps."
 - Folded into: not yet
+
+### R-010: Where the manual budgets sit in the phase table
+
+- Date: 2026-11-19
+- Raised in: budget review against ADR-0040 (an orchestrator session, not a
+  Matter), question 2
+- Question: Per R-009, the two manuals get budgets now. They aren't Matters
+  (`docs/manual/README.md`), so the "Matters / weeks" column doesn't fit them.
+  How should their budgets appear in the MATTERS.md phase table?
+- Ruling: "Pre-phase rows. Add rows 4-pre and 5-pre just before Phases 4 and
+  5, budgeted in weeks only, with an Estimate and an owner-touch count of their
+  own. Phase 4 and 5 budgets stay as they are, so a manual overrun is visible
+  on its own and doesn't eat into implementation weeks. The Entry gate column
+  already points to these rows."
+- Folded into: not yet
