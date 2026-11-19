@@ -25,4 +25,11 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 ## Iterations
 
-_None yet._
+### Iteration 0 — bootstrap — 2026-11-19 18:01
+
+- Attempt: – · Outcome: baseline green
+- Created branch `matters` at main `cf156b5` and worktree `../hexagram-wt-matters`.
+- Verify: pnpm install · type:check · build · test: pass (25/25 turbo tasks; casting-ui 401 tests)
+- Owner touches: 0
+- Notes: M-001 picked; it cannot start because its Acceptance is _owner to set_ and its Free to choose is unratified.
+  Both wait on the package-layout proposal (R-021). M-001 is now awaiting-ruling on Q-M-001-1 to Q-M-001-3.

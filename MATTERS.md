@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: pending
+- Status: awaiting-ruling
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -86,7 +86,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Free to choose: _owner to ratify_, drafted with the package-layout proposal.
 - Acceptance: _owner to set_, with the package-layout question. Intent: the
   skeleton runs end to end and type-check passes.
-- Open questions: none
+- Open questions: Q-M-001-1 (how the package-layout proposal is drafted), Q-M-001-2 (Acceptance command), Q-M-001-3 (Free to choose)
 - Commits: –
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
