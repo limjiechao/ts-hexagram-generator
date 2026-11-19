@@ -304,3 +304,20 @@ Ruling quotes the option the owner chose, word for word.
   package-public-api question is settled. Then admit the skill for implementer
   and reviewer."
 - Folded into: not yet (an amendment to ADR-0003)
+
+### R-019: In-package code shares through `imports` aliases; package-public-api admitted
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), convention 2 of 4 under R-016
+- Question: Convention 2/4, package-public-api: its exports half is already
+  ADR-0003 plus R-018. Its new rule is that in-package code shares through
+  package.json `imports` aliases (`#src/*`), never tsconfig `paths`. Today the
+  repo uses neither, only relative imports (144 `../` imports). Should this be
+  ratified so the skill can be admitted?
+- Ruling: "Ratify both halves now. Rule now: in-package sharing uses
+  package.json `imports` (#…) aliases, never tsconfig `paths` or deep `../`
+  chains; admit the skill for implementer and reviewer. That's a uniform rule
+  from day one, but it's decided before the layout and with the toolchain
+  support unverified (a spike could check it)."
+- Folded into: not yet (an amendment to ADR-0003)
