@@ -1115,3 +1115,58 @@ emerging, preference)`.
   still applying; (b) yes, everywhere.
 - Ruling: "Q-48 to Q-53: A"
 - Folded into: not yet
+
+R-082 to R-085 were answered together, with the ratification of M-001's slice
+3: "ratify slice 3, choices as recommended; Q-54 to Q-56: A".
+
+### R-082: Slice 3's drafted choices, as the reviewer recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, the slice 3 review's list of choices the library does not
+  license
+- Question: Keep (1) Edition's script and language made exclusive by
+  `?: never`; (2) `Edition.script` typed as Reading Preference's script; (3)
+  Witness and the script/language variants unexported; (4) `language` a free
+  string; (5) `passageTexts` ordered Chinese first, then each Translation; (6)
+  the default Reading Preference on its own `scripture-catalogue` subpath; (7)
+  `Hexagram` imported type-only, and M-002's lint treating type imports alike;
+  and change (8) `tests/edition.test.ts` so its fixture throws, as for the id,
+  if `isDay` rejects its date?
+- Ruling: "choices as recommended"
+- Folded into: not yet
+
+### R-083: The Licence Gate hides text, not Editions
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-54, from the slice 3 review)
+- Question: Does the Licence Gate hide Editions or only their text? (a)
+  `editions(work)` lists every Edition and only text is gated, as the glossary
+  and ADR-0038 have it, narrowing R-079 for `editions`; (b) gated Editions
+  vanish from `editions` too.
+- Ruling: "Q-54 to Q-56: A"
+- Folded into: not yet (overrides R-079 for `editions`, per R-013)
+
+### R-084: Every Edition has a Witness; it is the Edition that may be unidentified
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-55, from the slice 3 review)
+- Question: The glossary labels **unidentified** the Edition behind a Witness,
+  and says every passage text names its Edition and its Witness, but R-068 put
+  `'unidentified'` on the witness. (a) every Edition carries a Witness
+  (description and optional retrieval Day), and "unidentified" moves to the
+  Edition side, the exact form drafted for the owner's line-edit, amending
+  R-068; (b) keep R-068 and amend the glossary.
+- Ruling: "Q-54 to Q-56: A"
+- Note (clerk): R-068's option (a) came from a drafter's proposal the clerk
+  passed on without checking it against the glossary.
+- Folded into: not yet (overrides R-068 on the witness, per R-013)
+
+### R-085: `commentaries` shapes readings only, not lookups
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-56, from the slice 3 review)
+- Question: Does Reading Preference's `commentaries` filter explicit lookups?
+  (a) no: like `yilinVerse` (R-081) it shapes readings only, stated in the
+  port's doc comment; the Licence Gate still applies; (b) yes.
+- Ruling: "Q-54 to Q-56: A"
+- Folded into: not yet
