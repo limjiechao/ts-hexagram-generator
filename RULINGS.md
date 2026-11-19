@@ -520,3 +520,87 @@ Ruling quotes the option the owner chose, word for word.
   (c) the tester invents the names and test-list approval ratifies them.
 - Ruling: "Q-M-001-12: A"
 - Folded into: not yet
+
+R-034 to R-040 were answered together: "Q-M-001-13 to Q-M-001-19: A". Each
+records option (a) of its question.
+
+### R-034: Citation is a per-Work union of shapes; Work is a closed list
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-13)
+- Question: What are the Scripture Catalogue's value types? (a) Citation is a
+  discriminated union with one shape per Work (e.g. `{ work, hexagram, line }`),
+  its string form only the serialization used in URLs and files; Work is a
+  closed list of the Works the glossary names (周易 經, 彖傳, 大象, 小象, 文言,
+  焦氏易林), extended only by a Ruling; (b) an opaque branded string per Work;
+  (c) an opaque Citation now, Work later.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-035: What use cases 3, 8 and 9 return
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-14)
+- Question: What do use cases 3, 8 and 9 return? (a) 3 returns the Oracle's
+  Resolution plus passage texts keyed by Citation; 8 returns the catalogue's
+  own value; 9 returns Typst source, and compiling to PDF is an adapter's
+  effect; (b) one combined "resolved Transformation" type owned by
+  `application`.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-036: The Consultation Store lists Consultations and Unreadable files together; the use case filters
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-15)
+- Question: What do the Consultation Store's list and get return? (a) `list()`
+  returns `{ consultations, unreadable }` with details per Unreadable file, and
+  the use case filters by Query; (b) the Store filters; (c) a separate
+  `listUnreadable()`.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-037: Divined At is a structured moment-or-day union; the Clock returns a moment
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-16)
+- Question: What shape do Divined At and the Clock have? (a) a structured union
+  of a moment (epoch ms plus UTC offset) or a day (year, month, day); the Clock
+  returns a moment; ISO text appears only when a Store writes the record; (b) a
+  branded ISO string; (c) Temporal-style types, needing a polyfill.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-038: The glossary name `Pick` is kept despite shadowing TypeScript's `Pick`
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-17)
+- Question: The glossary's `Pick` shadows TypeScript's built-in `Pick<T, K>` in
+  importing modules. (a) keep the glossary name; a file needing the built-in
+  writes out the mapped type; (b) importers alias it; (c) namespaced imports.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-039: Store and Catalogue ports are async; Random Source and Clock are sync
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-18)
+- Question: Are the driven ports sync or async, given IndexedDB and the PWA's
+  REST-client catalogue? (a) Consultation Store and Scripture Catalogue return
+  Promises, Random Source and Clock stay synchronous, only use cases touching
+  storage or the catalogue are async, and the Oracle stays synchronous;
+  (b) everything async; (c) everything synchronous for now.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet
+
+### R-040: M-001's incision code is ratified slice by slice
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-19)
+- Question: The full draft is about 1,000 lines against the ~400-line limit.
+  (a) ratify slice by slice: a fresh reviewer checks each slice of at most
+  ~400 lines, the owner line-edits and ratifies it, and later slices, each by a
+  fresh implementer, build on ratified types; (b) draft every slice, then
+  ratify all at once; (c) lift the limit for M-001.
+- Ruling: "Q-M-001-13 to Q-M-001-19: A"
+- Folded into: not yet

@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,9 +87,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: Q-M-001-13 (catalogue value types), Q-M-001-14 (what use cases 3, 8, 9 return), Q-M-001-15 (Store list/get),
-  Q-M-001-16 (Divined At and Clock shape), Q-M-001-17 (`Pick` shadows TS `Pick`), Q-M-001-18 (sync or async ports),
-  Q-M-001-19 (slicing past ~400 lines). Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
+- Open questions: none (Q-13 to Q-19 ruled as R-034 to R-040; slices per R-040). Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
 - Commits: –
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
