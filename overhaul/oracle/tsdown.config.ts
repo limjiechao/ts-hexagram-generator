@@ -5,6 +5,7 @@ export default defineConfig({
     './src/casting.ts',
     './src/figure.ts',
     './src/hexagram.ts',
+    './src/line-position.ts',
     './src/line-value.ts',
     './src/pick.ts',
     './src/remainder.ts',

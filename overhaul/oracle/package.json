@@ -23,6 +23,11 @@
       "types": "./dist/hexagram.d.mts",
       "import": "./dist/hexagram.mjs"
     },
+    "./line-position": {
+      "source": "./src/line-position.ts",
+      "types": "./dist/line-position.d.mts",
+      "import": "./dist/line-position.mjs"
+    },
     "./line-value": {
       "source": "./src/line-value.ts",
       "types": "./dist/line-value.d.mts",
