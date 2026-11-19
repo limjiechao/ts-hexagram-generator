@@ -821,3 +821,26 @@ Q-30 A; Q-31 A".
   express; (b) yes, brand and guard every domain type.
 - Ruling: "Q-31 A"
 - Folded into: not yet
+
+### R-057: M-002 lints R-051's ban on type assertions
+
+- Date: 2026-11-20
+- Raised in: M-002 (question Q-M-002-1)
+- Question: Should M-002's boundary-rules proposal also enforce R-051 by lint?
+  (a) yes: one rule scoped to `overhaul/*`, tests included, e.g.
+  `@typescript-eslint/consistent-type-assertions` with
+  `assertionStyle: 'never'` or its equivalent, confirmed to exempt `as const`;
+  (b) no: reviewers and the clerk's grep keep enforcing it.
+- Ruling: "Q-M-002-1: A"
+- Folded into: MATTERS.md (M-002 notes)
+
+### R-058: Under R-040, the two attempts are counted per slice
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-32)
+- Question: The retry policy allows two attempts per Matter, and M-001's slice 1
+  used both. (a) count per slice: each slice of at most ~400 lines gets two
+  attempts, and a second failure on any slice still stops the loop for the
+  owner; (b) count per Matter, so any further rejection blocks M-001.
+- Ruling: "Q-M-001-32: A"
+- Folded into: not yet
