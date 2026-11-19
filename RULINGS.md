@@ -242,3 +242,23 @@ Ruling quotes the option the owner chose, word for word.
   code gets fixed (a Matter) or the library gets amended (a Ruling, then a
   fold). Nobody edits the library to match the code."
 - Folded into: not yet
+
+### R-016: The rule that admits a skill to a role's allow-list
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), follow-up to R-014
+- Question: Before any names go on the R-014 allow-list: what rule admits a
+  skill? The inventory shows some skills carry conventions beyond what's
+  ratified (FCIS's per-file pattern comment, vertical-code-structure vs
+  ADR-0002/0019's layering, no-barrel-files stricter than ADR-0003), and skill
+  files live in plugin caches outside the repo, where an update can change
+  them silently.
+- Ruling: "Four tests; ratify first. A skill is admitted for a role only if
+  all four hold: (1) it fits the role; (2) it produces no plans, specs or
+  design docs and asks no design questions; (3) every convention it carries is
+  already in the library; (4) it takes no action the clerk forbids. A
+  convention beyond the library is first ratified as a Ruling or ADR in the
+  repo's own words, and only then is the skill admitted. The library stays the
+  standard, and a plugin update can't move it."
+- Folded into: not yet
