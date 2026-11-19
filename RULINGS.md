@@ -262,3 +262,25 @@ Ruling quotes the option the owner chose, word for word.
   repo's own words, and only then is the skill admitted. The library stays the
   standard, and a plugin update can't move it."
 - Folded into: not yet
+
+### R-017: The base skill allow-list for the Matter loop
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), follow-up to R-016
+- Question: Ratify the base allow-list derived from R-016's four tests?
+  Tester: spec-audit, ink-useinput-bind, cross-platform-tests,
+  ansi-color-piping. Implementer: superpowers:test-driven-development,
+  superpowers:systematic-debugging, superpowers:verification-before-completion,
+  capturing-commit-intent, reviewable-changes, ink-useinput-bind,
+  cross-platform-tests, ansi-color-piping, typescript-advanced-types. Reviewer:
+  reviewable-changes. Clerk: capturing-commit-intent,
+  superpowers:verification-before-completion. (The four convention-carrying
+  skills are decided separately.)
+- Ruling: "Option 1. Decide the convention-carrying skills in this session".
+  Option 1 reads: "Ratify, debugging mapped. Ratify as listed, with
+  systematic-debugging included. The implementer's brief says that wherever a
+  skill says to ask "your human partner", the implementer stops and reports a
+  question instead. That keeps the debugging discipline and sends its
+  architecture step down the existing escalation route."
+- Folded into: not yet (`docs/agents/clerk.md` once the list is complete)
