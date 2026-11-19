@@ -656,3 +656,16 @@ records option (a) of its question.
   though it reads as Moment.js; (b) `ClockReading`; (c) `Instant`.
 - Ruling: "Q-M-001-23: A"
 - Folded into: not yet
+
+### R-045: A checked value type is created through a type guard; the caller decides what invalid input means
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-24)
+- Question: When the `UtcOffset` check gets bad input, what happens? This is
+  the overhaul's first error policy and likely sets the pattern for every
+  checked value type. (a) a type guard, `isUtcOffset(s): s is UtcOffset`,
+  returning true or false, with the caller (use case or adapter) deciding what
+  invalid input means; (b) `parseUtcOffset(s): UtcOffset | undefined`; (c) a
+  parser that throws.
+- Ruling: "Q-M-001-24: A"
+- Folded into: not yet
