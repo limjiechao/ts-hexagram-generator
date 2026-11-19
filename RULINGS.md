@@ -669,3 +669,52 @@ records option (a) of its question.
   parser that throws.
 - Ruling: "Q-M-001-24: A"
 - Folded into: not yet
+
+### R-046: A Casting carries a `state` tag; the complete form keeps its brand
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-26, from the slice 1 review)
+- Question: How does code tell a partial Casting from a complete one, when a
+  complete Casting is assignable to a partial one? (a) a tag
+  `state: 'partial' | 'complete'`, keeping the complete form's brand, so the
+  compiler refuses a complete Casting where a divide step expects a partial
+  one; (b) the brand only, with a run-time refusal in the Oracle step; (c) a
+  `transformation?: never` field on the partial form.
+- Ruling: "Q-M-001-26: A"
+- Folded into: not yet
+
+### R-047: A Casting holds full Rounds grouped by Line
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-27, from the slice 1 review)
+- Question: What shape is a Casting? (a) full Rounds, with their derived
+  values, grouped by Line, three per Line, as ADR-0038 groups them; the
+  Picks-only record of ADR-0030 is the Store's serialization; (b) a flat list
+  of full Rounds; (c) Picks only, grouped six by three, Rounds derived on read.
+- Ruling: "Q-M-001-27: A"
+- Folded into: not yet
+
+### R-048: Replay on load is a Markdown Store rule; the PWA trusts its IndexedDB
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-28, from the slice 1 review)
+- Question: ADR-0030 says "Loading checks that the Casting replays to it", but
+  replaying in the PWA would need the Oracle (R-031). (a) the load check is a
+  Markdown Store rule, because files can be hand-edited; the PWA trusts its
+  IndexedDB, which holds only engine-made Castings; data from outside (Merge
+  Journals, legacy import) is replayed through the engine; (b) the PWA replays
+  through the engine on every load; (c) no channel replays on load, amending
+  ADR-0030.
+- Ruling: "Q-M-001-28: A"
+- Folded into: not yet
+
+### R-049: M-001 attempt 2 branches from attempt 1's tip and is squashed on landing
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-29)
+- Question: What does attempt 2 start from? (a) a new branch from attempt 1's
+  last commit; a fresh implementer fixes the review's blocking findings, the
+  lint warnings and the new Rulings; the slice lands as one commit per package;
+  (b) a new branch from `matters`, redrafting slice 1 from scratch.
+- Ruling: "Q-M-001-29: A"
+- Folded into: not yet
