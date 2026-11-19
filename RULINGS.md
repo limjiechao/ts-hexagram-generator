@@ -718,3 +718,50 @@ records option (a) of its question.
   (b) a new branch from `matters`, redrafting slice 1 from scratch.
 - Ruling: "Q-M-001-29: A"
 - Folded into: not yet
+
+### R-050: Both kinds of Consultation carry a top-level Transformation
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-25, from the slice 1 review)
+- Question: Where does a Cast Consultation keep its Transformation? (a) both
+  kinds have a top-level `transformation`; for a Cast Consultation the keep
+  step, the only code that creates one, copies it from the complete Casting,
+  so the two cannot differ; (b) only inside the Casting, as drafted; (c) as
+  drafted plus a helper returning any Consultation's Transformation.
+- Ruling: "Q-M-001-25: A"
+- Folded into: not yet
+
+### R-051: No type assertions; a value of a checked type comes through a type guard
+
+- Date: 2026-11-19
+- Raised in: M-001, the attempt 1 implementer's suggestion to lint
+  `as CompleteCasting` so it is allowed only in `oracle` (and, per R-031, the
+  PWA's trust function)
+- Question: The brand on a complete Casting can be bypassed by any package with
+  a type assertion (`value as CompleteCasting`). Should the assertion be
+  allowed in the places R-031 lets a complete Casting be made?
+- Ruling: "I abhor type assertion. It's a slippery slope. If it's what it is,
+  then run it through a type guard."
+- Note (clerk): read as binding all overhaul code (`overhaul/*`), with R-045's
+  guard as the way to produce any branded or narrowed value. The owner may
+  narrow it (e.g. for `as const`, which asserts nothing, or for tests).
+- Folded into: not yet
+
+### R-052: Slice 1 line-edits, as the clerk recommended
+
+- Date: 2026-11-19
+- Raised in: M-001, the slice 1 review's list of choices the library does not
+  license
+- Question: Eight drafted choices, each with a recommendation: (1) keep
+  `Polarity = 'yin' | 'yang'` and add Polarity to the glossary; (2)
+  `type Hexagram = Figure`; (3) Round's fields `remainderLeft` and
+  `remainderRight` (ADR-0038's names), keeping `setAside` and `stalks`; (4)
+  the Casting's grouping, settled by R-047; (5) guards `isConsultationId`
+  (26 characters of the ULID alphabet) and `isQuery` (non-blank, never
+  trimmed); (6) `UtcOffset` keeps −12:00 to +14:00, its comment citing the
+  span of real time zones rather than ISO 8601, and still refuses `-00:00`
+  (RFC 3339's unknown offset); (7) keep `origin: 'cast' | 'recorded'`
+  (ADR-0026's "origins"); name the day form `Day`, with a guard rejecting
+  impossible dates; (8) `Pick` and `epochMilliseconds` stay plain numbers.
+- Ruling: "Line-edits as recommended."
+- Folded into: not yet (Polarity awaits a glossary fold)
