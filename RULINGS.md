@@ -224,3 +224,21 @@ Ruling quotes the option the owner chose, word for word.
   check, and it fits "agents execute, never decide". The exact list would be
   the next question."
 - Folded into: not yet
+
+### R-015: When overhaul code disagrees with the library, the library is presumed right
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), gap 3
+- Question: When overhaul code disagrees with the authoritative library (an
+  ADR, a CONTEXT.md term, a Ruling, a ratified manual or a ratified type),
+  which side is presumed wrong, and what may an agent do about it? Nothing
+  states this outright. The cold reads and drift signals only imply that the
+  library wins.
+- Ruling: "Library presumed; report it. The library is presumed right. Inside
+  its own Matter's diff, an agent conforms to the library; that's simply the
+  job. Anywhere else, it changes neither side: it reports the disagreement as
+  a drift finding, and the clerk raises it as a question. You rule whether the
+  code gets fixed (a Matter) or the library gets amended (a Ruling, then a
+  fold). Nobody edits the library to match the code."
+- Folded into: not yet
