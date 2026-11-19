@@ -490,3 +490,16 @@ Ruling quotes the option the owner chose, word for word.
   amending ADR-0037; (c) defer to Phase 6.
 - Ruling: "Q-M-001-11: A"
 - Folded into: not yet
+
+### R-032: The use case builds the Consultation Id from Clock and Random Source
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-7)
+- Question: Who assigns the Consultation Id (a ULID, ADR-0030)? (a) the use case
+  builds it, stateless, from the Clock and Random Source ports; (b) the
+  Consultation Store assigns it on keep; (c) a fifth driven port. Monotonic
+  ULIDs would need per-run state behind a port, could never be monotonic
+  across channels without a coordinating service (ruled out by ADR-0032 and
+  ADR-0037), and buy nothing because ordering is always by `divinedAt`.
+- Ruling: "Q-M-001-7: A"
+- Folded into: not yet
