@@ -48,3 +48,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Landed: – · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: unchanged
 - Notes: also landed outside the loop on owner request: spike findings e6f2fbc, AGENTS.md fixes c554362 and c6a844c.
   Attempt 1 branch m/M-001-a1 (8c3660b, 45d6c7d, 5ef0926) is left for the owner to delete.
+
+### Iteration 2 — M-001 — 2026-11-20
+
+- Attempt: 2/2 · Outcome: slice 1 landed (M-001 continues with slice 2, per R-040)
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (implementer's own guard tests were red first)
+- Brief size (signal 7): ~1,500 lines of required reading (attempt 2); ~60 for the line-edit pass
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-001-30, Q-M-001-31 (ruled R-055, R-056)
+- Suggestions to the architect: 1 (a runtime brand symbol) · batched for the owner (y), answered by R-055
+- Verify: type:check pass · lint 0 errors, no warnings in overhaul/ · format pass · build and test forced on matters 15/15 and 28/28 · unit tests 92/92 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files oracle and consultation-journal value types; ratified 2026-11-20 before landing (y); CONTEXT.md Polarity per R-054 (y)
+- Owner touches: 12 this iteration (rulings 11 · ratifications 1 · test-list approvals 0); 36 in M-001 so far
+- Landed: f643475, f905f13 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: slice 1 squashed per package on landing (R-049); attempt branches m/M-001-a1 and m/M-001-a2 are left for the owner to delete.
