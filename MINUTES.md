@@ -92,3 +92,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Landed: e0996c3, 6b01b31 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: R-068's witness shape contradicted the glossary; the clerk had passed a drafter's proposal on unchecked. R-084 corrected it.
   Since then the clerk checks each drafted option against the glossary before putting it to the owner.
+
+### Iteration 5 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 4; R-058) · Outcome: failed at review
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (the guard's own tests were red first)
+- Brief size (signal 7): ~1,400 lines of required reading per implementer
+- Review: `REQUEST_CHANGES` (1 blocking: `isCompleteCasting` accepts sparse arrays, because `every` skips empty slots; reproduced by the reviewer) · design findings sent to owner: Q-M-001-63 to Q-M-001-66
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · oracle tests 32/32 (they missed the defect) · drift signals n.a.
+- Ratification lag (signal 5): none landed
+- Owner touches: 6 this iteration (rulings 6); 74 in M-001 so far
+- Landed: – · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: attempt 2 of slice 4 is its last. Branch m/M-001-s4 (2083890, 7fecf66) is attempt 1.
