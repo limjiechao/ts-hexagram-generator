@@ -371,6 +371,12 @@ importers:
 
   overhaul/oracle: {}
 
+  overhaul/scripture-catalogue:
+    dependencies:
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+
 packages:
 
   '@alcalzone/ansi-tokenize@0.3.0':

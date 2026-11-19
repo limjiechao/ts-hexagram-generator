@@ -1,0 +1,47 @@
+{
+  "name": "@hexagram/scripture-catalogue",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The Scripture Catalogue (supporting domain): Works, their Citations and Editions, and how a reader wants them shown",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./citation": {
+      "source": "./src/citation.ts",
+      "types": "./dist/citation.d.mts",
+      "import": "./dist/citation.mjs"
+    },
+    "./edition-id": {
+      "source": "./src/edition-id.ts",
+      "types": "./dist/edition-id.d.mts",
+      "import": "./dist/edition-id.mjs"
+    },
+    "./reading-preference": {
+      "source": "./src/reading-preference.ts",
+      "types": "./dist/reading-preference.d.mts",
+      "import": "./dist/reading-preference.mjs"
+    },
+    "./work": {
+      "source": "./src/work.ts",
+      "types": "./dist/work.d.mts",
+      "import": "./dist/work.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/oracle": "workspace:*"
+  }
+}
