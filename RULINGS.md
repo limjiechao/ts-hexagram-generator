@@ -128,3 +128,19 @@ Ruling quotes the option the owner chose, word for word.
   manual'; where today's app differs from the manual, the manual wins after a
   Ruling. A REST manual follows before Phase 5."
 - Folded into: ADR-0039 §8 (now ADR-0040)
+
+### R-009: When the week budgets are revisited for ADR-0040's owner work
+
+- Date: 2026-11-19
+- Raised in: budget review against ADR-0040 (an orchestrator session, not a
+  Matter), question 1
+- Question: ADR-0040 adds owner work the week budgets don't cover: drafting
+  and ratifying the CLI and REST manuals before Phases 4 and 5, and ruling on
+  every blocking spec hole. Should the budgets be revisited now, or left until
+  Phase 1 lands as R-006 intends for the caps?
+- Ruling: "Split: manuals now. Budget the two manuals now, because their size
+  is already known (Brooks's 9 items, 3–4 pages each, per R-008) and ADR-0040
+  says a budget is set before work starts. The spec-hole cost is unknown until
+  Phase 1 produces figures, so defer it to Phase 1's end alongside the R-006
+  caps."
+- Folded into: not yet
