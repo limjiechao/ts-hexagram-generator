@@ -765,3 +765,59 @@ records option (a) of its question.
   impossible dates; (8) `Pick` and `epochMilliseconds` stay plain numbers.
 - Ruling: "Line-edits as recommended."
 - Folded into: not yet (Polarity awaits a glossary fold)
+
+R-053 to R-056 were answered together, with the ratification of M-001's slice
+1: "ratify slice 1 with line-edits as recommended; Polarity entry ratified;
+Q-30 A; Q-31 A".
+
+### R-053: Slice 1 line-edits from its second review, as the clerk recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, the second slice 1 review's list of choices the library
+  does not license
+- Question: (1) keep a partial Casting's limits in prose, not the type; (2)
+  leave "Line Values so far" off the Casting; (3) `isConsultationId` allows
+  only `0`–`7` as the first character, so every accepted Id is a ULID; (4)
+  `isDay` allows years 0000–9999 only, so every Day writes as `YYYY-MM-DD`;
+  (5) leave `Moment` unguarded; (6) accept a Query of only invisible
+  characters as non-blank; (7) add Polarity to the glossary (R-054); (8) keep
+  `isDay`'s parameter type unnamed.
+- Ruling: "ratify slice 1 with line-edits as recommended"
+- Folded into: not yet
+
+### R-054: Polarity enters the glossary
+
+- Date: 2026-11-20
+- Raised in: M-001, R-052(1) and the second slice 1 review
+- Question: Ratify this entry? "**Polarity** (陰陽): Whether a Line of a Figure
+  is yin or yang. A Figure is six Polarities, read bottom-up. A Polarity does
+  not say whether a Line moves; a Line Value does. _Avoid_: bit, 0/1 (for a
+  Polarity)."
+- Ruling: "Polarity entry ratified"
+- Folded into: CONTEXT.md (Polarity)
+
+### R-055: One shape-only guard makes a complete Casting, imported only where R-031 allows
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-30, from the second slice 1 review)
+- Question: Under R-051, how is a complete Casting made, given its brand
+  exists only as a type? (a) `oracle` exports one shape-only guard,
+  `isCompleteCasting` (six Lines of three Rounds, values in range, the
+  Transformation present), used by the Oracle's last Division step on what it
+  builds and by the PWA's trust function on the engine's JSON; M-002's lint
+  allows importing it only in `oracle` and that one PWA file; (b) the guard
+  replays the Casting, which the PWA cannot use (R-031); (c) drop the brand,
+  amending R-046.
+- Ruling: "Q-30 A"
+- Folded into: not yet (the import rule goes in M-002's boundary rules)
+
+### R-056: Only branded types need guards; tagged types are built as literals
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-31, from the second slice 1 review)
+- Question: Do tagged, unbranded types (`PartialCasting`, `Moment`) also need
+  guards under R-051? (a) no: R-051 bans assertions, and an object literal
+  asserts nothing; brands and guards are for invariants the type system cannot
+  express; (b) yes, brand and guard every domain type.
+- Ruling: "Q-31 A"
+- Folded into: not yet
