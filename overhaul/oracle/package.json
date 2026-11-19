@@ -1,0 +1,69 @@
+{
+  "name": "@hexagram/oracle",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The Oracle (core domain): Casting and Resolution of a Transformation, pure and free of effects",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./casting": {
+      "source": "./src/casting.ts",
+      "types": "./dist/casting.d.mts",
+      "import": "./dist/casting.mjs"
+    },
+    "./figure": {
+      "source": "./src/figure.ts",
+      "types": "./dist/figure.d.mts",
+      "import": "./dist/figure.mjs"
+    },
+    "./hexagram": {
+      "source": "./src/hexagram.ts",
+      "types": "./dist/hexagram.d.mts",
+      "import": "./dist/hexagram.mjs"
+    },
+    "./line-value": {
+      "source": "./src/line-value.ts",
+      "types": "./dist/line-value.d.mts",
+      "import": "./dist/line-value.mjs"
+    },
+    "./pick": {
+      "source": "./src/pick.ts",
+      "types": "./dist/pick.d.mts",
+      "import": "./dist/pick.mjs"
+    },
+    "./remainder": {
+      "source": "./src/remainder.ts",
+      "types": "./dist/remainder.d.mts",
+      "import": "./dist/remainder.mjs"
+    },
+    "./round": {
+      "source": "./src/round.ts",
+      "types": "./dist/round.d.mts",
+      "import": "./dist/round.mjs"
+    },
+    "./set-aside": {
+      "source": "./src/set-aside.ts",
+      "types": "./dist/set-aside.d.mts",
+      "import": "./dist/set-aside.mjs"
+    },
+    "./transformation": {
+      "source": "./src/transformation.ts",
+      "types": "./dist/transformation.d.mts",
+      "import": "./dist/transformation.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  }
+}

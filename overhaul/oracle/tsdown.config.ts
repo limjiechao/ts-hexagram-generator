@@ -1,0 +1,16 @@
+import { defineConfig } from 'tsdown'
+
+export default defineConfig({
+  entry: [
+    './src/casting.ts',
+    './src/figure.ts',
+    './src/hexagram.ts',
+    './src/line-value.ts',
+    './src/pick.ts',
+    './src/remainder.ts',
+    './src/round.ts',
+    './src/set-aside.ts',
+    './src/transformation.ts',
+  ],
+  platform: 'node',
+})

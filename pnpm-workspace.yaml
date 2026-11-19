@@ -4,6 +4,7 @@ packages:
   - 'domain/*'
   - 'cli/*'
   - 'apps/*'
+  - 'overhaul/*'
 
 allowBuilds:
   esbuild: true
