@@ -206,3 +206,21 @@ Ruling quotes the option the owner chose, word for word.
   cites that ADR once it is accepted. This matches "binds from the moment it is
   recorded" and R-001's "fixed by a Ruling"."
 - Folded into: not yet
+
+### R-014: Subagents in the Matter loop use only the skills their role allows
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), gap 2
+- Question: Installed plugin skills (e.g. superpowers' brainstorming and
+  writing-plans, which produced the 1 MB `docs/superpowers/` that R-007
+  archived) tell agents to act on their own: "you MUST brainstorm or plan
+  first". The harness ranks project instructions above skills, but the clerk's
+  subagent briefs never say so, and only spec-audit is named. How should
+  subagents in the Matter loop treat skills?
+- Ruling: "Per-role allow-list. clerk.md names the skills each role may use,
+  e.g. tester: spec-audit; implementer: tdd and systematic-debugging; reviewer:
+  none. Every brief says no other skill applies. It's mechanical and easy to
+  check, and it fits "agents execute, never decide". The exact list would be
+  the next question."
+- Folded into: not yet
