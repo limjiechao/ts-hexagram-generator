@@ -164,7 +164,8 @@ pnpm lint:fix           # same with auto-fix
 pnpm format:check       # oxfmt --check at root
 pnpm format:fix         # oxfmt --write at root
 
-# Run the CLIs directly (no build needed — tsx + the `source` exports condition)
+# Run the CLIs from source via tsx. They import the workspace packages' built `dist/`
+# (no `source` condition is passed), so run `pnpm build` first and after changing a package.
 pnpm hexagram-random        # tsx apps/cli/src/random.ts
 pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
 pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
