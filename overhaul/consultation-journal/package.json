@@ -23,6 +23,11 @@
       "types": "./dist/consultation-id.d.mts",
       "import": "./dist/consultation-id.mjs"
     },
+    "./deletion-record": {
+      "source": "./src/deletion-record.ts",
+      "types": "./dist/deletion-record.d.mts",
+      "import": "./dist/deletion-record.mjs"
+    },
     "./divined-at": {
       "source": "./src/divined-at.ts",
       "types": "./dist/divined-at.d.mts",
@@ -42,6 +47,11 @@
       "source": "./src/recorded-consultation.ts",
       "types": "./dist/recorded-consultation.d.mts",
       "import": "./dist/recorded-consultation.mjs"
+    },
+    "./unreadable-file": {
+      "source": "./src/unreadable-file.ts",
+      "types": "./dist/unreadable-file.d.mts",
+      "import": "./dist/unreadable-file.mjs"
     },
     "./package.json": "./package.json"
   },
