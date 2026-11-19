@@ -83,11 +83,11 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
 - Tier-A surface: drafts Tier-A files for ratification. The owner line-edits and ratifies them before anything builds on them.
-- Free to choose: _owner to ratify_; drafted in the layout proposal and ratified with it (R-024).
-- Acceptance: `pnpm type:check && pnpm --filter <skeleton-package> test`; the skeleton test drives one use case from a
-  driving adapter, through the application, to a stub driven adapter (R-023). Package and use case are set when the layout is ratified.
-- Open questions: Q-M-001-4 (ratify a layout and its Free to choose, from docs/reviews/2026-11-19-m-001-package-layout.md);
-  Q-M-001-5 to Q-M-001-10 (that draft's open questions Q1–Q6: workspace location, skeleton Oracle scope, Consultation Id, adapter→Oracle, Remainder-Group policy home, pure-package platform)
+- Free to choose: Layout C's draft Free to choose in docs/reviews/2026-11-19-m-001-package-layout.md (R-024, R-025).
+- Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
+  driving adapter, through the application, to a stub driven adapter (R-023, R-025). The scope (Q-M-001-5) and the use case (Q-M-001-6) are open.
+- Open questions: Q-M-001-5 (workspace location / npm scope), Q-M-001-6 (skeleton use case and Oracle scope),
+  Q-M-001-7 (who assigns the Consultation Id), Q-M-001-8 (may a driving adapter call the Oracle). Ruled: Q-4 R-025, Q-9 R-026, Q-10 R-027.
 - Commits: –
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),

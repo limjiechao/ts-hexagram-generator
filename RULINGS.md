@@ -395,3 +395,42 @@ Ruling quotes the option the owner chose, word for word.
   document as the layout proposal and ratified together with it.
 - Ruling: "3 as recommended"
 - Folded into: not yet
+
+### R-025: M-001's package layout is Layout C, with its Free to choose
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-4)
+- Question: Which package layout, with its Free to choose, from
+  `docs/reviews/2026-11-19-m-001-package-layout.md`? A, context packages; B,
+  layer packages; C, a hybrid: pure context packages, one `application`
+  package that owns the four driven ports, and one package per adapter, so
+  purity is checked by a list of package names and each ADR-0037/0038 channel
+  rule is a dependency rule between packages. Under C, M-001 creates `oracle`,
+  `scripture-catalogue`, `consultation-journal`, `application` and
+  `cli-adapter`, and its Free to choose is the draft's "Draft Free to choose
+  for M-001 (R-024), under Layout C" section. Ratifying C fills R-023 as
+  `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`.
+- Ruling: "Q-M-001-4: C."
+- Folded into: not yet
+
+### R-026: The Remainder-Group policy is its own small pure package
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-9)
+- Question: Where does ADR-0023's Remainder-Group policy live? It is pure, not
+  part of the Oracle, and shared by the CLI's and the PWA's random Pick
+  sources. (a) its own small pure package, on the purity list; (b) a subpath
+  of `application`, beside the Random Source port; (c) inside `oracle`, which
+  would amend ADR-0023.
+- Ruling: "Q-M-001-9: A."
+- Folded into: not yet
+
+### R-027: Pure packages keep `platform: 'node'` until Phase 6
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-10)
+- Question: What build platform do the pure packages use, given ADR-0003's
+  `platform: 'node'` and the PWA loading them in a browser later? (a) keep
+  `node` until Phase 6; (b) `neutral` now, amending ADR-0003.
+- Ruling: "Q-M-001-10: A."
+- Folded into: not yet
