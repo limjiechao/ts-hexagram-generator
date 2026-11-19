@@ -631,3 +631,28 @@ records option (a) of its question.
   and ADR-0030.
 - Ruling: "Q-M-001-21: A"
 - Folded into: not yet
+
+### R-043: Divined At's fields, in one file
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-22)
+- Question: Field names and files for Divined At? (a) one file,
+  `divined-at.ts`, holding the moment form
+  `{ precision: 'moment', epochMilliseconds: number, offset: UtcOffset }`, the
+  day form `{ precision: 'day', year, month, day }`, the moment type the Clock
+  returns, and `UtcOffset` with its checking function; (b) the same fields,
+  with the moment type, the day type and `UtcOffset` each in its own file;
+  (c) as (a) but with `kind` or `epochMs`.
+- Ruling: "Q-M-001-22: A"
+- Folded into: not yet
+
+### R-044: The moment type is named `Moment`
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-23)
+- Question: What is the type for an instant with its UTC offset, Divined At's
+  precise form and the Clock's return value, called? (a) `Moment`, after
+  ADR-0037's "Clock: the current moment" and the glossary's Divined At prose,
+  though it reads as Moment.js; (b) `ClockReading`; (c) `Instant`.
+- Ruling: "Q-M-001-23: A"
+- Folded into: not yet
