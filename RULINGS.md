@@ -1170,3 +1170,17 @@ R-082 to R-085 were answered together, with the ratification of M-001's slice
   port's doc comment; the Licence Gate still applies; (b) yes.
 - Ruling: "Q-54 to Q-56: A"
 - Folded into: not yet
+
+### R-086: An Edition's `unidentified` flag, and what an unidentified Edition keeps
+
+- Date: 2026-11-20
+- Raised in: M-001, R-084's exact form, drafted for the owner's line-edit
+- Question: (1) The flag's form: (a) `unidentified: boolean`, required, the
+  glossary's own word, with known-only code requiring `unidentified: false`;
+  (b) a string tag such as `identification: 'known' | 'unidentified'`. (2) What
+  an unidentified Edition keeps: (a) its EditionId, licence, and script or
+  language, since ADR-0038 addresses every Edition by id, the Licence Gate
+  needs a licence, and the glossary puts every Edition in one script; (b) no
+  EditionId; (c) always `'in-copyright'`.
+- Ruling: "Edition as drafted: 1 A, 2 A"
+- Folded into: not yet
