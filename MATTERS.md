@@ -87,7 +87,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: none. Slice 1 ratified 2026-11-20 and landed; next slice 2 (application and its four ports); Q-30 R-055, Q-31 R-056. Q-25 R-050, Q-26 R-046, Q-27 R-047, Q-28 R-048, Q-29 R-049; R-051 no type assertions; R-052 slice 1 line-edits. Attempt 1 failed at review. Q-20 R-041, Q-21 R-042, Q-22 R-043, Q-23 R-044, Q-24 R-045. Q-13 to Q-19 ruled as R-034 to R-040; slices per R-040. Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
+- Open questions: Q-M-001-32 (are attempts counted per slice). Slice 1 ratified 2026-11-20 and landed; next slice 2 (application and its four ports); Q-30 R-055, Q-31 R-056. Q-25 R-050, Q-26 R-046, Q-27 R-047, Q-28 R-048, Q-29 R-049; R-051 no type assertions; R-052 slice 1 line-edits. Attempt 1 failed at review. Q-20 R-041, Q-21 R-042, Q-22 R-043, Q-23 R-044, Q-24 R-045. Q-13 to Q-19 ruled as R-034 to R-040; slices per R-040. Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal)
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
@@ -103,6 +103,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Free to choose: _owner to ratify_, drafted with the boundary-rules proposal.
 - Acceptance: _owner to set_, with the boundary rules. Intent: each signal
   fails on a planted violation and passes on the clean tree.
-- Open questions: none
+- Open questions: Q-M-002-1 (does M-002 also lint R-051's ban on type assertions)
 - Commits: –
 - Notes: The boundary rules must include R-020: the Oracle and the use cases import nothing effectful; effects reach them only through driven ports.
+  They must also include R-055: `isCompleteCasting` may be imported only in `oracle` and the PWA's one trust file.
