@@ -107,6 +107,11 @@ Position. A Hexagram's only identity; names and sequence numbers are attached
 to it, never the other way round.
 _Avoid_: key, code (for the identity).
 
+**Polarity** (陰陽):
+Whether a Line of a Figure is yin or yang. A Figure is six Polarities, read
+bottom-up. A Polarity does not say whether a Line moves; a Line Value does.
+_Avoid_: bit, 0/1 (for a Polarity).
+
 **Fuxi Sequence Number** (伏羲六十四卦次序):
 A Hexagram's place 1–64 in the order transmitted by 邵雍: its Figure read as a
 binary number (yin = 1, the first Line Position the highest bit), plus one.
