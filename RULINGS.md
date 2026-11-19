@@ -442,8 +442,9 @@ Ruling quotes the option the owner chose, word for word.
 - Question: Which use case does the walking skeleton drive? Use case 3
   (Resolve a Transformation) proves `cli-adapter → application → oracle` as
   well as the port path, but needs some Oracle in Phase 1; use case 8 (Look up
-  the catalogue) proves `cli-adapter → application → Scripture Catalogue port
-  → stub` with no Oracle, leaving `oracle` holding value types only in M-001.
+  the catalogue) proves the path from `cli-adapter` through `application` and
+  the Scripture Catalogue port to a stub, with no Oracle, leaving `oracle`
+  holding value types only in M-001.
 - Ruling: "Q-M-001-6: use case 8."
 - Folded into: MATTERS.md (M-001 Acceptance)
 
