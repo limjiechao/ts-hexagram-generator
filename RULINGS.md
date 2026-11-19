@@ -446,3 +446,15 @@ Ruling quotes the option the owner chose, word for word.
   → stub` with no Oracle, leaving `oracle` holding value types only in M-001.
 - Ruling: "Q-M-001-6: use case 8."
 - Folded into: MATTERS.md (M-001 Acceptance)
+
+### R-029: Overhaul packages live in a new `overhaul/*` workspace folder, under `@hexagram/`
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-5)
+- Question: Where do the overhaul packages live beside the legacy ones (R-003)?
+  (a) a new workspace glob `overhaul/*` with non-colliding `@hexagram/` names;
+  (b) a new npm scope; (c) the existing `domain/*` and `cli/*` folders with
+  distinct names. Layout C's planned names collide with none of the 13 legacy
+  package names.
+- Ruling: "Q-M-001-5: A."
+- Folded into: not yet
