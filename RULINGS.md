@@ -1351,3 +1351,21 @@ them.
   name a check. Rename it `'replay'`, after ADR-0026's "must replay"?
 - Ruling: "rename 'casting' to 'replay'"
 - Folded into: not yet (overrides R-093's rule name, per R-013)
+
+### R-101: A partial Casting's limits are in its type
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-71, from Q-M-001-70)
+- Question: Should the partial Casting's limits (at most five finished Lines of
+  three Rounds, then an open Line of 0–2 Rounds, so fewer than 18) be in the
+  type? (a) yes: `rounds` is exactly one of those 18 tuple shapes
+  (`[...FinishedLines, ...OpenLine]`), amending R-053(1); M-002's lint adds
+  `no-unsafe-assignment` so untyped data (e.g. from `JSON.parse`) cannot slip
+  in; Q-M-001-70 falls away, since an 18-Round partial Casting cannot be
+  represented; (b) keep R-053(1) and add a separate `'state'` rule.
+- Ruling: "Q-M-001-71: A"
+- Note (clerk): `'replay'` (R-093, R-100) stays, since types cannot check
+  that Rounds follow from their Picks. R-098 now refuses only a Casting that
+  does not replay.
+- Folded into: not yet (overrides R-053(1), per R-013; the lint goes in
+  M-002's boundary rules)
