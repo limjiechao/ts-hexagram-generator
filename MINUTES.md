@@ -77,3 +77,18 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Landed: de26925, 146eaf5, c0e8a31, 4c7e1d4 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: slice 2 stopped at R-040's size limit, so Edition and the Scripture Catalogue port move to slice 3.
   The reading-preference.ts comment "all of the 十翼" was flagged to the owner as possibly read as all ten wings.
+
+### Iteration 4 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 3; R-058) · Outcome: slice 3 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (type-level tests were red first)
+- Brief size (signal 7): ~1,500 lines of required reading per implementer; ~60 for the line-edit pass
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-001-54 to Q-M-001-56 (ruled R-083 to R-085)
+- Suggestions to the architect: 1 (EditionIds for 十翼 Translations) · deferred to the bundled-catalogue Matter
+- Verify: type:check pass · lint 0 errors, none in overhaul/ · format pass · build and test forced on matters 17/17 and 32/32 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files slice 3's types and the catalogue port; ratified before landing (y); R-084's form ruled R-086 before landing (y)
+- Owner touches: 13 this iteration (rulings 12 · ratifications 1 · test-list approvals 0); 68 in M-001 so far
+- Landed: e0996c3, 6b01b31 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: R-068's witness shape contradicted the glossary; the clerk had passed a drafter's proposal on unchecked. R-084 corrected it.
+  Since then the clerk checks each drafted option against the glossary before putting it to the owner.
