@@ -164,13 +164,13 @@ pnpm lint:fix           # same with auto-fix
 pnpm format:check       # oxfmt --check at root
 pnpm format:fix         # oxfmt --write at root
 
-# Run the CLIs from source via tsx. They import the workspace packages' built `dist/`
-# (no `source` condition is passed), so run `pnpm build` first and after changing a package.
-pnpm hexagram-random        # tsx apps/cli/src/random.ts
-pnpm hexagram-interactive   # tsx apps/cli/src/interactive.ts
-pnpm hexagram-manual        # tsx apps/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
-pnpm hexagram-playground    # tsx apps/cli/src/playground.ts (Ink-only 4-state line explorer)
-pnpm hexagram-history                   # tsx apps/cli/src/history.ts (Ink-only browser for past consultations)
+# Run the CLIs from source via tsx with `--conditions=source`, so the workspace
+# packages resolve to their `src/` through the `source` exports condition. No build needed.
+pnpm hexagram-random        # tsx --conditions=source apps/cli/src/random.ts
+pnpm hexagram-interactive   # tsx --conditions=source apps/cli/src/interactive.ts
+pnpm hexagram-manual        # tsx --conditions=source apps/cli/src/manual.ts (Ink-only 4-field piles + remainder prompt with conservation + suspended validation)
+pnpm hexagram-playground    # tsx --conditions=source apps/cli/src/playground.ts (Ink-only 4-state line explorer)
+pnpm hexagram-history                   # tsx --conditions=source apps/cli/src/history.ts (Ink-only browser for past consultations)
 pnpm hexagram-history --convert-legacy  # one-shot migration of legacy .txt → .md
 
 # hexagram-random and hexagram-interactive default to a full-screen tabbed viewer;
