@@ -10,7 +10,7 @@ export interface ReadingPreference {
   readonly script: 'traditional' | 'simplified'
   /** Translations to show, in order; one lacking a passage shows nothing. */
   readonly translations: readonly EditionId[]
-  /** Commentaries, all of the 十翼, to show with each Applicable Passage. */
+  /** Commentaries, from the 十翼 Works, to show with each Applicable Passage. */
   readonly commentaries: readonly Extract<
     Work,
     'tuan' | 'daxiang' | 'xiaoxiang' | 'wenyan'

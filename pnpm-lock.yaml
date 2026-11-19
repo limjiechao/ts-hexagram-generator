@@ -379,6 +379,9 @@ importers:
 
   overhaul/scripture-catalogue:
     dependencies:
+      '@hexagram/consultation-journal':
+        specifier: workspace:*
+        version: link:../consultation-journal
       '@hexagram/oracle':
         specifier: workspace:*
         version: link:../oracle
