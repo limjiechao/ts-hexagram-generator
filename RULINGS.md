@@ -503,3 +503,19 @@ Ruling quotes the option the owner chose, word for word.
   ADR-0037), and buy nothing because ordering is always by `divinedAt`.
 - Ruling: "Q-M-001-7: A"
 - Folded into: not yet
+
+### R-033: For M-001, the incision code is ratified before the tester writes the skeleton's tests
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-12)
+- Question: M-001's output (types and signatures) is itself Tier A, so a
+  tester working from the docs alone would have to invent the names its
+  acceptance test imports. Order: (a) an implementer drafts the value types,
+  ports and use-case signatures with no skeleton logic; M-001 goes to
+  awaiting-ratification and the owner line-edits and ratifies; a fresh tester
+  then audits and writes the skeleton's acceptance test against the ratified
+  signatures, the owner approves the test list, and an implementer makes the
+  skeleton pass; (b) run the loop as written, with names ruled as spec holes;
+  (c) the tester invents the names and test-list approval ratifies them.
+- Ruling: "Q-M-001-12: A"
+- Folded into: not yet
