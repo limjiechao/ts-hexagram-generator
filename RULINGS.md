@@ -944,3 +944,36 @@ undefined>`, Unreadable files only in `list`; (b) a tagged found / missing /
   ADR-0037's table on that point (R-013); (b) the Store.
 - Ruling: "Q-33 to Q-41: A"
 - Folded into: not yet
+
+### R-068: An Edition's field types
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-42)
+- Question: What types do an Edition's fields have? (a) `{ script } | { language:
+string }`; `witness: { description: string, retrievedOn?: Day } |
+'unidentified'`; `licence: 'public-domain' | 'in-copyright'`; (b) every field
+  a free string; (c) the owner dictates them.
+- Ruling: "Q-M-001-42: A"
+- Folded into: not yet
+
+### R-069: Legge's EditionId is `legge-1882`; Reading Preference defaults are built through the guard
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-43)
+- Question: How are Reading Preference defaults set, given "Legge by default"
+  and R-051? (a) Legge's id is `legge-1882`, the slug ADR-0038's URLs use; the
+  default is built through `isEditionId`, with a test that it is not empty;
+  (b) a function taking Legge's id from the caller; (c) no defaults in M-001.
+- Ruling: "Q-M-001-43: A"
+- Folded into: not yet
+
+### R-070: A Reading Preference's commentaries are only the 十翼
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-44, the slice 2 implementer's suggestion)
+- Question: R-063 types `commentaries` as any Work, but only the 十翼 are
+  Commentaries in the glossary. (a) narrow it to `tuan`, `daxiang`,
+  `xiaoxiang` and `wenyan`, amending R-063; (b) keep any Work, the limit in
+  prose.
+- Ruling: "Q-M-001-44: A"
+- Folded into: not yet (overrides R-063 on `commentaries`, per R-013)
