@@ -844,3 +844,103 @@ Q-30 A; Q-31 A".
   owner; (b) count per Matter, so any further rejection blocks M-001.
 - Ruling: "Q-M-001-32: A"
 - Folded into: not yet
+
+R-059 to R-067 were answered together: "Q-33 to Q-41: A" and "Q-35: A for 文言".
+Each records option (a) of its question.
+
+### R-059: Work ids are pinyin, after ADR-0038's URLs
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-33)
+- Question: What are the Work ids, given ADR-0038 uses `zhouyi` and `yilin`?
+  (a) pinyin for the rest: `tuan` (彖傳), `daxiang` (大象), `xiaoxiang` (小象),
+  `wenyan` (文言); (b) Chinese literals; (c) English.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-060: Line Position is an Oracle value type
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-34)
+- Question: Where does a Line Position type (1–6) live? (a) a new
+  `oracle/src/line-position.ts`, ratified with slice 2; (b) inline in the
+  catalogue.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-061: Each Work's Citation shape
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-35)
+- Question: What shape is each Work's Citation (R-034)? (a) 經 (`zhouyi`): `{
+work, hexagram }`, `{ work, hexagram, line }` or `{ work, hexagram, line:
+'all-moving' }`; 彖傳 and 大象: `{ work, hexagram }`; 小象: `{ work, hexagram,
+line }`, `'all-moving'` allowed; Yilin: `{ work, standing, emerging }`;
+  `'all-moving'` only for 乾 and 坤 stated in prose. For 文言: (a) `{ work,
+hexagram }`, each Hexagram's 文言 cited whole; (b) with a `section`; (c) 文言
+  out of the list, amending R-034.
+- Ruling: "Q-33 to Q-41: A" and "Q-35: A for 文言"
+- Folded into: not yet
+
+### R-062: An Edition carries its id, Work, script or language, witness and licence
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-36)
+- Question: What shape is an Edition? (a) `{ id: EditionId, work, script or
+language, witness, licence }`, EditionId a branded slug (e.g. `legge-1882`)
+  with a guard, witness possibly unidentified; (b) id only, metadata behind
+  the port.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-063: A Reading Preference's fields
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-37)
+- Question: What shape is a Reading Preference? (a) `{ script: 'traditional' |
+'simplified', translations: EditionId[], commentaries: Work[], yilinVerse:
+boolean }`, defaults from the glossary; (b) script only for now.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-064: The Licence Gate omits gated texts; each adapter is built for its channel
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-38)
+- Question: How does the Licence Gate report what it held back? (a) each
+  channel's adapter is built for that channel and gated texts are simply
+  missing (the glossary: omit, never substitute); (b) texts carry `{ edition,
+gated: true }`; (c) a `withheld` list.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-065: An Unreadable file is reported as a location and a reason
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-39)
+- Question: What does the Store say about an Unreadable file? (a) `{ location:
+string, reason: string }`, location store-specific, reason for people; (b)
+  also a typed reason kind.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-066: The Store's get returns undefined when nothing is found
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-40)
+- Question: What does `get` return on a miss? (a) `Promise<Consultation |
+undefined>`, Unreadable files only in `list`; (b) a tagged found / missing /
+  unreadable result.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet
+
+### R-067: The use case stamps a Deletion Record from the Clock
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-41)
+- Question: Who stamps a Deletion Record's time? (a) the use case, from the
+  Clock, then calls `remove(record)`, so the Store stays clock-free and Merge
+  Journals reuses `remove`; the Clock then also serves use case 6, overriding
+  ADR-0037's table on that point (R-013); (b) the Store.
+- Ruling: "Q-33 to Q-41: A"
+- Folded into: not yet

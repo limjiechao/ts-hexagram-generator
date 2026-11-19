@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,8 +87,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: slice 2: Q-M-001-33 (Work ids), -34 (Line Position type), -35 (Citation shapes), -36 (Edition),
-  -37 (Reading Preference), -38 (Licence Gate outcome), -39 (Unreadable), -40 (Store get miss), -41 (Deletion Record stamp).
+- Open questions: none. Slice 2 questions Q-33 to Q-41 ruled as R-059 to R-067.
   Slice 2 partial on m/M-001-s2: 840943d, cbd688a. Q-32 R-058 (attempts per slice). Slice 1 ratified 2026-11-20 and landed; next slice 2 (application and its four ports); Q-30 R-055, Q-31 R-056. Q-25 R-050, Q-26 R-046, Q-27 R-047, Q-28 R-048, Q-29 R-049; R-051 no type assertions; R-052 slice 1 line-edits. Attempt 1 failed at review. Q-20 R-041, Q-21 R-042, Q-22 R-043, Q-23 R-044, Q-24 R-045. Q-13 to Q-19 ruled as R-034 to R-040; slices per R-040. Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal)
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
