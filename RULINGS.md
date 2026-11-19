@@ -189,3 +189,20 @@ Ruling quotes the option the owner chose, word for word.
   rejecting parallel channels. Also, the CLI manual benefits from seeing the
   ratified Oracle core."
 - Folded into: MATTERS.md (already states it; no change)
+
+### R-013: A later Ruling overrides an earlier ADR on the point it addresses
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), gap 1
+- Question: When a Ruling contradicts an accepted ADR on the same point, which
+  one binds? Nothing in RULINGS.md, ADR-0040 or the ADR README says so. They
+  only say a Ruling binds once recorded, and that an ADR is changed only by a
+  newer ADR (R-004).
+- Ruling: "Ruling wins, fold soon. A later Ruling overrides the earlier ADR on
+  the point it addresses, from the moment it is recorded, so work isn't held
+  up. The Ruling must name the ADR it overrides. The clerk then drafts an
+  amending ADR in the next folding batch, and code that relies on the Ruling
+  cites that ADR once it is accepted. This matches "binds from the moment it is
+  recorded" and R-001's "fixed by a Ruling"."
+- Folded into: not yet
