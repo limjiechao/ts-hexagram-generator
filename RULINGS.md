@@ -1306,3 +1306,48 @@ R-093 to R-096 were answered together: "Q-63 to Q-66: A". Each records option
   `undefined`; (9) the steps taking only a partial Casting.
 - Ruling: "Q-63 to Q-66: A"
 - Folded into: not yet
+
+R-097 to R-099 were answered together: "Q-67 to Q-69: A". R-100 was given with
+them.
+
+### R-097: A replay refusal names the first Round that fails to replay
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-67, from the slice 4 review)
+- Question: When a step refuses because the incoming Casting does not replay,
+  what Line, Round and stalks does the refusal name? (a) the first Round that
+  fails to replay, with its recorded stalks; (b) the Round the step would have
+  taken next; (c) those fields optional for that rule.
+- Ruling: "Q-67 to Q-69: A"
+- Folded into: not yet
+
+### R-098: `nextRound` returns the next Round or a refusal
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-68, from the slice 4 review)
+- Question: What does `nextRound` do with a partial Casting that does not
+  replay, or already holds 18 Rounds? (a) return either the next Round or a
+  refusal, like the steps (R-087, R-093); (b) a documented precondition;
+  (c) return `undefined`.
+- Ruling: "Q-67 to Q-69: A"
+- Folded into: not yet
+
+### R-099: The guard keeps 3–49 stalks for a Line's second and third Rounds
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-69, from the slice 4 review)
+- Question: Should `isCompleteCasting` restrict the second and third Rounds'
+  stalks to their possible values (44 or 40; 40, 36 or 32)? (a) keep 3–49 as
+  R-094 states, a Casting that slips through being caught when a step replays
+  it (R-093); (b) restrict them.
+- Ruling: "Q-67 to Q-69: A"
+- Folded into: not yet
+
+### R-100: The rule for a Casting that does not replay is named `'replay'`
+
+- Date: 2026-11-20
+- Raised in: M-001, the clerk's explanation of R-093's rule name
+- Question: R-093's rule `'casting'` names what failed, while the other rules
+  name a check. Rename it `'replay'`, after ADR-0026's "must replay"?
+- Ruling: "rename 'casting' to 'replay'"
+- Folded into: not yet (overrides R-093's rule name, per R-013)
