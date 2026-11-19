@@ -89,6 +89,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Open questions: none
 - Commits: –
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
+  The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
+  within R-018 (no re-export-only files), R-019 (`imports` aliases) and R-020 (a lint-visible purity boundary).
 
 ### M-002: Build drift signals 1–4
 
@@ -102,4 +104,4 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   fails on a planted violation and passes on the clean tree.
 - Open questions: none
 - Commits: –
-- Notes: –
+- Notes: The boundary rules must include R-020: the Oracle and the use cases import nothing effectful; effects reach them only through driven ports.
