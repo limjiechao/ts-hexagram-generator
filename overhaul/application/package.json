@@ -23,6 +23,11 @@
       "types": "./dist/random-source.d.mts",
       "import": "./dist/random-source.mjs"
     },
+    "./scripture-catalogue": {
+      "source": "./src/scripture-catalogue.ts",
+      "types": "./dist/scripture-catalogue.d.mts",
+      "import": "./dist/scripture-catalogue.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -37,6 +42,8 @@
     "type:check": "tsc --noEmit"
   },
   "dependencies": {
-    "@hexagram/consultation-journal": "workspace:*"
+    "@hexagram/consultation-journal": "workspace:*",
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
   }
 }

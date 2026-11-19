@@ -368,6 +368,12 @@ importers:
       '@hexagram/consultation-journal':
         specifier: workspace:*
         version: link:../consultation-journal
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+      '@hexagram/scripture-catalogue':
+        specifier: workspace:*
+        version: link:../scripture-catalogue
 
   overhaul/consultation-journal:
     dependencies:

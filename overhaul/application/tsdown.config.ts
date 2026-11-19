@@ -5,6 +5,7 @@ export default defineConfig({
     './src/clock.ts',
     './src/consultation-store.ts',
     './src/random-source.ts',
+    './src/scripture-catalogue.ts',
   ],
   platform: 'node',
 })
