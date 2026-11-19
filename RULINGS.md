@@ -458,3 +458,17 @@ Ruling quotes the option the owner chose, word for word.
   package names.
 - Ruling: "Q-M-001-5: A."
 - Folded into: not yet
+
+### R-030: Use case 1 is a sequence of steps; the caller holds the partial Casting
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-8)
+- Question: May a driving adapter call the Oracle directly, given ADR-0038's
+  pure Casting resource is not one of the ten use cases? (a) yes, for that
+  resource only, as one named exception; (b) `application` also exports a pure
+  Casting step outside the ten; (c) use case 1's signature is split into steps
+  (begin → divide or transcribe once per Division → keep), each returning the
+  partial Casting as an immutable value the caller holds, so the REST engine
+  maps each Casting URL onto one pure step and imports only `application`.
+- Ruling: "Q-M-001-8: C."
+- Folded into: not yet
