@@ -1184,3 +1184,73 @@ R-082 to R-085 were answered together, with the ratification of M-001's slice
   EditionId; (c) always `'in-copyright'`.
 - Ruling: "Edition as drafted: 1 A, 2 A"
 - Folded into: not yet
+
+R-087 to R-092 were answered together: "Q-57 to Q-62: A". Each records option
+(a) of its question.
+
+### R-087: A Division step returns the next Casting or a refusal naming the broken rule
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-57)
+- Question: How does a step refuse an invalid Pick or a failed Transcription
+  check? (a) a tagged result: the next Casting, or a refusal naming the broken
+  rule with what ADR-0038's `422` must name (Line, Round, stalks, Pick, the
+  rule); the caller decides what it means; (b) a precondition with a separate
+  check; (c) a typed thrown error.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
+
+### R-088: The Oracle derives a Round's stalk count from the Casting
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-58)
+- Question: Where does a Round's stalk count come from? (a) derived by the
+  Oracle: 49 at each Line's start, otherwise the previous Round's stalks minus
+  its Set-aside; (b) passed by the caller; (c) a new field on the partial
+  Casting.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
+
+### R-089: `nextRound` gives the next Round's stalks, valid Picks and Remainder Groups
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-59)
+- Question: Where do the next Round's valid Picks and Remainder Groups live?
+  (a) a separate pure Oracle function `nextRound(casting)` returning the stalk
+  count, the valid Picks (min and max) and the Remainder Groups keyed 1–4, in
+  ADR-0038's JSON shape, the Casting holding nothing derived (R-053(2)); (b)
+  fields on the partial Casting.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
+
+### R-090: `emptyCasting` is a constant, ADR-0038's Empty Casting
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-60)
+- Question: What starts a Casting? (a) a constant `emptyCasting`, ADR-0038's
+  Empty Casting, "begin" staying use case 1's step; (b) a function
+  `beginCasting()`.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
+
+### R-091: A Transcription's four fields may each be absent; the step checks completeness
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-61)
+- Question: What shape is a Transcription? (a) `{ pilesLeft, remainderLeft,
+pilesRight, remainderRight }`, each a number or `undefined`, so the step
+  applies ADR-0038's "complete" check itself; (b) four required numbers,
+  completeness checked by each adapter.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
+
+### R-092: The Division steps are `divide`, `transcribe`, `nextRound` and `emptyCasting` in `division.ts`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-62)
+- Question: What are the steps called and where do they live? (a) `divide`,
+  `transcribe`, `nextRound` and `emptyCasting` in `oracle/src/division.ts` on
+  subpath `./division`, after ADR-0038's form names and the glossary's
+  Division; (b) one file per function.
+- Ruling: "Q-57 to Q-62: A"
+- Folded into: not yet
