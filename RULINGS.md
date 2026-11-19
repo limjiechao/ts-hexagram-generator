@@ -159,3 +159,17 @@ Ruling quotes the option the owner chose, word for word.
   on its own and doesn't eat into implementation weeks. The Entry gate column
   already points to these rows."
 - Folded into: not yet
+
+### R-011: The week budgets of the two manuals
+
+- Date: 2026-11-19
+- Raised in: budget review against ADR-0040 (an orchestrator session, not a
+  Matter), question 3
+- Question: What week budgets should rows 4-pre (CLI manual:
+  `docs/manual/cli.md` drafted and ratified) and 5-pre (REST manual:
+  `docs/manual/rest.md` drafted and ratified) carry?
+- Ruling: "CLI 2 / REST 1. The CLI manual covers five commands, and each place
+  today's app differs from it needs a Ruling (R-008), so it gets 2 weeks. The
+  REST manual starts from ADR-0038 with no legacy behaviour to reconcile, so it
+  gets 1 week. That adds 3 weeks to the calendar."
+- Folded into: MATTERS.md (phase table)
