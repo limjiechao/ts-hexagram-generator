@@ -472,3 +472,21 @@ Ruling quotes the option the owner chose, word for word.
   maps each Casting URL onto one pure step and imports only `application`.
 - Ruling: "Q-M-001-8: C."
 - Folded into: not yet
+
+### R-031: Keep accepts only a complete Casting; the PWA imports `application` by subpath and trusts the engine
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-11)
+- Question: Under Layout C (R-025) and stepwise use case 1 (R-030), the PWA
+  runs keep and other use cases locally from `application`, which imports
+  `oracle`; ADR-0037 says the PWA bundles no Oracle, and ADR-0026 says a
+  Casting must replay to exactly its Transformation. Options: (a) the
+  invariant holds by construction: only the Oracle's last Division step makes
+  a complete Casting, keep accepts only that type and does no replay;
+  `application` exports each use case and step on its own subpath, the PWA
+  imports only those that import no `oracle`, and the PWA turns the engine's
+  JSON into a complete Casting at one named trust function; (b) the Oracle
+  behind a fifth driven port with in-process and REST-client adapters,
+  amending ADR-0037; (c) defer to Phase 6.
+- Ruling: "Q-M-001-11: A"
+- Folded into: not yet
