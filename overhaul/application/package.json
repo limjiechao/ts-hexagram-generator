@@ -1,0 +1,42 @@
+{
+  "name": "@hexagram/application",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The application: the use cases, and the driven ports they need from the outside world (ADR-0037)",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./clock": {
+      "source": "./src/clock.ts",
+      "types": "./dist/clock.d.mts",
+      "import": "./dist/clock.mjs"
+    },
+    "./consultation-store": {
+      "source": "./src/consultation-store.ts",
+      "types": "./dist/consultation-store.d.mts",
+      "import": "./dist/consultation-store.mjs"
+    },
+    "./random-source": {
+      "source": "./src/random-source.ts",
+      "types": "./dist/random-source.d.mts",
+      "import": "./dist/random-source.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/consultation-journal": "workspace:*"
+  }
+}
