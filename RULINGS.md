@@ -604,3 +604,30 @@ records option (a) of its question.
   ratify all at once; (c) lift the limit for M-001.
 - Ruling: "Q-M-001-13 to Q-M-001-19: A"
 - Folded into: not yet
+
+### R-041: The UTC offset is a checked, branded `±HH:MM` string
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-20)
+- Question: How is the UTC offset in Divined At's moment form written? (a)
+  `offsetMinutes: number`, signed minutes east of UTC; (b) a `±HH:MM` string as
+  ISO 8601 writes it, as a branded type only a checking function can create,
+  accepting exactly `+HH:MM` or `-HH:MM`; it copies straight into the record
+  (ADR-0030), reads the same everywhere, and makes a sign error visible
+  (`Date.prototype.getTimezoneOffset()` counts minutes west); (c) a branded
+  number of minutes.
+- Ruling: "Q-M-001-20: B"
+- Folded into: not yet
+
+### R-042: Divined At keeps both forms, told apart by a tag field
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-21)
+- Question: The glossary and ADR-0030 require both a moment form and a day-only
+  form (Recorded Consultations). How are they told apart? (a) keep both, with a
+  tag field (`precision` recommended, after ADR-0030's "the form shows the
+  precision"; `kind` the alternative), so a `switch` is exhaustiveness-checked;
+  (b) keep both, told apart by shape; (c) one form only, amending the glossary
+  and ADR-0030.
+- Ruling: "Q-M-001-21: A"
+- Folded into: not yet
