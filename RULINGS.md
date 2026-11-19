@@ -284,3 +284,23 @@ Ruling quotes the option the owner chose, word for word.
   question instead. That keeps the debugging discipline and sends its
   architecture step down the existing escalation route."
 - Folded into: not yet (`docs/agents/clerk.md` once the list is complete)
+
+### R-018: No barrel files; no-barrel-files admitted for implementer and reviewer
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), convention 1 of 4 under R-016
+- Question: Convention 1/4, no-barrel-files: ADR-0003 only rules out a single
+  barrel. The skill also bans re-export-only files and directory imports, and
+  discourages a root "." entry pointing at an index barrel. Today's
+  `domain/core/src/index.ts` is real implementation, not a barrel. What, if
+  anything, should be ratified so the skill can be admitted (implementer and
+  reviewer)?
+- Ruling: "Ratify the core rule. In the repo's words: no file whose only job is
+  re-exporting, no directory imports, and a public surface only through
+  explicit `exports` entries pointing at real implementation files. An `index`
+  entry is allowed only when it is real implementation, as core's is today.
+  The skill's `#…` import examples license nothing until the
+  package-public-api question is settled. Then admit the skill for implementer
+  and reviewer."
+- Folded into: not yet (an amendment to ADR-0003)
