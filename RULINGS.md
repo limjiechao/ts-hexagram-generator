@@ -977,3 +977,57 @@ string }`; `witness: { description: string, retrievedOn?: Day } |
   prose.
 - Ruling: "Q-M-001-44: A"
 - Folded into: not yet (overrides R-063 on `commentaries`, per R-013)
+
+R-071 to R-074 were answered together, with the ratification of M-001's slice
+2: "ratify slice 2 with the R-070 edit, choices as recommended; Q-45 to Q-47:
+A".
+
+### R-071: Slice 2's drafted choices are kept as the reviewer recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, the slice 2 review's list of choices the library does not
+  license
+- Question: Keep (1) ports as `readonly` function properties; (2) member names
+  `now`, `integerBelow`, `keep`, `list`, `get`, `remove`, `deletionRecords`;
+  (3) Random Source as one `integerBelow(bound)`; (4) Deletion Record as
+  `{ consultationId, deletedAt: Moment }`; (5) EditionId's pattern
+  `^[a-z0-9]+(?:-[a-z0-9]+)*$`; (6) EditionId in its own file before Edition;
+  (7) per-Work Citation types and `list`'s result type unexported; (8)
+  `readonly` arrays where R-063 wrote `EditionId[]`?
+- Ruling: "choices as recommended"
+- Folded into: not yet
+
+### R-072: The Hexagram Statement Citation forbids a `line`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-45, from the slice 2 review)
+- Question: A 經 Line Statement Citation is assignable to the Hexagram Statement
+  shape. (a) add `readonly line?: never` to the Hexagram Statement shape,
+  keeping R-061's shapes; (b) keep as ruled, narrowing with `'line' in c`;
+  (c) add a tag, amending R-061.
+- Ruling: "Q-45 to Q-47: A"
+- Folded into: not yet
+
+### R-073: Random Source's bound is a caller-guaranteed precondition
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-46, from the slice 2 review)
+- Question: What happens on a bad `bound` (0, negative, non-integer, above
+  2³²)? (a) the doc comment states the precondition, a positive integer ≤ 2³²
+  guaranteed by the caller; (b) a branded bound with a guard; (c) adapters
+  throw `RangeError`.
+- Ruling: "Q-45 to Q-47: A"
+- Folded into: not yet
+
+### R-074: The Store's keep and remove are idempotent
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-47, from the slice 2 review)
+- Question: What do `keep` and `remove` do with an Id the Store already has?
+  (a) both are idempotent, stated in the port's doc comments: `remove` always
+  keeps the Deletion Record, even for an Id never held or already deleted;
+  `keep` of an Id already held does nothing, the same Id always meaning the
+  same content (ADR-0030), so merging stays symmetric and idempotent
+  (ADR-0037); (b) both reject a repeat; (c) left to each adapter.
+- Ruling: "Q-45 to Q-47: A"
+- Folded into: not yet
