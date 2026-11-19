@@ -62,3 +62,18 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 12 this iteration (rulings 11 · ratifications 1 · test-list approvals 0); 36 in M-001 so far
 - Landed: f643475, f905f13 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: slice 1 squashed per package on landing (R-049); attempt branches m/M-001-a1 and m/M-001-a2 are left for the owner to delete.
+
+### Iteration 3 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 2; attempts per slice, R-058) · Outcome: slice 2 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (guard and type-level tests were red first)
+- Brief size (signal 7): ~1,600 lines of required reading per implementer; ~40 for the line-edit pass
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-001-45 to Q-M-001-47 (ruled R-072 to R-074)
+- Suggestions to the architect: 2 (narrow commentaries; a code-only assertion check) · batched for the owner (y)
+- Verify: type:check pass · lint 0 errors, none in overhaul/ · format pass · build and test forced on matters 17/17 and 31/31 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files slice 2's types and three ports; ratified 2026-11-20 before landing (y)
+- Owner touches: 19 this iteration (rulings 18 · ratifications 1 · test-list approvals 0); 55 in M-001 so far
+- Landed: de26925, 146eaf5, c0e8a31, 4c7e1d4 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: slice 2 stopped at R-040's size limit, so Edition and the Scripture Catalogue port move to slice 3.
+  The reading-preference.ts comment "all of the 十翼" was flagged to the owner as possibly read as all ten wings.
