@@ -359,3 +359,39 @@ Ruling quotes the option the owner chose, word for word.
   and value types live) as one set, with options side by side. Ratify them
   together; the skill is admitted then if its rules fit the result."
 - Folded into: MATTERS.md (M-001 notes)
+
+### R-022: How M-001's package-layout proposal is drafted
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-1)
+- Question: R-021's package-layout proposal (package axis, granularity and
+  in-package structure, side by side, within R-018 to R-020) needs drafting
+  before it can be ruled on. Options: (a) a fresh agent drafts 2–3 complete
+  layouts side by side to `docs/reviews/2026-11-19-m-001-package-layout.md`,
+  a non-binding draft for the owner to rule on; (b) the owner runs a copilot
+  session; (c) a spike checks the toolchain support for `imports` aliases
+  (`#src/*`) under tsdown and vitest that R-019 left unverified.
+- Ruling: "1(a) & 1(c)". The owner chose option (a), and started the spike in
+  option (c).
+- Folded into: not yet
+
+### R-023: The shape of M-001's Acceptance
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-2)
+- Question: What command is M-001's Acceptance? Recommended shape:
+  `pnpm type:check && pnpm --filter <skeleton-package> test`, where the
+  skeleton test drives one use case from a driving adapter, through the
+  application, to a stub driven adapter. The package name and use case are
+  set when the layout is ratified.
+- Ruling: "recommended shape for 2"
+- Folded into: MATTERS.md (M-001 Acceptance)
+
+### R-024: M-001's Free to choose is drafted with the layout proposal
+
+- Date: 2026-11-19
+- Raised in: M-001 (question Q-M-001-3)
+- Question: What is M-001's Free to choose? Recommended: drafted in the same
+  document as the layout proposal and ratified together with it.
+- Ruling: "3 as recommended"
+- Folded into: not yet
