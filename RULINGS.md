@@ -342,3 +342,20 @@ Ruling quotes the option the owner chose, word for word.
   covers effectful modules and globals.
 - Folded into: not yet (an amendment to ADR-0037, per R-004 and R-013; the
   lint goes in M-002's boundary rules)
+
+### R-021: In-package structure is decided with M-001's package layout
+
+- Date: 2026-11-19
+- Raised in: review of the context chain agents read (an orchestrator session,
+  not a Matter), convention 4 of 4 under R-016
+- Question: Convention 4/4, vertical-code-structure: the within-package half
+  is not fully congruent with M-001. Its "never by type" rule would catch
+  hexagonal role folders (ports/, adapters/, use-cases/) inside a coarse
+  package, which nudges M-001 towards fine packages, and banning `types`
+  shapes how M-001 lays out the value types. What now?
+- Ruling: "Defer all to M-001. Keep the skill off for now. M-001's
+  package-layout proposal must cover package axis (contexts vs layers),
+  granularity and in-package structure (incl. the by-kind ban and where ports
+  and value types live) as one set, with options side by side. Ratify them
+  together; the skill is admitted then if its rules fit the result."
+- Folded into: MATTERS.md (M-001 notes)
