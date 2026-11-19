@@ -1,0 +1,62 @@
+{
+  "name": "@hexagram/consultation-journal",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The Consultation Journal (supporting domain): Consultations, Cast or Recorded, and what they keep",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./cast-consultation": {
+      "source": "./src/cast-consultation.ts",
+      "types": "./dist/cast-consultation.d.mts",
+      "import": "./dist/cast-consultation.mjs"
+    },
+    "./consultation": {
+      "source": "./src/consultation.ts",
+      "types": "./dist/consultation.d.mts",
+      "import": "./dist/consultation.mjs"
+    },
+    "./consultation-id": {
+      "source": "./src/consultation-id.ts",
+      "types": "./dist/consultation-id.d.mts",
+      "import": "./dist/consultation-id.mjs"
+    },
+    "./divined-at": {
+      "source": "./src/divined-at.ts",
+      "types": "./dist/divined-at.d.mts",
+      "import": "./dist/divined-at.mjs"
+    },
+    "./division-method": {
+      "source": "./src/division-method.ts",
+      "types": "./dist/division-method.d.mts",
+      "import": "./dist/division-method.mjs"
+    },
+    "./query": {
+      "source": "./src/query.ts",
+      "types": "./dist/query.d.mts",
+      "import": "./dist/query.mjs"
+    },
+    "./recorded-consultation": {
+      "source": "./src/recorded-consultation.ts",
+      "types": "./dist/recorded-consultation.d.mts",
+      "import": "./dist/recorded-consultation.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/oracle": "workspace:*"
+  }
+}

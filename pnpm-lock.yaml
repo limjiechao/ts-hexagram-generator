@@ -363,6 +363,12 @@ importers:
         specifier: ^8.2.1
         version: 8.2.1
 
+  overhaul/consultation-journal:
+    dependencies:
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+
   overhaul/oracle: {}
 
 packages:
