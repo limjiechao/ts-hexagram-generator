@@ -1041,3 +1041,77 @@ A".
   all ten wings, while the list holds four of them. Change it?
 - Ruling: "change it to \"Commentaries, from the 十翼 Works\""
 - Folded into: not yet (applied as a line-edit in M-001's slice 3)
+
+R-076 to R-081 were answered together: "Q-48 to Q-53: A". Each records option
+(a) of its question.
+
+### R-076: `scripture-catalogue` may depend on `consultation-journal`, for `Day`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-48)
+- Question: R-068 types an Edition's `retrievedOn?: Day`, but `Day` and
+  `isDay` live in `consultation-journal`, and Layout C (R-025) lets context
+  packages import only `oracle`. (a) add the arrow `scripture-catalogue` →
+  `consultation-journal`, reusing the ratified guard (no cycle; M-002's lint
+  lists it); (b) move `Day` and `isDay` into `oracle`; (c) a separate day type
+  for the witness.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
+
+### R-077: Hexagram names come one per Edition shown, each labelled with its Edition
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-49)
+- Question: What does the catalogue's "names" cover (ADR-0025: names belong to
+  an Edition)? (a) one name per Edition shown, the Chinese one plus each
+  chosen Translation in order, each labelled with its Edition, like passage
+  text; (b) one name per Hexagram from the Edition of the preferred script;
+  (c) every Edition's name, ignoring Reading Preference. A Received Sequence
+  Number stays out of M-001's slice 3.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
+
+### R-078: A passage-text result is `{ citation, edition: Edition, text }`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-50)
+- Question: What does a passage-text result carry (the glossary: it names its
+  Edition and its Witness)? (a) `{ citation, edition: Edition, text }`,
+  self-describing as ADR-0038 labels text with its Edition; (b) `{ citation,
+editionId, text }`; (c) `{ edition, text }`.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
+
+### R-079: The Scripture Catalogue port has one member per lookup, each returning a possibly empty list
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-51)
+- Question: What shape is the Scripture Catalogue port? (a)
+  `passageTexts(citation, preference)`, `hexagramNames(hexagram, preference)`
+  and `editions(work)`, each returning a `readonly` array, empty when missing
+  or gated (R-064), Reading Preference passed per call as the reader's; (b)
+  the same members returning `undefined` on a miss.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
+
+### R-080: A Yilin Verse is a passage text with a `yilin` Citation
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-52)
+- Question: Is a Yilin Verse its own result type? (a) no: it is a passage text
+  whose Citation is R-061's `yilin` shape, returned by `passageTexts`, with no
+  separate member; (b) its own type and member `yilinVerses(standing,
+emerging, preference)`.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
+
+### R-081: `yilinVerse: false` hides the verse from readings only, not from lookups
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-53)
+- Question: Does Reading Preference's `yilinVerse: false` also hide the verse
+  from use case 8? (a) no: it shapes what a reading shows (use case 3); an
+  explicit lookup (use case 8) returns what was asked for, the Licence Gate
+  still applying; (b) yes, everywhere.
+- Ruling: "Q-48 to Q-53: A"
+- Folded into: not yet
