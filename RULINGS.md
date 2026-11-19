@@ -173,3 +173,19 @@ Ruling quotes the option the owner chose, word for word.
   REST manual starts from ADR-0038 with no legacy behaviour to reconcile, so it
   gets 1 week. That adds 3 weeks to the calendar."
 - Folded into: MATTERS.md (phase table)
+
+### R-012: Manuals are drafted after the previous phase lands, not during it
+
+- Date: 2026-11-19
+- Raised in: budget review against ADR-0040 (an orchestrator session, not a
+  Matter), question 4
+- Question: MATTERS.md says the clerk raises "draft the manual" only once the
+  phase before the gate lands, so the 4-pre and 5-pre weeks are added to the
+  calendar one after another. Should a manual instead be drafted while the
+  previous phase is still running (e.g. the CLI manual during Phase 3)?
+- Ruling: "Keep serial. Leave things as they are. The bottleneck is your
+  attention, not the calendar (ADR-0040, Limits). Drafting a manual alongside
+  a phase means one mind serves two queues, which is the risk ADR-0040 gave for
+  rejecting parallel channels. Also, the CLI manual benefits from seeing the
+  ratified Oracle core."
+- Folded into: MATTERS.md (already states it; no change)
