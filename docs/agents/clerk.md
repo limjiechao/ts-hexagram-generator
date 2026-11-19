@@ -47,6 +47,21 @@ in Tier A**.
 - **Spikes are the owner's.** Never start a spike. You may offer one as an
   option in a question batch (ADR-0040, "Spikes").
 
+- **Skills.** Each role uses only the skills listed for it (R-014, R-016 to
+  R-019). Every brief repeats this, and no other skill applies, including
+  any skill that claims it must run first. A skill is added only by a
+  Ruling.
+
+  | Role        | Skills                                                                                                                                                                                                                                                                                                                                                                                                                           |
+  | ----------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+  | Tester      | `jiechao-toolkit:spec-audit`, `jiechao-toolkit:ink-useinput-bind`, `jiechao-toolkit:cross-platform-tests`, `jiechao-toolkit:ansi-color-piping`                                                                                                                                                                                                                                                                                   |
+  | Implementer | `superpowers:test-driven-development`, `superpowers:systematic-debugging`, `superpowers:verification-before-completion`, `jiechao-toolkit:capturing-commit-intent`, `jiechao-toolkit:reviewable-changes`, `jiechao-toolkit:ink-useinput-bind`, `jiechao-toolkit:cross-platform-tests`, `jiechao-toolkit:ansi-color-piping`, `typescript-advanced-types`, `jiechao-toolkit:no-barrel-files`, `jiechao-toolkit:package-public-api` |
+  | Reviewer    | `jiechao-toolkit:reviewable-changes`, `jiechao-toolkit:no-barrel-files`, `jiechao-toolkit:package-public-api`                                                                                                                                                                                                                                                                                                                    |
+  | Clerk       | `jiechao-toolkit:capturing-commit-intent`, `superpowers:verification-before-completion`                                                                                                                                                                                                                                                                                                                                          |
+
+  Wherever an allowed skill says to ask "your human partner", the agent
+  instead stops and reports a question (§3) (R-017).
+
 - **Serial.** One Matter at a time, in the build order in `MATTERS.md`. Never run
   agents in parallel on design or on two Matters.
 - **Budgets.** Before a phase starts, its budget must be set in `MATTERS.md`. If it
@@ -138,6 +153,9 @@ implementer. Brief:
 > Transformations, the 64 Hexagrams, every valid Pick of every Round. Commit
 > only the tests: `test(<scope>): acceptance for <M-id>`. Report the test paths,
 > and confirm that they fail now.
+>
+> Use only these skills: <paste the Tester row from §0>. No other skill
+> applies.
 
 Every spec hole becomes a question (§3), and the Matter goes to
 `awaiting-ruling`. When all have Rulings, dispatch a fresh tester (ADR-0040, "The tester audits the spec").
@@ -172,6 +190,9 @@ Its rules:
   - add a dependency;
   - exceed about 400 changed lines.
 - Decide freely anything the `Free to choose` field lists.
+- Use only these skills: <paste the Implementer row from §0>. No other skill
+  applies. Where one says to ask "your human partner", stop and report a
+  question.
 - The report may end with **suggestions to the architect**: at most 3 lines,
   never a reason to stop (ADR-0040, "Decision tiers").
 
@@ -195,7 +216,8 @@ reasoning. It checks:
 - whether the diff serves only its own acceptance tests at a cost to the user
   or the other channels (MM-M prop. 9.6).
 
-It replies `APPROVE` or `REQUEST_CHANGES`, with at most 5 blocking findings
+Its brief also says: "Use only these skills: <paste the Reviewer row from
+§0>. No other skill applies." It replies `APPROVE` or `REQUEST_CHANGES`, with at most 5 blocking findings
 giving path:line. **It never proposes new architecture.** A design finding
 becomes a question for the owner (§3), not a change request.
 

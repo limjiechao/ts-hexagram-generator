@@ -223,7 +223,7 @@ Ruling quotes the option the owner chose, word for word.
   none. Every brief says no other skill applies. It's mechanical and easy to
   check, and it fits "agents execute, never decide". The exact list would be
   the next question."
-- Folded into: not yet
+- Folded into: `docs/agents/clerk.md` (§0 Skills and each brief)
 
 ### R-015: When overhaul code disagrees with the library, the library is presumed right
 
@@ -283,7 +283,7 @@ Ruling quotes the option the owner chose, word for word.
   skill says to ask "your human partner", the implementer stops and reports a
   question instead. That keeps the debugging discipline and sends its
   architecture step down the existing escalation route."
-- Folded into: not yet (`docs/agents/clerk.md` once the list is complete)
+- Folded into: `docs/agents/clerk.md` (§0 Skills and the implementer brief)
 
 ### R-018: No barrel files; no-barrel-files admitted for implementer and reviewer
 
@@ -303,7 +303,7 @@ Ruling quotes the option the owner chose, word for word.
   The skill's `#…` import examples license nothing until the
   package-public-api question is settled. Then admit the skill for implementer
   and reviewer."
-- Folded into: not yet (an amendment to ADR-0003)
+- Folded into: skill admission in `docs/agents/clerk.md` (§0 Skills); the convention not yet (an amendment to ADR-0003)
 
 ### R-019: In-package code shares through `imports` aliases; package-public-api admitted
 
@@ -320,7 +320,7 @@ Ruling quotes the option the owner chose, word for word.
   chains; admit the skill for implementer and reviewer. That's a uniform rule
   from day one, but it's decided before the layout and with the toolchain
   support unverified (a spike could check it)."
-- Folded into: not yet (an amendment to ADR-0003)
+- Folded into: skill admission in `docs/agents/clerk.md` (§0 Skills); the convention not yet (an amendment to ADR-0003)
 
 ### R-020: Purity is checked, not labelled; functional-core-imperative-shell stays off
 
