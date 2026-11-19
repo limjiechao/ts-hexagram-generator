@@ -86,7 +86,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Free to choose: _owner to ratify_; drafted in the layout proposal and ratified with it (R-024).
 - Acceptance: `pnpm type:check && pnpm --filter <skeleton-package> test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023). Package and use case are set when the layout is ratified.
-- Open questions: none awaiting a Ruling; next owner step is ratifying the layout proposal (R-022), after spike/Q-M-001-1
+- Open questions: Q-M-001-4 (ratify a layout and its Free to choose, from docs/reviews/2026-11-19-m-001-package-layout.md);
+  Q-M-001-5 to Q-M-001-10 (that draft's open questions Q1–Q6: workspace location, skeleton Oracle scope, Consultation Id, adapter→Oracle, Remainder-Group policy home, pure-package platform)
 - Commits: –
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
