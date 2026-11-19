@@ -1031,3 +1031,13 @@ A".
   (ADR-0037); (b) both reject a repeat; (c) left to each adapter.
 - Ruling: "Q-45 to Q-47: A"
 - Folded into: not yet
+
+### R-075: Reading Preference's commentaries comment reads "Commentaries, from the 十翼 Works"
+
+- Date: 2026-11-20
+- Raised in: M-001, the clerk's note on slice 2's landed
+  `scripture-catalogue/src/reading-preference.ts`
+- Question: The ratified comment "Commentaries, all of the 十翼" can be read as
+  all ten wings, while the list holds four of them. Change it?
+- Ruling: "change it to \"Commentaries, from the 十翼 Works\""
+- Folded into: not yet (applied as a line-edit in M-001's slice 3)
