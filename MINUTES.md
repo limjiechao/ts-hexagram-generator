@@ -134,3 +134,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 10 this iteration (rulings 9 · ratifications 1 · test-list approvals 0); 96 in M-001 so far
 - Landed: b6f0605 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: R-111 makes the port-passing style and article-free names cross-module conventions.
+
+### Iteration 8 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 6; R-058) · Outcome: slice 6 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (type-level tests were red first)
+- Brief size (signal 7): ~1,300 lines of required reading (first implementer); ~40 for each later pass
+- Review: `APPROVE` (0 blocking; the reviewer checked Open's built output for Oracle code) · design findings sent to owner: Q-M-001-80 to Q-M-001-83 (ruled R-113, R-114, R-116, R-117)
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · build and test forced on matters 17/17 and 32/32 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files slice 6's Resolution, Citation edit and use cases 3, 5; CONTEXT.md Passage Reference; ratified before landing (y)
+- Owner touches: 6 this iteration (rulings 5 · ratifications 1 · test-list approvals 0); 102 in M-001 so far
+- Landed: 6da7728, 5f45524, 1918732 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: R-113 amends ADR-0037's use case 5 (Open only loads) so the PWA can run it without the Oracle.
