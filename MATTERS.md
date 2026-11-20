@@ -36,7 +36,7 @@ from its actual figures when it lands (R-006).
 
 | Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                            | Owner touches (cap / used) | Brief cap (lines)   | Entry gate                     | Status                      |
 | ----- | --------------------------------------------------------- | ------------------------ | ----------------------------------------------------------- | -------------------------- | ------------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 3 Matters / 2 weeks (M-001: slices 1–3 of ~5 landed, day 2) | uncapped / 68              | uncapped            | –                              | pending                     |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 3 Matters / 2 weeks (M-001: slices 1–4 of ~6 landed, day 2) | uncapped / 86              | uncapped            | –                              | pending                     |
 | 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | –                                                           | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | pending                     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                           | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                           | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ratification
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,14 +87,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: none (Q-M-001-70 withdrawn: R-101 makes an 18-Round partial Casting unrepresentable). R-097, R-099,
-  R-100, R-098, R-101 applied (to 56dde43); slice 4 ratified 2026-11-20 with R-102, R-103
-  line-edits (to apply before landing). Then slice 4 comes back for ratification with its line-edits. Slice 4 attempt 2 (to 5aab344) approved. Q-63 to Q-66
-  ruled as R-093 to R-096. Q-57 to Q-62 ruled as R-087 to R-092. Slice 4 partial on m/M-001-s4: 2083890 (isCompleteCasting).
-  Then slice 5 (use cases), slice 6 (cli-adapter). Q-48 to Q-53 ruled as R-076 to R-081. Slice 3 partial on m/M-001-s3: 4b99046, 9b03647. Slice 2 landed;
-  Edition and the catalogue port move to slice 3 under R-040; Q-42 to Q-44 ruled as R-068 to R-070. Slice 2 questions Q-33 to Q-41 ruled as R-059 to R-067.
-  Slice 2 partial on m/M-001-s2: 840943d, cbd688a. Q-32 R-058 (attempts per slice). Slice 1 ratified 2026-11-20 and landed; next slice 2 (application and its four ports); Q-30 R-055, Q-31 R-056. Q-25 R-050, Q-26 R-046, Q-27 R-047, Q-28 R-048, Q-29 R-049; R-051 no type assertions; R-052 slice 1 line-edits. Attempt 1 failed at review. Q-20 R-041, Q-21 R-042, Q-22 R-043, Q-23 R-044, Q-24 R-045. Q-13 to Q-19 ruled as R-034 to R-040; slices per R-040. Attempt 1 slice 1 on m/M-001-a1: 8c3660b, 45d6c7d. Order of work: R-033. Ruled: Q-1 R-022, Q-2 R-023, Q-3 R-024, Q-4 R-025, Q-7 R-032, Q-5 R-029, Q-6 R-028, Q-8 R-030, Q-11 R-031, Q-9 R-026, Q-10 R-027.
-- Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31
+- Open questions: none. Slices 1–4 ratified and landed. Next slice 5 (the ten use-case signatures), then slice 6
+  (cli-adapter), then the tester (R-033). Q-1 to Q-71 ruled as R-022 to R-103.
+- Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
   within R-018 (no re-export-only files), R-019 (`imports` aliases) and R-020 (a lint-visible purity boundary).

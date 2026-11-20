@@ -106,3 +106,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 6 this iteration (rulings 6); 74 in M-001 so far
 - Landed: – · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: attempt 2 of slice 4 is its last. Branch m/M-001-s4 (2083890, 7fecf66) is attempt 1.
+
+### Iteration 6 — M-001 — 2026-11-20
+
+- Attempt: 2/2 (slice 4; R-058) · Outcome: slice 4 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a. (guard and type-level tests were red first)
+- Brief size (signal 7): ~900 lines of required reading (attempt 2); ~60 for each of three line-edit passes
+- Review: `APPROVE` (0 blocking; the reviewer tried malformed inputs against the guard) · design findings sent to owner: Q-M-001-67 to Q-M-001-69, then Q-70 (withdrawn) and Q-71 (ruled R-101)
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · build and test forced on matters 17/17 and 32/32 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files oracle's casting.ts (R-101) and slice 4's division.ts and complete-casting.ts; ratified before landing (y)
+- Owner touches: 12 this iteration (rulings 11 · ratifications 1 · test-list approvals 0); 86 in M-001 so far
+- Landed: c27e0f7 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: R-101 replaced a refusal for an impossible partial Casting with a type that cannot hold one, amending R-053(1).
