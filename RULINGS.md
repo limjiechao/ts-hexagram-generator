@@ -1525,3 +1525,31 @@ R-111 and R-112 were answered together, with the ratification of M-001's slice
   amending slice 1.
 - Ruling: "Q-79 A"
 - Folded into: not yet
+
+R-113 and R-114 were answered together: "Q-80 A, Q-81 A".
+
+### R-113: Use case 5 only loads; the caller resolves
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-80, from slice 6's draft)
+- Question: ADR-0037 defines Open as "load it, then Resolve its
+  Transformation" and has the PWA run it locally, but Resolving calls the
+  Oracle, which the PWA cannot import (R-031). (a) use case 5 only loads:
+  `openConsultation({ consultationStore }, id)` returns the Consultation or
+  `undefined`, and the caller resolves (the CLI through use case 3, the PWA
+  through the engine's link), amending ADR-0037's wording for use case 5;
+  (b) keep it as stated and settle the PWA in Phase 6; (c) the Oracle behind a
+  port.
+- Ruling: "Q-80 A"
+- Folded into: not yet (overrides ADR-0037's use case 5 wording, per R-013)
+
+### R-114: The Resolution's Hexagram structure stays separate from ADR-0025's table row
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-81, from slice 6's draft)
+- Question: Should the Resolution reuse the 64-row table's rows (which add the
+  Fuxi Sequence Number)? (a) keep them separate, since the glossary's
+  Resolution has no Fuxi number and the table does not exist yet; (b) hold the
+  row type when the table arrives.
+- Ruling: "Q-81 A"
+- Folded into: not yet
