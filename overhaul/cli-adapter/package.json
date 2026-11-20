@@ -1,0 +1,21 @@
+{
+  "name": "@hexagram/cli-adapter",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "description": "The CLI adapter: the channel that invokes the use cases from a terminal, and the composition root that wires the driven ports to adapters (ADR-0037)",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/application": "workspace:*"
+  }
+}
