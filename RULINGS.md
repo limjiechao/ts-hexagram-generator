@@ -1494,3 +1494,34 @@ remainderGroups) → Pick`, which applies R-026's package (named
   contradicting R-032.
 - Ruling: "Q-72 to Q-78: A"
 - Folded into: not yet
+
+R-111 and R-112 were answered together, with the ratification of M-001's slice
+5: "ratify slice 5, choices as recommended; Q-79 A".
+
+### R-111: Slice 5's drafted choices; use-case and step names drop articles
+
+- Date: 2026-11-20
+- Raised in: M-001, the slice 5 review's list of choices the library does not
+  license
+- Question: Keep (1) the port-passing style: a `ports` object holding only the
+  ports needed, then the inputs as plain parameters, as a cross-module
+  convention; (2) each function's ports typed inline; (4) use case 8 as three
+  functions on one subpath; (5) the Query and Division Method entering only at
+  keep; (6) Browse leaving Unreadable files unfiltered, an empty filter
+  keeping everything; (7) keep and record returning the kept Consultation; (8)
+  `beginCasting` returning the shared `emptyCasting`; and settle (3) file and
+  subpath names drop articles (`record-consultation`, `resolve-transformation`)?
+- Ruling: "choices as recommended"
+- Folded into: not yet
+
+### R-112: keep trusts the caller's Division Method
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-79, from the slice 5 review)
+- Question: keep cannot check the Division Method against how the Casting was
+  made. (a) keep trusts the caller and its comment says so, since ADR-0027
+  records who divided and only the caller knows (even `divide` cannot tell
+  Virtual from Automatic); (b) record the method on the partial Casting,
+  amending slice 1.
+- Ruling: "Q-79 A"
+- Folded into: not yet
