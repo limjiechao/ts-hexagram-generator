@@ -1721,3 +1721,18 @@ recommended".
   its body?
 - Ruling: "ratify slice 7, line-edits as recommended"
 - Folded into: not yet
+
+### R-127: cli-adapter has no public surface until Phase 4
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-91, from slice 8)
+- Question: tsdown builds a package from its `exports`, so a package with
+  nothing to export cannot build. (a) `cli-adapter` is `"private": true`, with
+  no `exports` beyond `./package.json`, no build script and no
+  `tsdown.config.ts` until Phase 4 adds the CLI's entry point; its composition
+  root is an unexported `src/composition-root.ts`; it keeps `type:check` and
+  `test` so R-023's command runs, as the legacy `apps/cli` is private with no
+  `exports`; (b) an exported placeholder subpath; (c) a tsdown entry with no
+  matching `exports` entry, breaking ADR-0003.
+- Ruling: "Q-M-001-91: A"
+- Folded into: not yet
