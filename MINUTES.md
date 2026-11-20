@@ -120,3 +120,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 12 this iteration (rulings 11 · ratifications 1 · test-list approvals 0); 86 in M-001 so far
 - Landed: c27e0f7 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: R-101 replaced a refusal for an impossible partial Casting with a type that cannot hold one, amending R-053(1).
+
+### Iteration 7 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 5; R-058) · Outcome: slice 5 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a.
+- Brief size (signal 7): ~1,500 lines of required reading (first implementer); ~40 for each later pass
+- Review: `APPROVE` (0 blocking; the reviewer checked the built output for Oracle code in the PWA's subpaths) · design findings sent to owner: Q-M-001-79 (ruled R-112); Browse's matching and order left to the tester's spec audit
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · build and test forced on matters 17/17 and 32/32 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files slice 5's use-case signatures; ratified before landing (y)
+- Owner touches: 10 this iteration (rulings 9 · ratifications 1 · test-list approvals 0); 96 in M-001 so far
+- Landed: b6f0605 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: R-111 makes the port-passing style and article-free names cross-module conventions.
