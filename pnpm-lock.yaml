@@ -383,6 +383,10 @@ importers:
       '@hexagram/application':
         specifier: workspace:*
         version: link:../application
+    devDependencies:
+      '@hexagram/scripture-catalogue':
+        specifier: workspace:*
+        version: link:../scripture-catalogue
 
   overhaul/consultation-journal:
     dependencies:
