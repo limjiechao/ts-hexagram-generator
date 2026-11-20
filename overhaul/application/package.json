@@ -53,6 +53,11 @@
       "types": "./dist/next-round.d.mts",
       "import": "./dist/next-round.mjs"
     },
+    "./open-consultation": {
+      "source": "./src/open-consultation.ts",
+      "types": "./dist/open-consultation.d.mts",
+      "import": "./dist/open-consultation.mjs"
+    },
     "./random-source": {
       "source": "./src/random-source.ts",
       "types": "./dist/random-source.d.mts",
@@ -62,6 +67,11 @@
       "source": "./src/record-consultation.ts",
       "types": "./dist/record-consultation.d.mts",
       "import": "./dist/record-consultation.mjs"
+    },
+    "./resolve-transformation": {
+      "source": "./src/resolve-transformation.ts",
+      "types": "./dist/resolve-transformation.d.mts",
+      "import": "./dist/resolve-transformation.mjs"
     },
     "./scripture-catalogue": {
       "source": "./src/scripture-catalogue.ts",
