@@ -222,6 +222,12 @@ Hexagram's own transformation onward (姤 初六 belongs to 姤之乾, not to
 乾之姤).
 _Avoid_: selection, primary line, 主爻 (no ranking exists).
 
+**Passage Reference**:
+The Oracle's name for a passage of the 經: a Hexagram's Hexagram Statement,
+a Line Statement by its Line Position, or the All-Moving Statement. It names
+a passage, never its text; the Catalogue's 經 Citation is built on it.
+_Avoid_: reference (alone).
+
 ## Scripture Catalogue
 
 **Work**:
