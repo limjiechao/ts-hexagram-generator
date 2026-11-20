@@ -43,6 +43,11 @@
       "types": "./dist/line-value.d.mts",
       "import": "./dist/line-value.mjs"
     },
+    "./passage-reference": {
+      "source": "./src/passage-reference.ts",
+      "types": "./dist/passage-reference.d.mts",
+      "import": "./dist/passage-reference.mjs"
+    },
     "./pick": {
       "source": "./src/pick.ts",
       "types": "./dist/pick.d.mts",
@@ -52,6 +57,11 @@
       "source": "./src/remainder.ts",
       "types": "./dist/remainder.d.mts",
       "import": "./dist/remainder.mjs"
+    },
+    "./resolution": {
+      "source": "./src/resolution.ts",
+      "types": "./dist/resolution.d.mts",
+      "import": "./dist/resolution.mjs"
     },
     "./round": {
       "source": "./src/round.ts",
@@ -67,6 +77,11 @@
       "source": "./src/transformation.ts",
       "types": "./dist/transformation.d.mts",
       "import": "./dist/transformation.mjs"
+    },
+    "./trigram": {
+      "source": "./src/trigram.ts",
+      "types": "./dist/trigram.d.mts",
+      "import": "./dist/trigram.mjs"
     },
     "./package.json": "./package.json"
   },
