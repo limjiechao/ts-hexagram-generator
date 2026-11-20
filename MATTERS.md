@@ -34,16 +34,16 @@ Two sets of figures sit side by side (ADR-0040, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                           | Owner touches (cap / used) | Brief cap (lines)   | Entry gate                     | Status                      |
-| ----- | --------------------------------------------------------- | ------------------------ | ---------------------------------------------------------- | -------------------------- | ------------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 3 Matters / 2 weeks (M-001: slices 1–7 of 8 landed, day 2) | uncapped / 112             | uncapped            | –                              | pending                     |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | –                                                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | pending                     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
-| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                          | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                          | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/cli.md` ratified  | not yet broken into Matters |
-| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                                                          | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
-| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                                                          | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                                                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
+| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                                                | Owner touches (cap / used) | Brief cap (lines)   | Entry gate                     | Status                      |
+| ----- | --------------------------------------------------------- | ------------------------ | ------------------------------------------------------------------------------- | -------------------------- | ------------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 3 Matters / 2 weeks (M-001: incision code done, 8 slices; skeleton next, day 2) | uncapped / 116             | uncapped            | –                              | pending                     |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | –                                                                               | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | pending                     |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                                               | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
+| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                                               | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                                               | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/cli.md` ratified  | not yet broken into Matters |
+| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                                                                               | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
+| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                                                                               | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                                                                               | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
 
 Phases 3–6 are broken into Matters by the owner, with the copilot, when
 the previous phase lands. "Parity" in Phase 4 means "matches the ratified
@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ratification
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,11 +87,11 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: none. Slices 1–7 landed; slice 8 (m/M-001-s8, 89f9f6e) approved, awaiting ratification; then the tester
-  (R-033). The skeleton must fill composition-root.ts, clearing R-128's warning. Acceptance counts only once the
-  skeleton's acceptance test exists and passes: with no tests, R-023's command exits 0 vacuously (--passWithNoTests).
-  Questions Q-1 to Q-90 ruled as R-022 to R-126.
-- Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732; slice 7: fbd18cb, 67e28b4, 02e48e3
+- Open questions: none. The incision code (slices 1–8) is ratified and landed. Next: step 3, the tester's spec audit and
+  the walking skeleton's acceptance test (R-033, R-028). The skeleton must fill composition-root.ts (R-128). Acceptance
+  counts only once that test exists and passes: with no tests, R-023's command exits 0 vacuously. Q-1 to Q-92 ruled as
+  R-022 to R-129.
+- Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732; slice 7: fbd18cb, 67e28b4, 02e48e3; slice 8: d70ca10
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
   within R-018 (no re-export-only files), R-019 (`imports` aliases) and R-020 (a lint-visible purity boundary).

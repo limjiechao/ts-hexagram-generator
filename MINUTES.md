@@ -176,3 +176,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 5 this iteration (rulings 4 · ratifications 1 · test-list approvals 0); 112 in M-001 so far
 - Landed: fbd18cb, 67e28b4, 02e48e3 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: all ten use cases are now drafted; R-118 and R-123 amend ADR-0037 and R-106 so the PWA runs 7, 9 and 10 without the Oracle.
+
+### Iteration 11 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 8; R-058) · Outcome: slice 8 landed; the incision code is complete
+- Spec audit: next (R-033)
+- Acceptance tests: next (R-033) · red before implementation: n.a.
+- Brief size (signal 7): ~700 lines of required reading (first implementer); ~40 for the R-127 pass
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-001-91, Q-M-001-92 (ruled R-127, R-128)
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint: one accepted warning (R-128) · format pass · build and test forced on matters 18/18 and 36/36 · R-023's command exits 0, vacuously (no tests yet)
+- Ratification lag (signal 5): Tier-A files cli-adapter's package; ratified before landing (y)
+- Owner touches: 4 this iteration (rulings 3 · ratifications 1 · test-list approvals 0); 116 in M-001 so far
+- Landed: d70ca10 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: across 8 slices, the incision code took 116 owner touches (108 Rulings, 8 ratifications) and 2 failed attempts (slices 1, 4, 7 each needed a second).
