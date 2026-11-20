@@ -1762,3 +1762,64 @@ recommended".
   package, as the legacy `apps/cli` and siblings have it?
 - Ruling: "ratify slice 8, choices as recommended"
 - Folded into: not yet
+
+R-130 to R-134 were answered together: "Q-93 to Q-97: A". Each records option
+(a) of its question, a spec hole from the tester's audit of the walking skeleton.
+
+### R-130: The walking skeleton's driving side is a function the composition root exports
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-93, a spec hole)
+- Question: What does the skeleton test call in `cli-adapter`? (a) the
+  composition root exports one function, e.g. `composeCli(ports)`, returning
+  use case 8's three lookups with the ports supplied; the test imports it
+  within the package through `#src`, so R-127's no-public-surface still holds;
+  Phase 4's CLI calls it and adds its own input and output; the name is for
+  the owner's line-edit; (b) a CLI-shaped `run(argv, io)`; (c) a separate
+  driving-adapter file.
+- Ruling: "Q-93 to Q-97: A"
+- Folded into: not yet
+
+### R-131: The composition root takes the ports; the stub lives in the tests
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-94, a spec hole)
+- Question: Where does the stub Scripture Catalogue live? (a) the composition
+  root takes the ports as input and the test passes an invented stub, never in
+  `src`; later phases pass real adapters the same way; (b) an in-memory stub
+  in `src`; (c) both.
+- Ruling: "Q-93 to Q-97: A"
+- Folded into: not yet
+
+### R-132: The skeleton covers all three of use case 8's lookups
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-95, a spec hole)
+- Question: Which lookups does the skeleton cover? (a) all three:
+  `lookUpPassageTexts`, `lookUpHexagramNames` and `lookUpEditions`; (b) only
+  passage texts; (c) passage texts plus a `yilin` Citation.
+- Ruling: "Q-93 to Q-97: A"
+- Folded into: not yet
+
+### R-133: The skeleton passes typed values; the caller supplies the Reading Preference
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-96, a spec hole)
+- Question: What goes in and out, and where does the Reading Preference come
+  from? (a) typed values in and out, no text format, the caller passing the
+  Reading Preference; formats, empty-result output and exit codes are the CLI
+  manual's, in Phase 4; (b) typed values with the default Reading Preference
+  filled in by the adapter; (c) a minimal text format now.
+- Ruling: "Q-93 to Q-97: A"
+- Folded into: not yet
+
+### R-134: The skeleton's driving side rejects a Catalogue failure unchanged
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-97, a spec hole)
+- Question: What does the driving side do when the Catalogue fails? (a) it
+  rejects unchanged, as the use case does (R-108), with no exit-code policy
+  until Phase 4; (b) it maps the failure to an error value; (c) it maps it to
+  exit 1 and a message.
+- Ruling: "Q-93 to Q-97: A"
+- Folded into: not yet

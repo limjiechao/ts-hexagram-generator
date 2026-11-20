@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,9 +87,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: spec holes from the tester's audit: Q-M-001-93 (what the test calls in cli-adapter), -94 (where the
-  stub lives), -95 (which lookups), -96 (input, output and Reading Preference), -97 (Catalogue failure at the adapter).
-  The incision code (slices 1–8) is ratified and landed; step 3 waits on these (R-033, R-028). The skeleton must fill composition-root.ts (R-128). Acceptance
+- Open questions: none. Spec holes Q-93 to Q-97 ruled as R-130 to R-134; a fresh tester writes the acceptance tests.
+  The incision code (slices 1–8) is ratified and landed (R-033, R-028). The skeleton must fill composition-root.ts (R-128). Acceptance
   counts only once that test exists and passes: with no tests, R-023's command exits 0 vacuously. Q-1 to Q-92 ruled as
   R-022 to R-129.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732; slice 7: fbd18cb, 67e28b4, 02e48e3; slice 8: d70ca10
