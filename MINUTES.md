@@ -162,3 +162,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 5 this iteration (rulings 5); 107 in M-001 so far
 - Landed: – · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: the clerk used "readings" in R-118 and in messages; "reading" is an Avoid term, and the implementer rightly coined no type from it.
+
+### Iteration 10 — M-001 — 2026-11-20
+
+- Attempt: 2/2 (slice 7; R-058) · Outcome: slice 7 landed
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a.
+- Brief size (signal 7): ~250 lines of required reading (attempt 2); ~30 for the line-edit pass
+- Review: `APPROVE` (0 blocking; the reviewer rebuilt and checked that no PWA subpath loads Oracle code)
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · build and test forced on matters 18/18 and 34/34 · drift signals n.a. · stress:once n.a.
+- Ratification lag (signal 5): Tier-A files slice 7's policy package, Journal and use cases 7, 9, 10; ratified before landing (y)
+- Owner touches: 5 this iteration (rulings 4 · ratifications 1 · test-list approvals 0); 112 in M-001 so far
+- Landed: fbd18cb, 67e28b4, 02e48e3 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: all ten use cases are now drafted; R-118 and R-123 amend ADR-0037 and R-106 so the PWA runs 7, 9 and 10 without the Oracle.
