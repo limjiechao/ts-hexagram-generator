@@ -3,6 +3,8 @@ import { defineConfig } from 'tsdown'
 export default defineConfig({
   entry: [
     './src/casting.ts',
+    './src/complete-casting.ts',
+    './src/division.ts',
     './src/figure.ts',
     './src/hexagram.ts',
     './src/line-position.ts',

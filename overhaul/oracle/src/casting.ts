@@ -6,14 +6,29 @@ declare const complete: unique symbol
 /** The three Rounds that make one Line (三變成爻). */
 type LineRounds = readonly [Round, Round, Round]
 
+/** The finished Lines before the unfinished one: none to five. */
+type FinishedLines =
+  | readonly []
+  | readonly [LineRounds]
+  | readonly [LineRounds, LineRounds]
+  | readonly [LineRounds, LineRounds, LineRounds]
+  | readonly [LineRounds, LineRounds, LineRounds, LineRounds]
+  | readonly [LineRounds, LineRounds, LineRounds, LineRounds, LineRounds]
+
+/** The unfinished Line's Rounds so far, if it has any: one or two. */
+type UnfinishedLine =
+  | readonly []
+  | readonly [readonly [Round]]
+  | readonly [readonly [Round, Round]]
+
 /**
  * A Casting short of its eighteenth Round, held by the caller between
- * Divisions. Its Rounds are grouped by Line, bottom-up: every Line but the
- * last holds three, the last one to three, and an empty Casting none.
+ * Divisions. Its Rounds are grouped by Line, bottom-up, and its type admits
+ * only the shapes a Casting passes through on the way to eighteen.
  */
 export interface PartialCasting {
   readonly state: 'partial'
-  readonly rounds: readonly (readonly Round[])[]
+  readonly rounds: readonly [...FinishedLines, ...UnfinishedLine]
 }
 
 /**

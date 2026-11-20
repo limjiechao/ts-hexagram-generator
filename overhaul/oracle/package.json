@@ -13,6 +13,16 @@
       "types": "./dist/casting.d.mts",
       "import": "./dist/casting.mjs"
     },
+    "./complete-casting": {
+      "source": "./src/complete-casting.ts",
+      "types": "./dist/complete-casting.d.mts",
+      "import": "./dist/complete-casting.mjs"
+    },
+    "./division": {
+      "source": "./src/division.ts",
+      "types": "./dist/division.d.mts",
+      "import": "./dist/division.mjs"
+    },
     "./figure": {
       "source": "./src/figure.ts",
       "types": "./dist/figure.d.mts",
