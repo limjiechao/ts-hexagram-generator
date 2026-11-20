@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,7 +87,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: the owner's approval of the acceptance test list (14 tests, m/M-001-tests eb01073, red: 14/14 fail).
+- Open questions: none. The owner approved the 14-test acceptance list on 2026-11-21; tests landed on matters. Next: step 4,
+  the skeleton's implementer (composeCli and use case 8's bodies), the tests untouchable.
   Spec holes Q-93 to Q-100 ruled as R-130 to R-137.
   The incision code (slices 1–8) is ratified and landed (R-033, R-028). The skeleton must fill composition-root.ts (R-128). Acceptance
   counts only once that test exists and passes: with no tests, R-023's command exits 0 vacuously. Q-1 to Q-92 ruled as
