@@ -1598,3 +1598,69 @@ R-115 to R-117 were answered together, with the ratification of M-001's slice
 - Ruling: "Q-83 A"
 - Note (clerk): read as accepting the proposed text; the owner may line-edit it.
 - Folded into: CONTEXT.md (Passage Reference)
+
+R-118 to R-122 were answered together: "Q-84 to Q-88: A". Each records option
+(a) of its question.
+
+### R-118: Use cases 7, 9 and 10 take replayed or resolved inputs; the caller does the Oracle work
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-84, from slice 7's draft)
+- Question: ADR-0037 has the PWA run use cases 7, 9 and 10 locally, but as
+  drafted they replay or resolve through the Oracle, which the PWA cannot
+  import (R-031). (a) as R-113 did for 5: use case 7 takes records whose
+  Casting is already complete, or a Transformation alone; `mergeJournal` takes
+  a Journal whose Cast Consultations the caller has replayed; use case 9 takes
+  ready readings (Consultation, Resolution, passage texts) instead of Ids; the
+  CLI does the Oracle work through `application`'s steps and use case 3, the
+  PWA through the engine and R-031's trust function, so none of the three
+  carries Oracle code, amending ADR-0037's descriptions of 7, 9 and 10; (b)
+  decide in Phase 6; (c) the Oracle behind a port.
+- Ruling: "Q-84 to Q-88: A"
+- Folded into: not yet (overrides ADR-0037's descriptions of use cases 7, 9 and 10, per R-013)
+
+### R-119: The Remainder-Group policy takes a draw function
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-85, from slice 7's draft)
+- Question: Does the policy take random integers or a way to draw them? (a) a
+  draw function (`integerBelow`), since the second integer's range is the size
+  of the group the first picks; (b) two steps, group then Pick; (c) two
+  integers drawn in advance with fixed ranges, which would make Picks within a
+  group unequally likely, against ADR-0023.
+- Ruling: "Q-84 to Q-88: A"
+- Folded into: not yet
+
+### R-120: A legacy import takes one Division Method for all its Cast Consultations
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-86, from slice 7's draft)
+- Question: ADR-0030 requires a Division Method on every Cast Consultation and
+  ADR-0026 makes a replayable legacy table one, but nothing says which method.
+  (a) the import asks once and one method, a use-case input, applies to the
+  whole import, since the person importing knows how they cast; (b) the parser
+  supplies it per file, if the files reveal it; (c) allow none, amending
+  ADR-0030.
+- Ruling: "Q-84 to Q-88: A"
+- Folded into: not yet
+
+### R-121: The value passed between `exportJournal` and `mergeJournal` is the glossary's Journal
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-87, from slice 7's draft)
+- Question: What is that value? (a) the glossary's Journal, `{ consultations,
+deletionRecords }`, in `consultation-journal`, without Unreadable files; (b)
+  an unnamed type; (c) ADR-0037's word "bundle".
+- Ruling: "Q-84 to Q-88: A"
+- Folded into: not yet
+
+### R-122: The legacy import is one-shot; importing twice keeps readings twice
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-88, from slice 7's draft)
+- Question: Each import mints new Ids (R-032), so importing twice keeps every
+  reading twice. (a) accept it and document the import as one-shot, a
+  migration, not a sync; (b) skip records matching an existing Consultation;
+  (c) derive the Id from content, contradicting R-032.
+- Ruling: "Q-84 to Q-88: A"
+- Folded into: not yet

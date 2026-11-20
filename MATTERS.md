@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,9 +87,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: slice 7 (drafted on m/M-001-s7 to 7b2a434): Q-M-001-84 (use cases 7, 9, 10 in the PWA), -85 (policy
-  takes a draw function), -86 (legacy Cast Consultations' Division Method), -87 (the Journal value), -88 (re-import
-  duplicates). Shapes of use cases 7, 9, 10 redrafted after Q-84. Slices 1–6 landed; Q-1 to Q-83 ruled as R-022 to R-117.
+- Open questions: none. Slice 7 drafted on m/M-001-s7 (to 7b2a434); Q-84 to Q-88 ruled as R-118 to R-122; use cases 7,
+  9, 10 being redrafted under R-118. Slices 1–6 landed; Q-1 to Q-83 ruled as R-022 to R-117.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
