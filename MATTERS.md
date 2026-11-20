@@ -78,7 +78,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-001: Draft the incision code for ratification
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 1
 - Licensed by: ADR-0040 (the incision code); CONTEXT.md; ADRs 0023–0027, 0030, 0037, 0038
 - Scope: Draft the core value types (Transformation, Hexagram, Figure, Line Value, Pick, Round, Casting, …), the four driven-port signatures and the ten use-case signatures, plus a walking skeleton that runs end to end (one use case from a driving adapter, through the application, to a stub driven adapter).
@@ -87,8 +87,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: none. Slices 1–4 ratified and landed. Next slice 5 (the ten use-case signatures), then slice 6
-  (cli-adapter), then the tester (R-033). Q-1 to Q-71 ruled as R-022 to R-103.
+- Open questions: slice 5: Q-M-001-72 (Resolution), -73 (use case 9 and presentation), -74 (use case 7 input),
+  -75 (use case 10), -76 (use-case error policy), -77 (use case 1's missing steps), -78 (Clock and Random Source for 2
+  and 7). Slice 5 partial on m/M-001-s5: 8145e6e (use cases 1, 2, 4, 6, 8). Q-1 to Q-71 ruled as R-022 to R-103.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
