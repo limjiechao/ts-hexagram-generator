@@ -88,7 +88,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
 - Open questions: none (Q-M-001-70 withdrawn: R-101 makes an 18-Round partial Casting unrepresentable). R-097, R-099,
-  R-100, R-098, R-101 applied (to 56dde43); slice 4 awaits ratification. Then slice 4 comes back for ratification with its line-edits. Slice 4 attempt 2 (to 5aab344) approved. Q-63 to Q-66
+  R-100, R-098, R-101 applied (to 56dde43); slice 4 ratified 2026-11-20 with R-102, R-103
+  line-edits (to apply before landing). Then slice 4 comes back for ratification with its line-edits. Slice 4 attempt 2 (to 5aab344) approved. Q-63 to Q-66
   ruled as R-093 to R-096. Q-57 to Q-62 ruled as R-087 to R-092. Slice 4 partial on m/M-001-s4: 2083890 (isCompleteCasting).
   Then slice 5 (use cases), slice 6 (cli-adapter). Q-48 to Q-53 ruled as R-076 to R-081. Slice 3 partial on m/M-001-s3: 4b99046, 9b03647. Slice 2 landed;
   Edition and the catalogue port move to slice 3 under R-040; Q-42 to Q-44 ruled as R-068 to R-070. Slice 2 questions Q-33 to Q-41 ruled as R-059 to R-067.

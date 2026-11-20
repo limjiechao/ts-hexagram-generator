@@ -1369,3 +1369,34 @@ them.
   does not replay.
 - Folded into: not yet (overrides R-053(1), per R-013; the lint goes in
   M-002's boundary rules)
+
+R-102 and R-103 were given with the ratification of M-001's slice 4: "I like
+`FinishedLine`. `OpenLine` should be renamed to match `FinishedLine`.
+Otherwise, ratify slice 4, line-edits as recommended."
+
+### R-102: Slice 4's line-edits, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, the slice 4 review's list and the R-098 change
+- Question: Keep (1) `./complete-casting` on its own subpath, (2) inherited
+  fields passing the guard, (6) the unimplemented bodies' `Error('Not
+implemented', { cause })`, the success tag `'next'` with field `round`, and
+  `nextRound`'s refusal narrowed to rule `'replay'`; reword (3) `Refusal`'s
+  comment to "…except the valid range, which `nextRound` gives", (4) the
+  landing commit message to lowercase "refusal", (5) the Transcription comment
+  to "the step checks it is complete", citing no ADR?
+- Ruling: "ratify slice 4, line-edits as recommended"
+- Folded into: not yet
+
+### R-103: The open Line's type is named `UnfinishedLine`
+
+- Date: 2026-11-20
+- Raised in: M-001, ratifying slice 4's `casting.ts`
+- Question: The owner asked that `OpenLine` be renamed to match
+  `FinishedLines`. Asked to choose: (a) `FinishedLines` + `UnfinishedLine`,
+  keeping the plural for the list of finished Lines; (b) `FinishedLine` +
+  `UnfinishedLine`; (c) `FinishedLines` + `OpenLines`.
+- Ruling: "I like `FinishedLine`. `OpenLine` should be renamed to match
+  `FinishedLine`." Then, choosing among the options: "FinishedLines +
+  UnfinishedLine (Recommended)".
+- Folded into: not yet
