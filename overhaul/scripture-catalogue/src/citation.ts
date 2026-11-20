@@ -1,26 +1,11 @@
 import type { Hexagram } from '@hexagram/oracle/hexagram'
-import type { LinePosition } from '@hexagram/oracle/line-position'
+import type { PassageReference } from '@hexagram/oracle/passage-reference'
 
 /**
- * The All-Moving Statement (用九 / 用六), or the 小象 on it. Only 乾 and 坤
- * carry one; the type does not check the Hexagram.
+ * A passage of the 周易 經, named by the Oracle's Passage Reference: a
+ * Hexagram Statement, a Line Statement or an All-Moving Statement.
  */
-type AllMoving = 'all-moving'
-
-/** A Hexagram Statement of the 周易 經. */
-interface HexagramStatementCitation {
-  readonly work: 'zhouyi'
-  readonly hexagram: Hexagram
-  /** Absent, so a Line Statement is never taken for a Hexagram Statement. */
-  readonly line?: never
-}
-
-/** A Line Statement of the 周易 經, or an All-Moving Statement. */
-interface LineStatementCitation {
-  readonly work: 'zhouyi'
-  readonly hexagram: Hexagram
-  readonly line: LinePosition | AllMoving
-}
+type ZhouyiCitation = { readonly work: 'zhouyi' } & PassageReference
 
 /** The 彖傳 on one Hexagram. */
 interface TuanCitation {
@@ -34,11 +19,15 @@ interface DaxiangCitation {
   readonly hexagram: Hexagram
 }
 
-/** The 小象 on one Line, or on an All-Moving Statement. */
+/**
+ * The 小象 on one Line, or on the All-Moving Statement, named by `line` as a
+ * Passage Reference names the passage. Only 乾 and 坤 carry an All-Moving
+ * Statement; the type does not check the Hexagram.
+ */
 interface XiaoxiangCitation {
   readonly work: 'xiaoxiang'
   readonly hexagram: Hexagram
-  readonly line: LinePosition | AllMoving
+  readonly line: NonNullable<PassageReference['line']>
 }
 
 /** One Hexagram's 文言, cited whole. */
@@ -61,8 +50,7 @@ interface YilinCitation {
  * (ADR-0038).
  */
 export type Citation =
-  | HexagramStatementCitation
-  | LineStatementCitation
+  | ZhouyiCitation
   | TuanCitation
   | DaxiangCitation
   | XiaoxiangCitation
