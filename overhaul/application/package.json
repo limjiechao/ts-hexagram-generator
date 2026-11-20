@@ -38,6 +38,21 @@
       "types": "./dist/divide.d.mts",
       "import": "./dist/divide.mjs"
     },
+    "./draw-automatic-pick": {
+      "source": "./src/draw-automatic-pick.ts",
+      "types": "./dist/draw-automatic-pick.d.mts",
+      "import": "./dist/draw-automatic-pick.mjs"
+    },
+    "./export-consultations": {
+      "source": "./src/export-consultations.ts",
+      "types": "./dist/export-consultations.d.mts",
+      "import": "./dist/export-consultations.mjs"
+    },
+    "./import-legacy-files": {
+      "source": "./src/import-legacy-files.ts",
+      "types": "./dist/import-legacy-files.d.mts",
+      "import": "./dist/import-legacy-files.mjs"
+    },
     "./keep-cast-consultation": {
       "source": "./src/keep-cast-consultation.ts",
       "types": "./dist/keep-cast-consultation.d.mts",
@@ -47,6 +62,11 @@
       "source": "./src/look-up-catalogue.ts",
       "types": "./dist/look-up-catalogue.d.mts",
       "import": "./dist/look-up-catalogue.mjs"
+    },
+    "./merge-journals": {
+      "source": "./src/merge-journals.ts",
+      "types": "./dist/merge-journals.d.mts",
+      "import": "./dist/merge-journals.mjs"
     },
     "./next-round": {
       "source": "./src/next-round.ts",
@@ -99,6 +119,7 @@
   "dependencies": {
     "@hexagram/consultation-journal": "workspace:*",
     "@hexagram/oracle": "workspace:*",
+    "@hexagram/remainder-group-policy": "workspace:*",
     "@hexagram/scripture-catalogue": "workspace:*"
   }
 }
