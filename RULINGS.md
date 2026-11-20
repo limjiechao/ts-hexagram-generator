@@ -1736,3 +1736,16 @@ recommended".
   matching `exports` entry, breaking ADR-0003.
 - Ruling: "Q-M-001-91: A"
 - Folded into: not yet
+
+### R-128: The empty composition root's lint warning is accepted until the skeleton fills it
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-92, from slice 8)
+- Question: `cli-adapter`'s `src/composition-root.ts` must exist (tsc rejects a
+  package with no source files) and holds only `export {}`, which oxlint warns
+  on (`unicorn/require-module-specifiers`); without it the empty file is a lint
+  error. (a) accept the one warning until M-001's walking skeleton (R-028) wires
+  this file, adding no escape hatch; (b) suppress it in that line, the first
+  suppression in `overhaul/`; (c) turn the rule off for `cli-adapter`.
+- Ruling: "Q-92 A"
+- Folded into: not yet
