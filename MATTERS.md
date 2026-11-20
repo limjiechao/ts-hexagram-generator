@@ -87,10 +87,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: none. Slices 1–6 ratified and landed; next slice 7 (remainder-group-policy, drawAutomaticPick, use
-  cases 7, 9, 10), then slice 8 (cli-adapter).
-  6, 8 plus nextRound; slice 6 = Resolution, the 經 Citation edit, use cases 3, 5; slice 7 = remainder-group-policy,
-  drawAutomaticPick, use cases 7, 9, 10; slice 8 = cli-adapter. Slice 5 partial on m/M-001-s5: 8145e6e (use cases 1, 2, 4, 6, 8). Q-1 to Q-71 ruled as R-022 to R-103.
+- Open questions: none. Slices 1–6 ratified and landed. Next: slice 7 (remainder-group-policy, drawAutomaticPick,
+  use cases 7, 9, 10), slice 8 (cli-adapter), then the tester (R-033). Questions Q-1 to Q-83 ruled as R-022 to R-117.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
