@@ -1823,3 +1823,43 @@ R-130 to R-134 were answered together: "Q-93 to Q-97: A". Each records option
   exit 1 and a message.
 - Ruling: "Q-93 to Q-97: A"
 - Folded into: not yet
+
+R-135 to R-137 were answered together: "Q-98 to Q-100: A". Each records option
+(a) of its question, from the tester's second audit of the walking skeleton.
+
+### R-135: cli-adapter's tests may use `scripture-catalogue` as a dev dependency
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-98)
+- Question: The skeleton tests must build branded `EditionId`s through
+  `isEditionId` (R-045, R-051), which lives in `scripture-catalogue`, but
+  `cli-adapter` depends only on `application` (R-127). (a) declare
+  `scripture-catalogue` as a dev dependency of `cli-adapter`, used only by the
+  tests, adding no production dependency; (b) a full dependency now; (c)
+  `application` re-exports the guard, which R-018 forbids.
+- Ruling: "Q-98 to Q-100: A"
+- Folded into: not yet
+
+### R-136: A port that throws synchronously is outside its contract
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-99)
+- Question: What if a port throws instead of rejecting? (a) outside the port's
+  contract: the port is async (R-039), the adapter that throws is at fault,
+  and the tests use rejected Promises only; (b) the driving side turns a throw
+  into a rejection; (c) a throw passes through synchronously.
+- Ruling: "Q-98 to Q-100: A"
+- Folded into: not yet
+
+### R-137: The composition root is `composeCli` returning use case 8's bound lookups
+
+- Date: 2026-11-21
+- Raised in: M-001 (question Q-M-001-100)
+- Question: Approve the composition root's shape (R-130): `composeCli(ports: {
+readonly scriptureCatalogue: ScriptureCatalogue })` returning `{
+lookUpPassageTexts(citation, preference), lookUpHexagramNames(hexagram,
+preference), lookUpEditions(work) }`, each use case 8's signature minus its
+  ports argument with the same Promise type, imported by the tests as
+  `#src/composition-root.js`. (a) approve; (b) rename.
+- Ruling: "Q-98 to Q-100: A"
+- Folded into: not yet
