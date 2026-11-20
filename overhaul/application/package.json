@@ -8,6 +8,16 @@
     "#src/*": "./src/*"
   },
   "exports": {
+    "./begin-casting": {
+      "source": "./src/begin-casting.ts",
+      "types": "./dist/begin-casting.d.mts",
+      "import": "./dist/begin-casting.mjs"
+    },
+    "./browse-consultations": {
+      "source": "./src/browse-consultations.ts",
+      "types": "./dist/browse-consultations.d.mts",
+      "import": "./dist/browse-consultations.mjs"
+    },
     "./clock": {
       "source": "./src/clock.ts",
       "types": "./dist/clock.d.mts",
@@ -18,15 +28,50 @@
       "types": "./dist/consultation-store.d.mts",
       "import": "./dist/consultation-store.mjs"
     },
+    "./delete-consultation": {
+      "source": "./src/delete-consultation.ts",
+      "types": "./dist/delete-consultation.d.mts",
+      "import": "./dist/delete-consultation.mjs"
+    },
+    "./divide": {
+      "source": "./src/divide.ts",
+      "types": "./dist/divide.d.mts",
+      "import": "./dist/divide.mjs"
+    },
+    "./keep-cast-consultation": {
+      "source": "./src/keep-cast-consultation.ts",
+      "types": "./dist/keep-cast-consultation.d.mts",
+      "import": "./dist/keep-cast-consultation.mjs"
+    },
+    "./look-up-catalogue": {
+      "source": "./src/look-up-catalogue.ts",
+      "types": "./dist/look-up-catalogue.d.mts",
+      "import": "./dist/look-up-catalogue.mjs"
+    },
+    "./next-round": {
+      "source": "./src/next-round.ts",
+      "types": "./dist/next-round.d.mts",
+      "import": "./dist/next-round.mjs"
+    },
     "./random-source": {
       "source": "./src/random-source.ts",
       "types": "./dist/random-source.d.mts",
       "import": "./dist/random-source.mjs"
     },
+    "./record-consultation": {
+      "source": "./src/record-consultation.ts",
+      "types": "./dist/record-consultation.d.mts",
+      "import": "./dist/record-consultation.mjs"
+    },
     "./scripture-catalogue": {
       "source": "./src/scripture-catalogue.ts",
       "types": "./dist/scripture-catalogue.d.mts",
       "import": "./dist/scripture-catalogue.mjs"
+    },
+    "./transcribe": {
+      "source": "./src/transcribe.ts",
+      "types": "./dist/transcribe.d.mts",
+      "import": "./dist/transcribe.mjs"
     },
     "./package.json": "./package.json"
   },
