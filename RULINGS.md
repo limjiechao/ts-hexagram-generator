@@ -1553,3 +1553,48 @@ R-113 and R-114 were answered together: "Q-80 A, Q-81 A".
   row type when the table arrives.
 - Ruling: "Q-81 A"
 - Folded into: not yet
+
+R-115 to R-117 were answered together, with the ratification of M-001's slice
+6: "ratify slice 6, line-edits as recommended; Q-82 A; Q-83 A".
+
+### R-115: Slice 6's line-edits, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, the slice 6 review's list of choices the library does not
+  license
+- Question: Keep (1) `HexagramStructure` unexported, (2) the field names
+  `standing`, `emerging`, `lowerTrigram`, `nuclearHexagram` and the like, (3)
+  `movingLines` as positions, (4) a Trigram as three Polarities; change (5) the
+  小象 Citation's `'all-moving'` to come from the Oracle's passage reference,
+  fixing its stale comment, and (6) state the order of use case 3's
+  `passageTexts`: the Applicable Passages in order, each followed by its
+  Commentaries, then the Yilin Verse, the order carrying no rank (ADR-0024);
+  leave (7) `resolve`'s own `throw`, a private helper being Tier B?
+- Ruling: "ratify slice 6, line-edits as recommended"
+- Folded into: not yet
+
+### R-116: Hexagram names stay out of use case 3's result for now
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-82, from the slice 6 review)
+- Question: ADR-0037 describes use case 3 as "Hexagrams, structure, Applicable
+  Passages with text", but R-104's `{ resolution, passageTexts }` carries no
+  names. (a) keep it; Presentation or the CLI calls use case 8 for names, and
+  the Phase 4 manual revisits what a reading contains; (b) add
+  `hexagramNames` now, amending R-104.
+- Ruling: "Q-82 A"
+- Folded into: not yet (to revisit with `docs/manual/cli.md`)
+
+### R-117: Passage Reference enters the glossary
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-83, from the slice 6 review)
+- Question: Add a glossary entry for the public type `PassageReference`? (a)
+  yes, as proposed: "**Passage Reference**: The Oracle's name for a passage of
+  the 經: a Hexagram's Hexagram Statement, a Line Statement by its Line
+  Position, or the All-Moving Statement. It names a passage, never its text;
+  the Catalogue's 經 Citation is built on it. _Avoid_: reference (alone)."
+  (b) leave it as context-map wording.
+- Ruling: "Q-83 A"
+- Note (clerk): read as accepting the proposed text; the owner may line-edit it.
+- Folded into: CONTEXT.md (Passage Reference)
