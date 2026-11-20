@@ -1,0 +1,32 @@
+{
+  "name": "@hexagram/remainder-group-policy",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "ADR-0023's Remainder-Group policy: a Pick for Automatic Division, from uniform random integers, pure",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./choose-pick": {
+      "source": "./src/choose-pick.ts",
+      "types": "./dist/choose-pick.d.mts",
+      "import": "./dist/choose-pick.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/oracle": "workspace:*"
+  }
+}

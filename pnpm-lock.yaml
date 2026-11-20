@@ -383,6 +383,12 @@ importers:
 
   overhaul/oracle: {}
 
+  overhaul/remainder-group-policy:
+    dependencies:
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+
   overhaul/scripture-catalogue:
     dependencies:
       '@hexagram/consultation-journal':
