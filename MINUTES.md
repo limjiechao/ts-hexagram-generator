@@ -194,3 +194,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Correction to Iteration 11 — 2026-11-20
 
 - Its Notes say "2 failed attempts"; it was 3 (slices 1, 4 and 7 each failed attempt 1 and landed on attempt 2).
+
+### Iteration 12 — M-001 — 2026-11-21
+
+- Attempt: 1/2 (walking skeleton) · Outcome: landed; M-001 is complete
+- Spec audit: 3 rounds; 7 holes (Q-M-001-93 to Q-M-001-99), ruled R-130 to R-136, plus the composeCli shape (R-137)
+- Acceptance tests: written by tester at 77cd0a2 (14 tests) · red before implementation (y: 14/14 failed, composeCli missing)
+- Brief size (signal 7): ~1,000 lines of required reading (tester); ~400 (implementer)
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: none
+- Suggestions to the architect: 1 (whether `PortsSupplied` becomes a shared convention in Phase 4)
+- Verify: type:check · lint 0 warnings in overhaul/ · format · build and test forced on matters 18/18 and 36/36 · R-023's command exits 0, 14/14 · drift signals n.a. (M-002 builds them) · stress:once n.a.
+- Ratification lag (signal 5): no Tier-A file changed by the skeleton; tests approved before implementation (y)
+- Owner touches: 9 this iteration (rulings 8 · ratifications 0 · test-list approvals 1); 125 in M-001
+- Landed: 77cd0a2, d1dcaf6, 219b080 · Budget used: 1 of 3 Matters in Phase 1 · Phase estimate: 1 Matter / 2 days (actual)
+- Notes: the first gate run on matters failed because the clerk had not run `pnpm install` after landing the tests' new dev dependency; installing fixed it.
