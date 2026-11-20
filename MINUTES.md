@@ -190,3 +190,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 4 this iteration (rulings 3 · ratifications 1 · test-list approvals 0); 116 in M-001 so far
 - Landed: d70ca10 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: across 8 slices, the incision code took 116 owner touches (108 Rulings, 8 ratifications) and 2 failed attempts (slices 1, 4, 7 each needed a second).
+
+### Correction to Iteration 11 — 2026-11-20
+
+- Its Notes say "2 failed attempts"; it was 3 (slices 1, 4 and 7 each failed attempt 1 and landed on attempt 2).
