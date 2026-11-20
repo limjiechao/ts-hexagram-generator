@@ -6,7 +6,6 @@ import type { PassageText } from '@hexagram/scripture-catalogue/passage-text'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 import type { Work } from '@hexagram/scripture-catalogue/work'
 
-import { notImplemented } from '#src/not-implemented.js'
 import type { ScriptureCatalogue } from '#src/scripture-catalogue.js'
 
 /*
@@ -22,7 +21,7 @@ export function lookUpPassageTexts(
   citation: Citation,
   preference: ReadingPreference,
 ): Promise<readonly PassageText[]> {
-  return notImplemented(ports, citation, preference)
+  return ports.scriptureCatalogue.passageTexts(citation, preference)
 }
 
 /** A Hexagram's name in each Edition the preference shows. */
@@ -31,7 +30,7 @@ export function lookUpHexagramNames(
   hexagram: Hexagram,
   preference: ReadingPreference,
 ): Promise<readonly HexagramName[]> {
-  return notImplemented(ports, hexagram, preference)
+  return ports.scriptureCatalogue.hexagramNames(hexagram, preference)
 }
 
 /** Every Edition of a Work. */
@@ -39,5 +38,5 @@ export function lookUpEditions(
   ports: { readonly scriptureCatalogue: ScriptureCatalogue },
   work: Work,
 ): Promise<readonly Edition[]> {
-  return notImplemented(ports, work)
+  return ports.scriptureCatalogue.editions(work)
 }
