@@ -1664,3 +1664,45 @@ deletionRecords }`, in `consultation-journal`, without Unreadable files; (b)
   (c) derive the Id from content, contradicting R-032.
 - Ruling: "Q-84 to Q-88: A"
 - Folded into: not yet
+
+R-123 to R-125 were answered together: "Q-89 A, Q-90 A; choices as
+recommended".
+
+### R-123: Use case 7 returns the kept Consultations only
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-90, from slice 7's review)
+- Question: R-106 had use case 7 return `{ kept, unreadable }`, but under R-118
+  the caller parses and replays, so nothing it receives can fail to load. (a)
+  amend R-106: return the kept Consultations only and drop the records'
+  `location` field; files that fail are the adapter's to report; (b) keep
+  `{ kept, unreadable }` with the caller passing failures in; (c) keep the
+  shape with `unreadable` always empty.
+- Ruling: "Q-90 A"
+- Folded into: not yet (overrides R-106 on the return, per R-013)
+
+### R-124: Use case 9's input is an unnamed type
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-89, from slice 7's draft)
+- Question: What is use case 9's input called, given "reading" is an Avoid
+  term? (a) an unnamed type `{ consultation, resolution, passageTexts }`, the
+  parameter named `consultations`, reusing use case 3's field names; (b)
+  derived from use case 3's result type; (c) a new glossary term.
+- Ruling: "Q-89 A"
+- Folded into: not yet
+
+### R-125: Slice 7's drafted choices, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, slice 7's review list
+- Question: Accept (1) use case 9 dropping R-105's Reading Preference, since the
+  passage texts reflect it, narrowing R-105; (2) legacy records told apart by
+  `casting: undefined`; (3) use case 9 trusting that each Resolution and its
+  passage texts belong to that Consultation, said in its comment; (4)
+  `mergeJournal` returning nothing; (6) the policy package's private
+  not-implemented helper; change (5) `drawAutomaticPick` to wrap `integerBelow`
+  in an arrow function so a class-based adapter keeps `this`; and (7) describe
+  only the final state in the landing commit message?
+- Ruling: "choices as recommended"
+- Folded into: not yet
