@@ -1706,3 +1706,18 @@ recommended".
   only the final state in the landing commit message?
 - Ruling: "choices as recommended"
 - Folded into: not yet
+
+### R-126: Slice 7's line-edits, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, ratifying slice 7 ("ratify slice 7, line-edits as
+  recommended")
+- Question: Change (1) use case 7's comment "a migration and not a sync" to
+  "a migration, run once", keeping the Avoid term "sync" out of source, and
+  (6) write the landing message for the final state only; keep (2)
+  `LegacyRecord` as an exported name, (3) the Division Method required even
+  with no Casting, (4) the policy's input typed as
+  `NextRound['remainderGroups']`, (5) the policy package without tests until
+  its body?
+- Ruling: "ratify slice 7, line-edits as recommended"
+- Folded into: not yet

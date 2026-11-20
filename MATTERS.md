@@ -87,7 +87,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/cli-adapter test`; the skeleton test drives one use case from a
   driving adapter, through the application, to a stub driven adapter (R-023, R-025). The use case is 8, Look up the catalogue,
   against a stub Scripture Catalogue (R-028). The package lives at `overhaul/cli-adapter` (R-029).
-- Open questions: slice 7 line-edits. Slice 7 attempt 2 (m/M-001-s7-a2 to 9ac6190) approved, awaiting ratification. Slices 1–6 landed; Q-1 to Q-90 ruled as R-022 to
+- Open questions: none. Slice 7 (m/M-001-s7-a2 to 9ac6190) ratified 2026-11-20 with R-126 (reword to apply before landing). Slices 1–6 landed; Q-1 to Q-90 ruled as R-022 to
   R-125.
 - Commits: slice 1: f643475 (oracle), f905f13 (consultation-journal); slice 2: de26925, 146eaf5, c0e8a31, 4c7e1d4; slice 3: e0996c3, 6b01b31; slice 4: c27e0f7; slice 5: b6f0605; slice 6: 6da7728, 5f45524, 1918732
 - Notes: Where the drafts live (package layout) is itself Tier A. The first step is to propose it to the owner.
