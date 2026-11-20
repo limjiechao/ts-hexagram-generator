@@ -8,6 +8,7 @@ export default defineConfig({
     './src/deletion-record.ts',
     './src/divined-at.ts',
     './src/division-method.ts',
+    './src/journal.ts',
     './src/query.ts',
     './src/recorded-consultation.ts',
     './src/unreadable-file.ts',

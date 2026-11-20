@@ -38,6 +38,11 @@
       "types": "./dist/division-method.d.mts",
       "import": "./dist/division-method.mjs"
     },
+    "./journal": {
+      "source": "./src/journal.ts",
+      "types": "./dist/journal.d.mts",
+      "import": "./dist/journal.mjs"
+    },
     "./query": {
       "source": "./src/query.ts",
       "types": "./dist/query.d.mts",
