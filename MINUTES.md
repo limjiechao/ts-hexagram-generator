@@ -148,3 +148,17 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 6 this iteration (rulings 5 · ratifications 1 · test-list approvals 0); 102 in M-001 so far
 - Landed: 6da7728, 5f45524, 1918732 · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
 - Notes: R-113 amends ADR-0037's use case 5 (Open only loads) so the PWA can run it without the Oracle.
+
+### Iteration 9 — M-001 — 2026-11-20
+
+- Attempt: 1/2 (slice 7; R-058) · Outcome: failed at review
+- Spec audit: deferred until the incision code is ratified (R-033)
+- Acceptance tests: n.a. (R-033) · red before implementation: n.a.
+- Brief size (signal 7): ~1,400 lines of required reading (first implementer); ~60 for the R-118 redraft
+- Review: `REQUEST_CHANGES` (1 blocking: use case 7's return drops R-106's `unreadable` without a Ruling) · design findings sent to owner: Q-M-001-89, Q-M-001-90
+- Suggestions to the architect: 0
+- Verify: type:check pass · lint none in overhaul/ · format pass · overhaul tests 9/9 · built files for drawAutomaticPick and use cases 7, 9, 10 load no Oracle code
+- Ratification lag (signal 5): none landed
+- Owner touches: 5 this iteration (rulings 5); 107 in M-001 so far
+- Landed: – · Budget used: 0 of 3 Matters in Phase 1 · Phase estimate: 3 Matters / 2 weeks
+- Notes: the clerk used "readings" in R-118 and in messages; "reading" is an Avoid term, and the implementer rightly coined no type from it.
