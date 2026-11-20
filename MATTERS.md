@@ -45,6 +45,10 @@ from its actual figures when it lands (R-006).
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
 
+**Phase 1 landed 2026-11-21.** Awaiting the owner: owner-touch and brief-size caps (R-006); the week budgets of
+Phases 3–6 (R-009); how M-002's boundary-rules proposal is drafted; whether to amend ADR-0040's tiers (an overseer or
+ratify-by-exception); and the cold-read findings in the Minutes' "Phase 1 milestone" entry.
+
 Phases 3–6 are broken into Matters by the owner, with the copilot, when
 the previous phase lands. "Parity" in Phase 4 means "matches the ratified
 manual" (R-008).

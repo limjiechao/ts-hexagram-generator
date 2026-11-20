@@ -208,3 +208,20 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 9 this iteration (rulings 8 · ratifications 0 · test-list approvals 1); 125 in M-001
 - Landed: 77cd0a2, d1dcaf6, 219b080 · Budget used: 1 of 3 Matters in Phase 1 · Phase estimate: 1 Matter / 2 days (actual)
 - Notes: the first gate run on matters failed because the clerk had not run `pnpm install` after landing the tests' new dev dependency; installing fixed it.
+
+### Phase 1 milestone — 2026-11-21
+
+- Signal 6, cold-read variance: 3 fresh agents rebuilt Phase 1's theory from `overhaul/` alone. Low variance: all three
+  recovered the purpose, package roles and direction, purity, ports owned by `application`, the Casting's tuple shapes,
+  the brands and guards, Moment/Day, refusals as values, and the port-passing style, matching the library.
+- Where the theory did not reach the code (all three readers, unless noted):
+  1. `isCompleteCasting` mints the brand on shape alone, so any package can make a complete Casting; R-055's import lint
+     (M-002) is not built yet. `keep-cast-consultation.ts:13` names only the Oracle as maker.
+  2. `CastConsultation` repeats the Casting's Transformation (R-050) with no comment saying why.
+  3. `scripture-catalogue` depends on `consultation-journal` only for `Day` (R-076) with no comment saying why.
+  4. `Edition.script` is typed from `ReadingPreference['script']` (R-082(2)), so a catalogue fact depends on a reader's
+     preference type (two readers).
+  5. How a Day sorts against a Moment is unstated (one reader): a spec hole for Browse (use case 4), for its Matter.
+- Budget: 1 of 3 Matters, 2 days of 2 weeks, 125 owner touches (115 Rulings, 9 ratifications, 1 test-list approval).
+  Brief sizes: 250 to ~1,700 lines of required reading per agent.
+- Owner decisions now open: caps (R-006), week budgets (R-009), how M-002 starts, the overseer idea, the findings above.
