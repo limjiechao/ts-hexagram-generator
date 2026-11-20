@@ -1749,3 +1749,16 @@ recommended".
   suppression in `overhaul/`; (c) turn the rule off for `cli-adapter`.
 - Ruling: "Q-92 A"
 - Folded into: not yet
+
+### R-129: Slice 8's choices, as recommended
+
+- Date: 2026-11-20
+- Raised in: M-001, ratifying slice 8 ("ratify slice 8, choices as
+  recommended")
+- Question: Keep (1) vitest's `--passWithNoTests` in `cli-adapter`, like its
+  siblings, with M-001's acceptance counting only once the skeleton test
+  exists and passes; (2) the `application` dependency declared before any code
+  imports it, as R-127 names it; (3) `"license": "MIT"` on the private
+  package, as the legacy `apps/cli` and siblings have it?
+- Ruling: "ratify slice 8, choices as recommended"
+- Folded into: not yet
