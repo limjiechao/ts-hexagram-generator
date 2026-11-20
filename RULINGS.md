@@ -1400,3 +1400,97 @@ implemented', { cause })`, the success tag `'next'` with field `round`, and
   `FinishedLine`." Then, choosing among the options: "FinishedLines +
   UnfinishedLine (Recommended)".
 - Folded into: not yet
+
+R-104 to R-110 were answered together: "Q-72 to Q-78: A". Each records option
+(a) of its question; R-104 and R-109 record the revised option (a).
+
+### R-104: The Resolution lives in `oracle`; the 經 Citation is built on its passage reference
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-72)
+- Question: What is a Resolution and where does it live? (a, as revised)
+  `oracle/src/resolution.ts`: the Standing and Emerging Hexagrams, the Moving
+  Lines' positions, the Applicable Passages as Oracle-owned passage
+  references, and per Hexagram its Trigrams and Nuclear, Inverse and Reversed
+  Hexagrams (with a Trigram type), since the Oracle publishes passage
+  references and the Catalogue conforms (glossary context map) and the rule is
+  the Oracle's (ADR-0024); `scripture-catalogue`'s 經 Citation is re-expressed
+  as `{ work: 'zhouyi' }` plus that passage reference, a small edit to slice
+  2's `citation.ts`; use case 3 returns `{ resolution, passageTexts }`, a
+  list; (b) Applicable Passages as Citations with the rule in `application`.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-105: `presentation` is a pure package that `application` may import
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-73)
+- Question: Use case 9 returns Typst source (R-035), but Layout C put
+  `presentation` outside what `application` may import. (a) `presentation`
+  joins the pure packages, since Presentation "decides nothing" (glossary);
+  use case 9 takes the Store, the Catalogue, Consultation Ids and a Reading
+  Preference; (b) a renderer port, amending ADR-0037; (c) use case 9 returns
+  resolved data, amending R-035.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-106: Use case 7 takes parsed legacy records
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-74)
+- Question: What does use case 7 take? (a) parsed legacy records (Query,
+  Divined At, and Picks or a Transformation), each kept as Cast after its
+  Picks replay or as Recorded otherwise (ADR-0026), returning `{ kept,
+unreadable }`; the `legacy-import` adapter parses (Layout C); (b) raw file
+  texts.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-107: Use case 10 is `exportJournal` and `mergeJournal`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-75)
+- Question: Is use case 10 one function or two? (a) two: `exportJournal`
+  returns the Journal's Consultations and Deletion Records; `mergeJournal`
+  merges another Journal in through the idempotent `keep` and `remove`
+  (R-074), replaying incoming Castings with the Oracle's own steps from the
+  Empty Casting (R-048), so no new Oracle function; (b) merge-in only.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-108: Use cases reuse the failure patterns already ruled
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-76)
+- Question: How does a use case report failure? (a) a Store or Catalogue
+  failure rejects the Promise unchanged, a refused Division is a tagged result
+  (R-087), and a miss is `undefined` (R-066), so use case 5 returns
+  `undefined` for an unknown Id; (b) every use case returns a tagged result.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-109: Use case 1 gains `nextRound` and `drawAutomaticPick`; R-026's package is `remainder-group-policy`
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-77)
+- Question: Does use case 1 need more steps? (a, as revised) add `nextRound`,
+  wrapping the Oracle's, and `drawAutomaticPick(ports{randomSource},
+remainderGroups) → Pick`, which applies R-026's package (named
+  `remainder-group-policy`, after ADR-0023) and carries no Oracle code, so the
+  PWA can use it on the engine's Remainder Groups (ADR-0037, R-031) while the
+  CLI feeds it `nextRound`'s; both then hand the Pick to `divide`; the package
+  arrives in its own slice; (b) adapters import the Oracle and the policy
+  directly.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
+
+### R-110: Use cases 2 and 7 also take the Clock and Random Source
+
+- Date: 2026-11-20
+- Raised in: M-001 (question Q-M-001-78)
+- Question: R-032 has the use case build the Consultation Id from Clock and
+  Random Source, beyond ADR-0037's table. (a) confirm it for use cases 2 and
+  7, folding it into the table later; (b) the Store assigns those Ids,
+  contradicting R-032.
+- Ruling: "Q-72 to Q-78: A"
+- Folded into: not yet
