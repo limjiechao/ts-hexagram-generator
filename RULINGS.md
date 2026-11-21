@@ -1966,3 +1966,18 @@ R-143 to R-145 were answered together: "ADR41-1 to ADR41-3: A".
   Layout C and R-018 already use; (b) private to the file.
 - Ruling: "ADR41-1 to ADR41-3: A"
 - Folded into: ADR-0041
+
+### R-146: ADR-0042 is accepted; AGENTS.md's Tier-B summary gains one sentence
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone, ratifying the consolidation R-144 ordered
+  (question Q-ADR42-1)
+- Question: Accept ADR-0042, which folds ADR-0040 and ADR-0041 into one text and
+  adds R-144's option (b) as a rejected option? (a) accept it, with one line-edit
+  to AGENTS.md's Tier-B summary saying that private names, comment wording and
+  helper structure within a ratified concept are Tier B and that uncontested
+  choices reach the owner as one digest; then land 0041 (Accepted), 0042
+  (Accepted, superseding 0040 and 0041) and the reference updates; (b) accept as
+  drafted; (c) the owner line-edits first.
+- Ruling: "ADR42-1: A"
+- Folded into: ADR-0042; AGENTS.md
