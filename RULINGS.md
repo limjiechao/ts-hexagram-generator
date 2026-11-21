@@ -1929,3 +1929,40 @@ owner touches per Matter" and "PH1-2 to PH1-5: A".
   Matter; (b) a follow-up Matter for findings 1 to 4 now.
 - Ruling: "PH1-2 to PH1-5: A"
 - Folded into: MATTERS.md (M-002 notes)
+
+R-143 to R-145 were answered together: "ADR41-1 to ADR41-3: A".
+
+### R-143: ADR-0041 is accepted, with its Why corrected
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone, ratifying the draft R-141 licensed
+  (question Q-ADR41-1)
+- Question: Accept ADR-0041 (ratification by exception and a wider Free to
+  choose)? (a) accept it with one line-edit to its Why: the ~20 routine
+  touches were "mostly public shape details accepted unchanged, and some
+  private names and comment wording", and the digest, more than the wider Free
+  to choose, is what absorbs them; (b) accept as written; (c) the owner
+  line-edits further first.
+- Ruling: "ADR41-1 to ADR41-3: A"
+- Folded into: ADR-0041
+
+### R-144: ADR-0040 and ADR-0041 are consolidated into one text before M-002
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-ADR41-2)
+- Question: ADR-0040 requires amended ADRs to be folded into one text before
+  anything depends on them. (a) consolidate now: a copilot folds 0040 and 0041
+  into a new ADR-0042 for the owner to ratify, before M-002 runs under the new
+  process; (b) leave 0041 separate until a later fold batch.
+- Ruling: "ADR41-1 to ADR41-3: A"
+- Folded into: not yet (ADR-0042, to be drafted)
+
+### R-145: "Private" under the wider Free to choose means private to the package
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-ADR41-3)
+- Question: (a) private means not reachable from the package's `exports`, so
+  code shared between a package's files through `#src` is private, the boundary
+  Layout C and R-018 already use; (b) private to the file.
+- Ruling: "ADR41-1 to ADR41-3: A"
+- Folded into: ADR-0041
