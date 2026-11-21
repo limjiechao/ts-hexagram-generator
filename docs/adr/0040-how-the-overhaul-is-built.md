@@ -1,6 +1,6 @@
 # How the overhaul is built: the owner as architect, decision tiers, agents implement
 
-Status: Accepted
+Status: Superseded by ADR-0042
 Date: 2026-11-16
 Supersedes: [ADR-0036](0036-how-the-overhaul-is-built.md), [ADR-0039](0039-brooks-refinements-to-how-the-overhaul-is-built.md)
 

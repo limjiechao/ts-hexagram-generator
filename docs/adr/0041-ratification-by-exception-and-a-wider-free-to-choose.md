@@ -1,6 +1,6 @@
 # Ratification by exception and a wider Free to choose
 
-Status: Accepted
+Status: Superseded by ADR-0042
 Date: 2026-11-21
 Amends: [ADR-0040](0040-how-the-overhaul-is-built.md)
 
