@@ -1,6 +1,6 @@
 # User manuals
 
-The user manuals are the standard for what each channel does (ADR-0040, "User
+The user manuals are the standard for what each channel does (ADR-0042, "User
 manuals"; R-008). Byte fixtures stay the standard for exact output. Each
 manual covers Brooks's nine items: purpose; environment; domain and range;
 functions and algorithms; input-output formats; operating instructions,

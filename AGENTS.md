@@ -89,7 +89,7 @@ you suppress the local craft of this codebase.
 
 ## How we build
 
-The overhaul is built the way ADR-0040 records. In
+The overhaul is built the way ADR-0042 records. In
 short: **the owner is the sole architect; agents execute and check, but never
 decide; the written library is the team's memory.**
 
@@ -100,7 +100,10 @@ decide; the written library is the team's memory.**
     scope, acceptance tests and byte fixtures, user manuals, and cross-module
     conventions. It is ratified **before** any code that depends on it.
   - **Tier B:** inside one module, checked by a reviewer. A Matter's
-    `Free to choose` field names what is explicitly yours to decide.
+    `Free to choose` field names what is explicitly yours to decide. Within a
+    concept the owner has ratified, private names, comment wording and helper
+    structure are Tier B too, even in a Tier-A file (ADR-0042); uncontested
+    choices reach the owner as one digest, contested ones as questions.
   - **Tier C:** tooling, on the owner's request.
 
   If you meet an undecided Tier-A question, **stop and ask**. Do not decide it.
@@ -113,19 +116,19 @@ decide; the written library is the team's memory.**
 - **The library has three tiers.**
   - **Authoritative:** `CONTEXT.md`, accepted ADRs, `RULINGS.md`, ratified
     user manuals, and ratified type and port files. Types are the standard for
-    shape and signatures, prose for meaning and behaviour (ADR-0040).
+    shape and signatures, prose for meaning and behaviour (ADR-0042).
   - **Derivative:** `docs/design/`.
   - **Ephemeral:** plans, handoffs, reviews, logs, `docs/legacy-architecture.md`.
 
   Source comments cite only ADRs and glossary terms, never ephemeral material.
 
-- **The key documents** (ADR-0040). Read these first:
+- **The key documents** (ADR-0042). Read these first:
   - objectives: ADR-0014;
   - user manuals: `docs/manual/` (written and ratified before Phases 4 and 5);
   - internals: `CONTEXT.md` (the language) and `docs/adr/README.md` (the
     decisions);
   - schedule and budget: `MATTERS.md`;
-  - organization: ADR-0040 (roles and tiers).
+  - organization: ADR-0042 (roles and tiers).
 - **Other places to read.**
   - `docs/design/`: the models.
   - `docs/legacy-architecture.md`: the pre-overhaul code that the bug loop
