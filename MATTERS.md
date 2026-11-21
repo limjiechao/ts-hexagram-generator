@@ -34,20 +34,20 @@ Two sets of figures sit side by side (ADR-0040, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)           | Owner touches (cap / used) | Brief cap (lines)   | Entry gate                     | Status                      |
-| ----- | --------------------------------------------------------- | ------------------------ | -------------------------- | -------------------------- | ------------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual) | uncapped / 125             | uncapped            | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | pending                     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
-| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                          | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/cli.md` ratified  | not yet broken into Matters |
-| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                          | _set after Phase 1_ / 0    | – (no brief)        | –                              | pending                     |
-| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                          | _set after Phase 1_ / 0    | _set after Phase 1_ | –                              | not yet broken into Matters |
+| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)           | Owner touches (cap / used)        | Brief cap (lines) | Entry gate                     | Status                      |
+| ----- | --------------------------------------------------------- | ------------------------ | -------------------------- | --------------------------------- | ----------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual) | uncapped / 125                    | uncapped          | –                              | landed (M-001)              |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | –                          | 60 per Matter / 0                 | 1,500             | –                              | pending                     |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                          | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
+| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                          | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                          | 60 per Matter / 0                 | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
+| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                          | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
+| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                          | 60 per Matter / 0                 | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                          | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
 
-**Phase 1 landed 2026-11-21.** Awaiting the owner: owner-touch and brief-size caps (R-006); the week budgets of
-Phases 3–6 (R-009); how M-002's boundary-rules proposal is drafted; whether to amend ADR-0040's tiers (an overseer or
-ratify-by-exception); and the cold-read findings in the Minutes' "Phase 1 milestone" entry.
+**Phase 1 landed 2026-11-21.** Caps from Phase 1 (R-138): 60 owner touches per Matter and 1,500 lines of required
+reading per brief; reaching either stops the loop for the owner. Week budgets stand until Phase 2 lands (R-139). An
+amendment to ADR-0040 is being drafted (R-141).
 
 Phases 3–6 are broken into Matters by the owner, with the copilot, when
 the previous phase lands. "Parity" in Phase 4 means "matches the ratified
@@ -115,3 +115,6 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   And R-057: a lint banning type assertions in `overhaul/*`, tests included, exempting `as const`.
   And R-101: `no-unsafe-assignment` in `overhaul/*`, so untyped data cannot be assigned to a checked type.
   The purity list (R-020) includes `remainder-group-policy` (R-026).
+  Starts with an agent-drafted boundary-rules proposal, Acceptance and Free to choose (R-140). Its first slice also
+  carries R-142's line-edits: keep's comment names both makers of a complete Casting; one-line "why" comments for
+  R-050 (the repeated Transformation) and R-076 (`scripture-catalogue` → `consultation-journal`).

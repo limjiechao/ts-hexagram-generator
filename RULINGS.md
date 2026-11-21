@@ -1863,3 +1863,69 @@ preference), lookUpEditions(work) }`, each use case 8's signature minus its
   `#src/composition-root.js`. (a) approve; (b) rename.
 - Ruling: "Q-98 to Q-100: A"
 - Folded into: not yet
+
+R-138 to R-142 were answered together at Phase 1's milestone: "PH1-1: A but 60
+owner touches per Matter" and "PH1-2 to PH1-5: A".
+
+### R-138: Caps of 60 owner touches per Matter and 1,500 lines per brief
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-PH1-1, per R-006)
+- Question: Set the caps from Phase 1's figures (125 touches for one Matter that
+  was itself the Tier-A surface; briefs of 250 to ~1,700 lines). (a) 40 owner
+  touches per Matter and 1,500 lines of required reading per brief; reaching
+  either stops the loop and asks the owner, and is not a failure; (b) per-phase
+  caps; (c) other figures.
+- Ruling: "PH1-1: A but 60 owner touches per Matter"
+- Folded into: MATTERS.md (phase table)
+
+### R-139: The week budgets of Phases 3–6 stand until Phase 2 lands
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-PH1-2, per R-009)
+- Question: Phase 1 took 2 days of 2 weeks. (a) leave the week budgets as they
+  are, let the touch caps bind, and revisit after Phase 2; (b) halve them now.
+- Ruling: "PH1-2 to PH1-5: A"
+- Folded into: not yet
+
+### R-140: M-002 starts with an agent-drafted boundary-rules proposal
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-PH1-3)
+- Question: How does M-002 start? (a) as R-022 did for M-001: a fresh agent
+  drafts the boundary-rules proposal (purity list with `remainder-group-policy`,
+  R-055's import rule, R-057's assertion ban, R-101's `no-unsafe-assignment`,
+  Layout C's arrows with R-076 and R-109, R-031's PWA subpath rule), a knife-edge
+  Acceptance command and a Free to choose, for the owner to rule on; (b) a
+  copilot session with the owner.
+- Ruling: "PH1-2 to PH1-5: A"
+- Folded into: not yet
+
+### R-141: Draft an amendment to ADR-0040: a wider Free to choose and ratification by exception
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-PH1-4, from the owner's own
+  suggestion of an overseeing agent)
+- Question: Amend ADR-0040's tiers? (a) both: widen Free to choose to private
+  names, comment wording and helper structure within a ratified concept; and
+  ratify by exception: each slice arrives as one digest of uncontested items the
+  owner ratifies in one line, and only items a fresh challenger agent contests
+  come as questions; the owner keeps every decision; drafted as an amendment for
+  the owner to ratify; (b) only the wider Free to choose; (c) keep the process.
+- Ruling: "PH1-2 to PH1-5: A"
+- Note (clerk): this licenses the draft only; nothing changes in the process
+  until the owner ratifies the amendment.
+- Folded into: not yet
+
+### R-142: Dispose of the cold-read findings as recommended
+
+- Date: 2026-11-21
+- Raised in: the Phase 1 milestone (question Q-PH1-5)
+- Question: The five cold-read findings (Minutes, "Phase 1 milestone"). (a)
+  finding 1 is covered by M-002's R-055 lint, and keep's comment is fixed as a
+  line-edit in M-002's first slice; findings 2 and 3 get one-line "why" comments
+  as line-edits there too; finding 4 comes to the owner when the catalogue
+  adapter's Matter is defined; finding 5 is a spec hole recorded for the Browse
+  Matter; (b) a follow-up Matter for findings 1 to 4 now.
+- Ruling: "PH1-2 to PH1-5: A"
+- Folded into: MATTERS.md (M-002 notes)
