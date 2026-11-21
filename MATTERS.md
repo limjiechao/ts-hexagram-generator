@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signals 1–4
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals)
 - Scope: Scripts or lint rules for doc truth, glossary conformance, boundaries (build-failing) and ephemeral-ID leakage, run on every landing.
@@ -108,8 +108,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Free to choose: _owner to ratify_, drafted with the boundary-rules proposal.
 - Acceptance: _owner to set_, with the boundary rules. Intent: each signal
   fails on a planted violation and passes on the clean tree.
-- Open questions: none yet. Step 1: Acceptance not yet a command, so a drafter writes the boundary-rules proposal,
-  Acceptance and Free to choose first (R-140). Q-M-002-1 ruled as R-057.
+- Open questions: from the proposal (ac24efd) and its challenger (11 of 26 contested): Q-M-002-2 to Q-M-002-11, and one
+  digest of 15 uncontested items. Step 1 waits on these (R-140). Q-M-002-1 ruled as R-057.
 - Commits: –
 - Notes: The boundary rules must include R-020: the Oracle and the use cases import nothing effectful; effects reach them only through driven ports.
   They must also include R-055: `isCompleteCasting` may be imported only in `oracle` and the PWA's one trust file.
