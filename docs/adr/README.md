@@ -53,6 +53,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0038 | The REST engine: resources, Casting URLs, HAL + HAL-FORMS     | Accepted                 |
 | 0039 | Brooks refinements to how the overhaul is built               | Superseded by 0040       |
 | 0040 | How the overhaul is built (consolidates 0036 and 0039)        | Accepted                 |
+| 0041 | Ratification by exception and a wider Free to choose          | Accepted                 |
 
 ## Template
 
