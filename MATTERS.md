@@ -98,24 +98,45 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   The proposal covers package axis, granularity and in-package structure as one set, with options side by side (R-021),
   within R-018 (no re-export-only files), R-019 (`imports` aliases) and R-020 (a lint-visible purity boundary).
 
-### M-002: Build drift signals 1–4
+### M-002: Build drift signal 3, the boundary rules
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 2
-- Licensed by: ADR-0042 (drift signals)
-- Scope: Scripts or lint rules for doc truth, glossary conformance, boundaries (build-failing) and ephemeral-ID leakage, run on every landing.
-- Tier-A surface: the boundary rules encode Tier-A dependency decisions. Propose them to the owner before enforcing them.
-- Free to choose: _owner to ratify_, drafted with the boundary-rules proposal.
-- Acceptance: _owner to set_, with the boundary rules. Intent: each signal
-  fails on a planted violation and passes on the clean tree.
-- Open questions: from the proposal (ac24efd) and its challenger (11 of 26 contested): Q-M-002-2 to Q-M-002-11, and one
-  digest of 15 uncontested items. Step 1 waits on these (R-140). Q-M-002-1 ruled as R-057.
+- Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
+- Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
+  guard, type assertions and untyped data, in `overhaul/`, failing `pnpm lint:check` on every landing; plus a prover
+  with planted violations. Signals 1, 2 and 4 moved to M-003 (R-147).
+- Tier-A surface: the boundary rules encode Tier-A dependency decisions; as ruled in R-148 to R-157 over
+  `docs/reviews/2026-11-21-m-002-boundary-rules.md` (§2, §4, §5).
+- Free to choose: the proposal's §4 as ratified in R-157 (items 6 to 13), with R-154 (R-142's line-edits land in the first
+  slice to land).
+- Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
+  caught by its own rule and every clean twin passes, its expected list fixed in the prover.
+- Open questions: none. Q-M-002-1 to Q-M-002-11 ruled as R-057, R-147 to R-156; digest R-157.
 - Commits: –
-- Notes: The boundary rules must include R-020: the Oracle and the use cases import nothing effectful; effects reach them only through driven ports.
-  They must also include R-055: `isCompleteCasting` may be imported only in `oracle` and the PWA's one trust file.
-  And R-057: a lint banning type assertions in `overhaul/*`, tests included, exempting `as const`.
-  And R-101: `no-unsafe-assignment` in `overhaul/*`, so untyped data cannot be assigned to a checked type.
+- Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to
+  B8, B10 per R-157; B4 per R-151 (`remainder-group-policy` imports `oracle` as types only); B5 per R-152
+  (`consultation-journal/divined-at` only); B9 checked by `lint:check` (R-148); B11 per R-057 and R-149 (`as`, `<T>`,
+  `!`; `as const` exempt); B12 per R-101 and R-153 (`no-unsafe-assignment`, `-argument`, `-return`); B13's analysis
+  built now, B13 and B14 added by the PWA's and REST engine's Matters (R-151).
   The purity list (R-020) includes `remainder-group-policy` (R-026).
-  Starts with an agent-drafted boundary-rules proposal, Acceptance and Free to choose (R-140). Its first slice also
-  carries R-142's line-edits: keep's comment names both makers of a complete Casting; one-line "why" comments for
-  R-050 (the repeated Transformation) and R-076 (`scripture-catalogue` → `consultation-journal`).
+  The first slice to land also carries R-142's line-edits, worded per R-155 and R-157(15): keep's comment states
+  only that it takes a complete Casting and does no replay (ADR-0026); "Reuses `Day` from `consultation-journal`."
+  above R-076's import; R-050's comment as R-157(15) gives it.
+
+### M-003: Build drift signals 1, 2 and 4
+
+- Status: pending
+- Phase: 2
+- Licensed by: ADR-0042 (drift signals); R-147
+- Scope: Scripts for doc truth (signal 1), glossary conformance (signal 2) and ephemeral-ID leakage (signal 4), run by
+  `pnpm drift:check` on every landing, with planted violations in `drift:prove`.
+- Tier-A surface: the vocabulary each script checks: names that may not exist yet, which _Avoid_ entries are
+  checkable and how identifiers are split and matched, whether Ruling IDs count as ephemeral.
+- Free to choose: _owner to ratify_, drafted with its own proposal.
+- Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
+- Open questions: none yet. Carried from M-002's proposal for this Matter's own proposal: its Q1 (doc-truth names that do
+  not exist yet), Q2 (checkable _Avoid_ entries) and Q6 (Ruling IDs as ephemeral), and the challenger's point that the
+  regexes for signals 2 and 4 are Tier A.
+- Commits: –
+- Notes: Starts after M-002 lands, with an agent-drafted proposal as R-140 set for M-002.

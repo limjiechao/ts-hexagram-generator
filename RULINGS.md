@@ -1981,3 +1981,140 @@ R-143 to R-145 were answered together: "ADR41-1 to ADR41-3: A".
   drafted; (c) the owner line-edits first.
 - Ruling: "ADR42-1: A"
 - Folded into: ADR-0042; AGENTS.md
+
+R-147 to R-157 were answered together: "M002-2 to M002-11: A; digest ratified".
+R-147 to R-156 record option (a) of their questions; R-157 is the digest.
+
+### R-147: M-002 is split: M-002 keeps signal 3; a new Matter takes signals 1, 2 and 4
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-2)
+- Question: (a) split: M-002 keeps signal 3 (dependency and purity rules) with
+  Acceptance `pnpm lint:check && pnpm drift:prove`; a new Matter takes signals
+  1, 2 and 4 with `pnpm lint:check && pnpm drift:check && pnpm drift:prove`,
+  using Phase 2's 2-Matter budget, each with its own 60-touch cap; the
+  proposal's Q1, Q2, Q6 and the regex scope of signals 2 and 4 move to that
+  Matter's proposal; (b) one Matter.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-148: `lint:check` also checks each manifest's arrows (B9)
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-3)
+- Question: What makes signal 3 build-failing, given B9 lived only in the
+  prover? (a) `lint:check` also runs B9's manifest check, so every landing
+  fails on a bad arrow; `drift:prove` stays acceptance-only; (b) lint also
+  becomes a turbo dependency of `build`.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-149: The non-null `!` is a type assertion too
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-4)
+- Question: What does R-051 count as a type assertion? (a) `as` and `<T>`,
+  plus the non-null `!` (`no-non-null-assertion`, off in the shared config);
+  (b) only `as` and `<T>`; (c) also `@ts-expect-error`.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-150: The pure packages' effect list, with dynamic imports and `globalThis` closed
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-5)
+- Question: What counts as an effect in the pure packages (B1, B2)? (a) all
+  `node:*` modules plus the globals `crypto`, `performance`, `process`,
+  `fetch` and the timers; also ban dynamic `import()` of `node:*`, and
+  restrict `globalThis`, `self` and `window` there so
+  `globalThis.Math.random()` cannot pass; (b) only R-020's four.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-151: Future packages' rules come with them; B13's analysis is built now; the policy imports `oracle` as types only
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-6)
+- Question: (a) B10 strict now (`oracle` only); the PWA's Matter adds its
+  trust file, B13 and B14 for the REST engine; B13's knowledge is built now, a
+  script listing which `application` subpaths load Oracle code;
+  `remainder-group-policy` must import `oracle` as types only (R-109); the PWA
+  may import types from `oracle`; (b) patterns now with a guessed trust-file
+  path.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-152: `scripture-catalogue` may import only `consultation-journal/divined-at`
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-7)
+- Question: How far may `scripture-catalogue` depend on
+  `consultation-journal`, R-076 having granted it for `Day`? (a) only its
+  `/divined-at` subpath; (b) the whole package.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-153: `no-unsafe-argument` and `no-unsafe-return` join R-101's rule
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-8)
+- Question: `no-unsafe-assignment` misses untyped data passed as an argument
+  or returned (`divide(JSON.parse(s))`). (a) add `no-unsafe-argument` and
+  `no-unsafe-return`, beyond R-101's letter but serving it; (b) only what
+  R-101 names.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-154: R-142's line-edits land in whichever of M-002's slices lands first
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-9)
+- Question: The Free to choose leaves slice order to the implementer, but
+  M-002's notes put R-142's line-edits in its first slice. (a) pin them to
+  whichever slice lands first; (b) leave the order fully free.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-155: Keep's and R-076's comments, reworded
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-10)
+- Question: (a) keep's comment states only keep's fact, "It takes only a
+  complete Casting and does no replay (ADR-0026)", not who makes one, since
+  R-031 and R-055 are not folded into an ADR; R-076's comment reads "Reuses
+  `Day` from `consultation-journal`.", avoiding the glossary's Journal and the
+  unused guard; (b) fold R-031 and R-055 into an ADR first.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-156: M-002's Acceptance is `pnpm lint:check && pnpm drift:prove`
+
+- Date: 2026-11-21
+- Raised in: M-002 (question Q-M-002-11)
+- Question: (a) under R-147, `pnpm lint:check && pnpm drift:prove`,
+  `drift:prove` exiting 0 only if every planted violation is caught by its own
+  rule and every clean twin passes, its expected list fixed in the prover; (b)
+  the full command under one Matter.
+- Ruling: "M002-2 to M002-11: A"
+- Folded into: not yet
+
+### R-157: Digest of M-002's uncontested proposal items (15 items)
+
+- Date: 2026-11-21
+- Raised in: M-002, ratification by exception (ADR-0042) over
+  `docs/reviews/2026-11-21-m-002-boundary-rules.md`; a fresh challenger left
+  these 15 of 26 items uncontested
+- Items, each as recommended: (1) B3 `oracle` imports no `@hexagram/*`; (2) B6
+  `application` imports only the four domain packages; (3) B7
+  `cli-adapter/src` imports only `application`; (4) B8 `cli-adapter/tests` may
+  also import `scripture-catalogue`; (5) B10 `isCompleteCasting` imported only
+  in `oracle`, by `importNames`. Free to choose: (6) file names and layout under
+  `scripts/drift/`; (7) TypeScript run by `tsx`; (8) the scripts' and prover's
+  internal structure; (9) lint message and output wording; (10) B10 by name or
+  by subpath; (11) allow-lists as regex or negated patterns; (12) how a
+  typed-lint plant is admitted; (13) the "not free" line. (14) M-002's own
+  slices, order and contents, each under 400 lines, the fourth conditional on
+  R-151. (15) R-050's comment: "Repeated from its Casting, so every
+  Consultation carries one here."
+- Ruling: "digest ratified"
+- Folded into: MATTERS.md (M-002)
