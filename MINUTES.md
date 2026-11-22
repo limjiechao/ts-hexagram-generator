@@ -225,3 +225,18 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Budget: 1 of 3 Matters, 2 days of 2 weeks, 125 owner touches (115 Rulings, 9 ratifications, 1 test-list approval).
   Brief sizes: 250 to ~1,700 lines of required reading per agent.
 - Owner decisions now open: caps (R-006), week budgets (R-009), how M-002 starts, the overseer idea, the findings above.
+
+### Iteration 13 — M-002 — 2026-11-22
+
+- Attempt: 1/2 (slice 1; R-058) · Outcome: slice 1 landed with M-002's acceptance material
+- Spec audit: 3 rounds; 13 holes (Q-M-002-12 to Q-M-002-24), ruled R-158 to R-170
+- Acceptance tests: written by tester at a16464e and 578f047 (52 plants, 13 twins, expected.ts); approved by the owner; red before implementation (y)
+- Brief size (signal 7): ~800 lines of required reading (implementer); ~1,000 (tester)
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-002-27, Q-M-002-28 (ruled R-173, R-174)
+- Challenger: first run of ADR-0042's ratification by exception; contested 11 of 26 proposal items; 15 ratified in one digest (R-157)
+- Suggestions to the architect: 2 (ESLint cache strategy, Tier C; B9's other dependency fields, ruled R-172)
+- Verify: type:check · oxlint and uncached eslint · format · build and test forced on matters 18/18 and 36/36 · drift:prove for B1–B9 passes; unfiltered fails only on B10–B12, as planned
+- Ratification lag (signal 5): Tier-A rules ruled before implementation (y); fixtures approved before implementation (y)
+- Owner touches: 29 in M-002 so far (rulings 27 · digests 1 · test-list approvals 1), against a cap of 60 (R-138)
+- Landed: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea · Budget used: 0 of 2 Matters in Phase 2 · Phase estimate: 2 Matters / 1 week
+- Notes: slice 1 is 445 lines, over R-157(14)'s 400, accepted whole by R-173.
