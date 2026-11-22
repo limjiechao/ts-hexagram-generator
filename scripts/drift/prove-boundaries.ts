@@ -3,18 +3,33 @@
 // config, and exits 0 only if each plant is reported by exactly its own
 // B-number and each twin by none. Reports from rules outside B1 to B12 are
 // ignored. `--only B1,B2` limits the run to the rules named.
+//
+// Without `--only`, it also proves the Oracle-subpath analysis (R-151,
+// R-179) on its fixture trees: the analysis must report each fake subpath as
+// its expected list says, the two matching both ways, and leave the working
+// tree unchanged (R-184, R-189).
 
+import { execFile } from 'node:child_process'
+import { createHash } from 'node:crypto'
 import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
+import { promisify } from 'node:util'
 
 import { ESLint } from 'eslint'
 
+import {
+  expected as expectedSubpaths,
+  type ExpectedVerdict,
+} from './fixtures/oracle-subpaths/expected.js'
 import { expected } from './fixtures/signal-3/expected.js'
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url))
 const fixtures = fileURLToPath(new URL('fixtures/signal-3/', import.meta.url))
+const subpathFixtures = fileURLToPath(
+  new URL('fixtures/oracle-subpaths/', import.meta.url),
+)
 const boundaryRules = Array.from({ length: 12 }, (_, index) => `B${index + 1}`)
 
 function parseOnly(argv: readonly string[]): ReadonlySet<string> {
@@ -127,9 +142,127 @@ async function prove(only: ReadonlySet<string>): Promise<string[]> {
   return failures
 }
 
+// The analysis entry point, `scripts/drift/oracle-subpaths.ts` (R-178, R-180).
+// `packagesRoot` stands for `overhaul/`: its `application` folder's subpaths
+// are analysed. A subpath is its export key; a file is relative to
+// `packagesRoot`, with `/` separators.
+type SubpathVerdict =
+  | { readonly verdict: 'loads'; readonly chain: readonly string[] }
+  | { readonly verdict: 'free' }
+type SubpathAnalysis =
+  | {
+      readonly ok: true
+      readonly subpaths: Readonly<Record<string, SubpathVerdict>>
+    }
+  | {
+      readonly ok: false
+      readonly file: string
+      readonly specifier: string
+      readonly message: string
+    }
+type AnalyseOracleSubpaths = (packagesRoot: string) => Promise<SubpathAnalysis>
+
+async function loadAnalysis(): Promise<AnalyseOracleSubpaths | string> {
+  try {
+    const loaded: { analyseOracleSubpaths?: unknown } =
+      await import('./oracle-subpaths.js')
+    if (typeof loaded.analyseOracleSubpaths === 'function')
+      return loaded.analyseOracleSubpaths as AnalyseOracleSubpaths
+    return 'oracle-subpaths.ts exports no analyseOracleSubpaths function'
+  } catch (error) {
+    return `cannot load oracle-subpaths.ts: ${String(error)}`
+  }
+}
+
+function describeVerdict(verdict: ExpectedVerdict): string {
+  return typeof verdict === 'string'
+    ? verdict
+    : `error naming ${verdict.file} and ${verdict.specifier}`
+}
+
+async function reportedSubpaths(
+  analyse: AnalyseOracleSubpaths,
+  failures: string[],
+): Promise<Map<string, ExpectedVerdict>> {
+  const reported = new Map<string, ExpectedVerdict>()
+  const trees = await readdir(subpathFixtures, { withFileTypes: true })
+  for (const tree of trees.filter((entry) => entry.isDirectory())) {
+    const result = await analyse(path.join(subpathFixtures, tree.name))
+    if (result.ok) {
+      for (const [subpath, { verdict }] of Object.entries(result.subpaths))
+        reported.set(`${tree.name}:${subpath}`, verdict)
+      continue
+    }
+    // An error stops a tree's whole analysis, so it is matched to the one
+    // subpath its tree lists.
+    const listed = Object.keys(expectedSubpaths).filter((key) =>
+      key.startsWith(`${tree.name}:`),
+    )
+    const { file, specifier } = result
+    if (listed.length === 1 && listed[0] !== undefined)
+      reported.set(listed[0], { verdict: 'error', file, specifier })
+    else
+      failures.push(
+        `${tree.name}: analysis failed naming ${file} and ${specifier}`,
+      )
+  }
+  return reported
+}
+
+async function proveSubpaths(): Promise<string[]> {
+  const analyse = await loadAnalysis()
+  if (typeof analyse === 'string') return [analyse]
+  const failures: string[] = []
+  const reported = await reportedSubpaths(analyse, failures)
+  for (const key of reported.keys()) {
+    if (!Object.hasOwn(expectedSubpaths, key))
+      failures.push(`${key}: reported but missing from expected.ts`)
+  }
+  for (const [key, verdict] of Object.entries(expectedSubpaths)) {
+    const actual = reported.get(key)
+    if (actual === undefined)
+      failures.push(`${key}: listed in expected.ts but not reported`)
+    else if (describeVerdict(actual) !== describeVerdict(verdict))
+      failures.push(
+        `${key}: expected ${describeVerdict(verdict)}, reported ${describeVerdict(actual)}`,
+      )
+  }
+  return failures
+}
+
+// Git's status cannot see ignored files, such as a `dist` the analysis might
+// build among the fixtures, so the fixture trees are also hashed whole.
+async function workingTreeState(): Promise<string> {
+  const { stdout } = await promisify(execFile)(
+    'git',
+    ['status', '--porcelain', '--untracked-files=all'],
+    { cwd: repoRoot },
+  )
+  const hash = createHash('sha256').update(stdout)
+  const entries = await readdir(subpathFixtures, {
+    recursive: true,
+    withFileTypes: true,
+  })
+  const files = entries
+    .filter((entry) => entry.isFile())
+    .map((entry) => path.join(entry.parentPath, entry.name))
+    .toSorted()
+  for (const file of files) hash.update(file).update(await readFile(file))
+  return hash.digest('hex')
+}
+
 const only = parseOnly(process.argv.slice(2))
+const analysed = !process.argv.slice(2).includes('--only')
+const before = analysed ? await workingTreeState() : ''
 const failures = await prove(only)
-const scope = describeRules(boundaryRules.filter((rule) => only.has(rule)))
+if (analysed) {
+  failures.push(...(await proveSubpaths()))
+  if ((await workingTreeState()) !== before)
+    failures.push('the working tree changed during the proof')
+}
+const scope =
+  describeRules(boundaryRules.filter((rule) => only.has(rule))) +
+  (analysed ? ' and the Oracle-subpath analysis (R-151)' : '')
 if (failures.length > 0) {
   console.error(`drift:prove failed for ${scope}:`)
   for (const failure of failures) console.error(`  ${failure}`)

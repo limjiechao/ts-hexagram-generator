@@ -1,0 +1,13 @@
+{
+  "//": "R-189 error E3: a wildcard export; the analysis must fail naming application/package.json and ./*",
+  "name": "@hexagram/application",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./*": {
+      "source": "./src/*.ts",
+      "types": "./dist/*.d.mts",
+      "import": "./dist/*.mjs"
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "name": "@hexagram/consultation-journal",
+  "type": "module",
+  "private": true,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./journal-loads": {
+      "source": "./src/journal-loads.ts",
+      "types": "./dist/journal-loads.d.mts",
+      "import": "./dist/journal-loads.mjs"
+    },
+    "./journal-alias": {
+      "source": "./src/journal-alias.ts",
+      "types": "./dist/journal-alias.d.mts",
+      "import": "./dist/journal-alias.mjs"
+    }
+  }
+}

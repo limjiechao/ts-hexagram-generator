@@ -1,0 +1,12 @@
+{
+  "name": "@hexagram/application",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./e2-dynamic-name": {
+      "source": "./src/e2-dynamic-name.ts",
+      "types": "./dist/e2-dynamic-name.d.mts",
+      "import": "./dist/e2-dynamic-name.mjs"
+    }
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "@hexagram/application",
+  "type": "module",
+  "private": true,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./e1-unresolvable": {
+      "source": "./src/e1-unresolvable.ts",
+      "types": "./dist/e1-unresolvable.d.mts",
+      "import": "./dist/e1-unresolvable.mjs"
+    }
+  }
+}

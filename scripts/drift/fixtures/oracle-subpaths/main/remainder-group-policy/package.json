@@ -1,0 +1,12 @@
+{
+  "name": "@hexagram/remainder-group-policy",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./policy": {
+      "source": "./src/policy.ts",
+      "types": "./dist/policy.d.mts",
+      "import": "./dist/policy.mjs"
+    }
+  }
+}

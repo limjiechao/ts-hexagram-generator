@@ -1,0 +1,17 @@
+{
+  "name": "@hexagram/oracle",
+  "type": "module",
+  "private": true,
+  "exports": {
+    "./pick": {
+      "source": "./src/pick.ts",
+      "types": "./dist/pick.d.mts",
+      "import": "./dist/pick.mjs"
+    },
+    "./shape": {
+      "source": "./src/shape.ts",
+      "types": "./dist/shape.d.mts",
+      "import": "./dist/shape.mjs"
+    }
+  }
+}

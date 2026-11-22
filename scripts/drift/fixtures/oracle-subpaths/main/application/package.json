@@ -1,0 +1,137 @@
+{
+  "//": "R-189 twin T11: the ./package.json export is neither listed nor an error. Every dist target is missing, since fixtures are never built (T10).",
+  "name": "@hexagram/application",
+  "type": "module",
+  "private": true,
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./p01-value-import": {
+      "source": "./src/p01-value-import.ts",
+      "types": "./dist/p01-value-import.d.mts",
+      "import": "./dist/p01-value-import.mjs"
+    },
+    "./p02-inline-type-specifier": {
+      "source": "./src/p02-inline-type-specifier.ts",
+      "types": "./dist/p02-inline-type-specifier.d.mts",
+      "import": "./dist/p02-inline-type-specifier.mjs"
+    },
+    "./p03-default-with-inline-type": {
+      "source": "./src/p03-default-with-inline-type.ts",
+      "types": "./dist/p03-default-with-inline-type.d.mts",
+      "import": "./dist/p03-default-with-inline-type.mjs"
+    },
+    "./p04-side-effect": {
+      "source": "./src/p04-side-effect.ts",
+      "types": "./dist/p04-side-effect.d.mts",
+      "import": "./dist/p04-side-effect.mjs"
+    },
+    "./p05-named-reexport": {
+      "source": "./src/p05-named-reexport.ts",
+      "types": "./dist/p05-named-reexport.d.mts",
+      "import": "./dist/p05-named-reexport.mjs"
+    },
+    "./p06-export-star": {
+      "source": "./src/p06-export-star.ts",
+      "types": "./dist/p06-export-star.d.mts",
+      "import": "./dist/p06-export-star.mjs"
+    },
+    "./p07-export-inline-type": {
+      "source": "./src/p07-export-inline-type.ts",
+      "types": "./dist/p07-export-inline-type.d.mts",
+      "import": "./dist/p07-export-inline-type.mjs"
+    },
+    "./p08-literal-dynamic-import": {
+      "source": "./src/p08-literal-dynamic-import.ts",
+      "types": "./dist/p08-literal-dynamic-import.d.mts",
+      "import": "./dist/p08-literal-dynamic-import.mjs"
+    },
+    "./p09-through-alias": {
+      "source": "./src/p09-through-alias.ts",
+      "types": "./dist/p09-through-alias.d.mts",
+      "import": "./dist/p09-through-alias.mjs"
+    },
+    "./p10-through-two-aliases": {
+      "source": "./src/p10-through-two-aliases.ts",
+      "types": "./dist/p10-through-two-aliases.d.mts",
+      "import": "./dist/p10-through-two-aliases.mjs"
+    },
+    "./p11-through-journal": {
+      "source": "./src/p11-through-journal.ts",
+      "types": "./dist/p11-through-journal.d.mts",
+      "import": "./dist/p11-through-journal.mjs"
+    },
+    "./p12-through-journal-alias": {
+      "source": "./src/p12-through-journal-alias.ts",
+      "types": "./dist/p12-through-journal-alias.d.mts",
+      "import": "./dist/p12-through-journal-alias.mjs"
+    },
+    "./p13-relative-into-oracle": {
+      "source": "./src/p13-relative-into-oracle.ts",
+      "types": "./dist/p13-relative-into-oracle.d.mts",
+      "import": "./dist/p13-relative-into-oracle.mjs"
+    },
+    "./p14-cycle-reaches-oracle": {
+      "source": "./src/p14-cycle-reaches-oracle.ts",
+      "types": "./dist/p14-cycle-reaches-oracle.d.mts",
+      "import": "./dist/p14-cycle-reaches-oracle.mjs"
+    },
+    "./p15-value-import-of-types-only-file": {
+      "source": "./src/p15-value-import-of-types-only-file.ts",
+      "types": "./dist/p15-value-import-of-types-only-file.d.mts",
+      "import": "./dist/p15-value-import-of-types-only-file.mjs"
+    },
+    "./t01-import-type": {
+      "source": "./src/t01-import-type.ts",
+      "types": "./dist/t01-import-type.d.mts",
+      "import": "./dist/t01-import-type.mjs"
+    },
+    "./t02-export-type": {
+      "source": "./src/t02-export-type.ts",
+      "types": "./dist/t02-export-type.d.mts",
+      "import": "./dist/t02-export-type.mjs"
+    },
+    "./t03-export-type-star": {
+      "source": "./src/t03-export-type-star.ts",
+      "types": "./dist/t03-export-type-star.d.mts",
+      "import": "./dist/t03-export-type-star.mjs"
+    },
+    "./t04-type-position-import": {
+      "source": "./src/t04-type-position-import.ts",
+      "types": "./dist/t04-type-position-import.d.mts",
+      "import": "./dist/t04-type-position-import.mjs"
+    },
+    "./t05-through-types-only-policy": {
+      "source": "./src/t05-through-types-only-policy.ts",
+      "types": "./dist/t05-through-types-only-policy.d.mts",
+      "import": "./dist/t05-through-types-only-policy.mjs"
+    },
+    "./t06-alias-helper-type-only": {
+      "source": "./src/t06-alias-helper-type-only.ts",
+      "types": "./dist/t06-alias-helper-type-only.d.mts",
+      "import": "./dist/t06-alias-helper-type-only.mjs"
+    },
+    "./t07-cycle-without-oracle": {
+      "source": "./src/t07-cycle-without-oracle.ts",
+      "types": "./dist/t07-cycle-without-oracle.d.mts",
+      "import": "./dist/t07-cycle-without-oracle.mjs"
+    },
+    "./t08-unexported-sibling-loads": {
+      "source": "./src/t08-unexported-sibling-loads.ts",
+      "types": "./dist/t08-unexported-sibling-loads.d.mts",
+      "import": "./dist/t08-unexported-sibling-loads.mjs"
+    },
+    "./t09-oracle-text-in-comment-and-string": {
+      "source": "./src/t09-oracle-text-in-comment-and-string.ts",
+      "types": "./dist/t09-oracle-text-in-comment-and-string.d.mts",
+      "import": "./dist/t09-oracle-text-in-comment-and-string.mjs"
+    },
+    "./t10-missing-dist-target": {
+      "source": "./src/t10-missing-dist-target.ts",
+      "types": "./dist/t10-missing-dist-target.d.mts",
+      "import": "./dist/t10-missing-dist-target.mjs"
+    },
+    "./package.json": "./package.json"
+  }
+}
