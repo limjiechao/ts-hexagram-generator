@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,7 +112,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: none. Spec holes Q-M-002-12 to Q-M-002-20 ruled as R-158 to R-166; a fresh tester writes the plants. Q-M-002-1 to Q-M-002-11 ruled as R-057,
+- Open questions: second audit: Q-M-002-21 (what a clean twin must avoid), -22 (B10 and dynamic imports), -23 (type-position
+  `import()`). Spec holes Q-M-002-12 to Q-M-002-20 ruled as R-158 to R-166. Q-M-002-1 to Q-M-002-11 ruled as R-057,
   R-147 to R-156; digest R-157.
 - Commits: –
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to
