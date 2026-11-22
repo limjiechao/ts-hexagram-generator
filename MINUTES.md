@@ -276,3 +276,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: not run by the clerk; the implementer and both reviewers report gates, unfiltered drift:prove, lint:check and the real tree's four loads passing on the branch
 - Owner touches: 46 in M-002 so far; Q-M-002-45 and Q-M-002-46 pending
 - Landed: – · Notes: R-177 to R-191 ruled in this iteration. The tester's fixtures (3527a7e) are unchanged by both attempts. Both blocking findings are silent drops of an export that should be listed or fail.
+
+### Iteration 18 — M-002 — 2026-11-22
+
+- Attempt: 3/3 and 4/4 (slice 4; R-193, R-194 beyond R-058's two) · Outcome: slice 4 landed; M-002 landed
+- Review: attempt 3 `REQUEST CHANGES` (its R-193 scope passed; an older silent drop: absolute-path and `file:` specifiers read as third-party, R-180, R-181) · attempt 4 `APPROVE` (the final review under R-194; four items recorded as stated limits)
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12 and the Oracle-subpath analysis · `drift:oracle-subpaths` lists exactly the four expected subpaths as loads
+- Owner touches: 49 in M-002 of 60 (R-138)
+- Landed: c3a61ff (the tester's fixtures), 59359ee (the analysis, squashing 7876ad0, ed38f3b, 07247f4, db27647) · Phase estimate: 2 Matters / 1 week
+- Notes: every blocking finding in slice 4 was a silent "free" where the analysis should list or fail; each attempt fixed one and the next fresh review found another. R-194's cap ended the loop. Probe trees from the subagents are left in `$TMPDIR` (`s4p*`) and `/tmp/review*-s4*`, because their deletes were permission-denied; they hold only invented files.
