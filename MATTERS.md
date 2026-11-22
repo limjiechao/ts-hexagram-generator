@@ -37,7 +37,7 @@ from its actual figures when it lands (R-006).
 | Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                   | Owner touches (cap / used)        | Brief cap (lines) | Entry gate                     | Status                      |
 | ----- | --------------------------------------------------------- | ------------------------ | -------------------------------------------------- | --------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                         | uncapped / 125                    | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slices 1–3 of 4 landed) | 60 per Matter / 31 (M-002)        | 1,500             | –                              | in progress                 |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slices 1–3 of 4 landed) | 60 per Matter / 44 (M-002)        | 1,500             | –                              | in progress                 |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                  | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                  | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                  | 60 per Matter / 0                 | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,11 +112,11 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: Q-M-002-31 (B10 and oracle's built `dist` output); Q-M-002-32 to -42 (slice 4's spec holes, from the
-  tester's audit); and approval of slice 4's acceptance list. Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
+- Open questions: none. Q-M-002-31 to -42 ruled as R-177 to R-188; slice 4's acceptance list approved as R-189.
+  Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
   In flight (2026-11-22): slice 4 (R-151: B13's analysis of which `application` subpaths load Oracle code) on branch
-  m/M-002-s4, worktree ../hexagram-wt-M-002-s4, awaiting those Rulings; then the plants, an implementer, a fresh
-  reviewer, verification and landing. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
+  m/M-002-s4, worktree ../hexagram-wt-M-002-s4: the tester writes R-189's fixtures (red), then an implementer, a fresh
+  reviewer, verification (including the real tree's list, R-185) and landing. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
   Q-M-002-1 to Q-M-002-24 ruled as R-057, R-147 to R-170; digest R-157.
 - Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea; slice 2: 4cdce11, 85a5667, d32ecc3; slice 3: 9e9f0a1, 7e3d477, 2152063, e17f002
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to

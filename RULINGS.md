@@ -2340,3 +2340,165 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   none exist.
 - Ruling: "M002-30 A"
 - Folded into: not yet
+
+### R-177: B10's blind spot for oracle's built `dist` output is a stated limit
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-31, from slice 3's review)
+- Question: A relative import of `overhaul/oracle/dist/complete-casting.*` passes
+  B10 unless it names `isCompleteCasting`. (a) a stated limit: named imports are
+  caught, the route is unusual, and `dist` is not checked in; (b) extend R-175's
+  match to `dist`.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-178: The subpath analysis prints every subpath as loads or free, with the chain
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-32, slice 4's spec audit)
+- Question: What R-151's script outputs. (a) every `application` subpath marked
+  "loads" or "free", with the import chain that reaches Oracle code for each
+  "loads"; the same function is called by the prover; nothing generated is
+  committed; (b) only the Oracle-loading subpaths; (c) a committed JSON file
+  that B13 reads later, with a freshness check.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-179: The analysis has its own command and is proved inside `drift:prove`
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-33, slice 4's spec audit)
+- Question: (a) both: a new `pnpm drift:oracle-subpaths` runs it on the real
+  tree, and `drift:prove` proves it on fixtures; (b) proof inside
+  `drift:prove` only, with no command of its own.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-180: The analysis exits 1 only when it cannot analyse
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-34, slice 4's spec audit)
+- Question: (a) exit 0 whatever it lists; exit 1 only on an unresolvable
+  specifier, a parse error, a non-literal `import(expr)` or a wildcard export,
+  naming the file and specifier; (b) also exit 1 when any subpath loads Oracle
+  code, which fails today on four legitimate subpaths.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-181: What counts as loading Oracle code
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-35, slice 4's spec audit)
+- Question: (a) Loads: `import { type X }` (R-161), `export { type X } from`,
+  `export { x } from`, `export * from`, a side-effect `import 'x'`, and a
+  value-position `import('literal')`. Free: top-level `import type`,
+  `export type { X } from`, `export type * from`, and a type-position
+  `import('…').T` (R-169). The analysis follows `#src/*` aliases, resolved
+  against the importing file's own package `imports`, and every `@hexagram/*`
+  package under `overhaul/`; it stops at `node:*` and third-party packages.
+  Oracle code is any file under `overhaul/oracle/`, reached by any specifier,
+  relative paths included (R-163, R-175). (b) only the specifier
+  `@hexagram/oracle/*` counts.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-182: The analysis reads each subpath's `source` target
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-36, slice 4's spec audit)
+- Question: (a) analyse the `source` condition's target, which lint and tests
+  already resolve; skip non-code exports such as `./package.json`; a wildcard or
+  nested export is an error; (b) analyse the `import` target in `dist`, which
+  needs a build; (c) both, failing if they differ.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-183: The analysis is proved on one fixture tree of fake packages
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-37, slice 4's spec audit)
+- Question: (a) one fixture tree of fake `application`, `oracle`,
+  `consultation-journal` and `remainder-group-policy` packages, each fake
+  `application` subpath one plant or twin; each error case a tiny tree of its
+  own; the fake packages kept out of the pnpm workspace, `tsc` and vitest;
+  (b) one tree per case.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-184: The analysis has its own expected list, not a B13 key
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-38, slice 4's spec audit)
+- Question: (a) a separate expected list in the prover, "Oracle-subpath analysis
+  (R-151)", mapping each fake subpath to loads, free or error; a subpath missing
+  from the list, or a key with no subpath, fails; the analysis proof runs only
+  when `--only` is absent; (b) add `'B13'` to the rule keys now, colliding with
+  the PWA's future lint rule.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-185: Slice 4's Acceptance stays R-156's command
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-39, slice 4's spec audit)
+- Question: (a) Acceptance stays `pnpm lint:check && pnpm drift:prove`, with
+  `drift:prove` extended to the analysis fixtures; the real tree's list (four
+  subpaths today) is checked in the clerk's verification only, since it changes
+  as use cases are built; (b) also fix the real tree's list in Acceptance.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-186: Four implementation choices in the analysis are Tier B
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-40, slice 4's spec audit)
+- Question: (a) the implementer chooses: parsing with the installed TypeScript
+  compiler API rather than a regex; resolving `#src/x.js` to `x.ts`; terminating
+  on import cycles; analysing only `application`, with another root allowed for
+  fixtures only; (b) the owner rules on each.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-187: Slice 4 is one slice of about 300 to 350 lines
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-41, slice 4's spec audit)
+- Question: The proposal guessed about 200 lines; the tester estimates 300 to 350. (a) accept one slice, as R-173 did, since the analysis is proved only
+  with its prover; (b) split the classifier and its fixtures from the prover
+  wiring.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-188: R-031's "import no oracle" means "load no Oracle code"
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-42, slice 4's spec audit)
+- Question: R-031 says the PWA imports only `application` subpaths "that import
+  no `oracle`", which read literally excludes `keep-cast-consultation` and its
+  `import type`, though keep is the use case R-031 lets the PWA run; R-151 reads
+  it as "load no Oracle code", with type-only imports allowed. (a) record that
+  reading, so B13 is written against it; (b) leave it to the PWA's Matter.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
+
+### R-189: Slice 4's acceptance list
+
+- Date: 2026-11-22
+- Raised in: M-002 (slice 4's acceptance list, from the tester)
+- Question: Approve the list. Plants, each expected "loads": a value import;
+  `import { type X }`; a default with an inline type; a side-effect import; a
+  named re-export; `export *`; `export { type X }`; a literal `import()`; through
+  an alias; through two aliases; through `consultation-journal`; through the
+  journal's own alias; a relative path into `oracle/src`; a cycle that reaches
+  oracle; a value import of an oracle file holding only types. Twins, each
+  expected "free": `import type`; `export type {}`; `export type *`; a
+  type-position `import()`; through a policy package that imports oracle as
+  types only; an alias helper that only type-imports; a cycle without oracle; an
+  unexported sibling file that loads oracle; oracle text only in a comment and a
+  string; a missing `dist` target; a `./package.json` export, neither listed nor
+  an error. Errors, each expected to exit 1 naming the file and specifier: an
+  unresolvable specifier; a non-literal `import(name)`; a wildcard export.
+  Prover checks: fixture subpaths and expected keys match both ways; the working
+  tree is left unchanged.
+- Ruling: "Q-31 to Q-42: A; approve the list"
+- Folded into: not yet
