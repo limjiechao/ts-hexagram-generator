@@ -140,14 +140,14 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   checkable and how identifiers are split and matched, whether Ruling IDs count as ephemeral.
 - Free to choose: the proposal's §3, narrowed as R-216 rules.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
-- Open questions: none. Q-M-003-15 to -30 ruled as R-208 to R-223 (slice 1's spec holes, Free to choose, acceptance
-  list R-218, and R-219 to R-223 from its fixtures and review). In flight (2026-11-22): slice 1 on branch m/M-003-s1,
-  worktree ../hexagram-wt-M-003-s1: fixtures 55c521e; attempt 1 f7465a1 (REQUEST CHANGES: comments cite the Matter
-  and slices); attempt 2 under way (comment wording, R-222, R-223, R-221, the require/import() exclusion).
+- Open questions: Q-M-003-31 (do the fragments of a computed `require`/`import()` specifier count as strings?) and
+  Q-M-003-32 (normalise a lone `\r` in comment text, beyond R-223's CRLF?), both from slice 1's final review, to be
+  batched with slice 2's spec holes. Slice 1 landed 2026-11-22. Q-M-003-15 to -30 ruled as R-208 to R-223.
+  Next: slice 2 (signal 4), the tester's spec audit and acceptance list first.
   Q-M-003-1 to -14 (no -6; Q6 folded into Q12) ruled as R-195 to R-206; digest (the proposal's
   Q8) as R-207. Proposal: `docs/reviews/2026-11-22-m-003-drift-signals.md` (d615ffa, revised efc1476 after the
   challenger contested 7 of 8).
   Owed by the owner: R-196's backtick marking of checkable _Avoid_ forms in `CONTEXT.md`, before signal 2's slice.
-- Commits: –
+- Commits: slice 1: 4591c81, 49f55a0
 - Notes: Six slices (proposal §4): scanner and prover, signal 4, signal 2, signal 1 paths, signal 1 symbols, and
   `drift:check` joining `check:all` (R-206). Owner touches: 29 (R-195 to R-223).

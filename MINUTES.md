@@ -285,3 +285,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 49 in M-002 of 60 (R-138)
 - Landed: c3a61ff (the tester's fixtures), 59359ee (the analysis, squashing 7876ad0, ed38f3b, 07247f4, db27647) · Phase estimate: 2 Matters / 1 week
 - Notes: every blocking finding in slice 4 was a silent "free" where the analysis should list or fail; each attempt fixed one and the next fresh review found another. R-194's cap ended the loop. Probe trees from the subagents are left in `$TMPDIR` (`s4p*`) and `/tmp/review*-s4*`, because their deletes were permission-denied; they hold only invented files.
+
+### Iteration 19 — M-003 — 2026-11-22
+
+- Attempt: 2/2 (slice 1; R-058) · Outcome: slice 1 landed
+- Review: attempt 1 `REQUEST CHANGES` (comments cited the Matter and slice numbers, against R-217; behaviour sound over about 50 probes) · attempt 2 `APPROVE` · questions sent to owner: Q-M-003-31, Q-M-003-32 (non-blocking)
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check (80 files parsed, exit 0) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12, the analysis, the scanner and `--only`
+- Owner touches: 29 in M-003 so far (R-195 to R-223)
+- Landed: 4591c81 (the tester's acceptance material), 49f55a0 (the scanner and drift:check, squashing f7465a1, 65b95cc, 1107ccc) · Phase estimate: 2 Matters / 1 week
+- Notes: the proposal went to the owner only after the drafter revised it against the challenger, who contested 7 of 8 recommendations and found six factual errors. Slice 1's spec audit found 17 holes; grouping them by topic into 10 questions kept the round at 11 touches.
