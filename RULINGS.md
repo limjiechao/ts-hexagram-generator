@@ -2265,3 +2265,27 @@ option (a) of its question, a spec hole from the tester's second audit of M-002.
   13 twins, `expected.ts`, at a16464e), plus this one plant; a test-list
   approval, not a Ruling.
 - Folded into: not yet
+
+R-171 and R-172 were answered together: "M002-25 A, M002-26 A".
+
+### R-171: A relative import fails only when it lands inside another package
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-25, from slice 1)
+- Question: Read literally, R-163 fails every package's `vitest.config.ts`,
+  which imports the repo-root `vitest.config.base.js`. (a) a relative import
+  fails only when it lands inside another package (any folder with a
+  `package.json`, legacy packages included), refining R-163; (b) exempt only
+  files directly in the repository root; (c) limit the arrows to `src/` and
+  `tests/`, narrowing R-165.
+- Ruling: "M002-25 A"
+- Folded into: not yet (refines R-163, per R-013)
+
+### R-172: B9 also checks peer and optional dependencies
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-26, from slice 1)
+- Question: (a) B9 checks `peerDependencies` and `optionalDependencies` as well
+  as `dependencies` and `devDependencies`; (b) leave them unchecked.
+- Ruling: "M002-26 A"
+- Folded into: not yet
