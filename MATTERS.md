@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,11 +112,11 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: Q-M-002-31 (should B10 also catch a relative import of oracle's built `dist` output?), batched with
-  slice 4's spec holes. Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
+- Open questions: Q-M-002-31 (B10 and oracle's built `dist` output); Q-M-002-32 to -42 (slice 4's spec holes, from the
+  tester's audit); and approval of slice 4's acceptance list. Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
   In flight (2026-11-22): slice 4 (R-151: B13's analysis of which `application` subpaths load Oracle code) on branch
-  m/M-002-s4, worktree ../hexagram-wt-M-002-s4. The tester's spec audit and draft acceptance list come first, for the
-  owner's approval; then the plants, an implementer, a fresh reviewer, verification and landing. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
+  m/M-002-s4, worktree ../hexagram-wt-M-002-s4, awaiting those Rulings; then the plants, an implementer, a fresh
+  reviewer, verification and landing. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
   Q-M-002-1 to Q-M-002-24 ruled as R-057, R-147 to R-170; digest R-157.
 - Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea; slice 2: 4cdce11, 85a5667, d32ecc3; slice 3: 9e9f0a1, 7e3d477, 2152063, e17f002
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to
