@@ -15,6 +15,7 @@ export interface CastConsultation {
   readonly id: ConsultationId
   readonly query: Query
   readonly divinedAt: Moment
+  /** Repeated from its Casting, so every Consultation carries one here. */
   readonly transformation: Transformation
   readonly casting: CompleteCasting
   readonly divisionMethod: DivisionMethod

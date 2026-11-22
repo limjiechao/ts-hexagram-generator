@@ -1,3 +1,4 @@
+// Reuses `Day` from `consultation-journal`.
 import type { Day } from '@hexagram/consultation-journal/divined-at'
 
 import type { EditionId } from '#src/edition-id.js'
