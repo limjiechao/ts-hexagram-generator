@@ -131,7 +131,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-003: Build drift signals 1, 2 and 4
 
-- Status: pending
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147
 - Scope: Scripts for doc truth (signal 1), glossary conformance (signal 2) and ephemeral-ID leakage (signal 4), run by
@@ -140,7 +140,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   checkable and how identifiers are split and matched, whether Ruling IDs count as ephemeral.
 - Free to choose: _owner to ratify_, drafted with its own proposal.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
-- Open questions: none yet. Carried from M-002's proposal for this Matter's own proposal: its Q1 (doc-truth names that do
+- Open questions: Q-M-003-1 to -14 (no -6) and digest item Q8, from the proposal (efc1476 on m/M-003-proposal, worktree ../hexagram-wt-M-003-proposal, revised after the challenger contested 7 of 8). Carried from M-002's proposal for this Matter's own proposal: its Q1 (doc-truth names that do
   not exist yet), Q2 (checkable _Avoid_ entries) and Q6 (Ruling IDs as ephemeral), and the challenger's point that the
   regexes for signals 2 and 4 are Tier A.
 - Commits: –
