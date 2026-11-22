@@ -299,6 +299,16 @@ function overhaulFolder(context) {
 // B10: the guard that makes a complete Casting, and the module that holds it.
 const guardName = 'isCompleteCasting'
 const guardModule = '@hexagram/oracle/complete-casting'
+const guardSource = path.join('overhaul', 'oracle', 'src', 'complete-casting')
+
+// A relative specifier that lands on the guard's source, written with the
+// `.js` the repo uses for `.ts` (ADR-0004), with `.ts`, or bare (R-175).
+function reachesGuardSource(specifier, context) {
+  if (!specifier.startsWith('.')) return false
+  const target = path.resolve(path.dirname(context.filename), specifier)
+  const stem = target.replace(/\.(?:ts|js)$/, '')
+  return stem === path.join(context.cwd, guardSource)
+}
 
 // A specifier's name as imported or re-exported from another module.
 function importedName(node) {
@@ -308,7 +318,8 @@ function importedName(node) {
 
 // Caught by name in a static import or re-export, from any module, and by
 // the module itself for what names nothing, such as a dynamic `import()`,
-// `import * as` or `export *` (R-157(5), R-157(10), R-168).
+// `import * as` or `export *`, by subpath or relative path (R-157(5),
+// R-157(10), R-168, R-175).
 const guard = {
   meta: {
     type: 'problem',
@@ -321,14 +332,17 @@ const guard = {
     const report = (node, how) =>
       context.report({
         node,
-        message: `B10: overhaul/${name} may not import ${guardName}, ${how}; only oracle makes a complete Casting (R-055, R-151, R-168).`,
+        message: `B10: overhaul/${name} may not import ${guardName}, ${how}; only oracle makes a complete Casting (R-055, R-151, R-168, R-175).`,
       })
     return moduleVisitors((specifier, _typeOnly, node) => {
       const named = (node.specifiers ?? []).filter(
         (each) => importedName(each) === guardName,
       )
       for (const each of named) report(each, `by name from '${specifier}'`)
-      if (named.length === 0 && specifier === guardModule)
+      if (
+        named.length === 0 &&
+        (specifier === guardModule || reachesGuardSource(specifier, context))
+      )
         report(node, `by '${specifier}'`)
     })
   },
