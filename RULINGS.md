@@ -2118,3 +2118,100 @@ R-147 to R-156 record option (a) of their questions; R-157 is the digest.
   Consultation carries one here."
 - Ruling: "digest ratified"
 - Folded into: MATTERS.md (M-002)
+
+R-158 to R-166 were answered together: "M002-12 to M002-20: A". Each records
+option (a) of its question, a spec hole from the tester's audit of M-002.
+
+### R-158: Each boundary rule's message starts with its B-number; the prover keys on it
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-12, a spec hole)
+- Question: How does the prover tie a report to its rule, when several share
+  one ESLint key and R-157 left wording free? (a) every message starts with
+  its B-number, the expected list is keyed by B-number, and reports from rules
+  outside B1 to B12 are ignored on plants, narrowing R-157(9); (b) key by
+  ESLint rule ID plus path.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-159: B1 also bans built-ins without the `node:` prefix
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-13, a spec hole)
+- Question: Does B1 ban `import fs from 'fs'` in the pure packages? (a) yes,
+  B1 stands alone rather than relying on oxlint's `prefer-node-protocol`; (b)
+  leave it to oxlint.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-160: B2's timers
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-14, a spec hole)
+- Question: Which timers does B2 ban? (a) `setTimeout`, `setInterval`,
+  `setImmediate`, their `clear*` counterparts and `queueMicrotask`; `Date()`
+  without `new` is already the clock; (b) only the three `set*` functions.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-161: Only a top-level `import type` counts as type-only for B4
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-15, a spec hole)
+- Question: Does `import { type X } from '@hexagram/oracle/x'` in
+  `remainder-group-policy` count as type-only? (a) no, it fails B4: under
+  `verbatimModuleSyntax` it compiles to an empty import that loads Oracle
+  code, against R-109; only a top-level `import type` passes; (b) it passes.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-162: A dynamic `import()` of a `@hexagram/*` package is held to the package's arrows
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-16, a spec hole)
+- Question: (a) a dynamic `import()` of another `@hexagram/*` package fails
+  that package's B-rule, as R-150 did for `node:*`; (b) out of scope.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-163: A relative import that leaves the package fails the package's arrows
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-17, a spec hole)
+- Question: (a) `../../../oracle/src/...` from another package fails that
+  package's B-rule; R-019's ban on deep `../` chains within a package stays
+  unassigned; (b) a new rule; (c) out of scope.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-164: B11 also catches the definite-assignment `!`
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-18, a spec hole)
+- Question: Does B11 catch `let x!: T` and a class field `y!: T`? (a) yes,
+  through an added selector, since it switches off a check as the non-null `!`
+  does (R-149); (b) it passes.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-165: B3 to B6 cover whole packages; B9 checks the dependency field
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-19, a spec hole)
+- Question: (a) B3 to B6 cover each whole package, `tests/` included, R-135's
+  B8 excepted; B9 checks the field, so `scripture-catalogue` under
+  `cli-adapter`'s `dependencies` rather than `devDependencies` fails; (b)
+  `src/` only, and B9 ignores the field.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
+
+### R-166: Aliased `Math` and `Date` are a stated limit of B2
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-20, a spec hole)
+- Question: (a) aliases such as `const m = Math; m.random()` pass, a stated
+  limit of lint with no plant, left to review, as banning `Math` and `Date`
+  outright would forbid honest arithmetic like `Math.floor`; (b) ban the
+  objects outright in the pure packages.
+- Ruling: "M002-12 to M002-20: A"
+- Folded into: not yet
