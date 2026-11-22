@@ -28,6 +28,7 @@
     "format:check": "oxfmt --check",
     "format:fix": "oxfmt --write",
     "lint:check": "oxlint && eslint --cache .",
+    "drift:prove": "tsx scripts/drift/prove-boundaries.ts",
     "lint:fix": "oxlint --fix && eslint --cache . --fix",
     "build": "turbo run build",
     "test": "turbo run test",
