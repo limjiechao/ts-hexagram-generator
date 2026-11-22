@@ -2250,3 +2250,18 @@ option (a) of its question, a spec hole from the tester's second audit of M-002.
   scope.
 - Ruling: "M002-21 to M002-23: A"
 - Folded into: not yet
+
+### R-170: B1 reports a type-position `import('node:*')` in a pure package
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-24), with the owner's approval of M-002's
+  acceptance list ("approve the list; Q-24 A")
+- Question: R-169 ruled type-position `import()` only for `@hexagram/*`
+  packages. (a) B1 reports `import('node:fs')` in a type position in a pure
+  package, as it does a type-only `node:fs` import, with one added plant; (b)
+  leave it unplanted and unruled.
+- Ruling: "Q-24 A"
+- Note (clerk): the same message approved M-002's acceptance list (51 plants,
+  13 twins, `expected.ts`, at a16464e), plus this one plant; a test-list
+  approval, not a Ruling.
+- Folded into: not yet
