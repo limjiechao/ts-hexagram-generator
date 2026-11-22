@@ -2548,3 +2548,16 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   landing; (b) withdraw slice 4 and land M-002 with slices 1 to 3; (c) other.
 - Ruling: "Q-M-002-46: A"
 - Folded into: not yet
+
+### R-194: Slice 4 gets a fourth, capped attempt for absolute-path specifiers
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-47, from attempt 3's review)
+- Question: An absolute-path or `file:` specifier is treated as a third-party
+  package, so a subpath loading Oracle code that way is reported free, against
+  R-180 and R-181. (a) a fourth attempt: such a specifier fails as unresolvable
+  and exits 1, then one fresh review; anything that review finds outside this
+  change becomes a stated limit, with no fifth attempt; (b) a stated limit in a
+  one-line comment; (c) land as is and track it as a follow-up.
+- Ruling: "Q-M-002-47: A"
+- Folded into: not yet
