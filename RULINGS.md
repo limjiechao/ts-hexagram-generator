@@ -2289,3 +2289,27 @@ R-171 and R-172 were answered together: "M002-25 A, M002-26 A".
   as `dependencies` and `devDependencies`; (b) leave them unchecked.
 - Ruling: "M002-26 A"
 - Folded into: not yet
+
+R-173 and R-174 were answered together: "M002-27 A, M002-28 A".
+
+### R-173: M-002's slice 1 lands as one unit at 445 lines
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-27, from slice 1's review)
+- Question: R-157(14) ratified slices "each under 400 lines"; slice 1 adds 445.
+  (a) accept it as one unit, since the rules are proved only together with the
+  prover; (b) split the prover off first; (c) read item 14 as the ~400-line
+  guide in AGENTS.md from now on.
+- Ruling: "M002-27 A"
+- Folded into: not yet
+
+### R-174: B2 also closes Node's `global`
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-28, from slice 1's review)
+- Question: R-150 closed `globalThis`, `self` and `window`, but `global.Math.random()`
+  lints clean in the pure packages. (a) add `global` to B2's list with one more
+  plant, an addition to the approved acceptance material, made in slice 2; (b)
+  a stated limit, like R-166.
+- Ruling: "M002-28 A"
+- Folded into: not yet
