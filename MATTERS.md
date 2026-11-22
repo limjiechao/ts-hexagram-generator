@@ -131,7 +131,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-003: Build drift signals 1, 2 and 4
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147
 - Scope: Scripts for doc truth (signal 1), glossary conformance (signal 2) and ephemeral-ID leakage (signal 4), run by
@@ -142,8 +142,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
 - Open questions: Q-M-003-31 (do the fragments of a computed `require`/`import()` specifier count as strings?) and
   Q-M-003-32 (normalise a lone `\r` in comment text, beyond R-223's CRLF?), both from slice 1's final review, to be
-  batched with slice 2's spec holes. Slice 1 landed 2026-11-22. Q-M-003-15 to -30 ruled as R-208 to R-223.
-  Next: slice 2 (signal 4), the tester's spec audit and acceptance list first.
+  batched with slice 2's spec holes; Q-M-003-33 to -42 (slice 2's tester audit: 14 holes and 7 tensions grouped, plus
+  size and the acceptance list). Branch m/M-003-s2, worktree ../hexagram-wt-M-003-s2. Slice 1 landed 2026-11-22.
+  Q-M-003-15 to -30 ruled as R-208 to R-223.
   Q-M-003-1 to -14 (no -6; Q6 folded into Q12) ruled as R-195 to R-206; digest (the proposal's
   Q8) as R-207. Proposal: `docs/reviews/2026-11-22-m-003-drift-signals.md` (d615ffa, revised efc1476 after the
   challenger contested 7 of 8).
