@@ -1,0 +1,1 @@
+it(`handles ${kind} input`, () => {})

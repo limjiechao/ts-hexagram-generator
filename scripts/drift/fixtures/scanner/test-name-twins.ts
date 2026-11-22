@@ -1,0 +1,5 @@
+obj.it('a method named it', () => {})
+myIt('a function named myIt', () => {})
+it(title, () => {})
+bench('a benchmark', () => {})
+it.skipIf(slow)('a conditional test', () => {})

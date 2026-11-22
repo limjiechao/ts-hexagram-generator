@@ -1,0 +1,1 @@
+const = ; // does not parse
