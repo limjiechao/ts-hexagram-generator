@@ -37,6 +37,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b2-date-call.ts': 'B2',
   'plants/b2-date-now.ts': 'B2',
   'plants/b2-fetch.ts': 'B2',
+  'plants/b2-global-math-random.ts': 'B2',
   'plants/b2-globalthis-math-random.ts': 'B2',
   'plants/b2-math-random.ts': 'B2',
   'plants/b2-new-date.ts': 'B2',
