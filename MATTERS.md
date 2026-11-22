@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,8 +112,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: none. Q-M-002-45, -46 ruled as R-192 (plain JavaScript a stated limit), R-193 (a third, narrow
-  attempt). Q-M-002-31 to -44 ruled as R-177 to R-188, R-190, R-191; acceptance list R-189.
+- Open questions: Q-M-002-47 (attempt 3, 07247f4, passed its R-193 scope, but the review found an older silent drop:
+  an absolute-path or `file:` specifier is treated as third-party, R-180, R-181). Q-M-002-45, -46 ruled as R-192
+  (plain JavaScript a stated limit), R-193 (a third, narrow attempt). Q-M-002-31 to -44 ruled as R-177 to R-188, R-190, R-191; acceptance list R-189.
   Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
   In flight (2026-11-22), attempt 3 per R-193: slice 4 (R-151) on branch m/M-002-s4, worktree ../hexagram-wt-M-002-s4: fixtures 3527a7e,
   attempt 1 7876ad0 (REQUEST CHANGES: string code export dropped), attempt 2 ed38f3b (REQUEST CHANGES: a wildcard
