@@ -46,12 +46,12 @@ export const cliBoundaryBans = {
   ],
 }
 
-// Drift signal 3 (ADR-0042): the overhaul's boundary rules, B1 to B9. Each
+// Drift signal 3 (ADR-0042): the overhaul's boundary rules, B1 to B11. Each
 // message starts with its B-number, which the prover keys on. They are local
 // rules, not `no-restricted-imports` options, because a type-only import
 // (only a top-level `import type` counts), a type-position `import()`, a
-// dynamic `import()` and a relative path leaving its package each need the
-// file's own path or node kind to judge.
+// dynamic `import()`, a relative path leaving its package and a type
+// assertion each need the file's own path or node kind to judge.
 
 // Layout C (ADR-0037): each overhaul package, its B-rule, and the packages it
 // may import. A reach is `'any'`, `'types'` (top-level `import type` or a
@@ -287,6 +287,92 @@ const arrows = {
   },
 }
 
+// The folder under `overhaul/` that holds the file, known package or not:
+// B10 and B11 bind all of `overhaul/**`, a package not yet in the table
+// included (R-051, R-057, R-151).
+function overhaulFolder(context) {
+  const relative = path.relative(context.cwd, context.filename)
+  const [root, name] = relative.split(path.sep)
+  if (root === 'overhaul') return name
+}
+
+// B10: the guard that makes a complete Casting, and the module that holds it.
+const guardName = 'isCompleteCasting'
+const guardModule = '@hexagram/oracle/complete-casting'
+
+// A specifier's name as imported or re-exported from another module.
+function importedName(node) {
+  if (node.type === 'ImportSpecifier') return node.imported.name
+  if (node.type === 'ExportSpecifier') return node.local.name
+}
+
+// Caught by name in a static import or re-export, from any module, and by
+// the module itself for what names nothing, such as a dynamic `import()`,
+// `import * as` or `export *` (R-157(5), R-157(10), R-168).
+const guard = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'B10: only oracle imports isCompleteCasting.' },
+    schema: [],
+  },
+  create(context) {
+    const name = overhaulFolder(context)
+    if (!name || name === 'oracle') return {}
+    const report = (node, how) =>
+      context.report({
+        node,
+        message: `B10: overhaul/${name} may not import ${guardName}, ${how}; only oracle makes a complete Casting (R-055, R-151, R-168).`,
+      })
+    return moduleVisitors((specifier, _typeOnly, node) => {
+      const named = (node.specifiers ?? []).filter(
+        (each) => importedName(each) === guardName,
+      )
+      for (const each of named) report(each, `by name from '${specifier}'`)
+      if (named.length === 0 && specifier === guardModule)
+        report(node, `by '${specifier}'`)
+    })
+  },
+}
+
+// `as const` and `<const>` narrow a literal and assert no type (R-057).
+function isConstAssertion(node) {
+  const type = node.typeAnnotation
+  return (
+    type.type === 'TSTypeReference' &&
+    type.typeName.type === 'Identifier' &&
+    type.typeName.name === 'const'
+  )
+}
+
+// B11: no type assertion; a checked value comes through a type guard. The
+// non-null and definite-assignment `!` switch a check off too.
+const assertions = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'B11: no type assertions in the overhaul.' },
+    schema: [],
+  },
+  create(context) {
+    const name = overhaulFolder(context)
+    if (!name) return {}
+    const report = (node, what) =>
+      context.report({
+        node,
+        message: `B11: overhaul/${name} uses ${what}, which asserts a type unchecked; narrow it through a type guard instead (R-051, R-057, R-149, R-164).`,
+      })
+    const cast = (node) => {
+      if (!isConstAssertion(node)) report(node, 'a type assertion')
+    }
+    return {
+      TSAsExpression: cast,
+      TSTypeAssertion: cast,
+      TSNonNullExpression: (node) => report(node, 'the non-null `!`'),
+      'VariableDeclarator[definite=true], PropertyDefinition[definite=true], AccessorProperty[definite=true]':
+        (node) => report(node, 'the definite-assignment `!`'),
+    }
+  },
+}
+
 const manifestFields = [
   'dependencies',
   'devDependencies',
@@ -341,5 +427,5 @@ const manifest = {
 
 export const overhaulBoundaryPlugin = {
   meta: { name: 'overhaul-boundary' },
-  rules: { purity, arrows, manifest },
+  rules: { purity, arrows, guard, assertions, manifest },
 }

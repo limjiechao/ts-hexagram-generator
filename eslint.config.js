@@ -153,12 +153,18 @@ export default sxzz().append(
     },
   },
   {
-    // Drift signal 3 (ADR-0042): the overhaul's purity and Layout C arrows,
-    // B1 to B8. Local rules under their own keys, so they never replace the
-    // `no-restricted-imports` options above.
+    // Drift signal 3 (ADR-0042): the overhaul's purity, Layout C arrows,
+    // the complete-Casting guard and the ban on type assertions, B1 to B8,
+    // B10 and B11. Local rules under their own keys, so they never replace
+    // the `no-restricted-imports` options above.
     files: ['overhaul/**/*.{ts,tsx,mts,cts}'],
     plugins: { overhaul: overhaulBoundaryPlugin },
-    rules: { 'overhaul/purity': 'error', 'overhaul/arrows': 'error' },
+    rules: {
+      'overhaul/purity': 'error',
+      'overhaul/arrows': 'error',
+      'overhaul/guard': 'error',
+      'overhaul/assertions': 'error',
+    },
   },
   {
     // B9: each overhaul manifest declares exactly its arrows, so lint:check
