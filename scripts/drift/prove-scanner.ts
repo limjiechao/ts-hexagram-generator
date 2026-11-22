@@ -5,12 +5,13 @@
 //
 //   tsx scripts/drift/check.ts [--root <dir>]
 //
-// Without `--root` it scans the repo's `overhaul/`; `<dir>` is resolved from
-// the working directory and scanned alone. A completed run prints a summary
-// line holding `<N> files parsed`. It exits 0 when clean and 2 on a tool
-// error, such as a missing root or a file that does not parse; then only the
-// error prints, to stderr, naming the root or the file, relative to the root
-// with `/` (R-220). Exit 1, a finding, first exists with signal 2 (R-208).
+// `<dir>` names a stand-in repo, resolved from the working directory, whose
+// `overhaul/` alone is scanned; without it, the repo's own (R-232). A
+// completed run prints a line holding `<N> files parsed`, then signal 4's
+// summary (R-231). It exits 0 when clean and 2 on a tool error, such as a
+// missing root or a file that does not parse; then only the error prints, to
+// stderr, naming the root or the file, relative to the root with `/` (R-220,
+// R-232). Exit 1, a finding, is proved with signal 4 (`prove-signal-4.ts`).
 
 import {
   cp,
@@ -116,7 +117,7 @@ async function proveFixtures(scanner: Scanner): Promise<string[]> {
 }
 
 // Cases built in memory, like the CRLF variants: a block comment spanning
-// CRLF lines reads with LF (R-223), and a `require` or `import()` of a
+// CRLF, CR, U+2028 or U+2029 lines reads with LF (R-223, R-225), and a `require` or `import()` of a
 // no-substitution template is a module specifier, while `vi.mock` and
 // `require.resolve` are not module loads (R-211).
 const inMemory: readonly (readonly [string, string, readonly ScanRecord[]])[] =
@@ -129,6 +130,17 @@ const inMemory: readonly (readonly [string, string, readonly ScanRecord[]])[] =
         { kind: 'identifier', line: 3, text: 'x' },
       ],
     ],
+    ...['\r', '\u2028', '\u2029'].map(
+      (terminator) =>
+        [
+          `block-comment-${JSON.stringify(terminator)}.ts`,
+          ['/* one', '   two */', 'const x = 1', ''].join(terminator),
+          [
+            { kind: 'comment', line: 1, text: ' one\n   two ' },
+            { kind: 'identifier', line: 3, text: 'x' },
+          ],
+        ] as const,
+    ),
     [
       'module-specifiers.ts',
       [
@@ -178,23 +190,41 @@ function describeRun(run: Run): string {
   return `exit ${run.code}, stdout ${JSON.stringify(run.stdout)}, stderr ${JSON.stringify(run.stderr)}`
 }
 
-async function proveCheck(walkRoot: string, temp: string): Promise<string[]> {
+// A clean run: exit 0, the "files parsed" line, then signal 4's summary of
+// no findings (R-231).
+function isClean(run: Run, parsed: RegExp): boolean {
+  const lines = run.stdout.split('\n')
+  const count = lines.findIndex((line) => parsed.test(line))
+  const summary = lines.indexOf('signal 4: 0 findings in 0 files')
+  return run.code === 0 && count !== -1 && summary > count
+}
+
+async function proveCheck(
+  walkRepo: string,
+  brokenRepo: string,
+  temp: string,
+): Promise<string[]> {
   const failures: string[] = []
   const today = await runTsx(checkEntry, [])
-  if (today.code !== 0 || !/\b[1-9]\d* files parsed\b/.test(today.stdout))
+  if (!isClean(today, /\b[1-9]\d* files parsed\b/))
     failures.push(
-      `drift:check on today's tree: expected exit 0 and "<N> files parsed", got ${describeRun(today)}`,
+      `drift:check on today's tree: expected exit 0, "<N> files parsed", then "signal 4: 0 findings in 0 files", got ${describeRun(today)}`,
     )
-  const alone = await runTsx(checkEntry, ['--root', walkRoot])
+  const alone = await runTsx(checkEntry, ['--root', walkRepo])
   const count = new RegExp(String.raw`(?<!\d)${walked.length} files parsed\b`)
-  if (alone.code !== 0 || !count.test(alone.stdout))
+  if (!isClean(alone, count))
     failures.push(
-      `drift:check --root on the walk's copy: expected exit 0 and "${walked.length} files parsed", got ${describeRun(alone)}`,
+      `drift:check --root on the walk's stand-in repo: expected exit 0, "${walked.length} files parsed", then "signal 4: 0 findings in 0 files", got ${describeRun(alone)}`,
     )
-  const broken = await runTsx(checkEntry, ['--root', parseErrorFixture])
-  if (broken.code !== 2 || !broken.stderr.includes(parseError))
+  const broken = await runTsx(checkEntry, ['--root', brokenRepo])
+  const named = `overhaul/${parseError}`
+  if (
+    broken.code !== 2 ||
+    !broken.stderr.includes(named) ||
+    /files parsed|signal 4:/.test(broken.stdout)
+  )
     failures.push(
-      `drift:check on a file that does not parse: expected exit 2 naming ${parseError}, got ${describeRun(broken)}`,
+      `drift:check on a file that does not parse: expected exit 2 naming ${named} and no summary, got ${describeRun(broken)}`,
     )
   const missing = path.join(temp, 'missing-root')
   const absent = await runTsx(checkEntry, ['--root', missing])
@@ -209,14 +239,21 @@ export async function proveScanner(): Promise<string[]> {
   const failures = proveComparison()
   const temp = await mkdtemp(path.join(os.tmpdir(), 'drift-scanner-'))
   try {
-    const walkRoot = path.join(temp, 'walk')
+    // Each fixture is copied into a stand-in repo's `overhaul/`, as
+    // `--root` scans (R-232).
+    const walkRepo = path.join(temp, 'walk')
+    const walkRoot = path.join(walkRepo, 'overhaul')
+    const brokenRepo = path.join(temp, 'broken')
     await cp(walkFixture, walkRoot, { recursive: true })
+    await cp(parseErrorFixture, path.join(brokenRepo, 'overhaul'), {
+      recursive: true,
+    })
     for (const file of addedSkipped) {
       const target = path.join(walkRoot, file)
       await mkdir(path.dirname(target), { recursive: true })
       await writeFile(target, 'const = ; // a skipped folder\n')
     }
-    failures.push(...(await proveCheck(walkRoot, temp)))
+    failures.push(...(await proveCheck(walkRepo, brokenRepo, temp)))
     // Loaded here, not imported at the top, so a missing or broken scanner
     // fails this proof without stopping the entry's other provers (R-215).
     let scanner: Scanner
