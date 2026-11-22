@@ -259,3 +259,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0 this iteration; 29 in M-002 so far
 - Landed: 4cdce11, 85a5667, d32ecc3 · Phase estimate: 2 Matters / 1 week
 - Notes: replaying slice 2's commits over slice 1's folded commit conflicted in eslint.config.js; the clerk landed the reviewed branch's exact file contents instead (verified identical).
+
+### Iteration 16 — M-002 — 2026-11-22
+
+- Attempt: 1/2 (slice 3; R-058) · Outcome: slice 3 landed
+- Review: `APPROVE` (0 blocking) · design finding sent to owner: Q-M-002-31 (B10 and oracle's `dist` path; non-blocking)
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12
+- Owner touches: 0 this iteration; 31 in M-002 so far (R-175, R-176)
+- Landed: 9e9f0a1, 7e3d477, 2152063, e17f002 · Phase estimate: 2 Matters / 1 week
+- Notes: the clerk's review brief said comments never cite Rulings; the reviewer pointed out that the clerk prompt bans only plans, Matters, Minutes and reviews, and R-013 has code cite a Ruling until an ADR folds it in. The brief was wrong; the slice follows the written rule. The reviewer's tooling notes (`allowJs` against the inherited `isolatedDeclarations` in `tsconfig.overhaul-lint.json`, error TS5053 under plain `tsc`; a stale `eslint --cache` B12 result) are Tier B/C and do not affect lint:check; the first goes into slice 4 as a line-edit.
