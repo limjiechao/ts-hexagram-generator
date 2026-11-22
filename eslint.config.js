@@ -1,4 +1,4 @@
-import { sxzz } from '@sxzz/eslint-config'
+import { sxzz, tseslint } from '@sxzz/eslint-config'
 import oxlint from 'eslint-plugin-oxlint'
 
 import { cliBoundaryBans, overhaulBoundaryPlugin } from './eslint.boundary.js'
@@ -166,6 +166,21 @@ export default sxzz().append(
       'overhaul/guard': 'error',
       'overhaul/assertions': 'error',
     },
+  },
+  {
+    // B12 (ADR-0042): no untyped data in the overhaul. Its rules need types,
+    // so every overhaul file, plain JavaScript included, is parsed into the
+    // one program `tsconfig.overhaul-lint.json` describes.
+    files: ['overhaul/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'],
+    languageOptions: {
+      parser: tseslint.parser,
+      parserOptions: {
+        project: './tsconfig.overhaul-lint.json',
+        tsconfigRootDir: import.meta.dirname,
+      },
+    },
+    plugins: { overhaul: overhaulBoundaryPlugin },
+    rules: { 'overhaul/untypedData': 'error' },
   },
   {
     // B9: each overhaul manifest declares exactly its arrows, so lint:check

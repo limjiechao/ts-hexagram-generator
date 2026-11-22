@@ -10,6 +10,8 @@ import { existsSync } from 'node:fs'
 import { isBuiltin } from 'node:module'
 import path from 'node:path'
 
+import { tseslint } from '@sxzz/eslint-config'
+
 // The eight cli/* package names (ADR-0019). Seven are runtime packages in the
 // cli → domain DAG; `@hexagram/test-utils` is a private, dev-only test-helper
 // leaf that sits OUTSIDE the runtime DAG. It is listed here deliberately, not
@@ -387,6 +389,57 @@ const assertions = {
   },
 }
 
+// B12: no untyped data assigned, passed as an argument or returned, so an
+// `any` such as `JSON.parse`'s cannot slip past a checked type (R-101,
+// R-153). typescript-eslint's three type-aware rules do the work; this rule
+// runs them and rewrites each report to start with its B-number (R-158).
+const untypedDataRules = [
+  'no-unsafe-assignment',
+  'no-unsafe-argument',
+  'no-unsafe-return',
+].map((name) => tseslint.plugin.rules[name])
+
+// ESLint's own `{{ key }}` substitution, which a plain `message` skips.
+function interpolate(text, data = {}) {
+  return text.replaceAll(/\{\{([^{}]+)\}\}/g, (whole, key) =>
+    Object.hasOwn(data, key.trim()) ? String(data[key.trim()]) : whole,
+  )
+}
+
+const untypedData = {
+  meta: {
+    type: 'problem',
+    docs: { description: 'B12: no untyped data in the overhaul.' },
+    schema: [],
+  },
+  create(context) {
+    const name = overhaulFolder(context)
+    if (!name) return {}
+    const listeners = {}
+    for (const rule of untypedDataRules) {
+      const report = ({ messageId, data, node, loc }) =>
+        context.report({
+          node,
+          loc,
+          message: `B12: overhaul/${name} lets untyped data in: ${interpolate(rule.meta.messages[messageId], data)} Hold it as \`unknown\` and narrow it through a type guard (R-101, R-153).`,
+        })
+      const inner = rule.create(
+        Object.create(context, { report: { value: report } }),
+      )
+      for (const [selector, listener] of Object.entries(inner))
+        (listeners[selector] ??= []).push(listener)
+    }
+    return Object.fromEntries(
+      Object.entries(listeners).map(([selector, each]) => [
+        selector,
+        (...args) => {
+          for (const listener of each) listener(...args)
+        },
+      ]),
+    )
+  },
+}
+
 const manifestFields = [
   'dependencies',
   'devDependencies',
@@ -441,5 +494,5 @@ const manifest = {
 
 export const overhaulBoundaryPlugin = {
   meta: { name: 'overhaul-boundary' },
-  rules: { purity, arrows, guard, assertions, manifest },
+  rules: { purity, arrows, guard, assertions, untypedData, manifest },
 }

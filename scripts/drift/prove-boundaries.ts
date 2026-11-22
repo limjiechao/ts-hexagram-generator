@@ -42,11 +42,34 @@ function lintedAs(text: string): string | undefined {
   return /Linted as (overhaul\/[\w./-]+)/.exec(text)?.[1]?.replace(/\.$/, '')
 }
 
+// B12's rules need each fixture in a TypeScript program, but a fixture's
+// `overhaul/` path is virtual, so no program built from disk holds it. The
+// project service admits each one by its exact path to a default project
+// with the compiler options lint:check uses (R-157(12)).
+function admitting(virtualPaths: readonly string[]): ESLint.Options {
+  return {
+    cwd: repoRoot,
+    overrideConfig: {
+      files: ['overhaul/**/*.{ts,tsx,mts,cts,js,mjs,cjs}'],
+      languageOptions: {
+        parserOptions: {
+          project: null,
+          projectService: {
+            allowDefaultProject: [...virtualPaths],
+            defaultProject: 'tsconfig.overhaul-lint.json',
+            maximumDefaultProjectFileMatchCount_THIS_WILL_SLOW_DOWN_LINTING:
+              virtualPaths.length,
+          },
+        },
+      },
+    },
+  }
+}
+
 async function reportedRules(
   eslint: ESLint,
-  file: string,
+  text: string,
 ): Promise<ReadonlySet<string> | string> {
-  const text = await readFile(path.join(fixtures, file), 'utf8')
   const virtual = lintedAs(text)
   if (virtual === undefined) return 'names no `Linted as overhaul/...` path'
   const [result] = await eslint.lintText(text, {
@@ -73,14 +96,20 @@ async function prove(only: ReadonlySet<string>): Promise<string[]> {
     if (!Object.hasOwn(expected, file))
       failures.push(`${file}: on disk but missing from expected.ts`)
   }
-  const eslint = new ESLint({ cwd: repoRoot })
+  const texts = new Map<string, string>()
+  for (const file of onDisk)
+    texts.set(file, await readFile(path.join(fixtures, file), 'utf8'))
+  const virtualPaths = [...texts.values()].flatMap(
+    (text) => lintedAs(text) ?? [],
+  )
+  const eslint = new ESLint(admitting(virtualPaths))
   for (const [file, rule] of Object.entries(expected)) {
     if (!onDisk.includes(file)) {
       failures.push(`${file}: listed in expected.ts but missing`)
       continue
     }
     if (rule !== null && !only.has(rule)) continue
-    const reported = await reportedRules(eslint, file)
+    const reported = await reportedRules(eslint, texts.get(file) ?? '')
     if (typeof reported === 'string') {
       failures.push(`${file}: ${reported}`)
       continue

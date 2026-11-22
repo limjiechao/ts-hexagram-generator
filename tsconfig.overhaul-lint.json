@@ -1,0 +1,14 @@
+{
+  // The one program B12's type-aware lint reads every overhaul file through
+  // (ADR-0042, R-101, R-153). It resolves each `@hexagram/*` import to its
+  // `source` export, so lint:check needs no build, and admits plain
+  // JavaScript (R-176), which then carries only the types TypeScript infers.
+  "extends": "./tsconfig.base.json",
+  "compilerOptions": {
+    "customConditions": ["source"],
+    "allowJs": true,
+    "noEmit": true
+  },
+  "include": ["overhaul"],
+  "exclude": ["overhaul/*/dist", "overhaul/*/node_modules"]
+}
