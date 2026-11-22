@@ -2215,3 +2215,38 @@ option (a) of its question, a spec hole from the tester's audit of M-002.
   objects outright in the pure packages.
 - Ruling: "M002-12 to M002-20: A"
 - Folded into: not yet
+
+R-167 to R-169 were answered together: "M002-21 to M002-23: A". Each records
+option (a) of its question, a spec hole from the tester's second audit of M-002.
+
+### R-167: Clean twins are judged by B1 to B12 only
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-21, a spec hole)
+- Question: R-158 ignores non-B reports on plants; must a clean twin get no
+  report from any rule? (a) twins are judged by B1 to B12 only, like plants;
+  (b) twins must get no report from any rule.
+- Ruling: "M002-21 to M002-23: A"
+- Folded into: not yet
+
+### R-168: B10 also catches `isCompleteCasting` reached by dynamic import
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-22, a spec hole)
+- Question: Does `await import('@hexagram/oracle/complete-casting')` outside
+  `oracle` fail B10? (a) yes, through an added check, as R-162 closed the same
+  route for the arrows and R-055 says "imported only"; (b) it passes, a stated
+  limit.
+- Ruling: "M002-21 to M002-23: A"
+- Folded into: not yet
+
+### R-169: A type-position `import()` is an arrow, but type-only for B4
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-23, a spec hole)
+- Question: `type P = import('@hexagram/oracle/pick').Pick`. (a) it counts as an
+  arrow for B3 to B8, since it names the package, and as type-only for B4,
+  since it loads no code (R-109's concern); (b) it fails B4 too; (c) out of
+  scope.
+- Ruling: "M002-21 to M002-23: A"
+- Folded into: not yet
