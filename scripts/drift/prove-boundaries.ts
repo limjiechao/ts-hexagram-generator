@@ -24,6 +24,7 @@ import {
   type ExpectedVerdict,
 } from './fixtures/oracle-subpaths/expected.js'
 import { expected } from './fixtures/signal-3/expected.js'
+import { analyseOracleSubpaths } from './oracle-subpaths.js'
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url))
 const fixtures = fileURLToPath(new URL('fixtures/signal-3/', import.meta.url))
@@ -142,38 +143,6 @@ async function prove(only: ReadonlySet<string>): Promise<string[]> {
   return failures
 }
 
-// The analysis entry point, `scripts/drift/oracle-subpaths.ts` (R-178, R-180).
-// `packagesRoot` stands for `overhaul/`: its `application` folder's subpaths
-// are analysed. A subpath is its export key; a file is relative to
-// `packagesRoot`, with `/` separators.
-type SubpathVerdict =
-  | { readonly verdict: 'loads'; readonly chain: readonly string[] }
-  | { readonly verdict: 'free' }
-type SubpathAnalysis =
-  | {
-      readonly ok: true
-      readonly subpaths: Readonly<Record<string, SubpathVerdict>>
-    }
-  | {
-      readonly ok: false
-      readonly file: string
-      readonly specifier: string
-      readonly message: string
-    }
-type AnalyseOracleSubpaths = (packagesRoot: string) => Promise<SubpathAnalysis>
-
-async function loadAnalysis(): Promise<AnalyseOracleSubpaths | string> {
-  try {
-    const loaded: { analyseOracleSubpaths?: unknown } =
-      await import('./oracle-subpaths.js')
-    if (typeof loaded.analyseOracleSubpaths === 'function')
-      return loaded.analyseOracleSubpaths as AnalyseOracleSubpaths
-    return 'oracle-subpaths.ts exports no analyseOracleSubpaths function'
-  } catch (error) {
-    return `cannot load oracle-subpaths.ts: ${String(error)}`
-  }
-}
-
 function describeVerdict(verdict: ExpectedVerdict): string {
   return typeof verdict === 'string'
     ? verdict
@@ -181,13 +150,14 @@ function describeVerdict(verdict: ExpectedVerdict): string {
 }
 
 async function reportedSubpaths(
-  analyse: AnalyseOracleSubpaths,
   failures: string[],
 ): Promise<Map<string, ExpectedVerdict>> {
   const reported = new Map<string, ExpectedVerdict>()
   const trees = await readdir(subpathFixtures, { withFileTypes: true })
   for (const tree of trees.filter((entry) => entry.isDirectory())) {
-    const result = await analyse(path.join(subpathFixtures, tree.name))
+    const result = await analyseOracleSubpaths(
+      path.join(subpathFixtures, tree.name),
+    )
     if (result.ok) {
       for (const [subpath, { verdict }] of Object.entries(result.subpaths))
         reported.set(`${tree.name}:${subpath}`, verdict)
@@ -210,10 +180,8 @@ async function reportedSubpaths(
 }
 
 async function proveSubpaths(): Promise<string[]> {
-  const analyse = await loadAnalysis()
-  if (typeof analyse === 'string') return [analyse]
   const failures: string[] = []
-  const reported = await reportedSubpaths(analyse, failures)
+  const reported = await reportedSubpaths(failures)
   for (const key of reported.keys()) {
     if (!Object.hasOwn(expectedSubpaths, key))
       failures.push(`${key}: reported but missing from expected.ts`)
