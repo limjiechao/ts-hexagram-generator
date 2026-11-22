@@ -2898,8 +2898,8 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
 
 - Date: 2026-11-22
 - Raised in: M-003 (question Q-M-003-31, from slice 1's final review)
-- Question: The static fragments of `require(\`./g/${name}.js\`)`or a
-computed`import()` are yielded as strings. (a) exclude them as R-211
+- Question: The static fragments of a computed specifier, such as
+  ``require(`./g/${name}.js`)`` or a computed `import()`, are yielded as strings. (a) exclude them as R-211
   excludes a whole specifier, changed in signal 2's slice, since signal 4 does
   not read strings; (b) keep them as strings.
 - Ruling: "Q-M-003-31 to -42: A"
