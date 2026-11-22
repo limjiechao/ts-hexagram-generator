@@ -34,16 +34,16 @@ Two sets of figures sit side by side (ADR-0042, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                | Owner touches (cap / used)        | Brief cap (lines) | Entry gate                     | Status                      |
-| ----- | --------------------------------------------------------- | ------------------------ | ----------------------------------------------- | --------------------------------- | ----------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                      | uncapped / 125                    | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slice 1 of 4 landed) | 60 per Matter / 29 (M-002)        | 1,500             | –                              | in progress                 |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                               | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
-| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                               | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                               | 60 per Matter / 0                 | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
-| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                                               | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
-| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                                               | 60 per Matter / 0                 | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                                               | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
+| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                   | Owner touches (cap / used)        | Brief cap (lines) | Entry gate                     | Status                      |
+| ----- | --------------------------------------------------------- | ------------------------ | -------------------------------------------------- | --------------------------------- | ----------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                         | uncapped / 125                    | uncapped          | –                              | landed (M-001)              |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slices 1–2 of 4 landed) | 60 per Matter / 29 (M-002)        | 1,500             | –                              | in progress                 |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                  | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
+| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                  | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                  | 60 per Matter / 0                 | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
+| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                                                  | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
+| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                                                  | 60 per Matter / 0                 | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                                                  | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
 
 **Phase 1 landed 2026-11-21.** Caps from Phase 1 (R-138): 60 owner touches per Matter and 1,500 lines of required
 reading per brief; reaching either stops the loop for the owner. Week budgets stand until Phase 2 lands (R-139). ADR-0042
@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,9 +112,10 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: none. Slice 1 landed; next slice 2 (B10, B11, and `global` in B2 with one plant per R-174). The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
+- Open questions: Q-M-002-29 (B10 and a relative path to oracle's guard source), Q-M-002-30 (plain JavaScript files in
+  `overhaul/`), from slice 2's review. Slices 1 and 2 landed; next slice 3 (B12). The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
   Q-M-002-1 to Q-M-002-24 ruled as R-057, R-147 to R-170; digest R-157.
-- Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea
+- Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea; slice 2: 4cdce11, 85a5667, d32ecc3
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to
   B8, B10 per R-157; B4 per R-151 (`remainder-group-policy` imports `oracle` as types only); B5 per R-152
   (`consultation-journal/divined-at` only); B9 checked by `lint:check` (R-148); B11 per R-057 and R-149 (`as`, `<T>`,

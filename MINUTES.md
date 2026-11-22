@@ -250,3 +250,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: gates pass; drift:prove for B1–B11 passes; unfiltered fails only on B12, as planned
 - Owner touches: 0 this iteration; 29 in M-002 so far
 - Landed: – · Notes: both findings are rules doing less than their Rulings; attempt 2 fixes them without a new Ruling.
+
+### Iteration 15 — M-002 — 2026-11-22
+
+- Attempt: 2/2 (slice 2; R-058) · Outcome: slice 2 landed
+- Review: `APPROVE` (0 blocking) · design findings sent to owner: Q-M-002-29, Q-M-002-30 (non-blocking)
+- Verify: type:check · oxlint and uncached eslint · format · build and test forced on matters 18/18 and 36/36 · drift:prove for B1–B11 passes; unfiltered fails only on B12's four plants
+- Owner touches: 0 this iteration; 29 in M-002 so far
+- Landed: 4cdce11, 85a5667, d32ecc3 · Phase estimate: 2 Matters / 1 week
+- Notes: replaying slice 2's commits over slice 1's folded commit conflicted in eslint.config.js; the clerk landed the reviewed branch's exact file contents instead (verified identical).
