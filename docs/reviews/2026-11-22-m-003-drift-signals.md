@@ -1,7 +1,8 @@
 # M-003 drift signals 1, 2 and 4: design, Acceptance and Free to choose
 
-Date: 2026-11-22. Status: copilot draft for M-003 (ADR-0042, "Roles"); ephemeral.
-It binds nothing until the owner rules on it (R-147, as R-140 set for M-002).
+Date: 2026-11-22. Status: copilot draft for M-003 (ADR-0042, "Roles"), revised
+after the challenger; ephemeral. It binds nothing until the owner rules on it
+(R-147, as R-140 set for M-002).
 
 **What is being decided.** How drift signals 1, 2 and 4 (ADR-0042, "Drift
 signals") are built: each script's design and output, the plants added to
@@ -13,81 +14,74 @@ signals; this draft refines that sketch and carries its Q1, Q2 and Q6.
 **Facts checked in the tree (2026-11-22).**
 
 - `typescript` 6.0.3 and `tsx` are installed at the root, so the scripts can
-  tokenize source with the TypeScript scanner (comments, identifiers, string
-  literals) at no new dependency cost.
-- `scripts/drift/` holds signal 3's prover (`prove-boundaries.ts`), keyed on
-  B-numbers that start each message (R-158), with an expected list fixed in
-  `fixtures/signal-3/expected.ts`. `drift:prove` runs only that prover today;
-  `drift:check` does not exist.
-- `overhaul/*` (six packages, 80 `.ts`/`.tsx` files): no `R-nnn`, `M-nnn`,
-  `Q-…`, seam ID, B-number, `slice|wave|round <n>` label or ephemeral path in
-  any file, and no multi-word _Avoid_ entry (`changing line`, `hexagram
-number`, `Wen Wang order`…) in any identifier or string.
-- `scripts/drift/*.ts` cites Rulings 15 times (e.g. "R-151, R-179"), and
-  `eslint.config.js` names the legacy seam `S17` (ADR-0004/0005). Both are
-  tooling, outside `overhaul/`.
-- `CONTEXT.md` has 52 `_Avoid_:` lines. Six wrap onto a second line; one
-  (line 92) is prose with a `;`, not a comma list; three carry Chinese
-  terms (`旁通`, `變爻`, `主爻`), each qualified. `Casting` and `Round` are
-  glossary terms that also appear in other terms' _Avoid_ lists (`casting`,
-  `cast (as a noun for a Round)`).
-- ADR-0040 and ADR-0041 are `Superseded by ADR-0042`. ADR-0042 still names
-  `docs/manual/cli.md` and `docs/manual/rest.md`, which do not exist yet;
-  `docs/manual/` does not exist. ADR-0019 names `cli/cli` as a predecessor
-  location, by design gone.
+  parse source with the TypeScript compiler API at no new dependency cost.
+- `scripts/drift/` holds signal 3's prover, keyed on B-numbers that start each
+  message (R-158), with a fixed expected list. `drift:prove` runs only that
+  prover; `drift:check` does not exist. `check:all` is a turbo task, while
+  `drift:check` would be a root script.
+- `overhaul/*` (six packages, 80 `.ts` files, no `.tsx` yet): no Ruling,
+  Matter, question or seam ID, no ephemeral path, and no multi-word _Avoid_
+  entry in an identifier or string. Its tests already use
+  `it.each([...])('name', …)` (`consultation-journal/tests/query.test.ts`).
+- Tooling cites process IDs by design: `scripts/drift/*.ts` cites Rulings 15
+  times; `eslint.config.js` names the legacy seams S9, S14 and S17.
+- `CONTEXT.md` has 52 `_Avoid_:` lines. Six wrap onto a second line; two are
+  prose, not lists (line 92, `using "hexagram" for …`; line 418, `using
+"viewer" loosely …`). Some share a head noun (`primary, original, present
+hexagram`, line 97), others do not (`index, split point`, line 60). Casting
+  and Round are glossary terms that also appear in other terms' _Avoid_ lists.
+- ADR status lines take forms such as `Accepted`, `Accepted (amended by
+0022)`, `Superseded by 0019` and `Superseded by ADR-0042`.
+- Doc-truth misses today include `docs/manual/cli.md` and `docs/manual/rest.md`
+  (ADR-0042; `docs/manual/` exists with a README), `cli/cli` (ADR-0019, a former
+  location) and `castMethod` in ordinary prose (ADR-0027, line 22, citing what
+  ADR-0011 rejected). ADR-0002 names `packages/*`, a top-level directory that no
+  longer exists.
+- Of 195 `Folded into:` lines in `RULINGS.md`, 153 are bare `not yet`; others
+  read `not yet (overrides …)`, wrap onto a second line, or name `CONTEXT.md`,
+  `MATTERS.md` or an ADR.
 
 ## 1. Each signal's design
 
-All three scripts share one entry point, `pnpm drift:check`, which runs them in
-turn over the real tree and exits 1 if any reports. Each report is one line,
-`<file>:<line> <code> <message>`, the message starting with its code (section 5,
-Q6) and naming the ADR or Ruling it encodes. A clean run prints one summary line
-per signal, with counts of files scanned and, for signal 2, entries skipped.
-Each script also takes an alternative root, which is how `drift:prove` feeds it
-plants.
+All three scripts share one entry point, `pnpm drift:check`, which runs them
+over the real tree and exits 1 if any reports. Each report is one line,
+`<file>:<line> <code> <message>`, the message starting with its code (Q12) and
+naming the ADR or Ruling it encodes. A clean run prints one summary line per
+signal, with counts of files scanned and, where a question says so, of what was
+skipped. Each script takes an alternative root, which is how `drift:prove`
+feeds it plants. Source is parsed with the TypeScript compiler API, not with
+regexes over raw text.
 
-**Signal 1, doc truth.** _Scans_ `AGENTS.md`, every ADR whose status line is
-`Accepted`, and `docs/design/*.md` (Q8). Superseded and Proposed ADRs are
-skipped, and so is any text under a **Considered options** heading, since
-rejected names do not exist by design. Candidates are backticked tokens only:
+**Signal 1, doc truth.** _Scans_ the sources Q8 fixes. Candidates are
+backticked tokens only: a **path** (D1), a token whose first segment is a
+current root entry or a former one (Q9); a **glob** (D2), which must match at
+least one file; a **symbol** (D3), as Q10 defines. Tokens with `<…>`
+placeholders are templates and skipped. _Flags_ a candidate that resolves to
+nothing and has no exception (Q1), and an exception that no longer matches a
+miss (D4, stale). _Legacy:_ legacy names count as present while legacy code
+lives; it edits nothing.
 
-- a **path** (D1) is a token whose first segment is an entry of the repo root;
-  it must exist. A **glob** (D2) must match at least one file. Tokens with
-  `<…>` placeholders are templates and skipped. The root test keeps URL routes,
-  lint rule names and package-relative paths out.
-- a **symbol** (D3) is a camelCase token, optionally with `()`; it must occur
-  as a word in a tracked `*.ts`, `*.tsx`, `*.js` or `*.json` file.
+**Signal 2, glossary conformance.** _Reads_ the checkable _Avoid_ entries from
+`CONTEXT.md` at run time (Q2). _Scans_ the files Q7 fixes: declared identifiers
+(G1, Q11) and UI strings (G2: string literals, template text and JSX text).
+_Flags_ an entry whose words match within one identifier or one string (Q3).
+Comments are not scanned: ADR-0042's table names "identifiers or UI strings",
+and a comment may need to say what a term is not. _Legacy:_ not scanned (R-003).
 
-_Flags_ any candidate that resolves to nothing and is not excepted under Q1.
-_Legacy:_ it checks legacy paths that ADRs name, and edits nothing.
-
-**Signal 2, glossary conformance.** _Reads_ `CONTEXT.md`'s `_Avoid_:` lines at
-run time, joined across wrapped lines, so the glossary stays the one home of
-the list. Which entries are checkable is Q2. _Scans_ `overhaul/*/src/**`
-`.ts`/`.tsx` (Q7): every identifier (G1) and every string literal or template
-text (G2), tokenized as Q3 sets. Comments are not scanned: ADR-0042's table
-names "identifiers or UI strings", and a comment may need to say what a term
-is not. _Flags_ a checkable entry whose words appear as a contiguous run of
-tokens. _Output_ adds the skipped-entry count, so the unchecked part of the
-glossary is visible. _Legacy:_ not scanned (R-003).
-
-**Signal 4, ephemeral leakage.** _Scans_ every comment, and the first argument
-of `describe`, `it` and `test`, in `overhaul/**/*.{ts,tsx}`, src and tests (Q7).
-_Flags_ the patterns Q4 fixes (question, Matter and seam IDs, boundary numbers,
-`slice|wave <n>` labels, ephemeral paths and record names), each its own code
-E1 to E6, and Ruling IDs as Q5 decides. _Legacy:_ not scanned; legacy seam
-and wave IDs are hygiene deferred by R-003.
+**Signal 4, ephemeral leakage.** _Scans_ every comment and every test name
+(Q13) in the files Q7 fixes. _Flags_ the patterns of Q4, one code each, and
+Ruling IDs as Q5 decides. _Legacy:_ not scanned; legacy seam and wave IDs are
+hygiene deferred by R-003.
 
 **Plants in `drift:prove`.** `scripts/drift/fixtures/signal-1/`, `signal-2/`
-and `signal-4/` each hold one planted violation per code, a clean twin beside
-each, and an `expected.ts` keyed by code, as `fixtures/signal-3/` is. The
-signal-1 plants form a small fake root (an `AGENTS.md`, one Accepted and one
-Superseded ADR, a design model, a Considered-options section) so the source
-selection itself is proved. The signal-2 plants come with a fixture
-`CONTEXT.md`, so the run-time parse is proved, including a wrapped line and a
-skipped single word. `drift:prove` then runs both provers and exits 0 only if
-both do. Plants sit outside `overhaul/` and the real docs, so `drift:check`
-never sees them.
+and `signal-4/` each hold one plant per code, a clean twin beside each, and an
+`expected.ts` keyed by code, as `fixtures/signal-3/` is. Signal 1's plants form
+a small fake root (an `AGENTS.md`, an Accepted, an amended-Accepted and a
+Superseded ADR, a design model, an exception file with one stale entry), so
+source selection and D4 are proved. Signal 2's come with a fixture
+`CONTEXT.md`. Signal 4's include each test-name form of Q13. `drift:prove` runs
+both provers and exits 0 only if both do. Plants sit outside `overhaul/` and the
+real docs, so `drift:check` never sees them.
 
 ## 2. Knife-edge Acceptance
 
@@ -97,139 +91,190 @@ pnpm lint:check && pnpm drift:check && pnpm drift:prove
 
 As ruled in R-147.
 
-- `drift:check` exits 0 on the real tree, which proves no false positive today
-  (with Q1's exceptions in place).
+- `drift:check` does **not** pass on today's tree: the misses above fail
+  signal 1. It exits 0 only once Q1's exception file is seeded, entry by entry,
+  with the misses the signal-1 slice lists; those entries are Tier A and come to
+  the owner with that slice.
 - `drift:prove` exits 0 only if **every plant is reported by exactly its own
-  code, and every clean twin by none**, for D1 to D3, G1 and G2, E1 to E6 (and
-  the Ruling-ID cases Q5 adds), on top of B1 to B12 and the Oracle-subpath
-  analysis as today. Every code appears in an expected list, so a deleted plant
-  fails the command instead of passing silently.
-- `drift:prove` leaves the working tree unchanged, as R-184 requires today.
+  code, and every clean twin by none**, for every code of Q12, on top of B1 to
+  B12 and the Oracle-subpath analysis as today. Every code appears in an
+  expected list, so a deleted plant fails the command.
+- `drift:prove` leaves the working tree unchanged, as R-189 requires today.
 
 ## 3. Draft Free to choose (Tier B, for the implementer)
 
 - File names and layout under `scripts/drift/`, including whether the new
   prover is a second file or folded into `prove-boundaries.ts`.
-- TypeScript run by `tsx`; the TypeScript scanner or compiler API for tokens.
+- TypeScript run by `tsx`, parsing with the TypeScript compiler API.
 - The internal structure of the scripts, the shared scanner and the prover.
 - The wording of reports and summaries, within "starts with its code and names
   the ADR or Ruling it encodes" (as R-158 narrowed R-157(9)).
-- How the alternative root is passed (flag or argument).
+- How the alternative root is passed; the exception file's syntax.
 - The order of the slices, if a later one unblocks an earlier one.
 
 Not free: what each signal scans and flags, the checkable entries, the
-matching and ID patterns of section 5, the codes, the exception list's
-contents, Acceptance, new dependencies.
+matching and ID patterns, the codes, the exception list's contents,
+Acceptance, new dependencies.
 
 ## 4. Slicing
 
-Phase 2's budget gives M-003 its own 60-touch cap (R-147). Four slices, each
-under ~400 lines with plants and twins:
+M-003 has its own 60-touch cap (R-147). M-002's slices landed at 507 and 574
+inserted lines against estimates of about 300, so these estimates are scaled
+by roughly 1.7 and each slice is kept near 400:
 
-1. **Shared scanner and signal 4** (~300): the TypeScript-scanner wrapper that
-   yields comments, test names, identifiers and strings with lines; signal 4
-   with E1 to E6 and Q5's Ruling-ID rule; `drift:check` with only signal 4;
-   the second prover with its signal-4 plants; `drift:prove` running both.
-2. **Signal 2** (~250): the `_Avoid_` parser (wrapped lines, Q2's filter, the
-   skipped count), Q3's tokenizer and matcher, G1 and G2 plants with a fixture
-   `CONTEXT.md`.
-3. **Signal 1** (~350): source selection (status lines, Considered options),
-   backtick candidates, path, glob and symbol checks, Q1's exception file, D1
-   to D3 plants on a fake root.
-4. **`drift:check` joins `check:all`** (~10): Tier C, only on the owner's
-   request, so every landing runs it as ADR-0042's table says.
+1. **Scanner and prover** (~350): the parser wrapper yielding comments, test
+   names (Q13), declared identifiers, strings and JSX text with lines; the
+   second prover and its expected-list mechanism; `drift:check` and
+   `drift:prove` wired, proved on scanner fixtures.
+2. **Signal 4** (~300): E1 to E7 with Q4's precedence and Q5's rule, plants
+   and twins.
+3. **Signal 2** (~400): reading the checkable entries (Q2), Q3's matcher, G1
+   and G2, plants with a fixture `CONTEXT.md`.
+4. **Signal 1, paths** (~400): source selection (Q8), path and glob checks
+   with Q9's former roots, the exception file with D4, today's seeded entries.
+5. **Signal 1, symbols** (~200): D3 as Q10 sets, its plants.
+6. **Every landing** (~10): as Q14 decides.
 
-Order 1 → 2 → 3: signal 4 needs only the scanner; signal 1 is largest and
-needs Q1 ratified with its seeded list.
+Order 1 → 2 → 3 → 4 → 5 → 6. Slice 3 needs Q2's glossary edit, if (a), first.
 
 ## 5. Open Tier-A questions
 
 Recommendations are listed first, as (a). **Full** marks a spec hole or a
 cross-module convention, which ADR-0042 ("Ratification by exception") always
-sends to the owner as a question. **Digest** marks a candidate for the digest,
-unless the challenger contests it.
+sends to the owner. **Digest** marks a digest candidate. "Kept" lines answer a
+challenger point the recommendation does not adopt.
 
 **Q1. Doc truth: names that do not exist yet, or no longer** (M-002's Q1).
-**Full: spec hole** — ADR-0042 defines signal 1 but not how a planned or
-historical name is treated. Today: `docs/manual/cli.md`, `docs/manual/rest.md`
-(ADR-0042, phase gates not yet written) and `cli/cli` (ADR-0019, a former
-location). (a) A ratified exception file under `scripts/drift/`, one line per
-name with its reason and the ADR or Ruling that names it, seeded with these
-three; an entry whose name later exists is itself reported, so the list
-shrinks. (b) A marker in the docs, e.g. "(planned)", which the script honours;
-an ADR text change for each. (c) Check only documents dated after ADR-0042.
-Recommend (a): it keeps ADRs unedited, every exception visible in one place,
-and the self-reporting keeps the list from going stale; (c) would leave ADR-0019
-to ADR-0039 unchecked.
+**Full: spec hole.** Rejected and historical names appear in ordinary prose
+(ADR-0027's `castMethod`), not only under Considered options. (a) A ratified
+exception file, one line per **file plus name**, with its reason; an
+exception that no longer matches a miss is reported as D4, with its own plant,
+so the list cannot go stale. (b) As (a), keyed by name alone; shorter, but one
+exception silences the name in every document. (c) A marker in the docs, e.g.
+"(planned)"; an ADR text change for each. (d) Check only documents dated after
+ADR-0042. Recommend (a): every exception is visible, local to one document, and
+removed when it stops being needed.
 
 **Q2. Which _Avoid_ entries are checkable** (M-002's Q2). **Full:
-cross-module convention** — it fixes which names every module may use (ADR-0042,
-"A wider Free to choose", test 4). (a) Entries of two or more words with no
-parenthesised qualifier, after splitting on `,` and `;`, read from `CONTEXT.md`
-at run time; single words (`index`, `casting`, `path`) and qualified entries
-are skipped and counted; Chinese entries are all qualified today and so
-skipped. (b) The owner marks checkable entries in `CONTEXT.md`; a glossary edit
-per term. (c) A separate list file; a second home for the glossary's knowledge.
-Recommend (a): no second home, and the printed count states the gap. Its cost:
-single words such as `reading` or `settings` stay unchecked and are left to
-review.
+cross-module convention.** Comma-splitting makes `primary, original, present
+hexagram` three single words and skips them, so `relatingHexagram` passes; it
+also drops `inner trigram (in English text)`, though identifiers are English
+text, and turns prose lines into entries. By the challenger's parse, 41 entries
+are checkable and 88 skipped. (a) The owner marks the checkable forms in
+`CONTEXT.md`, e.g. by backticking each one in the _Avoid_ line
+(`` `primary hexagram` ``); the script reads only marked forms and prints the
+unmarked count. A one-time glossary edit, Tier A. (b) A parser that expands a
+shared head noun and ignores `(in English text)`; no glossary edit, but
+`index, split point` shows a head noun cannot be told apart by syntax. (c)
+M-002's comma rule. (d) A separate list file; a second home for the glossary.
+Recommend (a): the owner, not a heuristic, decides what a term forbids in code,
+and the glossary stays the one home.
 
-**Q3. Signal 2's matching** (the regex scope, as the challenger raised it).
-**Full: cross-module convention.** (a) Identifiers split at camelCase, `_`
-and digit boundaries, string literals and template text split on non-letters,
-all lowercased; an entry matches a contiguous run of tokens, its last word also
-matching with a trailing `s` (`changingLines`); comments not scanned. (b) As
-(a) without the plural. (c) A case-insensitive substring search over raw text,
-which needs no tokenizer but matches across word boundaries (`hexagramnumber`
-in a longer word, `old line` in `bold lines`). Recommend (a): token runs give no
-false hits on word fragments, and plurals are the commonest way a banned term
-reappears.
+**Q3. Signal 2's matching.** **Full: cross-module convention.** (a) Each
+identifier is split at camelCase, `_` and digit boundaries, each string or JSX
+text on non-letters, all lowercased; an entry matches a contiguous run of tokens
+**within one identifier or one string**, its last word also matching with a
+trailing `s`. So `HexagramBinary<Order>` does not match `binary order`. (b) As
+(a) without the plural. (c) A case-insensitive substring search over raw text;
+it matches across identifiers and word fragments. Recommend (a): no false hits
+across tokens, and plurals are the commonest way a term returns.
 
-**Q4. Signal 4's patterns** (the regex scope). **Full: cross-module
-convention** — it fixes what every module's comments and test names may
-contain. (a) E1 question IDs `Q-[A-Z0-9]+(-[A-Z0-9]+)*-\d+` (`Q-M-002-4`,
-`Q-PH1-3`, `Q-ADR41-1`); E2 Matter IDs `M-\d{3}`; E3 seam IDs `S\d{1,2}`; E4
-boundary numbers `B\d{1,2}`, defined only in M-002's proposal; E5 labels
-`(slice|wave) \d+`; E6 ephemeral paths `docs/(reviews|plans|archive)/`,
+**Q4. Signal 4's patterns.** **Full: cross-module convention.** (a) One pass
+finds each maximal ID token and gives it **one** code, the first that applies
+in this order: E1 question IDs, long and short (`Q-M-002-4`, `Q-PH1-3`,
+`Q-31`, `M002-11`, `PH1-3`, bare `Q3`); E2 Matter IDs `M-\d{3}`; E3 seam IDs
+`S\d{1,2}`; E4 boundary numbers `B\d{1,2}`; E5 `(slice|wave) \d+`; E6
+ephemeral paths `docs/(reviews|plans|handoffs|archive)/`,
 `docs/legacy-architecture.md`, and the words `MATTERS`, `MINUTES`, `RULINGS`.
-All are case-sensitive and word-bounded. `round <n>` is **dropped** from
-M-002's sketch: Round is a glossary term, and a test named "round 3" is
-domain language. (b) M-002's sketch as drafted, with `round <n>` and without
-E4. (c) Only E1, E2 and E6. Recommend (a): every ID the process mints is
-covered, and no glossary word is.
+All case-sensitive and word-bounded, so `Q-M-002-4` is E1 only. `round <n>` is
+dropped: Round is a glossary term. (b) Mutually exclusive patterns, each with
+lookarounds; no precedence, but harder to read and keep exclusive. (c) M-002's
+sketch, with `round <n>`. Recommend (a): every ID the records mint is covered,
+each with one code, and no glossary word is.
 
-**Q5. Are Ruling IDs ephemeral for signal 4?** (M-002's Q6). **Full: spec
-hole and cross-module convention.** The library conflicts: ADR-0042 says source
-comments cite "ADRs and glossary terms only", yet lists `RULINGS.md` as
-authoritative and a Ruling as licensing code; R-013 says code relying on a
+**Q5. Are Ruling IDs allowed in overhaul source?** (M-002's Q6). **Full:
+spec hole and cross-module convention.** The written rules conflict. "Source
+comments cite only ADRs and glossary terms" stands at ADR-0042:113 and :236,
+AGENTS.md:123 and `docs/agents/clerk.md`:193. R-013 says code relying on a
 Ruling "cites that ADR once it is accepted", which implies the Ruling is cited
-until then. (a) Rulings are authoritative, not ephemeral: an `R-nnn` in
-`overhaul/**` is allowed if it names a Ruling in `RULINGS.md` whose `Folded
-into:` line names no ADR; it is flagged if no such Ruling exists, or if it is
-folded into an ADR (cite that ADR instead, as R-013 directs). Needs a line-edit
-to ADR-0042 adding "and Rulings not yet folded into an ADR". (b) Flag every
-`R-nnn` in `overhaul/**` comments and test names, allow it in tooling (M-002's
-recommendation, ADR-0042's letter); code relying on an unfolded Ruling then
-cannot name its source. (c) Allow `R-nnn` everywhere, unchecked. Recommend (a):
-it follows R-013, keeps a rule's source traceable, and turns "fold soon" into a
-check, since folding a Ruling makes stale citations fail.
+until then. ADR-0042 is Accepted, so changing its text takes a Ruling or an
+amending ADR (R-004, R-013), not a line-edit. (a) Follow ADR-0042's text: flag
+every `R-nnn` in `overhaul/**` comments and test names as E7. Tooling is not
+scanned (Q7). (b) Allow an `R-nnn` whose `Folded into:` line, joined across
+wraps, starts with `not yet`; flag a Ruling that does not exist (E7) or one
+folded elsewhere (E8, cite the ADR or glossary term instead). Needs a Ruling
+amending ADR-0042 in four documents, and still reads prose such as
+`not yet (overrides ADR-0037 …)`. (c) As (b), keyed on a new structured field
+in `RULINGS.md`; a clerk-format change. (d) Allow `R-nnn` everywhere. Recommend
+(a): it is the Accepted text, stated in four places, needs no amendment, and
+costs nothing today, as overhaul cites no Ruling. Kept over my first draft's
+(b): the challenger showed its parse of `Folded into:` is fragile.
 
-**Q6. Report codes and the prover's key.** **Digest.** (a) Codes D1 to D3,
-G1, G2, E1 to E6 (and E7 for Q5's Ruling cases); each report starts with its
-code, and each expected list is keyed by code, as R-158 set for B-numbers. (b)
-Key by script name and fixture path. Recommend (a): one convention across all
-four signals, and a plant caught by the wrong check fails.
+**Q6. Report codes.** Folded into Q12.
 
-**Q7. Files each script scans.** **Digest.** (a) Signal 2: `overhaul/*/src/**`
-only, since tests may spell an _Avoid_ term to prove it is rejected; signal 4:
-`overhaul/**`, src and tests; neither scans `scripts/`, `eslint.config.js` or
-legacy packages, where naming a rule's origin is the point or hygiene is
-deferred (R-003). (b) Both also scan `scripts/drift/` and the ESLint config.
-Recommend (a): the scripts hold the code ADR-0042 governs and leave tooling,
-whose comments cite Rulings by design, alone.
+**Q7. Files each script scans.** **Full: cross-module convention.** (a)
+Signal 2: identifiers in `overhaul/*/src/**` and `overhaul/*/tests/**`, strings
+in src only; test strings and test names are left out, because a test may spell
+an _Avoid_ term to prove it is rejected. Signal 4: `overhaul/**`, src and
+tests. Neither scans `scripts/`, `eslint.config.js` or legacy code, so tooling
+may cite Rulings and seams (R-158's B-numbered messages, `S17`). (b) The
+challenger's: signal 2 also scans test names, not test string literals. (c)
+Signal 2 on src only. (d) Signal 4 also scans `scripts/drift/` with Ruling IDs
+allowed there. Recommend (a): test identifiers are names like any other; test
+names are prose about behaviour.
 
-**Q8. Signal 1's sources.** **Digest.** (a) As ADR-0042's table: `AGENTS.md`,
-Accepted ADRs and `docs/design/*.md`, skipping Considered options. (b) Also
-`CONTEXT.md`, `RULINGS.md` and, once they exist, `docs/manual/`. Recommend (a):
-it is the table's text; `RULINGS.md` records past answers that name then-current
-paths, and would need its own exception regime.
+**Q8. Signal 1's sources.** **Digest** (uncontested, with one fact
+corrected). ADR-0042:346 says "ADRs", with no status filter and no rule about
+Considered options; both are this proposal's choice. (a) `AGENTS.md`, every ADR
+whose status line starts with `Accepted` (so `Accepted (amended by 0022)`
+counts), and `docs/design/*.md`, skipping text under Considered options. (b)
+Every ADR, any status. (c) Also `CONTEXT.md`, `RULINGS.md` and the manuals.
+Recommend (a): Superseded ADRs describe what no longer holds, and rejected
+options describe what never held.
+
+**Q9. Paths under a top-level directory that no longer exists.** **Full: spec
+hole.** `packages/*` (ADR-0002) is skipped silently today, and every path under
+`cli/` and `domain/` will be once legacy is deleted. (a) A ratified list of
+former roots (`packages/` today, later `cli/`, `domain/`): paths under
+them are not checked, but each is counted per root in the summary. (b) Check
+them like any path, so each needs a Q1 exception; ADRs describing legacy would
+mint dozens. (c) Skip silently. Recommend (a): history stays readable, and the
+gap is printed instead of hidden.
+
+**Q10. What D3 checks.** **Full: spec hole.** (a) camelCase and PascalCase
+tokens, optionally with `()`, present if they occur as a word in a tracked
+`*.ts`, `*.tsx`, `*.js` or `*.json` file, legacy included while legacy lives.
+(b) camelCase only, as drafted; types and ports go unchecked. (c) Present only
+in `overhaul/`; every ADR describing legacy then fails. Recommend (a): types
+and ports are what ADRs most often name. Cost: a name surviving only in legacy
+counts as present until legacy is deleted.
+
+**Q11. Identifiers the code does not own.** **Full: cross-module
+convention.** (a) G1 checks declared names only (variables, functions,
+parameters, types, members and properties declared in overhaul), not
+references; Node and third-party names are not ours, and a re-export is checked
+where it is declared. (b) Every identifier token, with an allow-list. Recommend
+(a): it checks exactly the names the glossary governs, with no list to keep.
+
+**Q12. Report codes and the prover's key.** **Full: cross-module
+convention** (it extends R-158's keying to every signal). (a) D1 to D4, G1, G2,
+E1 to E7 (E8 if Q5 picks (b)); each report starts with its code; one code per
+finding by Q4's precedence; each expected list keyed by code. (b) Key by script
+and fixture path. Recommend (a): one convention across all four signals, and a
+plant caught by the wrong check fails.
+
+**Q13. What counts as a test name.** **Full: spec hole.** (a) The first
+argument of the call that names the test, where the callee is `describe`, `it`
+or `test`, optionally followed by `.skip`, `.only`, `.todo`, `.concurrent`, or
+by `.each(...)` or a tagged-template `each` whose result is then called; for a
+template literal, its static text is scanned and `${…}` is ignored. (b) Plain
+`describe`, `it` and `test` calls only; `it.each(...)('name', …)`, already in
+the tree, escapes. Recommend (a): every form vitest offers, each with a plant.
+
+**Q14. "Every landing".** **Full: spec hole.** ADR-0042's table runs signals
+1, 2 and 4 on every landing; my first draft left that optional. (a) M-003's
+last slice makes `drift:check` a root turbo task (`//#drift:check`) that
+`check:all` runs, so every landing runs it as lint does; this ruling is the
+owner's request that Tier C needs. (b) Run by the clerk's landing checklist
+only. (c) Left to a later Tier-C request. Recommend (a): the table says every
+landing, and only a command that fails the landing makes that true.
