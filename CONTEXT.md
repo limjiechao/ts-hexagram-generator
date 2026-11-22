@@ -38,7 +38,7 @@ only by the Transformation.
 **Casting** (大衍筮法):
 The yarrow-stalk procedure of the Great Expansion that yields exactly one
 Transformation. Yarrow is the only casting method.
-_Avoid_: coin casting, generating, rolling.
+_Avoid_: `coin casting`, generating, rolling.
 
 **Round** (變):
 One pass of the four operations (四營: 分二、掛一、揲四、歸奇). Three Rounds
@@ -57,11 +57,11 @@ _Avoid_: split, part, parting.
 The number that records a Division: the count of stalks in the left heap. The
 only freely chosen value in a Round; everything else in the Round follows
 from it.
-_Avoid_: index, split point.
+_Avoid_: index, `split point`.
 
 **Hung Stalk** (掛一):
 The single stalk taken from the right heap and hung between the fingers.
-_Avoid_: suspended stalk.
+_Avoid_: `suspended stalk`.
 
 **Remainder** (奇):
 What is left of a heap after counting it off in fours (揲四); always 1 to 4,
@@ -83,23 +83,23 @@ _Avoid_: suspended (for the set-aside total).
 One of the 4,096 outcomes of a divination: a Standing Hexagram together with
 its Moving Lines, which together fix the Emerging Hexagram. A result with no
 Moving Lines is still a Transformation — the identity X之X.
-_Avoid_: permutation, casting, reading, figure, hexagram (for the 4,096-valued
+_Avoid_: `permutation`, casting, reading, figure, hexagram (for the 4,096-valued
 thing).
 
 **Hexagram** (卦):
 One of the 64 six-line figures of yin and yang lines. Standing and emerging
 are always Hexagrams.
 _Avoid_: using "hexagram" for the six Line Values (6/7/8/9), which name a
-Transformation; gua (in English text).
+Transformation; `gua` (in English text).
 
 **Standing Hexagram** (本卦):
 The Hexagram a Transformation starts from.
-_Avoid_: primary, original, present hexagram.
+_Avoid_: primary, original, `present hexagram`.
 
 **Emerging Hexagram** (之卦):
 The Hexagram a Transformation arrives at; equal to the Standing Hexagram when
 no line moves.
-_Avoid_: changed, relating, future hexagram.
+_Avoid_: changed, relating, `future hexagram`.
 
 **Figure**:
 The six yin/yang polarities of a Hexagram, read bottom-up from the first Line
@@ -116,42 +116,42 @@ _Avoid_: bit, 0/1 (for a Polarity).
 A Hexagram's place 1–64 in the order transmitted by 邵雍: its Figure read as a
 binary number (yin = 1, the first Line Position the highest bit), plus one.
 乾 is 1, 坤 is 64. The same for every text tradition.
-_Avoid_: Fuxi order (for the number), binary order.
+_Avoid_: Fuxi order (for the number), `binary order`.
 
 **Trigram** (經卦 / 八卦):
 One of the eight three-line figures: 乾 兌 離 震 巽 坎 艮 坤.
-_Avoid_: hexagram (for a three-line figure), gua (in English text).
+_Avoid_: hexagram (for a three-line figure), `gua` (in English text).
 
 **Lower Trigram** (內卦 / 下卦):
 The Trigram formed by Line Positions 1–3 of a Hexagram.
-_Avoid_: inner trigram (in English text), bottom trigram.
+_Avoid_: `inner trigram` (in English text), `bottom trigram`.
 
 **Upper Trigram** (外卦 / 上卦):
 The Trigram formed by Line Positions 4–6 of a Hexagram.
-_Avoid_: outer trigram (in English text), top trigram.
+_Avoid_: `outer trigram` (in English text), `top trigram`.
 
 **Nuclear Hexagram** (互卦):
 The Hexagram whose Lower Trigram is Line Positions 2–4 and whose Upper Trigram
 is Line Positions 3–5 of a given Hexagram. Structure only; what it signifies
 is left to the user.
-_Avoid_: inner hexagram, mutual hexagram.
+_Avoid_: `inner hexagram`, `mutual hexagram`.
 
 **Inverse Hexagram** (錯卦):
 The Hexagram obtained by flipping the polarity of every Line of a given
 Hexagram. Structure only.
-_Avoid_: opposite, complementary hexagram, 旁通 (as the English term).
+_Avoid_: opposite, `complementary hexagram`, 旁通 (as the English term).
 
 **Reversed Hexagram** (綜卦):
 The Hexagram obtained by turning a given Hexagram upside down (Position _k_
 becomes Position 7 − _k_). For the eight Hexagrams that read the same upside
 down, it is the Hexagram itself. Structure only.
-_Avoid_: overturned, inverted (collides with Inverse Hexagram).
+_Avoid_: `overturned`, `inverted` (collides with Inverse Hexagram).
 
 ### Lines
 
 **Line** (爻):
 One of the six places of a Transformation or Hexagram.
-_Avoid_: yao (in English text).
+_Avoid_: `yao` (in English text).
 
 **Line Position**:
 The place of a Line, counted bottom-up from 1 to 6 (初, 二, 三, 四, 五, 上).
@@ -177,18 +177,18 @@ at their plain dictionary meaning only:
 >    - 定義：由動爻變動之後產生的新爻（位於變卦中相應的位置）。
 >    - 代表事情發展的結果、去向或時間節點（動為始，變為終）。
 
-_Avoid_: changing line, old line, 變爻 (for the moving line itself).
+_Avoid_: `changing line`, `old line`, 變爻 (for the moving line itself).
 
 **Changed Line** (變爻):
 The Line at the same Position in the Emerging Hexagram that a Moving Line
 becomes; always Young (6 becomes 7, 9 becomes 8). It stands for the outcome of
 the change.
-_Avoid_: transformed line, emerging line, changing line.
+_Avoid_: `transformed line`, `emerging line`, `changing line`.
 
 **Static Line** (靜爻):
 A Line whose value is Young (7 or 8); it keeps its polarity in the Emerging
 Hexagram.
-_Avoid_: unchanging line, fixed line.
+_Avoid_: `unchanging line`, `fixed line`.
 
 ### Resolution and passages
 
@@ -220,7 +220,7 @@ and none is ranked above another — the oracle has 4,096 outcomes, not 384. A
 Changed Line's Line Statement is not applicable: it speaks of the Emerging
 Hexagram's own transformation onward (姤 初六 belongs to 姤之乾, not to
 乾之姤).
-_Avoid_: selection, primary line, 主爻 (no ranking exists).
+_Avoid_: selection, `primary line`, 主爻 (no ranking exists).
 
 **Passage Reference**:
 The Oracle's name for a passage of the 經: a Hexagram's Hexagram Statement,
@@ -242,7 +242,7 @@ The Edition-independent name of a passage within a Work, built on Oracle
 identities — e.g. 周易 `111111.3` (Line Statement 3 of 乾), 焦氏易林
 `111111.000000` (the verse for 乾之坤). Every Edition of the Work is aligned
 to the same Citations.
-_Avoid_: passage id, reference (alone), key.
+_Avoid_: `passage id`, reference (alone), key.
 
 **Edition**:
 A published text of a work, in one script — e.g. the 武英殿十三經注疏本
@@ -254,7 +254,7 @@ ctext's character conversion of the 武英殿本 text — and carries no textual
 authority of its own. When the Edition behind a Witness cannot be identified,
 the text is kept and labelled **unidentified**, never presented as a known
 Edition.
-_Avoid_: version, rendition, variant.
+_Avoid_: version, `rendition`, variant.
 
 **Witness**:
 The concrete source an Edition's text was transcribed from — e.g. a set of
@@ -277,7 +277,7 @@ channel. Wilhelm–Baynes (in copyright) and the ctext-sourced Chinese:
 Private Channels only. Every channel today is a Private Channel, so nothing
 is gated in practice; a public channel would omit gated text and never
 substitute other text for it.
-_Avoid_: permission check, DRM.
+_Avoid_: `permission check`, `DRM`.
 
 **Private Channel**:
 A channel only the owner can reach: the local CLI, or the PWA and REST API
@@ -298,19 +298,19 @@ _Avoid_: settings, options (for this concept).
 A Hexagram's place 1–64 in the received text's order (乾 1, 坤 2, 屯 3, …).
 It follows no rule and depends on the text tradition: the Mawangdui
 manuscript orders the Hexagrams differently.
-_Avoid_: Wen Wang order, King Wen number, hexagram number.
+_Avoid_: `Wen Wang order`, `King Wen number`, `hexagram number`.
 
 **Commentary** (傳):
 A passage from the 十翼 (彖傳, 大象, 小象, 文言, …) attached to a 經
 passage. Commentaries accompany Applicable Passages; they are never
 Applicable Passages themselves.
-_Avoid_: exegesis, explanation.
+_Avoid_: `exegesis`, explanation.
 
 **Yilin Verse** (林辭):
 A verse of the 焦氏易林 for one Transformation (4,096 in all, X之X
 included). A parallel corpus outside the Oracle, consulted only as a
 reference — chiefly to mine imagery — and never an Applicable Passage.
-_Avoid_: Yilin passage, Yilin reading.
+_Avoid_: `Yilin passage`, `Yilin reading`.
 
 ## Consultation Journal
 
@@ -336,7 +336,7 @@ Transformation follows.
 A Consultation divined elsewhere (physical stalks, an old notebook) and
 entered afterwards from its Transformation. It has no Casting, and none is
 ever invented for it: many Pick sequences give the same Transformation.
-_Avoid_: manual consultation, imported consultation, playground save.
+_Avoid_: `manual consultation`, `imported consultation`, `playground save`.
 
 **Query**:
 The divination _question_ — exactly one per Consultation, required and
@@ -344,14 +344,14 @@ non-blank, kept exactly as the user wrote it (it may span several lines). It
 belongs to the Consultation, not the Oracle: Casting and Resolution never see
 it. Distinct from the history list's **filter** (a transient UI search string
 that narrows the list and carries no divination meaning).
-_Avoid_: question (in code/UI labels — the canonical term is "query"), search
-term, filter.
+_Avoid_: `question` (in code/UI labels — the canonical term is "query"), `search
+term`, filter.
 
 **Divined At**:
 The moment a Consultation's divination took place — for a Recorded
 Consultation, as entered by the user, possibly to the day only. Not the
 moment it was saved.
-_Avoid_: timestamp, saved at, created at.
+_Avoid_: timestamp, `saved at`, `created at`.
 
 **Division Method**:
 How the Divisions of a Cast Consultation were made — **Physical** (a person
@@ -360,7 +360,7 @@ divided virtual stalks on screen) or **Automatic** (the machine divided). All
 three follow the same yarrow procedure, and every honest Division is
 uncontrolled; the method records only who divided what. A Recorded
 Consultation has none.
-_Avoid_: provenance, input mode, flow kind, random (for Automatic), manual
+_Avoid_: provenance, `input mode`, `flow kind`, random (for Automatic), manual
 (for Physical), interactive (for Virtual).
 
 **Journal**:
@@ -373,7 +373,7 @@ _Avoid_: history (for the record itself), database.
 The record that a Consultation Id was deleted, kept so that Merging Journals
 does not bring the Consultation back. A deleted Consultation's content is
 gone; only its Id and when it was deleted remain.
-_Avoid_: tombstone (in UI text), trash.
+_Avoid_: tombstone (in UI text), `trash`.
 
 **Merging Journals**:
 Uniting two Journals: the union of their Consultations by Consultation Id,
@@ -385,7 +385,7 @@ _Avoid_: sync (no server is involved), import (alone).
 A stored record that failed to load as a Consultation. Not a Consultation —
 it is a candidate that _failed_ to become one. Counted and shown separately
 (`40 consultations · 2 unreadable`).
-_Avoid_: unreadable consultation, broken consultation.
+_Avoid_: `unreadable consultation`, `broken consultation`.
 
 ## Use cases
 
@@ -394,14 +394,14 @@ Entering the observed counts of a physical Round — piles of four and
 Remainder for each heap — which become a Pick only once they pass the
 conservation and Set-aside checks. A Transcription can be edited freely until
 committed.
-_Avoid_: manual pick, manual input.
+_Avoid_: `manual pick`, `manual input`.
 
 **Line Retraction**:
 Silently discarding the Picks of the incomplete Line, or of the just-completed
 Line before the next Line's first Pick, so the Rounds can be transcribed or
 divided again after a mistake. Offered only for Physical Division; it leaves
 no trace in the Casting. A Casting itself is never rewound.
-_Avoid_: rewind, undo, void.
+_Avoid_: `rewind`, `undo`, void.
 
 ## Presentation
 
