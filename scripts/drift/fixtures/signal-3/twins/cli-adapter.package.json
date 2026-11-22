@@ -1,0 +1,13 @@
+{
+  "//": "Linted as overhaul/cli-adapter/package.json. Twin for B9: its arrows exactly, the dev one in devDependencies.",
+  "name": "@hexagram/cli-adapter",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/application": "workspace:*"
+  },
+  "devDependencies": {
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}

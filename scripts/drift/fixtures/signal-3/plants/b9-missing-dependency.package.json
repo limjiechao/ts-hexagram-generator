@@ -1,0 +1,10 @@
+{
+  "//": "Linted as overhaul/scripture-catalogue/package.json",
+  "name": "@hexagram/scripture-catalogue",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/oracle": "workspace:*"
+  }
+}

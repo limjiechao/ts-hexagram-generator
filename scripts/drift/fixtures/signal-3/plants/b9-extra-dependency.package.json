@@ -1,0 +1,11 @@
+{
+  "//": "Linted as overhaul/consultation-journal/package.json",
+  "name": "@hexagram/consultation-journal",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}

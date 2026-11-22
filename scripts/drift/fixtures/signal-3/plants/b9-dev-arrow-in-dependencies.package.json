@@ -1,0 +1,11 @@
+{
+  "//": "Linted as overhaul/cli-adapter/package.json",
+  "name": "@hexagram/cli-adapter",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/application": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}
