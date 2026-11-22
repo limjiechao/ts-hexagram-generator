@@ -3076,3 +3076,24 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   `,` and `;` and drop a trailing `.` or `:`.
 - Ruling: "Q-M-003-43 to -46: A"
 - Folded into: not yet
+
+### R-240: Signal 1 and the every-landing step move to a new Matter, M-004
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-47, at 45 of R-138's 60 owner touches)
+- Question: Slice spec audits have cost 10 to 16 touches each, and four slices
+  remained. (a) raise M-003's cap to 100; (b) keep 60 and move signal 1's two
+  slices and `drift:check` joining `check:all` (R-206) into a new Matter,
+  M-004, with its own cap; (c) keep 60 and land M-003 wherever it stops.
+- Ruling: "Q-M-003-47: B, Q-M-003-48: A"
+- Folded into: not yet
+
+### R-241: A drafter prepares R-196's CONTEXT.md marking for the owner
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-48)
+- Question: (a) a drafter marks on its own branch each _Avoid_ form it judges
+  checkable, in backticks, with a one-line reason for each entry left unmarked;
+  the owner line-edits and ratifies it in one touch; (b) the owner marks it.
+- Ruling: "Q-M-003-47: B, Q-M-003-48: A"
+- Folded into: not yet
