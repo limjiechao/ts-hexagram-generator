@@ -131,7 +131,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-003: Build drift signals 1, 2 and 4
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147
 - Scope: Scripts for doc truth (signal 1), glossary conformance (signal 2) and ephemeral-ID leakage (signal 4), run by
@@ -140,9 +140,11 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   checkable and how identifiers are split and matched, whether Ruling IDs count as ephemeral.
 - Free to choose: _owner to ratify_: the proposal's §3, raised with slice 1's acceptance list.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
-- Open questions: none. Q-M-003-1 to -14 (no -6; Q6 folded into Q12) ruled as R-195 to R-206; digest (the proposal's
+- Open questions: Q-M-003-15 to -25 (slice 1's tester audit: 17 holes and 6 tensions grouped into 10 questions, plus
+  approval of slice 1's acceptance list); branch m/M-003-s1, worktree ../hexagram-wt-M-003-s1.
+  Q-M-003-1 to -14 (no -6; Q6 folded into Q12) ruled as R-195 to R-206; digest (the proposal's
   Q8) as R-207. Proposal: `docs/reviews/2026-11-22-m-003-drift-signals.md` (d615ffa, revised efc1476 after the
-  challenger contested 7 of 8). Next: slice 1 (scanner and prover), tester's spec audit and acceptance list first.
+  challenger contested 7 of 8).
   Owed by the owner: R-196's backtick marking of checkable _Avoid_ forms in `CONTEXT.md`, before signal 2's slice.
 - Commits: –
 - Notes: Six slices (proposal §4): scanner and prover, signal 4, signal 2, signal 1 paths, signal 1 symbols, and
