@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,12 +112,13 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: none. Q-M-002-31 to -42 ruled as R-177 to R-188; slice 4's acceptance list approved as R-189.
-  Q-M-002-43, -44 ruled as R-190, R-191; the tester's fixtures are at 3527a7e on m/M-002-s4 and an implementer is building.
+- Open questions: Q-M-002-45 (does the analysis follow plain JavaScript, R-176?); Q-M-002-46 (slice 4 used both
+  attempts, R-058: allow a third?). Q-M-002-31 to -44 ruled as R-177 to R-188, R-190, R-191; acceptance list R-189.
   Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
-  In flight (2026-11-22): slice 4 (R-151: B13's analysis of which `application` subpaths load Oracle code) on branch
-  m/M-002-s4, worktree ../hexagram-wt-M-002-s4: the tester writes R-189's fixtures (red), then an implementer, a fresh
-  reviewer, verification (including the real tree's list, R-185) and landing. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
+  Stopped (2026-11-22): slice 4 (R-151) on branch m/M-002-s4, worktree ../hexagram-wt-M-002-s4: fixtures 3527a7e,
+  attempt 1 7876ad0 (REQUEST CHANGES: string code export dropped), attempt 2 ed38f3b (REQUEST CHANGES: a wildcard
+  export with an extensionless string target is skipped before the wildcard check). Gates and Acceptance pass on the
+  branch; the real tree lists exactly the four Oracle-loading subpaths. The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
   Q-M-002-1 to Q-M-002-24 ruled as R-057, R-147 to R-170; digest R-157.
 - Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea; slice 2: 4cdce11, 85a5667, d32ecc3; slice 3: 9e9f0a1, 7e3d477, 2152063, e17f002
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to

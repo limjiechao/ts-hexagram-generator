@@ -268,3 +268,11 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0 this iteration; 31 in M-002 so far (R-175, R-176)
 - Landed: 9e9f0a1, 7e3d477, 2152063, e17f002 · Phase estimate: 2 Matters / 1 week
 - Notes: the clerk's review brief said comments never cite Rulings; the reviewer pointed out that the clerk prompt bans only plans, Matters, Minutes and reviews, and R-013 has code cite a Ruling until an ADR folds it in. The brief was wrong; the slice follows the written rule. The reviewer's tooling notes (`allowJs` against the inherited `isolatedDeclarations` in `tsconfig.overhaul-lint.json`, error TS5053 under plain `tsc`; a stale `eslint --cache` B12 result) are Tier B/C and do not affect lint:check; the first goes into slice 4 as a line-edit.
+
+### Iteration 17 — M-002 — 2026-11-22
+
+- Attempt: 2/2 (slice 4; R-058) · Outcome: stopped for the owner; both attempts sent back
+- Review: attempt 1 `REQUEST CHANGES` (a string code export dropped silently, R-178, R-182; six non-blocking points, all fixed in attempt 2) · attempt 2 `REQUEST CHANGES` (a wildcard export whose string target has no code extension is skipped before the wildcard check, R-180, R-182)
+- Verify: not run by the clerk; the implementer and both reviewers report gates, unfiltered drift:prove, lint:check and the real tree's four loads passing on the branch
+- Owner touches: 46 in M-002 so far; Q-M-002-45 and Q-M-002-46 pending
+- Landed: – · Notes: R-177 to R-191 ruled in this iteration. The tester's fixtures (3527a7e) are unchanged by both attempts. Both blocking findings are silent drops of an export that should be listed or fail.
