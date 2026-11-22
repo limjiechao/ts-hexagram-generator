@@ -240,3 +240,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 29 in M-002 so far (rulings 27 · digests 1 · test-list approvals 1), against a cap of 60 (R-138)
 - Landed: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea · Budget used: 0 of 2 Matters in Phase 2 · Phase estimate: 2 Matters / 1 week
 - Notes: slice 1 is 445 lines, over R-157(14)'s 400, accepted whole by R-173.
+
+### Iteration 14 — M-002 — 2026-11-22
+
+- Attempt: 1/2 (slice 2; R-058) · Outcome: failed at review
+- Acceptance tests: one plant added by R-174 (0d82f1f), red before implementation (y)
+- Brief size (signal 7): ~600 lines of required reading (implementer)
+- Review: `REQUEST_CHANGES` (2 blocking: B11 misses `accessor q!: T` against R-164; B10 and B11 skip `overhaul/` files outside the six packages, against R-051, R-057, R-151) · design findings sent to owner: none
+- Verify: gates pass; drift:prove for B1–B11 passes; unfiltered fails only on B12, as planned
+- Owner touches: 0 this iteration; 29 in M-002 so far
+- Landed: – · Notes: both findings are rules doing less than their Rulings; attempt 2 fixes them without a new Ruling.
