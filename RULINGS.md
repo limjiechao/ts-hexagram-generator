@@ -2893,3 +2893,145 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   signal 4 sees one form; (b) keep it raw, and every signal tolerates `\r`.
 - Ruling: "Q-26 to Q-30: A"
 - Folded into: not yet
+
+### R-224: A computed specifier's fragments are excluded like a specifier
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-31, from slice 1's final review)
+- Question: The static fragments of `require(\`./g/${name}.js\`)`or a
+computed`import()` are yielded as strings. (a) exclude them as R-211
+  excludes a whole specifier, changed in signal 2's slice, since signal 4 does
+  not read strings; (b) keep them as strings.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-225: Comment text normalises every line terminator to LF
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-32, from slice 1's final review)
+- Question: (a) normalise CRLF, a lone CR, U+2028 and U+2029 in comment text to
+  `\n`, as TypeScript counts each as a line break, in slice 2; (b) CRLF only,
+  as R-223 says.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-226: Signal 4's exact patterns and overlap rule
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-33, slice 2's spec audit)
+- Question: (a) E1 `Q-M-\d{3}-\d+`, `Q-PH\d+-\d+`, `Q-\d+`, `M\d{3}-\d+`,
+  `PH\d+-\d+`, `Q\d+`; E2 `M-\d{3,}`; E3 `S\d{1,2}`; E4 `B\d{1,2}`; E7
+  `R-\d{3,}`; case-sensitive and ASCII-word-bounded; the longest match wins, a
+  tie going to the lower E number; no allow-list for prose such as "S3" or
+  "Q3"; no URL exemption for E7; the proposal's Q4(a) text binds, including
+  `docs/legacy-architecture.md`; (b) split on whitespace first.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-227: E5 matches slice and wave labels in either case, plural included
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-34)
+- Question: (a) `[Ss]lices?` or `[Ww]aves?`, then spaces or tabs, then a
+  number; never across a line break; `wave1` and `slice-2` not flagged;
+  (b) lowercase, one space, as R-198 literally says.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-228: E6 reports a whole ephemeral path once, and exact uppercase words
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-35)
+- Question: (a) `docs/(reviews|plans|handoffs|archive)`, with or without a
+  trailing slash, and the rest of the path up to whitespace or a closing quote,
+  backtick or bracket, as one finding; `docs/legacy-architecture.md` likewise;
+  `/` separators only; MATTERS, MINUTES and RULINGS exact, uppercase,
+  word-bounded; (b) each segment reported separately.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-229: Signal 4 reads comments and test names only
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-36)
+- Question: (a) for E1 to E7, signal 4 reads only comment and test-name records,
+  not strings or identifiers; (b) strings as well.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-230: One report per file, line and code; findings report their own line
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-37)
+- Question: (a) one report per distinct (file, line, code), its message listing
+  the IDs; the expected value is a sorted list of codes, amending R-214's shape;
+  a finding's line is the record's start line plus the line breaks before it,
+  escaped `\n` and line continuations in test names a stated limit; (b) one
+  report per line, the highest-precedence code kept.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-231: drift:check's output with findings, and its exit-1 proof
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-38)
+- Question: (a) reports on stdout sorted per R-209, then the "N files parsed"
+  line, then `signal 4: N findings in M files` even when N is 0; exit 1 when N
+  is above 0; the prover runs `drift:check` on signal 4's fixture root,
+  expects exit 1 and matches every report line exactly, with line-ending
+  variants in memory; messages cite ADR-0042 with R-198, or R-199 for E7;
+  (b) signal 4 called in-process, plus a one-plant run for exit 1.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-232: --root names a stand-in repo; paths are relative to the repo root
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-39)
+- Question: (a) `--root` names a stand-in repo and signals 2 and 4 scan
+  `<root>/overhaul/`; report paths are relative to the repo root (e.g.
+  `overhaul/demo/src/a.ts:3`), amending R-209's path rule and re-laying slice
+  1's alternative-root case; (b) keep `--root` as `overhaul/` and re-lay in
+  slice 4.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-233: E1 to E7 join --only
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-40)
+- Question: (a) E1 to E7 become valid `--only` codes; the invalid-code proof
+  uses `Z1`, a code that never becomes valid; `--only E3` judges only E3; B
+  and E codes may mix; (b) keep E codes out.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-234: Slice 2 is one slice of about 450 to 550 lines, in two commits
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-41)
+- Question: (a) accept one slice, landed as an acceptance-material commit and an
+  implementation commit; (b) split it in two.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
+
+### R-235: Slice 2's acceptance list
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-42)
+- Question: Approve the list. Plants, in one fake package with one ID per line:
+  each E1 form, with `Q-M-002-4` as E1 only; E2 `M-001`, `M-003's`,
+  `m/M-003-s2`; E3 and E4 `S9/S14`, `B1-B12`, both on one line; each E5
+  form; each E6 path and word, with `docs/plans/M-003.md` as E6 only; E7
+  `R-013`, a range, one in a URL, `R-1000`; a finding on line 4 of a JSDoc;
+  each comment form including JSX; each test-name form; a config-file comment;
+  the CRLF and other line-break variants in memory. Twins: `XQ3`, `AB1`,
+  `B100`, `RR-123`, `R-12`, `r-123`, `M-03`; `wave1`, `slice-2`,
+  `.slice(2)`; invented "minutes" prose, `Matters`, `RULING`,
+  `docs/agents/`; strings, JSX text and identifiers; `bench` and `skipIf`.
+  `drift:check`: exit 1 on the fixtures with exactly the expected lines and
+  summary; exit 0 on the real tree; exit 2 and no summary with a parse error.
+  `--only`: `Z1` errors listing all 19 codes; `--only E3` passes; B and E
+  codes mix.
+- Ruling: "Q-M-003-31 to -42: A"
+- Folded into: not yet
