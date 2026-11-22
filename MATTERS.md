@@ -100,7 +100,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-002: Build drift signal 3, the boundary rules
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-140, R-147 to R-157
 - Scope: Drift signal 3: lint rules for imports across bounded contexts and around ports, purity, the complete-Casting
@@ -112,8 +112,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   slice to land).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
-- Open questions: Q-M-002-29 (B10 and a relative path to oracle's guard source), Q-M-002-30 (plain JavaScript files in
-  `overhaul/`), from slice 2's review. Slices 1 and 2 landed; next slice 3 (B12). The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
+- Open questions: none. Q-M-002-29, -30 ruled as R-175, R-176, folded into slice 3 with one plant. Slices 1 and 2 landed;
+  next slice 3 (B12). The owner approved the acceptance list (a16464e) on 2026-11-22, plus one B1 plant per R-170.
   Q-M-002-1 to Q-M-002-24 ruled as R-057, R-147 to R-170; digest R-157.
 - Commits: slice 1 with the acceptance material: 28cd0b3, a9e08a2, ef9ff26, b91166b, 207408f, 27113ea; slice 2: 4cdce11, 85a5667, d32ecc3
 - Notes: The rules: B1 and B2 per R-150 (all `node:*`, the effectful globals, dynamic imports, `globalThis`); B3, B6 to

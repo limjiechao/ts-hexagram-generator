@@ -2313,3 +2313,30 @@ R-173 and R-174 were answered together: "M002-27 A, M002-28 A".
   a stated limit, like R-166.
 - Ruling: "M002-28 A"
 - Folded into: not yet
+
+R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
+
+### R-175: B10 also matches a relative path to oracle's guard source
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-29, from slice 2's review)
+- Question: In a folder outside the six packages, `import * as m from
+'../../oracle/src/complete-casting.ts'` passes B10, which matches by name or
+  by the `@hexagram/oracle/complete-casting` subpath. (a) B10 also matches any
+  relative path ending at oracle's `complete-casting` source, keeping R-151's
+  "strict now" for packages not yet built; (b) a limit until that package's
+  Matter adds its arrows.
+- Ruling: "M002-29 A"
+- Folded into: not yet
+
+### R-176: M-002's rules cover plain JavaScript files in overhaul/ too
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-30, from slice 2's review)
+- Question: Every M-002 rule applies only to `.ts`, `.tsx`, `.mts` and `.cts`;
+  `overhaul/` holds no plain JavaScript source today. (a) the rules apply to
+  `.js`, `.mjs` and `.cjs` in `overhaul/` too, with one added plant; (b) ban
+  plain JavaScript in `overhaul/`, a new convention; (c) a stated limit while
+  none exist.
+- Ruling: "M002-30 A"
+- Folded into: not yet
