@@ -2700,3 +2700,147 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   skipping Considered options.
 - Ruling: "Q-M-003-1 to -14: A; digest ratified"
 - Folded into: not yet
+
+### R-208: Slice 1 proves the scanner with its own expected list
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-15, slice 1's spec audit)
+- Question: R-204 keys the prover by code, and slice 1 has none. (a) a separate
+  scanner expected list in `drift:prove`, each fixture mapped to its exact
+  ordered records (kind, line, text), matched both ways, as R-184 did;
+  `drift:check` walks and parses, prints "N files parsed" and exits 0, its
+  failure path first proved in slice 2 and a stated limit until then; (b)
+  vitest tests under `scripts/`; (c) a placeholder signal with a fake code.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-209: drift:check's report line, exit codes, order and paths
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-16)
+- Question: (a) each report reads `<file>:<line> <code>: <text naming the ADR
+or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
+  naming the file; the summary prints every run; reports sorted by file, line,
+  code by code units; paths relative to the root scanned, always `/`; a
+  finding in a multi-line comment or string reports its own line; (b) the
+  proposal's wording, the code twice and exits unstated.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-210: The files the scanner reads
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-17)
+- Question: (a) `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.mjs`, `.cjs`,
+  skipping `node_modules/`, `dist/` and dot-folders, JSON out; a file that
+  does not parse is a tool error (exit 2); signal 4's "all of `overhaul/**`"
+  (R-200) includes each package's root config files; (b) `src/` and `tests/`
+  only.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-211: How the scanner reads strings, template text and comments
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-18)
+- Question: (a) all literals count, read cooked; module specifiers and regexes
+  do not; JSX text trimmed, whitespace-only skipped; string-literal types raised
+  again with signal 2; each static template fragment is its own record; each
+  comment appears exactly once, read from the token stream, delimiters
+  stripped; a shebang is not a comment; (b) raw source text, template fragments
+  joined.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-212: Test names are R-205's closed set
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-19)
+- Question: (a) R-205's forms as a closed set, with chained modifiers before
+  `.each`; `skipIf`, `runIf`, `bench` and renamed imports are a stated
+  limit; a non-literal name is skipped; test names are read in any file, each
+  also yielded as a string; (b) include `skipIf`, `runIf`, `bench` and the
+  like.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-213: What counts as declared is ruled with signal 2's slice
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-20)
+- Question: (a) rule R-203's "declared" with signal 2's slice; slice 1 tests
+  only the clear cases: variables, functions, parameters, classes and members,
+  types, enums, destructuring renames; (b) rule it now.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-214: Expected results keyed by file and line, one fixture root per signal
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-21)
+- Question: (a) each `<file>:<line>` maps to its code, a twin to none, matched
+  exactly so an extra or duplicate report fails; each signal runs only on its
+  own fixture root, a small stand-in repo with its own docs and `CONTEXT.md`,
+  judged against its own codes; (b) one plant per file, as signal 3 does.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-215: One prover entry, and --only across code families
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-22)
+- Question: (a) one entry file runs every prover, collects every failure and
+  exits 1 if any fail; `--only`'s valid codes grow slice by slice, an unknown
+  code is an error listing the valid ones; B and other codes may mix; any
+  `--only` skips the scanner proof, the analysis and the clean-tree check; the
+  clean-tree hash covers the new fixture folders; (b) a second script chained
+  with `&&`.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-216: M-003's Free to choose: the proposal's §3, narrowed four ways
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-23)
+- Question: (a) ratify §3 with four narrowings: "the internal structure of the
+  scanner and the prover" becomes "code organisation, given the contract the
+  owner rules on"; report wording is free, but the line format, exit codes and
+  summary contents are not; the exception file's syntax is free only if each
+  entry carries its file, name and reason, and the format is shown to the owner
+  when slice 4 seeds it; reordering slices is reported to the owner, not
+  decided; (b) §3 as written.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-217: The citation rule covers overhaul source only
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-24)
+- Question: ADR-0042:113 and `AGENTS.md` say source comments cite only ADRs
+  and glossary terms, while `scripts/drift/` cites Rulings throughout. (a) the
+  rule covers `overhaul/` source only, and tooling may cite Rulings, as R-199,
+  R-200 and practice already do; (b) it covers all source.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
+
+### R-218: Slice 1's acceptance list
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-25)
+- Question: Approve the list. Comments: line, block, JSDoc, trailing, end of
+  file, the hard places (before `}`, inside `[1, /*x*/]`, an empty body, a
+  type), `//` inside a string (not a comment), directives, a shebang, JSX.
+  Test names: plain, the four modifiers, `.each(...)`, tagged-template
+  `each`, a template name in fragments, a name on the next line, and twins
+  (`obj.it`, `myIt`, a non-literal name, `bench`, `skipIf`). Strings: quote
+  styles, a multi-line template, JSX text, a JSX attribute, twins (import paths,
+  a regex), escapes read cooked, a literal type and quoted key per R-211. Identifiers:
+  each kind of declaration, destructuring renames, twins (calls, property
+  access, a plain import). Files: the walk's skips, a parse error exiting 2,
+  CRLF. `drift:check`: today's tree exits 0 with its summary, an alternative
+  root scanned alone, a missing root exiting 2. `drift:prove`: a full pass, a
+  missing or extra record fails, `--only` per R-215, arguments reach the
+  prover, one prover's failure does not hide another's, the clean-tree check
+  covers the new fixtures, `lint:check` passes on the new scripts.
+- Ruling: "Q-M-003-15 to -25: A"
+- Folded into: not yet
