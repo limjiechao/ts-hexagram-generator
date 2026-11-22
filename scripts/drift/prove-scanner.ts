@@ -6,13 +6,12 @@
 //   tsx scripts/drift/check.ts [--root <dir>]
 //
 // Without `--root` it scans the repo's `overhaul/`; `<dir>` is resolved from
-// the working directory and scanned alone. Every run prints a summary line
-// holding `<N> files parsed`. It exits 0 when clean and 2 on a tool error,
-// such as a missing root or a file that does not parse, printing to stderr
-// the root or the file, relative to the root with `/`. Exit 1, a finding,
-// first exists in slice 2.
+// the working directory and scanned alone. A completed run prints a summary
+// line holding `<N> files parsed`. It exits 0 when clean and 2 on a tool
+// error, such as a missing root or a file that does not parse; then only the
+// error prints, to stderr, naming the root or the file, relative to the root
+// with `/` (R-220). Exit 1, a finding, first exists with signal 2 (R-208).
 
-import { execFile } from 'node:child_process'
 import {
   cp,
   mkdir,
@@ -24,9 +23,7 @@ import {
 } from 'node:fs/promises'
 import os from 'node:os'
 import path from 'node:path'
-import process from 'node:process'
 import { fileURLToPath } from 'node:url'
-import { promisify } from 'node:util'
 
 import {
   addedSkipped,
@@ -35,11 +32,11 @@ import {
   parseError,
   walked,
 } from './fixtures/scanner/expected.js'
+import { runTsx, type Run } from './run-tsx.js'
 import type { ScanRecord } from './scan-record.js'
 
 type Scanner = typeof import('./scanner.js')
 
-const repoRoot = fileURLToPath(new URL('../../', import.meta.url))
 const fixtures = fileURLToPath(new URL('fixtures/scanner/', import.meta.url))
 const walkFixture = fileURLToPath(
   new URL('fixtures/scanner-walk/', import.meta.url),
@@ -118,6 +115,47 @@ async function proveFixtures(scanner: Scanner): Promise<string[]> {
   return failures
 }
 
+// Cases built in memory, like the CRLF variants: a block comment spanning
+// CRLF lines reads with LF (R-223), and a `require` or `import()` of a
+// no-substitution template is a module specifier, while `vi.mock` and
+// `require.resolve` are not module loads (R-211).
+const inMemory: readonly (readonly [string, string, readonly ScanRecord[]])[] =
+  [
+    [
+      'crlf-block-comment.ts',
+      '/* one\r\n   two */\r\nconst x = 1\r\n',
+      [
+        { kind: 'comment', line: 1, text: ' one\n   two ' },
+        { kind: 'identifier', line: 3, text: 'x' },
+      ],
+    ],
+    [
+      'module-specifiers.ts',
+      [
+        "require('./a.js')",
+        'require(`./b.js`)',
+        "import('./c.js')",
+        'import(`./d.js`)',
+        "vi.mock('./e.js')",
+        "require.resolve('./f.js')",
+        '',
+      ].join('\n'),
+      [
+        { kind: 'string', line: 5, text: './e.js' },
+        { kind: 'string', line: 6, text: './f.js' },
+      ],
+    ],
+  ]
+
+function proveInMemory(scanner: Scanner): string[] {
+  return inMemory.flatMap(([file, text, records]) => {
+    const result = scanner.scanText(file, text)
+    return result.ok
+      ? compareRecords(file, records, result.records)
+      : [`${file}: does not parse: ${result.message}`]
+  })
+}
+
 async function proveWalk(scanner: Scanner, root: string): Promise<string[]> {
   const failures: string[] = []
   const result = await scanner.scanTree(root)
@@ -136,50 +174,30 @@ async function proveWalk(scanner: Scanner, root: string): Promise<string[]> {
   return failures
 }
 
-interface Run {
-  readonly code: number | string
-  readonly stdout: string
-  readonly stderr: string
-}
-
-async function runCheck(args: readonly string[]): Promise<Run> {
-  try {
-    const { stdout, stderr } = await promisify(execFile)(
-      process.execPath,
-      ['--import', 'tsx', checkEntry, ...args],
-      { cwd: repoRoot },
-    )
-    return { code: 0, stdout, stderr }
-  } catch (error) {
-    const { code, stdout, stderr } = error as Partial<Run>
-    return { code: code ?? 'none', stdout: stdout ?? '', stderr: stderr ?? '' }
-  }
-}
-
 function describeRun(run: Run): string {
   return `exit ${run.code}, stdout ${JSON.stringify(run.stdout)}, stderr ${JSON.stringify(run.stderr)}`
 }
 
 async function proveCheck(walkRoot: string, temp: string): Promise<string[]> {
   const failures: string[] = []
-  const today = await runCheck([])
+  const today = await runTsx(checkEntry, [])
   if (today.code !== 0 || !/\b[1-9]\d* files parsed\b/.test(today.stdout))
     failures.push(
       `drift:check on today's tree: expected exit 0 and "<N> files parsed", got ${describeRun(today)}`,
     )
-  const alone = await runCheck(['--root', walkRoot])
+  const alone = await runTsx(checkEntry, ['--root', walkRoot])
   const count = new RegExp(String.raw`(?<!\d)${walked.length} files parsed\b`)
   if (alone.code !== 0 || !count.test(alone.stdout))
     failures.push(
       `drift:check --root on the walk's copy: expected exit 0 and "${walked.length} files parsed", got ${describeRun(alone)}`,
     )
-  const broken = await runCheck(['--root', parseErrorFixture])
+  const broken = await runTsx(checkEntry, ['--root', parseErrorFixture])
   if (broken.code !== 2 || !broken.stderr.includes(parseError))
     failures.push(
       `drift:check on a file that does not parse: expected exit 2 naming ${parseError}, got ${describeRun(broken)}`,
     )
   const missing = path.join(temp, 'missing-root')
-  const absent = await runCheck(['--root', missing])
+  const absent = await runTsx(checkEntry, ['--root', missing])
   if (absent.code !== 2 || !absent.stderr.includes('missing-root'))
     failures.push(
       `drift:check on a missing root: expected exit 2 naming it, got ${describeRun(absent)}`,
@@ -210,6 +228,7 @@ export async function proveScanner(): Promise<string[]> {
     }
     failures.push(
       ...(await proveFixtures(scanner)),
+      ...proveInMemory(scanner),
       ...(await proveWalk(scanner, walkRoot)),
     )
   } finally {

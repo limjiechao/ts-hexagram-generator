@@ -1,7 +1,7 @@
 // The scanner's fixed expected list (R-208): each fixture beside this file
 // maps to the exact, ordered records the scanner must yield for it, matched
 // both ways, so a missing or extra record, or an unlisted fixture, fails.
-// Each fixture is named after its row of slice 1's acceptance list (R-218).
+// Each fixture is named after its row of the acceptance list (R-218).
 //
 // Texts are written as JavaScript strings, so an escape here stands for the
 // cooked character the scanner must yield: '\t' is a tab, '\n' a newline.

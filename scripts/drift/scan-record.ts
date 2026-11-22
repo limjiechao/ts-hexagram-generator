@@ -1,4 +1,4 @@
-// The scanner's contract (M-003, R-208 to R-213): what the shared scanner
+// The scanner's contract (R-208 to R-213): what the shared scanner
 // yields for one file, and for a tree. Signals 2 and 4 read these records;
 // `drift:prove` matches them against `fixtures/scanner/expected.ts`.
 //
@@ -6,8 +6,9 @@
 //
 //   scanText(file: string, text: string): ScanResult
 //     Parses `text` with the TypeScript compiler API; `file`'s extension sets
-//     the language (`.tsx` and `.jsx` admit JSX). Any parse diagnostic makes
-//     the result `ok: false` (R-210).
+//     the language; `.tsx`, `.jsx` and plain JavaScript (`.js`, `.mjs`, `.cjs`)
+//     admit JSX (R-222). Any parse diagnostic makes the result `ok: false`
+//     (R-210).
 //
 //   scanTree(root: string): Promise<TreeScan>
 //     Walks `root` for R-210's extensions, skipping `node_modules/`, `dist/`

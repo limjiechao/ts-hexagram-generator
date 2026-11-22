@@ -31,6 +31,7 @@ import {
 import { expected } from './fixtures/signal-3/expected.js'
 import { analyseOracleSubpaths } from './oracle-subpaths.js'
 import { proveScanner } from './prove-scanner.js'
+import { runTsx } from './run-tsx.js'
 
 const repoRoot = fileURLToPath(new URL('../../', import.meta.url))
 const fixtures = fileURLToPath(new URL('fixtures/signal-3/', import.meta.url))
@@ -40,8 +41,8 @@ const subpathFixtures = fileURLToPath(
 const allFixtures = fileURLToPath(new URL('fixtures/', import.meta.url))
 const entryFile = fileURLToPath(import.meta.url)
 const boundaryRules = Array.from({ length: 12 }, (_, index) => `B${index + 1}`)
-// The codes `--only` accepts grow slice by slice; D, G and E codes join as
-// their signals land (R-204, R-215).
+// The codes `--only` accepts grow as signals land: D, G and E codes join
+// with their signals (R-204, R-215).
 const validCodes: readonly string[] = boundaryRules
 
 function parseOnly(argv: readonly string[]): ReadonlySet<string> | string {
@@ -209,37 +210,13 @@ async function proveSubpaths(): Promise<string[]> {
   return failures
 }
 
-async function runEntry(
-  args: readonly string[],
-): Promise<{ code: unknown; stdout: string; stderr: string }> {
-  try {
-    const { stdout, stderr } = await promisify(execFile)(
-      process.execPath,
-      ['--import', 'tsx', entryFile, ...args],
-      { cwd: repoRoot },
-    )
-    return { code: 0, stdout, stderr }
-  } catch (error) {
-    const {
-      code,
-      stdout = '',
-      stderr = '',
-    } = error as {
-      code?: unknown
-      stdout?: string
-      stderr?: string
-    }
-    return { code, stdout, stderr }
-  }
-}
-
 // `--only` as R-215 sets it: an unknown code, alone or beside a valid one, is
 // an error listing every valid code; a valid one runs only that code, and
 // skips the analysis, the scanner and the clean-tree check.
 async function proveOnly(): Promise<string[]> {
   const failures: string[] = []
   for (const codes of ['E1', 'B1,E1']) {
-    const run = await runEntry(['--only', codes])
+    const run = await runTsx(entryFile, ['--only', codes])
     const listed = validCodes.every((code) =>
       new RegExp(String.raw`\b${code}\b`).test(run.stderr),
     )
@@ -248,7 +225,7 @@ async function proveOnly(): Promise<string[]> {
         `--only ${codes}: expected exit 1 listing ${validCodes.join(', ')}, got exit ${String(run.code)}: ${run.stderr.trim()}`,
       )
   }
-  const one = await runEntry(['--only', 'B3'])
+  const one = await runTsx(entryFile, ['--only', 'B3'])
   if (one.code !== 0 || one.stdout.trim() !== 'drift:prove passed for B3.')
     failures.push(
       `--only B3: expected exit 0 proving B3 alone, got exit ${String(one.code)}: ${(one.stdout + one.stderr).trim()}`,
