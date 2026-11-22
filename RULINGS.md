@@ -2525,3 +2525,26 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   the script.
 - Ruling: "Q-M-002-44: A"
 - Folded into: not yet
+
+### R-192: The subpath analysis does not follow plain JavaScript: a stated limit
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-45, from slice 4's review)
+- Question: R-176 admits `.js`, `.mjs` and `.cjs` in `overhaul/`, but the
+  analysis maps every `.js` specifier to `.ts`, so an import of a real plain
+  JavaScript file fails loudly as unresolvable. (a) a stated limit while
+  `overhaul/` holds none, recorded in a one-line comment; (b) follow `.js`,
+  `.mjs` and `.cjs` files too.
+- Ruling: "Q-M-002-45: A"
+- Folded into: not yet
+
+### R-193: Slice 4 gets a third, narrow attempt
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-46, slice 4 after two reviewed attempts, R-058)
+- Question: (a) one more attempt: check for a wildcard or nested export before
+  skipping a non-code string target, and skip a `null` export (Node's "no
+  export") instead of failing it; then a fresh review, verification and
+  landing; (b) withdraw slice 4 and land M-002 with slices 1 to 3; (c) other.
+- Ruling: "Q-M-002-46: A"
+- Folded into: not yet
