@@ -37,7 +37,7 @@ from its actual figures when it lands (R-006).
 | Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                   | Owner touches (cap / used)        | Brief cap (lines) | Entry gate                     | Status                      |
 | ----- | --------------------------------------------------------- | ------------------------ | -------------------------------------------------- | --------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                         | uncapped / 125                    | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slices 1–3 of 4 landed) | 60 per Matter / 44 (M-002)        | 1,500             | –                              | in progress                 |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 2 Matters / 1 week (M-002: slices 1–3 of 4 landed) | 60 per Matter / 46 (M-002)        | 1,500             | –                              | in progress                 |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                  | 60 per Matter / 0                 | 1,500             | –                              | not yet broken into Matters |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                  | not set (R-138 is per Matter) / 0 | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                  | 60 per Matter / 0                 | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
@@ -113,6 +113,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm lint:check && pnpm drift:prove` (R-156): `drift:prove` exits 0 only if every planted violation is
   caught by its own rule and every clean twin passes, its expected list fixed in the prover.
 - Open questions: none. Q-M-002-31 to -42 ruled as R-177 to R-188; slice 4's acceptance list approved as R-189.
+  Q-M-002-43, -44 ruled as R-190, R-191; the tester's fixtures are at 3527a7e on m/M-002-s4 and an implementer is building.
   Slices 1 to 3 landed; Q-M-002-29, -30 ruled as R-175, R-176.
   In flight (2026-11-22): slice 4 (R-151: B13's analysis of which `application` subpaths load Oracle code) on branch
   m/M-002-s4, worktree ../hexagram-wt-M-002-s4: the tester writes R-189's fixtures (red), then an implementer, a fresh

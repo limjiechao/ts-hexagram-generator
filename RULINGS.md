@@ -2502,3 +2502,26 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   tree is left unchanged.
 - Ruling: "Q-31 to Q-42: A; approve the list"
 - Folded into: not yet
+
+### R-190: What the analysis names for a non-literal import and a wildcard export
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-43, from slice 4's fixtures)
+- Question: R-180 says an error names "the file and specifier", but two error
+  cases have no written path. (a) for `import(name)` the specifier is the
+  expression text, `name`; for a wildcard export the file is
+  `application/package.json` and the specifier is the export key, `./*`;
+  (b) name only the file in those two cases.
+- Ruling: "Q-M-002-43: A"
+- Folded into: not yet
+
+### R-191: Slice 4 lands as one slice of about 720 lines
+
+- Date: 2026-11-22
+- Raised in: M-002 (question Q-M-002-44, from slice 4's fixtures)
+- Question: R-187 accepted about 300 to 350 lines; the fixtures alone add 574,
+  mostly fake `package.json` files, and the script adds about 150.
+  (a) accept one slice; (b) land the fixtures and prover wiring first, then
+  the script.
+- Ruling: "Q-M-002-44: A"
+- Folded into: not yet
