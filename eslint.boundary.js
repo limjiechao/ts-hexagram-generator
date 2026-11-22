@@ -162,6 +162,7 @@ const effectfulGlobals = new Set([
   'clearImmediate',
   'queueMicrotask',
   'globalThis',
+  'global',
   'self',
   'window',
 ])
@@ -228,7 +229,7 @@ const purity = {
               continue
             context.report({
               node: identifier,
-              message: `B2: ${where} is pure, so it uses no effectful global such as '${identifier.name}'; the clock, randomness, timers and I/O reach it through a driven port (R-020, R-150, R-160).`,
+              message: `B2: ${where} is pure, so it uses no effectful global such as '${identifier.name}'; the clock, randomness, timers and I/O reach it through a driven port (R-020, R-150, R-160, R-174).`,
             })
           }
         }
