@@ -185,10 +185,17 @@ async function proveFilesListed(): Promise<string[]> {
   ]
 }
 
-// Every fixture file, scanned in memory with each line terminator, finds the
-// same lines: comment text reads every terminator as `\n` (R-225), and a
-// finding inside a multi-line comment, such as the JSDoc in
-// `comment-forms.tsx`, reports its own line (R-230).
+// A template-literal test name broken across lines: cooking keeps U+2028
+// and U+2029, which are still line breaks (R-225), so the ID reports the
+// line after the break (R-230).
+const templateName = 'in-memory/template-name.test.ts'
+const templateNameText = ['', 'it(`a', 'R-123 b`, () => {})', ''].join('\n')
+const templateNameExpected: Codes = new Map([[`${templateName}:3`, ['E7']]])
+
+// Every fixture file, and the template name above, scanned in memory with
+// each line terminator, finds the same lines: comment text reads every
+// terminator as `\n` (R-225), and a finding inside a multi-line comment,
+// such as the JSDoc in `comment-forms.tsx`, reports its own line (R-230).
 async function proveInMemory(only: ReadonlySet<string>): Promise<string[]> {
   let signal4: Signal4
   let scanner: Scanner
@@ -199,9 +206,19 @@ async function proveInMemory(only: ReadonlySet<string>): Promise<string[]> {
   } catch (error) {
     return [`signal-4.ts cannot be loaded: ${String(error)}`]
   }
-  const failures: string[] = []
+  const cases: [string, string, Codes][] = []
   for (const file of scanned) {
     const text = await readFile(path.join(fixtureRoot, file), 'utf8')
+    cases.push([file, text, expectedFor(only, file)])
+  }
+  const templateWanted: Codes = new Map()
+  for (const [key, codes] of templateNameExpected) {
+    const kept = judged(codes, only)
+    if (kept.length > 0) templateWanted.set(key, kept)
+  }
+  cases.push([templateName, templateNameText, templateWanted])
+  const failures: string[] = []
+  for (const [file, text, wanted] of cases) {
     for (const [name, terminator] of terminators) {
       const label = `${file} (${name})`
       const result = scanner.scanText(file, text.replaceAll('\n', terminator))
@@ -216,7 +233,7 @@ async function proveInMemory(only: ReadonlySet<string>): Promise<string[]> {
         reported.set(key, [...(reported.get(key) ?? []), code])
       }
       for (const [key, codes] of reported) reported.set(key, codes.toSorted())
-      failures.push(...compareCodes(label, expectedFor(only, file), reported))
+      failures.push(...compareCodes(label, wanted, reported))
     }
   }
   return failures

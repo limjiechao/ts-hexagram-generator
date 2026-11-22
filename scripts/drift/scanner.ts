@@ -189,9 +189,14 @@ export function scanText(file: string, text: string): ScanResult {
     false,
     source.languageVariant,
   )
-  // Comment text reads with LF line breaks, whatever the file uses (R-223).
+  // Comment text reads with LF line breaks, whatever the file uses: CRLF, a
+  // lone CR, U+2028 and U+2029 each end a line for TypeScript (R-223, R-225).
   const addComment = (start: number, end: number) => {
-    add('comment', start, text.slice(start, end).replaceAll('\r\n', '\n'))
+    add(
+      'comment',
+      start,
+      text.slice(start, end).replaceAll(/\r\n?|[\u2028\u2029]/g, '\n'),
+    )
   }
   const scanComments = (start: number, end: number) => {
     if (start >= end) return

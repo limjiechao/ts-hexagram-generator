@@ -10,8 +10,9 @@
 // completed run prints a line holding `<N> files parsed`, then signal 4's
 // summary (R-231). It exits 0 when clean and 2 on a tool error, such as a
 // missing root or a file that does not parse; then only the error prints, to
-// stderr, naming the root or the file, relative to the root with `/` (R-220,
-// R-232). Exit 1, a finding, is proved with signal 4 (`prove-signal-4.ts`).
+// stderr, naming the root or the file, relative to the repo root with `/`
+// (R-220, R-232). Exit 1, a finding, is proved with signal 4
+// (`prove-signal-4.ts`).
 
 import {
   cp,
