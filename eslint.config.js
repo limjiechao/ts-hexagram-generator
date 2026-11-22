@@ -1,7 +1,7 @@
 import { sxzz } from '@sxzz/eslint-config'
 import oxlint from 'eslint-plugin-oxlint'
 
-import { cliBoundaryBans } from './eslint.boundary.js'
+import { cliBoundaryBans, overhaulBoundaryPlugin } from './eslint.boundary.js'
 
 // S17 drift-guard (ADR-0004/0005): every relative import must carry an explicit
 // `.js` extension. Hoisted to a module-level const because ESLint flat config
@@ -151,5 +151,20 @@ export default sxzz().append(
         },
       ],
     },
+  },
+  {
+    // Drift signal 3 (ADR-0042): the overhaul's purity and Layout C arrows,
+    // B1 to B8. Local rules under their own keys, so they never replace the
+    // `no-restricted-imports` options above.
+    files: ['overhaul/**/*.{ts,tsx,mts,cts}'],
+    plugins: { overhaul: overhaulBoundaryPlugin },
+    rules: { 'overhaul/purity': 'error', 'overhaul/arrows': 'error' },
+  },
+  {
+    // B9: each overhaul manifest declares exactly its arrows, so lint:check
+    // fails on a stray dependency at every landing.
+    files: ['overhaul/*/package.json'],
+    plugins: { overhaul: overhaulBoundaryPlugin },
+    rules: { 'overhaul/manifest': 'error' },
   },
 )
