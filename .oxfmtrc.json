@@ -9,6 +9,7 @@
     "cli/text-grid/tests/fixtures/*.md",
     "domain/consultation-file/tests/fixtures/*.md",
     "docs/archive/**",
-    "docs/reviews/*.md"
+    "docs/reviews/*.md",
+    "scripts/drift/fixtures/**"
   ]
 }

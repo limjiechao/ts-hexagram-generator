@@ -48,8 +48,10 @@ export default sxzz().append(
   {
     // Planning docs under docs/ and agent artefacts under .superpowers/ contain
     // illustrative TypeScript snippets (often partial/incomplete) that should
-    // not be held to source-grade lint rules.
-    ignores: ['docs/**/*.md', '.superpowers/**'],
+    // not be held to source-grade lint rules. Drift signal 3's planted
+    // violations break the rules on purpose; its prover lints them under
+    // their `overhaul/` paths instead (ADR-0042).
+    ignores: ['docs/**/*.md', '.superpowers/**', 'scripts/drift/fixtures/**'],
   },
   {
     rules: {
