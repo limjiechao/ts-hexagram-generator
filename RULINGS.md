@@ -3035,3 +3035,44 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   codes mix.
 - Ruling: "Q-M-003-31 to -42: A"
 - Folded into: not yet
+
+### R-236: Signal 4's summary counts report lines
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-43, from slice 2's fixtures)
+- Question: In `signal 4: N findings in M files`, (a) N counts report lines,
+  one per (file, line, code), as R-230 makes them; (b) N counts IDs.
+- Ruling: "Q-M-003-43 to -46: A"
+- Folded into: not yet
+
+### R-237: Three readings of slice 2's acceptance list stand
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-44, from slice 2's fixtures)
+- Question: (a) accept them: R-235's "both on one line" is tested both as pairs
+  and as `S9 and B1` on one line; a parse error's path is relative to the
+  repo root (R-232); the IDs a message lists are not in the expected list,
+  which keeps codes only (R-230), and are checked by the reviewer; (b) add the
+  IDs to the expected list.
+- Ruling: "Q-M-003-43 to -46: A"
+- Folded into: not yet
+
+### R-238: Slice 2 lands at about 750 lines in two commits
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-45, from slice 2's fixtures)
+- Question: R-234 accepted about 450 to 550 lines. (a) accept about 750, about
+  600 of acceptance material and 150 of code, as two commits; (b) split.
+- Ruling: "Q-M-003-43 to -46: A"
+- Folded into: not yet
+
+### R-239: An E6 path ends only where R-228 says
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-46, from slice 2's review)
+- Question: A path runs to whitespace, a quote, a backtick or a bracket, so
+  `docs/plans/a.md,R-123` is one E6 finding and the E7 is lost. (a) keep
+  R-228 as written, raised again if the real tree hits it; (b) also end at
+  `,` and `;` and drop a trailing `.` or `:`.
+- Ruling: "Q-M-003-43 to -46: A"
+- Folded into: not yet

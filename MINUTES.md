@@ -294,3 +294,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 29 in M-003 so far (R-195 to R-223)
 - Landed: 4591c81 (the tester's acceptance material), 49f55a0 (the scanner and drift:check, squashing f7465a1, 65b95cc, 1107ccc) · Phase estimate: 2 Matters / 1 week
 - Notes: the proposal went to the owner only after the drafter revised it against the challenger, who contested 7 of 8 recommendations and found six factual errors. Slice 1's spec audit found 17 holes; grouping them by topic into 10 questions kept the round at 11 touches.
+
+### Iteration 20 — M-003 — 2026-11-22
+
+- Attempt: 2/2 (slice 2; R-058) · Outcome: slice 2 landed
+- Review: attempt 1 `REQUEST CHANGES` (a test-name finding after a raw U+2028 or U+2029 reported one line early, R-225, R-230; patterns, overlaps, output and exits sound) · attempt 2 `APPROVE` · question sent to owner: Q-M-003-46 (non-blocking)
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check (80 files parsed, signal 4: 0 findings, exit 0) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12, E1–E7, the analysis, the scanner and `--only`
+- Owner touches: 45 in M-003 of 60 (R-195 to R-239)
+- Landed: 78c5c79 (the tester's acceptance material), 3545cad (signal 4, squashing f63f43c, 173ee73, 9bafe64) · Phase estimate: 2 Matters / 1 week
+- Notes: the clerk held the landing for Q-M-003-43 to -46, since the slice's size exceeded R-234 and the summary count was undecided. Before writing the plants, the tester checked an independent implementation of the ruled patterns against the expected list (57 lines, no difference).
