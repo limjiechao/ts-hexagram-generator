@@ -28,6 +28,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b1-dynamic-node-fs.ts': 'B1',
   'plants/b1-static-node-fs.ts': 'B1',
   'plants/b1-type-only-node-fs.ts': 'B1',
+  'plants/b1-type-position-node-fs.ts': 'B1',
   'plants/b1-unprefixed-fs.ts': 'B1',
   'plants/b2-clear-immediate.ts': 'B2',
   'plants/b2-clear-interval.ts': 'B2',
