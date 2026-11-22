@@ -2844,3 +2844,52 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   covers the new fixtures, `lint:check` passes on the new scripts.
 - Ruling: "Q-M-003-15 to -25: A"
 - Folded into: not yet
+
+### R-219: Comment text keeps JSDoc's stars and spacing
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-26, from slice 1's fixtures)
+- Question: R-211 strips delimiters; a JSDoc comment is then recorded as
+  `*\n * Adds two numbers.\n `. (a) keep that literal reading, since signals
+  match whole tokens; (b) trim each comment and strip JSDoc's leading `*`.
+- Ruling: "Q-26 to Q-30: A"
+- Folded into: not yet
+
+### R-220: drift:check prints its summary only on a completed run
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-27, from slice 1's implementer and review)
+- Question: R-209 says the summary prints every run. (a) on a tool error
+  (exit 2) only the error prints, a partial count being misleading; R-209's
+  "every run" means every completed run; (b) print the partial count too.
+- Ruling: "Q-26 to Q-30: A"
+- Folded into: not yet
+
+### R-221: An unknown drift:check argument is a tool error
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-28, from slice 1's implementer)
+- Question: (a) any argument other than `--root <dir>` exits 2 with a usage
+  message; (b) ignore it.
+- Ruling: "Q-26 to Q-30: A"
+- Folded into: not yet
+
+### R-222: Plain JavaScript files may contain JSX
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-29, from slice 1's review)
+- Question: The contract said `.tsx` and `.jsx` admit JSX; the scanner also
+  parses `.js`, `.mjs` and `.cjs` with JSX. (a) amend the contract to match,
+  as TypeScript reads those files; (b) parse them without JSX.
+- Ruling: "Q-26 to Q-30: A"
+- Folded into: not yet
+
+### R-223: Comment text is normalised to LF
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-30, from slice 1's review)
+- Question: Under CRLF a block comment keeps `\r\n` in its text, while
+  templates and line comments do not. (a) normalise comment text to LF, so
+  signal 4 sees one form; (b) keep it raw, and every signal tolerates `\r`.
+- Ruling: "Q-26 to Q-30: A"
+- Folded into: not yet
