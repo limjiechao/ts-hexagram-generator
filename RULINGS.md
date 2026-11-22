@@ -2561,3 +2561,142 @@ R-175 and R-176 were answered together: "M002-29 A, M002-30 A".
   one-line comment; (c) land as is and track it as a follow-up.
 - Ruling: "Q-M-002-47: A"
 - Folded into: not yet
+
+### R-195: Signal 1's exceptions are a ratified file keyed by file and name
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-1, proposal `docs/reviews/2026-11-22-m-003-drift-signals.md`)
+- Question: Names that do not exist yet or no longer (`docs/manual/cli.md`,
+  `docs/manual/rest.md`, `cli/cli`, `castMethod`). (a) a ratified exception
+  file keyed by file plus name, with a reason each; an exception that no longer
+  matches is reported as D4, with its own plant; the seed entries are ratified
+  with the signal-1 slice; (b) keyed by name only.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-196: The owner marks the checkable _Avoid_ forms in CONTEXT.md
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-2)
+- Question: (a) the owner marks checkable forms in `CONTEXT.md` by backticking
+  them, a one-time Tier-A glossary edit; signal 2 reads only marked forms and
+  prints the unmarked count; (b) a parser that expands shared nouns and ignores
+  "(in English text)".
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-197: Signal 2 matches a token run inside one identifier or one string
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-3)
+- Question: (a) split at camelCase, `_` and digit boundaries, lowercased; a
+  match is a contiguous run inside one identifier or one string, JSX text
+  included; the last word may take a trailing `s`; (b) runs may cross
+  neighbouring identifiers.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-198: Signal 4's patterns, one code per ID by precedence
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-4)
+- Question: (a) by precedence: E1 question IDs, with the short forms `Q-<n>`,
+  `M002-<n>`, `PH1-<n>` and bare `Q<n>`; E2 Matter IDs; E3 seam IDs; E4
+  B-numbers; E5 `slice|wave <n>`; E6 ephemeral paths including
+  `docs/handoffs/`, and the words MATTERS, MINUTES, RULINGS; `round <n>` is not
+  flagged, Round being a glossary term; (b) mutually exclusive patterns.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-199: Ruling IDs in overhaul source are flagged, as ADR-0042 says
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-5)
+- Question: ADR-0042 (line 113 and three other places) says source comments cite
+  ADRs and glossary terms only; R-013 has code cite a Ruling until an ADR folds
+  it in. (a) follow ADR-0042: flag every `R-nnn` in `overhaul/` comments and
+  test names as E7, with tooling not scanned; (b) allow a Ruling whose
+  `Folded into:` starts with `not yet`, amending ADR-0042; (c) a structured
+  field in `RULINGS.md`; (d) allow everywhere.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-200: Which files signals 2 and 4 scan
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-7)
+- Question: (a) signal 2: identifiers in src and tests, strings in src only,
+  not test names; signal 4: all of `overhaul/**`; neither scans `scripts/`, the
+  ESLint config or legacy code; (b) signal 2 also scans test names.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-201: Paths under former top-level folders are listed and counted
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-9)
+- Question: (a) a ratified list of former roots (`packages/` now; `cli/` and
+  `domain/` later); paths under them are not checked but are counted per root
+  in the summary; (b) flag them like any missing path.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-202: Signal 1's symbol check covers camelCase and PascalCase
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-10)
+- Question: (a) camelCase and PascalCase symbols; a name is present if it
+  appears in any tracked file, legacy included while legacy lives; (b)
+  camelCase only.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-203: Signal 2 checks only names declared in overhaul
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-11)
+- Question: (a) G1 checks only names declared in `overhaul/`; Node and
+  third-party names are exempt, and a re-export is checked where it is
+  declared; (b) check every identifier.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-204: Report codes D1 to D4, G1 to G2, E1 to E7 key the prover
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-12, which absorbed the proposal's Q6)
+- Question: (a) every report starts with its code, one code per finding by
+  R-198's precedence, and the prover's expected lists are keyed by code, as
+  R-158 does for B-numbers; (b) free-text messages.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-205: What counts as a test name
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-13)
+- Question: (a) `describe`, `it` and `test`, with `.skip`, `.only`, `.todo`,
+  `.concurrent`, `.each(...)(name)` and tagged-template `each`; in a template
+  name only the static text is read; (b) plain `describe`, `it`, `test` only.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-206: drift:check runs at every landing, through check:all
+
+- Date: 2026-11-22
+- Raised in: M-003 (question Q-M-003-14)
+- Question: ADR-0042's table runs signals 1, 2 and 4 at every landing. (a)
+  M-003's last slice makes `drift:check` a root turbo task that `check:all`
+  runs, this Ruling being the request Tier C needs; (b) leave it optional.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
+
+### R-207: M-003's digest: the documents signal 1 reads
+
+- Date: 2026-11-22
+- Raised in: M-003 (the proposal's Q8, uncontested by the challenger)
+- Question: Signal 1 reads `AGENTS.md`, every ADR whose status starts with
+  `Accepted` (including "Accepted (amended by 0022)"), and `docs/design/*.md`,
+  skipping Considered options.
+- Ruling: "Q-M-003-1 to -14: A; digest ratified"
+- Folded into: not yet
