@@ -94,12 +94,12 @@ Transformation; `gua` (in English text).
 
 **Standing Hexagram** (本卦):
 The Hexagram a Transformation starts from.
-_Avoid_: primary, original, `present hexagram`.
+_Avoid_: `primary hexagram`, `original hexagram`, `present hexagram`.
 
 **Emerging Hexagram** (之卦):
 The Hexagram a Transformation arrives at; equal to the Standing Hexagram when
 no line moves.
-_Avoid_: changed, relating, `future hexagram`.
+_Avoid_: `changed hexagram`, `relating hexagram`, `future hexagram`.
 
 **Figure**:
 The six yin/yang polarities of a Hexagram, read bottom-up from the first Line
@@ -344,8 +344,8 @@ non-blank, kept exactly as the user wrote it (it may span several lines). It
 belongs to the Consultation, not the Oracle: Casting and Resolution never see
 it. Distinct from the history list's **filter** (a transient UI search string
 that narrows the list and carries no divination meaning).
-_Avoid_: `question` (in code/UI labels — the canonical term is "query"), `search
-term`, filter.
+_Avoid_: `question` (in code/UI labels — the canonical term is "query"),
+`search term`, filter.
 
 **Divined At**:
 The moment a Consultation's divination took place — for a Recorded

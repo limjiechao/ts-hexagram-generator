@@ -1,9 +1,10 @@
-# M-003: marking the checkable _Avoid_ forms (draft for ratification)
+# M-003: marking the checkable _Avoid_ forms (ratified, R-242)
 
-A drafter's proposal under R-241 for R-196's one-time glossary edit. The
-`CONTEXT.md` change on this branch only adds backticks inside `_Avoid_:` lists.
-With the backticks removed, the file is byte-identical to its parent. No
-`_Avoid_` line had backticks before; the three code spans already in the file
+A drafter's proposal under R-241 for R-196's one-time glossary edit, ratified
+by the owner as R-242. The draft only added backticks inside `_Avoid_:` lists;
+with them removed, it was byte-identical to its parent. The ratification then
+spelled out the shared nouns on lines 97 and 102 and rewrapped lines 347–348.
+No `_Avoid_` line had backticks before; the three code spans already in the file
 (lines 242, 243, 387) are untouched. `pnpm format:check` passes; oxfmt changes
 nothing.
 
@@ -32,8 +33,8 @@ language**. In practice:
 
 ## Per-line table
 
-Key: **S** = a shared noun is written once, so the owner must spell out the
-full form before it can be marked.
+Key: **S** = a shared noun was written once; the owner spelled out each full
+form on ratification (R-242).
 
 | Line    | Marked                                                                   | Unmarked, with reason                                                                                                                                                    |
 | ------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
@@ -45,8 +46,8 @@ full form before it can be marked.
 | 78      | —                                                                        | suspended: qualified "(for the set-aside total)"; the bare word has other uses. The owner could add `suspended total`                                                    |
 | 86–87   | `permutation`                                                            | casting, figure, hexagram: glossary terms; reading: part of Reading Preference                                                                                           |
 | 92–93   | `gua`                                                                    | `using "hexagram" for the six Line Values …`: prose, not a term                                                                                                          |
-| 97      | `present hexagram`                                                       | **S** primary, original → `primary hexagram`, `original hexagram`                                                                                                        |
-| 102     | `future hexagram`                                                        | **S** changed, relating → `changed hexagram`, `relating hexagram`                                                                                                        |
+| 97      | **S** `primary hexagram`, `original hexagram`, `present hexagram`        | —                                                                                                                                                                        |
+| 102     | **S** `changed hexagram`, `relating hexagram`, `future hexagram`         | —                                                                                                                                                                        |
 | 108     | —                                                                        | key, code: common words, qualified "(for the identity)"                                                                                                                  |
 | 113     | —                                                                        | bit: common word, qualified; 0/1: not letters, so it yields no tokens                                                                                                    |
 | 119     | `binary order`                                                           | Fuxi order: qualified "(for the number)", so it is legitimate for the order itself                                                                                       |
@@ -78,7 +79,7 @@ full form before it can be marked.
 | 322     | —                                                                        | entry, reading, session, study: common words                                                                                                                             |
 | 329     | —                                                                        | file name, path, key, timestamp: qualified "(as identity)", and a store adapter legitimately has file names and paths                                                    |
 | 339     | `manual consultation`, `imported consultation`, `playground save`        | —                                                                                                                                                                        |
-| 347–348 | `question`, `search term` (the span crosses the line break; see below)   | filter: the Query entry itself names the history list's filter as a separate, legitimate concept (1 hit today)                                                           |
+| 347–348 | `question`, `search term` (rewrapped onto line 348)                      | filter: the Query entry itself names the history list's filter as a separate, legitimate concept (1 hit today)                                                           |
 | 354     | `saved at`, `created at`                                                 | timestamp: common word                                                                                                                                                   |
 | 363–364 | `input mode`, `flow kind`                                                | provenance: line 263 allows it in combination, so marking it here would contradict that; random, manual, interactive: qualified common words (`RandomSource` hits)      |
 | 370     | —                                                                        | history: qualified, and the history list is legitimate; database: a store adapter may legitimately use it                                                                |
@@ -93,39 +94,32 @@ full form before it can be marked.
 ## Counts
 
 - 52 `_Avoid_` lines; 129 forms in all.
-- **53 forms marked in place** (51 distinct: `gua` and `changing line` each
-  appear twice).
-- **76 forms left unmarked.** Of these, 4 are shared-noun forms the owner must
-  spell out to mark (`primary hexagram`, `original hexagram`, `changed
-  hexagram`, `relating hexagram`), and 2 are prose.
-- The count agrees with the challenger's parse of 129 forms (41 checkable, 88
+- **57 forms marked** (55 distinct: `gua` and `changing line` each appear
+  twice), including the 4 shared-noun forms spelled out on ratification.
+- **72 forms left unmarked**, 2 of them prose.
+- The total agrees with the challenger's parse of 129 forms (41 checkable, 88
   skipped). The difference is in judgment, not in parsing.
 
-## For the owner to decide
+## Points the owner decided (R-242)
 
-1. **Spell out the shared nouns on lines 97 and 102.** Line 97 would read
-   "_Avoid_: `primary hexagram`, `original hexagram`, `present hexagram`.",
-   and line 102 likewise with changed, relating and future. Until then,
-   `relatingHexagram` passes signal 2.
-2. **`search term` spans lines 347–348.** CommonMark allows it, but the
-   R-196 reader must fold the newline inside a code span to a space. The
-   alternative is to reflow those two lines. Line 347 is now 82 characters
-   long; oxfmt accepts it.
+1. **Shared nouns on lines 97 and 102:** spelled out in full and marked, so
+   signal 2 now flags `relatingHexagram`.
+2. **`search term`:** lines 347–348 rewrapped so the span sits on one line;
+   the reader need not handle a line break inside a code span.
 3. **`provenance` (lines 263 and 363) conflicts.** Line 263 forbids it only
    "(alone)"; line 363 forbids it outright. Marking it on 363 would flag every
-   use, so I left both unmarked.
+   use, so both stay unmarked.
 4. **Borderline single words**, marked: `question`, `undo`, `trash`,
    `inverted`. Unmarked: `interpretation`, `parting`, `database`,
-   `tombstone`. Each is one backtick edit to flip.
+   `tombstone`. Kept as drafted.
 
 ## Check against today's tree
 
 I ran a throwaway script, since deleted, over each `overhaul/<pkg>` with
 `scanTree` from `scripts/drift/scanner.ts`. It took declared identifiers from
 `src/` and `tests/` and strings from `src/` (R-200, R-203), and used the R-197
-matcher described above. I ran it against all 53 marked forms plus the 4
-spelled-out forms. A positive control (`not implemented`) hit both an
-identifier and a string, so the script does read both kinds.
+matcher described above. I ran it against all 57 marked forms. A positive
+control (`not implemented`) hit both an identifier and a string, so the script does read both kinds.
 
 **Marked forms: 0 hits.** There are no real leaks and no false positives today.
 
