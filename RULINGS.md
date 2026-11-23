@@ -3350,3 +3350,84 @@ roots: packages/ 7)` prints after "files parsed" and before signal 2's, N
   (b) case-exact globbing, needing a matcher of our own or a new dependency.
 - Ruling: "Q-M-004-7 to -10: A"
 - Folded into: not yet
+
+### R-261: What counts as a symbol in a code span
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-11, slice 2's spec audit)
+- Question: (a) a word holding `/` is skipped (D1 and D2 check paths); other
+  words split at every character outside `[A-Za-z0-9_$]`; a token is a
+  candidate if camelCase or PascalCase with a lower-to-upper hump; `foo()`
+  checks `foo`, `Foo.bar` checks each token; a single lowercase or
+  capitalised word, an all-caps word and snake_case are not candidates; the
+  token is the exception key and the quoted name; (b) split acronyms as R-244,
+  so `ETag` counts; (c) also single capitalised words and acronyms.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet
+
+### R-262: A symbol is present if it appears as a whole word in a code or JSON file
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-12, reading R-202's "any tracked file")
+- Question: (a) a filesystem walk under `--root` of R-210's extensions plus
+  `.json`, skipping `node_modules/`, `dist/`, dot-folders and
+  `consultations/` by name; present means a whole word, case-exact, anywhere
+  in such a file; markdown never counts; legacy counts while it lives;
+  (b) `git ls-files`; (c) declared names only.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet
+
+### R-263: The prover runs D3 on a copy of the fixture without expected.ts
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-13)
+- Question: `expected.ts` quotes every planted name and would make each
+  present. (a) the prover runs signal 1 on a temporary copy of the fixture
+  without `expected.ts`, `drift:check` staying unaware of fixtures; (b)
+  `drift:check` skips a root-level `expected.ts`; (c) a separate fixture root.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet
+
+### R-264: D3's wording
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-14)
+- Question: (a) `<file>:<line> D3: symbol "castMethod" is not in the code; docs
+name only what exists (ADR-0042, R-195)`, several names `symbols "a", "b" are
+not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
+  checked"; (c) name the corpus in the message.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet
+
+### R-265: The symbol seed, and the contract states former roots ignore case
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-15; seeds R-195)
+- Question: (a) two more exception rows:
+  `docs/adr/0027-cast-consultation-records-division-method.md` | `castMethod` |
+  the field ADR-0011 rejected, named as history; and
+  `docs/adr/0001-shared-screen-shell.md` | `ReadoutShell` | a name the ADR
+  rejects in favour of `ScreenShell`; and the contract's "an entry of
+  `root`, ignoring case (R-257), or a former root" becomes "… or a former
+  root, each ignoring case (R-257)", with a plant; (b) reword the reasons.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet
+
+### R-266: M-004 slice 2's acceptance list, at about 550 to 650 lines
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-16)
+- Question: (a) accept about 550 to 650 lines in two commits, and the list: D3
+  plants appended to the fixture's `AGENTS.md` (missing camelCase and
+  PascalCase; two on one line as one report; `missingCall()` and
+  `PresentRecord.missingField`; wrong case; a whole-word near miss; a name
+  only in docs; a span across lines; a camelCase path giving D1 not D3), one D3
+  each in a design doc and the amended ADR, a stale symbol exception (D4);
+  twins (present names in each form; names only in JSON, legacy-style code or a
+  comment; non-symbols `keep`, `Casting`, `ID`, `ETag`, snake_case; the
+  wrong-case former root; an excepted name; a template word; fenced, linked and
+  bare names; Considered options and a Superseded ADR; `CONTEXT.md`); D3 in
+  `--only`, `Z1` listing 25 codes; the real tree exits 0 with 5 exceptions;
+  (b) split.
+- Ruling: "Q-M-004-11 to -16: A"
+- Folded into: not yet

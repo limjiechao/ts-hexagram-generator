@@ -37,7 +37,7 @@ from its actual figures when it lands (R-006).
 | Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                            | Owner touches (cap / used)                         | Brief cap (lines) | Entry gate                     | Status                      |
 | ----- | --------------------------------------------------------- | ------------------------ | ----------------------------------------------------------- | -------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                                  | uncapped / 125                                     | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 1 week (M-002, M-003 landed; M-004 in progress) | 60 per Matter / 49 (M-002), 55 (M-003), 10 (M-004) | 1,500             | –                              | in progress                 |
+| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 1 week (M-002, M-003 landed; M-004 in progress) | 60 per Matter / 49 (M-002), 55 (M-003), 16 (M-004) | 1,500             | –                              | in progress                 |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                                           | 60 per Matter / 0                                  | 1,500             | –                              | not yet broken into Matters |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                                           | 60 per Matter / 0                                  | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
@@ -157,7 +157,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-004: Build drift signal 1 and run drift:check at every landing
 
-- Status: awaiting-ruling
+- Status: in-progress
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147; R-240
 - Scope: Doc truth (signal 1): paths and symbols named in `AGENTS.md`, Accepted ADRs and `docs/design/*.md` must exist
@@ -173,8 +173,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   Q-M-004-7 to -10 ruled as R-257 to R-260; slice 1 landed 2026-11-23. Stated limits of signal 1: links, bare text
   and fences are not read (R-251); a path in parentheses or quotes inside a span is skipped; malformed markdown can
   swallow a span; macOS globbing ignores case (R-260). In flight: slice 2 (signal 1 symbols, D3, R-202) on branch
-  m/M-004-s2, worktree ../hexagram-wt-M-004-s2, awaits Q-M-004-11 to -16 (5 grouped spec holes with the
-  symbol seed, and the acceptance list). Carried as a line-edit: the contract
-  should say the former-root match ignores case too, with a plant for it.
+  m/M-004-s2, worktree ../hexagram-wt-M-004-s2. Q-M-004-11 to -16 ruled as R-261 to R-266 (the symbol seed
+  and the contract line-edit in R-265). The tester writes the fixtures (red) next.
 - Commits: slice 1: 50aeb4e, 865d55b
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.
