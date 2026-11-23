@@ -3202,3 +3202,13 @@ identifiers and UI strings use glossary terms (ADR-0042, R-197)`; the summary
 - Ruling: "Q-M-003-5: A" (the clerk reads this as Q-M-003-55, the only open
   question; Q-M-003-5 was ruled as R-199)
 - Folded into: not yet
+
+### R-250: Phase 2's budget is 3 Matters in 1 week
+
+- Date: 2026-11-23
+- Raised in: Phase 2 (question PH2-1, after R-240 split signal 1 into M-004)
+- Question: Phase 2 was budgeted at 2 Matters in 1 week and now holds 3 (M-002,
+  M-003, M-004). (a) raise the budget to 3 Matters in 1 week and start M-004;
+  (b) keep 2 and record the overrun; (c) defer M-004 to a later phase.
+- Ruling: "PH2-1: A"
+- Folded into: not yet
