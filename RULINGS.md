@@ -3305,3 +3305,48 @@ roots: packages/ 7)` prints after "files parsed" and before signal 2's, N
   with exact lines and 0 on the real tree; D codes in `--only`; (b) split.
 - Ruling: "Q-M-004-1 to -6: A"
 - Folded into: not yet
+
+### R-257: The first-segment root test ignores case; existence stays case-exact
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-7, from slice 1's fixtures)
+- Question: Under R-251 and R-252 a wrong-case root such as `Docs/x.md` is no
+  candidate, so the bug R-252 targets passes. (a) match the first segment to the
+  root entries ignoring case, so the word is a candidate, and keep existence
+  case-exact, so it is D1; one plant added; (b) a stated limit.
+- Ruling: "Q-M-004-7 to -10: A"
+- Folded into: not yet
+
+### R-258: Signal 1's wording and counting details
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-8)
+- Question: (a) accept: "X exceptions" counts the entries in the file;
+  `former roots: none` when the list is empty, and a listed root met nowhere
+  prints with 0; a multi-name D1 reads `paths "a", "b" do not exist; …`, a
+  multi-glob D2 `globs "a", "b": each matches nothing; …`, D4 `exception for
+"<name>" in <file> no longer matches a miss`, each citing ADR-0042 and R-195;
+  each exception cell is one code span, "(R-008)" part of the seed's reason; a
+  bare root word such as `packages/` is no candidate; (b) change some.
+- Ruling: "Q-M-004-7 to -10: A"
+- Folded into: not yet
+
+### R-259: M-004 slice 1 lands at about 1,460 lines in two commits
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-9)
+- Question: R-256 accepted about 900. (a) accept about 1,460 (about 1,060 of
+  acceptance material, 400 of code) as two commits; (b) trim the prover first.
+- Ruling: "Q-M-004-7 to -10: A"
+- Folded into: not yet
+
+### R-260: fs.glob's case-insensitivity on macOS is a stated limit
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-10, from slice 1's review)
+- Question: On macOS `fs.glob` ignores case, so a wrong-case wildcard part
+  (`docs/N*`) passes there; a wrong-case literal part is still caught and
+  Linux CI catches all of it. (a) a stated limit, written into the contract;
+  (b) case-exact globbing, needing a matcher of our own or a new dependency.
+- Ruling: "Q-M-004-7 to -10: A"
+- Folded into: not yet
