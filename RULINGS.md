@@ -3111,3 +3111,83 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   "(in English text)" outside the backticks (A) or left unmarked (B).
 - Ruling: "Ratify the marking: 1A, 2A, 3A, 4A, 5A"
 - Folded into: CONTEXT.md, when the marking lands
+
+### R-243: How signal 2 reads CONTEXT.md and counts unmarked forms
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-49, slice 3's spec audit)
+- Question: (a) an `_Avoid_:` list is that line plus the non-blank lines that
+  follow; only code spans inside lists are read; duplicates count once; a span
+  broken across lines, an empty or tokenless span, or a missing `CONTEXT.md`
+  is a tool error (exit 2) naming the line; an unmarked form is a comma item
+  outside parentheses with no code span (70 today); (b) read a span across a
+  line break; (c) drop the unmarked count, amending R-196.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
+
+### R-244: Acronym and digit boundaries in identifiers
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-50)
+- Question: (a) an acronym splits before its last capital when a lowercase
+  letter follows (`isDRMGate` gives is, drm, gate); a digit run stays a token
+  (`changing2Line` does not match); only a final `s` matches a plural, other
+  plurals a stated limit; (b) split only at lower-to-upper, digits dropped.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
+
+### R-245: Declared means any name the compiler binds in an overhaul file
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-51, ruling R-213's deferral)
+- Question: (a) any declaration the compiler binds: interface and type-literal
+  members, enum members, object-literal keys and methods, type parameters,
+  function and class expression names, `#private` names read without `#`,
+  and the new name in an `as` rename; not a plain import or export of an
+  existing name (R-203), nor a shorthand property; (b) add only type and enum
+  members; (c) keep R-213's clear cases.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
+
+### R-246: What G2 reads
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-52)
+- Question: (a) string-literal types count as G2 strings, in src only; R-224's
+  exclusion covers only a template that is the first argument of `import()`
+  or `require()`, concatenation a stated limit; G2 skips the string copy of a
+  test name (R-200, R-212); (b) literal types under G1; (c) leave them out.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
+
+### R-247: Signal 2's report line, summary and fixture interplay
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-53)
+- Question: (a) a report names the form and its `CONTEXT.md` lines, as
+  `<file>:<line> G1: Avoid form "changing line" (CONTEXT.md:180, 186);
+identifiers and UI strings use glossary terms (ADR-0042, R-197)`; the summary
+  `signal 2: N findings in M files (F forms checked, U unmarked)` prints before
+  signal 4's; signal 4's fixture gains an empty `CONTEXT.md`; signal 2's
+  fixture holds one E line to prove the merged order; (b) name the preferred
+  term; (c) no E codes in signal 2's fixture.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
+
+### R-248: Slice 3's acceptance list, at about 800 lines in two commits
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-54)
+- Question: (a) accept about 800 lines as two commits, and the list: an invented
+  `CONTEXT.md` (11 marked forms, 10 distinct, 5 unmarked; a wrapped list, a
+  qualifier outside backticks, a duplicate, a span outside any list); about 17
+  G1 and G2 plants (each declaration kind, `_` split, plurals, two forms on one
+  line as one report, string, template, JSX attribute and text, a test-file
+  identifier); twins (test names, test strings, comments, imports and
+  references, `guard`, a cross-identifier run, `lineup`, `trashes`, split
+  template fragments, static and computed specifiers, unmarked forms, a config
+  file); in-memory parser cases including CRLF; `drift:check` exit 1 on the
+  fixture, 0 on the real tree, 2 with no `CONTEXT.md`; G1 and G2 in `--only`,
+  `Z1` listing 21 codes; (b) split into two slices.
+- Ruling: "Q-M-003-49 to -54: A"
+- Folded into: not yet
