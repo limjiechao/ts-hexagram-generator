@@ -157,7 +157,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-004: Build drift signal 1 and run drift:check at every landing
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147; R-240
 - Scope: Doc truth (signal 1): paths and symbols named in `AGENTS.md`, Accepted ADRs and `docs/design/*.md` must exist
@@ -174,6 +174,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   and fences are not read (R-251); a path in parentheses or quotes inside a span is skipped; malformed markdown can
   swallow a span; macOS globbing ignores case (R-260). In flight: slice 2 (signal 1 symbols, D3, R-202) on branch
   m/M-004-s2, worktree ../hexagram-wt-M-004-s2. Q-M-004-11 to -16 ruled as R-261 to R-266 (the symbol seed
-  and the contract line-edit in R-265). The tester writes the fixtures (red) next.
+  and the contract line-edit in R-265). Fixtures cd0985f, 12873af; code a4b4864. Awaits Q-M-004-17: the prover's seed
+  table spells `castMethod` and `ReadoutShell` as string literals, which R-262 counts as present, so the real tree
+  reports both seed rows as stale (D4) and exits 1.
 - Commits: slice 1: 50aeb4e, 865d55b
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.
