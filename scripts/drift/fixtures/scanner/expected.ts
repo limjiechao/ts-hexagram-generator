@@ -190,11 +190,11 @@ export const expected: Readonly<Record<string, readonly ScanRecord[]>> = {
   ],
   // Calls, property access and plain imports declare nothing.
   'identifier-twins.ts': [],
-  // R-245's further kinds: an `as` rename's new name, on import and export;
-  // interface and type-literal members; enum members; object-literal keys
-  // and methods; type parameters; function and class expression names; and
-  // `#private` names, read without `#`. A private name's use and a shorthand
-  // property declare nothing.
+  // R-245's further kinds: an `as` rename's new name, on import and export,
+  // named or namespace; interface and type-literal members; enum members;
+  // object-literal keys and methods; type parameters; function and class
+  // expression names; and `#private` names, read without `#`. A private
+  // name's use and a shorthand property declare nothing.
   'identifier-declared-kinds.ts': [
     identifier(1, 'readText'),
     identifier(2, 'loadText'),
@@ -220,6 +220,8 @@ export const expected: Readonly<Record<string, readonly ScanRecord[]>> = {
     identifier(10, 'secret'),
     identifier(10, 'hide'),
     identifier(11, 'short'),
+    identifier(12, 'files'),
+    identifier(13, 'paths'),
   ],
 
   // Files: also scanned with CRLF line endings, built in memory, since

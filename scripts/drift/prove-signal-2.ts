@@ -238,10 +238,13 @@ type GlossaryCase = readonly [
   wanted: { forms: readonly AvoidForm[]; unmarked: number } | number,
 ]
 
+function heap(lines: number[]): AvoidForm {
+  return { form: 'heap', lines }
+}
+
 // `readGlossary`'s cases (R-243). A number is the line an error must name.
 async function glossaryCases(): Promise<readonly GlossaryCase[]> {
   const text = await readFile(path.join(fixtureRoot, 'CONTEXT.md'), 'utf8')
-  const heap = (lines: number[]): AvoidForm => ({ form: 'heap', lines })
   return [
     ['the fixture', text, glossary],
     ['the fixture (CRLF)', text.replaceAll('\n', '\r\n'), glossary],

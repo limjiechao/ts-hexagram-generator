@@ -100,14 +100,18 @@ function testNameParts(call: ts.CallExpression): readonly ts.Node[] {
   return []
 }
 
-// A string or no-substitution template naming a module to load; a call such
-// as `vi.mock` or `require.resolve` loads nothing and is not one (R-211).
+// A string or template naming a module to load; a call such as `vi.mock` or
+// `require.resolve` loads nothing and is not one (R-211). A template with
+// substitutions counts only as the first argument of `import()` or
+// `require()` (R-224, R-246).
 function isModuleSpecifier(node: ts.Node): boolean {
   const { parent } = node
   if (ts.isImportDeclaration(parent) || ts.isExportDeclaration(parent))
     return parent.moduleSpecifier === node
   if (ts.isExternalModuleReference(parent) || ts.isModuleDeclaration(parent))
     return true
+  // `typeof import('./x.js')` names a module through a literal type.
+  if (ts.isLiteralTypeNode(parent)) return ts.isImportTypeNode(parent.parent)
   return (
     ts.isCallExpression(parent) &&
     parent.arguments[0] === node &&
@@ -117,44 +121,51 @@ function isModuleSpecifier(node: ts.Node): boolean {
   )
 }
 
-// String-literal types are left out until signal 2 rules on them (R-211).
-function isInLiteralType(node: ts.Node): boolean {
-  const { parent } = node
-  return (
-    ts.isLiteralTypeNode(parent) ||
-    ts.isTemplateLiteralTypeNode(parent) ||
-    ts.isTemplateLiteralTypeSpan(parent)
-  )
+// The template expression a fragment belongs to, if any.
+function templateOf(node: ts.Node): ts.Node | undefined {
+  if (ts.isTemplateHead(node)) return node.parent
+  if (ts.isTemplateMiddle(node) || ts.isTemplateTail(node))
+    return node.parent.parent
+  return undefined
 }
 
-// R-213's clear cases only; the full meaning of "declared" is signal 2's.
-function declaredName(node: ts.Node): ts.Identifier | undefined {
-  if (
+// Any name the compiler binds in the file (R-203, R-245), `import * as` and
+// `export * as` included, except a plain or default import, a plain export
+// of an existing name, and a shorthand property. A `#private` name is read
+// without its `#`.
+function declaredName(
+  node: ts.Node,
+): ts.Identifier | ts.PrivateIdentifier | undefined {
+  const isSpecifier = ts.isImportSpecifier(node) || ts.isExportSpecifier(node)
+  if (isSpecifier && node.propertyName === undefined) return undefined
+  const named =
+    isSpecifier ||
+    ts.isNamespaceImport(node) ||
+    ts.isNamespaceExport(node) ||
     ts.isVariableDeclaration(node) ||
     ts.isParameter(node) ||
-    ts.isBindingElement(node)
-  )
-    return ts.isIdentifier(node.name) && node.name.text !== 'this'
-      ? node.name
-      : undefined
-  if (
+    ts.isBindingElement(node) ||
     ts.isFunctionDeclaration(node) ||
+    ts.isFunctionExpression(node) ||
     ts.isClassDeclaration(node) ||
+    ts.isClassExpression(node) ||
     ts.isInterfaceDeclaration(node) ||
     ts.isTypeAliasDeclaration(node) ||
-    ts.isEnumDeclaration(node)
-  )
-    return node.name
-  if (
-    (ts.isPropertyDeclaration(node) ||
-      ts.isMethodDeclaration(node) ||
-      ts.isGetAccessorDeclaration(node) ||
-      ts.isSetAccessorDeclaration(node)) &&
-    ts.isClassLike(node.parent) &&
-    ts.isIdentifier(node.name)
-  )
-    return node.name
-  return undefined
+    ts.isEnumDeclaration(node) ||
+    ts.isEnumMember(node) ||
+    ts.isModuleDeclaration(node) ||
+    ts.isTypeParameterDeclaration(node) ||
+    ts.isPropertyDeclaration(node) ||
+    ts.isPropertySignature(node) ||
+    ts.isPropertyAssignment(node) ||
+    ts.isMethodDeclaration(node) ||
+    ts.isMethodSignature(node) ||
+    ts.isGetAccessorDeclaration(node) ||
+    ts.isSetAccessorDeclaration(node)
+  if (!named || node.name === undefined) return undefined
+  const { name } = node
+  if (ts.isPrivateIdentifier(name)) return name
+  return ts.isIdentifier(name) && name.text !== 'this' ? name : undefined
 }
 
 function childrenOf(node: ts.Node): ts.Node[] {
@@ -228,18 +239,18 @@ export function scanText(file: string, text: string): ScanResult {
     if (ts.isCallExpression(node))
       for (const part of testNameParts(node)) testNames.add(part)
     const name = declaredName(node)
-    if (name !== undefined) add('identifier', name.getStart(source), name.text)
+    if (name !== undefined)
+      add('identifier', name.getStart(source), name.text.replace(/^#/, ''))
 
-    if (ts.isStringLiteral(node)) {
-      if (!isModuleSpecifier(node) && !isInLiteralType(node))
-        addString(node, node.text)
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) {
+      if (!isModuleSpecifier(node)) addString(node, node.text)
     } else if (
-      ts.isNoSubstitutionTemplateLiteral(node) ||
       ts.isTemplateHead(node) ||
       ts.isTemplateMiddle(node) ||
       ts.isTemplateTail(node)
     ) {
-      if (!isModuleSpecifier(node) && !isInLiteralType(node))
+      const template = templateOf(node)
+      if (template === undefined || !isModuleSpecifier(template))
         addString(node, node.text)
     } else if (ts.isJsxText(node)) {
       const trimmed = node.text.trim()

@@ -9,3 +9,5 @@ const named = function inner() {}
 const Made = class Built {}
 class Ledger { #secret = 1; #hide() { return this.#secret } }
 const short = { point }
+import * as files from 'node:fs'
+export * as paths from 'node:path'
