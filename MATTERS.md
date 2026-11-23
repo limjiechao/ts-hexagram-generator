@@ -157,7 +157,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-004: Build drift signal 1 and run drift:check at every landing
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147; R-240
 - Scope: Doc truth (signal 1): paths and symbols named in `AGENTS.md`, Accepted ADRs and `docs/design/*.md` must exist
@@ -168,6 +168,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Free to choose: M-003's, as R-216 rules.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
 - Open questions: none yet. Phase 2's budget raised to 3 Matters (R-250). In flight (2026-11-23): slice 1 (signal 1
-  paths) on branch m/M-004-s1, worktree ../hexagram-wt-M-004-s1: the tester's spec audit and acceptance list first.
+  paths) on branch m/M-004-s1, worktree ../hexagram-wt-M-004-s1, awaits Q-M-004-1 to -6 (the tester's grouped spec
+  holes, the exception seed and former roots, and the acceptance list with size).
 - Commits: –
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.
