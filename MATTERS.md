@@ -37,7 +37,7 @@ from its actual figures when it lands (R-006).
 | Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)                                | Owner touches (cap / used)             | Brief cap (lines) | Entry gate                     | Status                      |
 | ----- | --------------------------------------------------------- | ------------------------ | ----------------------------------------------- | -------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)                      | uncapped / 125                         | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 3 Matters / 1 week (M-002 landed; M-003, M-004) | 60 per Matter / 49 (M-002), 47 (M-003) | 1,500             | –                              | in progress                 |
+| 2     | Drift-signal tooling (signals 1–4)                        | 2 Matters / 1 week       | 3 Matters / 1 week (M-002 landed; M-003, M-004) | 60 per Matter / 49 (M-002), 48 (M-003) | 1,500             | –                              | in progress                 |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                                               | 60 per Matter / 0                      | 1,500             | –                              | not yet broken into Matters |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                                               | not set (R-138 is per Matter) / 0      | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                                               | 60 per Matter / 0                      | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
@@ -141,15 +141,15 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   and matched, whether Ruling IDs count as ephemeral.
 - Free to choose: the proposal's §3, narrowed as R-216 rules.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
-- Open questions: none. Slices 1 and 2 landed 2026-11-22. Q-M-003-1 to -48 ruled as R-195 to R-241 (Q6 folded into
+- Open questions: none. Slices 1 and 2 landed 2026-11-22. Q-M-003-1 to -48 ruled as R-195 to R-241, and the marking as R-242 (Q6 folded into
   Q12; the proposal's digest as R-207). Stated limits of signal 4: escapes that cook to a line terminator in a test
   name (`\n`, U+2028, U+2029) and line continuations move a finding's line (R-230); an ID glued to an E6 path by `,`
   or `;` is not reported (R-239). Proposal: `docs/reviews/2026-11-22-m-003-drift-signals.md`.
-  Next: slice 3 (signal 2). First a drafter marks the checkable _Avoid_ forms in `CONTEXT.md` (R-196, R-241) on
-  branch m/M-003-glossary, for the owner to line-edit and ratify.
+  The owner ratified the _Avoid_ marking in `CONTEXT.md` (R-242): 57 forms marked, 0 hits in today's tree.
+  In flight: slice 3 (signal 2) on branch m/M-003-s3, worktree ../hexagram-wt-M-003-s3: the tester's spec audit first.
 - Commits: slice 1: 4591c81, 49f55a0; slice 2: 78c5c79, 3545cad
 - Notes: Slices (proposal §4): scanner and prover, signal 4, signal 2 here; signal 1's two slices and R-206's step in
-  M-004. Owner touches: 47 of 60 (R-195 to R-241).
+  M-004. Owner touches: 48 of 60 (R-195 to R-242).
 
 ### M-004: Build drift signal 1 and run drift:check at every landing
 
