@@ -131,7 +131,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-003: Build drift signals 2 and 4
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147; narrowed by R-240
 - Scope: The shared scanner and `pnpm drift:check`, glossary conformance (signal 2) and ephemeral-ID leakage
@@ -146,7 +146,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   name (`\n`, U+2028, U+2029) and line continuations move a finding's line (R-230); an ID glued to an E6 path by `,`
   or `;` is not reported (R-239). Proposal: `docs/reviews/2026-11-22-m-003-drift-signals.md`.
   The owner ratified the _Avoid_ marking in `CONTEXT.md` (R-242): 57 forms marked, 0 hits in today's tree.
-  In flight: slice 3 (signal 2) on branch m/M-003-s3, worktree ../hexagram-wt-M-003-s3: the tester's spec audit first.
+  Slice 3 (signal 2) on branch m/M-003-s3, worktree ../hexagram-wt-M-003-s3, awaits Q-M-003-49 to -54 (the tester's
+  5 grouped spec holes, and its acceptance list with size).
 - Commits: slice 1: 4591c81, 49f55a0; slice 2: 78c5c79, 3545cad
 - Notes: Slices (proposal §4): scanner and prover, signal 4, signal 2 here; signal 1's two slices and R-206's step in
   M-004. Owner touches: 48 of 60 (R-195 to R-242).
