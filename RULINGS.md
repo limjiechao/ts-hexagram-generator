@@ -3212,3 +3212,96 @@ identifiers and UI strings use glossary terms (ADR-0042, R-197)`; the summary
   (b) keep 2 and record the overrun; (c) defer M-004 to a later phase.
 - Ruling: "PH2-1: A"
 - Folded into: not yet
+
+### R-251: What signal 1 reads as a path in markdown
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-1, slice 1's spec audit)
+- Question: (a) code spans only (links, bare text and fenced blocks not read;
+  links a stated limit); a span may cross a line break within a paragraph and is
+  reported at its start line; a span word is a candidate if it holds `/` and its
+  first segment is a current or former root entry; words starting `./`, `../`
+  or `/`, and words with `<…>`, are skipped; a trailing `:N`, `:N-M`,
+  `#…` or `/` is stripped first; (b) read spans per line, as R-243; (c) also
+  read link targets.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
+
+### R-252: Existence is case-exact; a glob matches a file or a folder
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-2)
+- Question: (a) existence is read under `--root`, each segment matched by exact
+  case against the directory listing; glob characters are `* ? [ {`, braces
+  belonging to the glob; a glob passes if it matches at least one file or
+  folder, through Node's built-in `fs.glob`; (b) `git ls-files`; (c) plain
+  `existsSync`, the case gap a stated limit.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
+
+### R-253: Signal 1's sources and sections
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-3)
+- Question: (a) ADRs are `docs/adr/NNNN-*.md` only; status is the first
+  `^Status: ` line before the first `##` and must start with `Accepted`;
+  design docs are `docs/design/*.md`, not recursive; "Considered options" is a
+  heading with exactly that text at any level, running to the next heading of
+  the same or higher level, headings in fences ignored; a missing `AGENTS.md`
+  is a tool error (exit 2), and signals 2 and 4's fixtures gain an empty one;
+  missing `docs/adr/` or `docs/design/` read as no documents; (b) every
+  source optional.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
+
+### R-254: The doc-truth exception file, former roots, and their seed
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-4; seeds R-195 and R-201)
+- Question: (a) `scripts/drift/doc-truth-exceptions.md`, relative to the
+  `--root` repo, a table `| File | Name | Reason |` plus a `## Former roots`
+  list; an entry matches every miss of that exact name in that file; an entry
+  matching no miss is D4 at its own line; a missing field, a duplicate entry,
+  or a former root that exists is a tool error naming the line; no file means
+  no exceptions. Seed: `docs/adr/0042-how-the-overhaul-is-built.md` |
+  `docs/manual/cli.md` | planned, written and ratified before the CLI phase;
+  `docs/adr/0042-how-the-overhaul-is-built.md` | `docs/manual/rest.md` |
+  planned, written and ratified before the REST phase (R-008);
+  `docs/adr/0019-domain-cli-boundary.md` | `cli/cli` | a former location the
+  ADR names as history. Former roots: `packages/`. (b) JSON; (c) two files.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
+
+### R-255: Signal 1's report line, summary and --only
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-5)
+- Question: (a) `<file>:<line> D1: path "…" does not exist; docs name only what
+exists (ADR-0042, R-195)`, D2 "glob … matches nothing", D4 the stale
+  exception; several misses on one line make one report (R-230); the summary
+  `signal 1: N findings in M files (S documents read, X exceptions, former
+roots: packages/ 7)` prints after "files parsed" and before signal 2's, N
+  counting report lines and former roots counted by occurrence; D1, D2 and D4
+  join `--only` now, D3 with slice 2; `Z1` lists 24 codes; (b) former roots
+  per line; (c) D3 now without a plant.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
+
+### R-256: M-004 slice 1's acceptance list, at about 900 lines in two commits
+
+- Date: 2026-11-23
+- Raised in: M-004 (question Q-M-004-6)
+- Question: (a) accept about 900 lines as two commits, and the list: a fixture
+  repo with `AGENTS.md`, four ADRs (Accepted, amended, Superseded, Deprecated),
+  the ADR README's template trap, a design doc and an unread nested one; D1
+  plants (a missing file, several on one line as one report, a span across
+  lines, double backticks, wrong case); D2 globs matching nothing; five D4
+  stale exceptions (name exists, file not a source, only under Considered
+  options, file gone, under a former root); twins (links, bare text, fences,
+  `./` and `/` words, templates, `:N` and `#` suffixes, a folders-only glob,
+  a brace glob, Considered-options content, the README trap, code comments and
+  `CONTEXT.md`); tool errors (malformed or duplicate entry, an existing former
+  root, no `AGENTS.md`); CRLF variants; `drift:check` exit 1 on the fixture
+  with exact lines and 0 on the real tree; D codes in `--only`; (b) split.
+- Ruling: "Q-M-004-1 to -6: A"
+- Folded into: not yet
