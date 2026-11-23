@@ -167,9 +167,13 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   (R-195) and the former-roots list (R-201) are ratified with its first slice.
 - Free to choose: M-003's, as R-216 rules.
 - Acceptance: `pnpm lint:check && pnpm drift:check && pnpm drift:prove` (R-147).
-- Open questions: none yet. Phase 2's budget raised to 3 Matters (R-250). In flight (2026-11-23): slice 1 (signal 1
+- Open questions: none. Phase 2's budget raised to 3 Matters (R-250). In flight (2026-11-23): slice 1 (signal 1
   paths) on branch m/M-004-s1, worktree ../hexagram-wt-M-004-s1. Q-M-004-1 to -6 ruled as R-251 to R-256 (the seed
   and former roots in R-254; the acceptance list in R-256). Attempt 1 (e9cfe81 fixtures, 9304172 code) APPROVED;
-  Q-M-004-7 to -10 ruled as R-257 to R-260. Now: one plant for R-257 (tester), then the fix and a quick re-review.
-- Commits: –
+  Q-M-004-7 to -10 ruled as R-257 to R-260; slice 1 landed 2026-11-23. Stated limits of signal 1: links, bare text
+  and fences are not read (R-251); a path in parentheses or quotes inside a span is skipped; malformed markdown can
+  swallow a span; macOS globbing ignores case (R-260). In flight: slice 2 (signal 1 symbols, D3, R-202) on branch
+  m/M-004-s2, worktree ../hexagram-wt-M-004-s2: the tester's spec audit first. Carried as a line-edit: the contract
+  should say the former-root match ignores case too, with a plant for it.
+- Commits: slice 1: 50aeb4e, 865d55b
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.

@@ -312,3 +312,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 55 of M-003's 60 (R-195 to R-249)
 - Landed: d9a1c23, 42806c9 (the owner's Avoid marking, R-242); 6785d33 (acceptance material), 20cfacf (signal 2, squashing 2207bac, 7dea34f, d524ae9) · Phase estimate: 3 Matters / 1 week
 - Notes: R-240 moved signal 1 into M-004 when M-003 reached 45 touches. The owner's ruling on slice 3's size read "Q-M-003-5: A"; the clerk recorded it as Q-M-003-55, the only open question, and says so in R-249. The owner should correct R-249 if that reading is wrong.
+
+### Iteration 22 — M-004 — 2026-11-23
+
+- Attempt: 1/2 (slice 1; R-058), plus R-257's follow-up · Outcome: slice 1 landed
+- Review: attempt 1 `APPROVE` (no blocking findings) · the R-257 follow-up `APPROVE` · questions sent to owner: Q-M-004-7 to -10
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check (signal 1: 39 documents, 3 exceptions, `packages/` 7; signals 2 and 4: 0) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12, D1, D2, D4, G1–G2, E1–E7, the analysis, the scanner and `--only`
+- Owner touches: 10 of M-004's 60; R-250 raised Phase 2's budget to 3 Matters
+- Landed: 50aeb4e (acceptance material and the exception seed, squashing e9cfe81, b88bf83), 865d55b (signal 1 paths, squashing 9304172, a38a5f7) · Phase estimate: 3 Matters / 1 week
+- Notes: the first slice since M-002 to pass review on its first attempt. The tester proved the prover against a throwaway implementation with six planted faults before handing over.
