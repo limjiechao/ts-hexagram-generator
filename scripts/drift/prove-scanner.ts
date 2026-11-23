@@ -6,13 +6,14 @@
 //   tsx scripts/drift/check.ts [--root <dir>]
 //
 // `<dir>` names a stand-in repo, resolved from the working directory, whose
-// `overhaul/` alone is scanned; without it, the repo's own (R-232). A
-// completed run prints a line holding `<N> files parsed`, then signal 4's
-// summary (R-231). It exits 0 when clean and 2 on a tool error, such as a
-// missing root or a file that does not parse; then only the error prints, to
-// stderr, naming the root or the file, relative to the repo root with `/`
-// (R-220, R-232). Exit 1, a finding, is proved with signal 4
-// (`prove-signal-4.ts`).
+// `overhaul/` alone is scanned, against its own `CONTEXT.md`; without it, the
+// repo's own (R-232, R-243). A completed run prints a line holding `<N> files
+// parsed`, then signal 2's summary, then signal 4's (R-231, R-247). It exits
+// 0 when clean and 2 on a tool error, such as a missing root or a file that
+// does not parse; then only the error prints, to stderr, naming the root or
+// the file, relative to the repo root with `/` (R-220, R-232). Exit 1, a
+// finding, is proved with signals 2 and 4 (`prove-signal-2.ts`,
+// `prove-signal-4.ts`).
 
 import {
   cp,
@@ -120,7 +121,10 @@ async function proveFixtures(scanner: Scanner): Promise<string[]> {
 // Cases built in memory, like the CRLF variants: a block comment spanning
 // CRLF, CR, U+2028 or U+2029 lines reads with LF (R-223, R-225), and a `require` or `import()` of a
 // no-substitution template is a module specifier, while `vi.mock` and
-// `require.resolve` are not module loads (R-211).
+// `require.resolve` are not module loads (R-211). A template with
+// substitutions as the first argument of `require` or `import()` yields no
+// fragment; a concatenated specifier still yields its strings, a stated
+// limit (R-224, R-246).
 const inMemory: readonly (readonly [string, string, readonly ScanRecord[]])[] =
   [
     [
@@ -151,11 +155,15 @@ const inMemory: readonly (readonly [string, string, readonly ScanRecord[]])[] =
         'import(`./d.js`)',
         "vi.mock('./e.js')",
         "require.resolve('./f.js')",
+        'import(`./g/${name}.js`)',
+        'require(`./h/${name}/${kind}.js`)',
+        "require('./i/' + name)",
         '',
       ].join('\n'),
       [
         { kind: 'string', line: 5, text: './e.js' },
         { kind: 'string', line: 6, text: './f.js' },
+        { kind: 'string', line: 9, text: './i/' },
       ],
     ],
   ]
@@ -191,14 +199,22 @@ function describeRun(run: Run): string {
   return `exit ${run.code}, stdout ${JSON.stringify(run.stdout)}, stderr ${JSON.stringify(run.stderr)}`
 }
 
-// A clean run: exit 0, the "files parsed" line, then signal 4's summary of
-// no findings (R-231).
-function isClean(run: Run, parsed: RegExp): boolean {
+// A clean run: exit 0, the "files parsed" line, signal 2's summary of no
+// findings, then signal 4's (R-231, R-247).
+function isClean(run: Run, parsed: RegExp, signal2: string): boolean {
   const lines = run.stdout.split('\n')
   const count = lines.findIndex((line) => parsed.test(line))
+  const second = lines.indexOf(signal2)
   const summary = lines.indexOf('signal 4: 0 findings in 0 files')
-  return run.code === 0 && count !== -1 && summary > count
+  return run.code === 0 && count !== -1 && second > count && summary > second
 }
+
+// The real `CONTEXT.md` has 55 distinct marked forms and 70 unmarked ones
+// (R-242, R-243); a stand-in's empty one has none.
+const todaySignal2 =
+  'signal 2: 0 findings in 0 files (55 forms checked, 70 unmarked)'
+const emptySignal2 =
+  'signal 2: 0 findings in 0 files (0 forms checked, 0 unmarked)'
 
 async function proveCheck(
   walkRepo: string,
@@ -207,22 +223,22 @@ async function proveCheck(
 ): Promise<string[]> {
   const failures: string[] = []
   const today = await runTsx(checkEntry, [])
-  if (!isClean(today, /\b[1-9]\d* files parsed\b/))
+  if (!isClean(today, /\b[1-9]\d* files parsed\b/, todaySignal2))
     failures.push(
-      `drift:check on today's tree: expected exit 0, "<N> files parsed", then "signal 4: 0 findings in 0 files", got ${describeRun(today)}`,
+      `drift:check on today's tree: expected exit 0, "<N> files parsed", "${todaySignal2}", then "signal 4: 0 findings in 0 files", got ${describeRun(today)}`,
     )
   const alone = await runTsx(checkEntry, ['--root', walkRepo])
   const count = new RegExp(String.raw`(?<!\d)${walked.length} files parsed\b`)
-  if (!isClean(alone, count))
+  if (!isClean(alone, count, emptySignal2))
     failures.push(
-      `drift:check --root on the walk's stand-in repo: expected exit 0, "${walked.length} files parsed", then "signal 4: 0 findings in 0 files", got ${describeRun(alone)}`,
+      `drift:check --root on the walk's stand-in repo: expected exit 0, "${walked.length} files parsed", "${emptySignal2}", then "signal 4: 0 findings in 0 files", got ${describeRun(alone)}`,
     )
   const broken = await runTsx(checkEntry, ['--root', brokenRepo])
   const named = `overhaul/${parseError}`
   if (
     broken.code !== 2 ||
     !broken.stderr.includes(named) ||
-    /files parsed|signal 4:/.test(broken.stdout)
+    /files parsed|signal [24]:/.test(broken.stdout)
   )
     failures.push(
       `drift:check on a file that does not parse: expected exit 2 naming ${named} and no summary, got ${describeRun(broken)}`,
@@ -241,7 +257,8 @@ export async function proveScanner(): Promise<string[]> {
   const temp = await mkdtemp(path.join(os.tmpdir(), 'drift-scanner-'))
   try {
     // Each fixture is copied into a stand-in repo's `overhaul/`, as
-    // `--root` scans (R-232).
+    // `--root` scans (R-232), beside an empty `CONTEXT.md`, which signal 2
+    // needs (R-243).
     const walkRepo = path.join(temp, 'walk')
     const walkRoot = path.join(walkRepo, 'overhaul')
     const brokenRepo = path.join(temp, 'broken')
@@ -249,6 +266,8 @@ export async function proveScanner(): Promise<string[]> {
     await cp(parseErrorFixture, path.join(brokenRepo, 'overhaul'), {
       recursive: true,
     })
+    for (const repo of [walkRepo, brokenRepo])
+      await writeFile(path.join(repo, 'CONTEXT.md'), '')
     for (const file of addedSkipped) {
       const target = path.join(walkRoot, file)
       await mkdir(path.dirname(target), { recursive: true })

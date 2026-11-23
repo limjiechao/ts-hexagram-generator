@@ -9,9 +9,8 @@
 // Comments keep everything between their delimiters (`//`, `/*` and `*/`),
 // untrimmed; only JSX text is trimmed (R-211).
 //
-// String-literal types are raised again with signal 2 (R-211). Until then a
-// quoted property key yields a string and a string-literal type does not;
-// see 'string-literal-type-and-quoted-key.ts'.
+// A quoted property key and a string-literal type each yield a string
+// (R-211, R-246); see 'string-literal-type-and-quoted-key.ts'.
 
 import type { ScanRecord } from '../../scan-record.js'
 
@@ -159,11 +158,13 @@ export const expected: Readonly<Record<string, readonly ScanRecord[]>> = {
   ],
   'string-literal-type-and-quoted-key.ts': [
     identifier(1, 'Mode'),
+    string(1, 'quick'),
+    string(1, 'slow'),
     identifier(2, 'limits'),
     string(2, 'max-size'),
   ],
 
-  // Identifiers: only R-213's clear cases of a declaration.
+  // Identifiers: R-213's clear cases of a declaration.
   'identifier-declarations.ts': [
     identifier(1, 'total'),
     identifier(2, 'count'),
@@ -189,6 +190,37 @@ export const expected: Readonly<Record<string, readonly ScanRecord[]>> = {
   ],
   // Calls, property access and plain imports declare nothing.
   'identifier-twins.ts': [],
+  // R-245's further kinds: an `as` rename's new name, on import and export;
+  // interface and type-literal members; enum members; object-literal keys
+  // and methods; type parameters; function and class expression names; and
+  // `#private` names, read without `#`. A private name's use and a shorthand
+  // property declare nothing.
+  'identifier-declared-kinds.ts': [
+    identifier(1, 'readText'),
+    identifier(2, 'loadText'),
+    identifier(3, 'Shape'),
+    identifier(3, 'width'),
+    identifier(3, 'area'),
+    identifier(4, 'Box'),
+    identifier(4, 'depth'),
+    identifier(5, 'Colour'),
+    identifier(5, 'Red'),
+    identifier(5, 'Green'),
+    identifier(6, 'point'),
+    identifier(6, 'x'),
+    identifier(6, 'move'),
+    identifier(7, 'wrap'),
+    identifier(7, 'Item'),
+    identifier(7, 'item'),
+    identifier(8, 'named'),
+    identifier(8, 'inner'),
+    identifier(9, 'Made'),
+    identifier(9, 'Built'),
+    identifier(10, 'Ledger'),
+    identifier(10, 'secret'),
+    identifier(10, 'hide'),
+    identifier(11, 'short'),
+  ],
 
   // Files: also scanned with CRLF line endings, built in memory, since
   // `.gitattributes` checks every file out with LF. A template's cooked text

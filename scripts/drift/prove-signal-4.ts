@@ -2,7 +2,8 @@
 // `--only` names an E code or is absent (R-233). It runs `drift:check --root`
 // on `fixtures/signal-4/`, a stand-in repo, and expects exit 1 with exactly
 // the expected reports, matched both ways, in R-209's order, before the
-// "files parsed" line and signal 4's summary (R-231). It then scans every
+// "files parsed" line and signal 4's summary (R-231); a run judging a G code
+// also needs signal 2's empty summary between them (R-247). It then scans every
 // fixture file in memory with each line terminator (R-225) and matches
 // `findEphemeralIds` against the same list. The contract is
 // `ephemeral-finding.ts`'s.
@@ -13,6 +14,7 @@ import { fileURLToPath } from 'node:url'
 
 import type { EphemeralFinding } from './ephemeral-finding.js'
 import { expected, scanned } from './fixtures/signal-4/expected.js'
+import { glossaryCodes } from './glossary-finding.js'
 import { runTsx, type Run } from './run-tsx.js'
 import type { ScanRecord } from './scan-record.js'
 
@@ -36,7 +38,7 @@ const terminators: readonly (readonly [string, string])[] = [
   ['U+2029', '\u2029'],
 ]
 
-type Codes = Map<string, string[]>
+export type Codes = Map<string, string[]>
 
 function judged(codes: readonly string[], only: ReadonlySet<string>): string[] {
   return codes.filter((code) => only.has(code)).toSorted()
@@ -53,7 +55,11 @@ function expectedFor(only: ReadonlySet<string>, file?: string): Codes {
 }
 
 // Matches both ways: a missing, extra or differing line each fails.
-function compareCodes(label: string, wanted: Codes, reported: Codes): string[] {
+export function compareCodes(
+  label: string,
+  wanted: Codes,
+  reported: Codes,
+): string[] {
   const failures: string[] = []
   const keys = new Set([...wanted.keys(), ...reported.keys()])
   for (const key of [...keys].toSorted()) {
@@ -65,7 +71,7 @@ function compareCodes(label: string, wanted: Codes, reported: Codes): string[] {
   return failures
 }
 
-function describeRun(run: Run): string {
+export function describeRun(run: Run): string {
   return `exit ${run.code}, stdout ${JSON.stringify(run.stdout)}, stderr ${JSON.stringify(run.stderr)}`
 }
 
@@ -74,7 +80,7 @@ function byCodeUnits(a: string, b: string): number {
   return a < b ? -1 : 1
 }
 
-interface Report {
+export interface Report {
   readonly index: number
   readonly file: string
   readonly line: number
@@ -82,7 +88,7 @@ interface Report {
   readonly text: string
 }
 
-function compareReports(a: Report, b: Report): number {
+export function compareReports(a: Report, b: Report): number {
   return (
     byCodeUnits(a.file, b.file) ||
     a.line - b.line ||
@@ -90,10 +96,33 @@ function compareReports(a: Report, b: Report): number {
   )
 }
 
+// The fixture's `CONTEXT.md` is empty, so signal 2 checks no form; its
+// summary still prints, between the "files parsed" line and signal 4's
+// (R-247). It is signal 2's output, so only a run judging a G code needs it.
+const signal2Summary =
+  'signal 2: 0 findings in 0 files (0 forms checked, 0 unmarked)'
+
+function proveSignal2Summary(
+  lines: readonly string[],
+  parsed: number,
+  summary: number,
+): string[] {
+  const at = lines.indexOf(signal2Summary)
+  return at === -1 || at < parsed || (summary !== -1 && at > summary)
+    ? [
+        `drift:check: no "${signal2Summary}" line between the "files parsed" line and signal 4's summary (R-247)`,
+      ]
+    : []
+}
+
 // The report lines, their order, the citations and the summary (R-209,
 // R-231). The summary's finding count is only bounded below by the reports,
 // as R-230 leaves open whether it counts reports or IDs.
-function proveOutput(lines: readonly string[], reports: Report[]): string[] {
+function proveOutput(
+  lines: readonly string[],
+  reports: Report[],
+  only: ReadonlySet<string>,
+): string[] {
   const failures: string[] = []
   const sorted = reports.toSorted(compareReports)
   if (sorted.some((report, index) => report !== reports[index]))
@@ -121,6 +150,8 @@ function proveOutput(lines: readonly string[], reports: Report[]): string[] {
     )
   if (parsed !== -1 && reports.some((report) => report.index > parsed))
     failures.push('drift:check: a report follows the "files parsed" line')
+  if (glossaryCodes.some((code) => only.has(code)))
+    failures.push(...proveSignal2Summary(lines, parsed, summary))
   const [, findings, files] = summaryLine.exec(lines[summary] ?? '') ?? []
   const filesWanted = new Set(
     Object.keys(expected).map((key) => key.replace(/:\d+$/, '')),
@@ -159,7 +190,7 @@ async function proveCheck(only: ReadonlySet<string>): Promise<string[]> {
   return [
     ...failures,
     ...compareCodes('drift:check', expectedFor(only), reported),
-    ...proveOutput(lines, reports),
+    ...proveOutput(lines, reports, only),
   ]
 }
 

@@ -5,8 +5,9 @@
 // config, and passes only if each plant is reported by exactly its own
 // B-number and each twin by none. Reports from rules outside B1 to B12 are
 // ignored. Drift signal 4's prover (R-231, `prove-signal-4.ts`) judges E1
-// to E7 the same way. `--only B1,E3` limits the run to the codes named; an
-// unknown code is an error that lists the valid ones (R-233).
+// to E7 the same way, and signal 2's (R-247, `prove-signal-2.ts`) G1 and G2.
+// `--only B1,E3` limits the run to the codes named; an unknown code is an
+// error that lists the valid ones (R-233).
 //
 // Without `--only`, it also proves the Oracle-subpath analysis (R-151,
 // R-179) on its fixture trees: the analysis must report each fake subpath as
@@ -31,8 +32,10 @@ import {
   type ExpectedVerdict,
 } from './fixtures/oracle-subpaths/expected.js'
 import { expected } from './fixtures/signal-3/expected.js'
+import { glossaryCodes } from './glossary-finding.js'
 import { analyseOracleSubpaths } from './oracle-subpaths.js'
 import { proveScanner } from './prove-scanner.js'
+import { proveSignal2 } from './prove-signal-2.js'
 import { proveSignal4 } from './prove-signal-4.js'
 import { runTsx } from './run-tsx.js'
 
@@ -44,9 +47,13 @@ const subpathFixtures = fileURLToPath(
 const allFixtures = fileURLToPath(new URL('fixtures/', import.meta.url))
 const entryFile = fileURLToPath(import.meta.url)
 const boundaryRules = Array.from({ length: 12 }, (_, index) => `B${index + 1}`)
-// The codes `--only` accepts grow as signals land: D and G codes join with
-// their signals (R-204, R-215, R-233).
-const validCodes: readonly string[] = [...boundaryRules, ...ephemeralCodes]
+// The codes `--only` accepts grow as signals land, in R-204's family order:
+// D codes join with signal 1 (R-204, R-215, R-233).
+const validCodes: readonly string[] = [
+  ...boundaryRules,
+  ...glossaryCodes,
+  ...ephemeralCodes,
+]
 
 function parseOnly(argv: readonly string[]): ReadonlySet<string> | string {
   const index = argv.indexOf('--only')
@@ -214,9 +221,9 @@ async function proveSubpaths(): Promise<string[]> {
 }
 
 // `--only` as R-215 and R-233 set it: an unknown code, alone or beside a
-// valid one, is an error listing every valid code; valid ones, B and E codes
-// mixed, run only those codes, and skip the analysis, the scanner and the
-// clean-tree check. `Z1` never becomes a valid code.
+// valid one, is an error listing every valid code; valid ones, B, G and E
+// codes mixed, run only those codes, and skip the analysis, the scanner and
+// the clean-tree check. `Z1` never becomes a valid code.
 async function proveOnly(): Promise<string[]> {
   const failures: string[] = []
   for (const codes of ['Z1', 'B1,Z1']) {
@@ -229,7 +236,7 @@ async function proveOnly(): Promise<string[]> {
         `--only ${codes}: expected exit 1 listing ${validCodes.join(', ')}, got exit ${String(run.code)}: ${run.stderr.trim()}`,
       )
   }
-  for (const codes of ['B3', 'E3', 'B3,E3']) {
+  for (const codes of ['B3', 'E3', 'G1', 'B3,E3', 'G2,E3']) {
     const run = await runTsx(entryFile, ['--only', codes])
     const scope = codes.replaceAll(',', ', ')
     if (
@@ -305,6 +312,10 @@ const before = analysed ? await workingTreeState() : ''
 const failures: string[] = []
 if (boundaryRules.some((rule) => only.has(rule)))
   failures.push(...(await collect('the boundary prover', () => prove(only))))
+if (glossaryCodes.some((code) => only.has(code)))
+  failures.push(
+    ...(await collect("signal 2's prover", () => proveSignal2(only))),
+  )
 if (ephemeralCodes.some((code) => only.has(code)))
   failures.push(
     ...(await collect("signal 4's prover", () => proveSignal4(only))),
