@@ -3097,3 +3097,17 @@ or Ruling>`, the code once; exit 0 clean, 1 on any finding, 2 on a tool error
   the owner line-edits and ratifies it in one touch; (b) the owner marks it.
 - Ruling: "Q-M-003-47: B, Q-M-003-48: A"
 - Folded into: not yet
+
+### R-242: The owner ratifies the marking of checkable _Avoid_ forms in CONTEXT.md
+
+- Date: 2026-11-23
+- Raised in: M-003 (R-196, R-241; the drafter's marking e06090f and
+  `docs/reviews/2026-11-23-avoid-marking.md`)
+- Question: Ratify the marking, with (1) lines 97 and 102 rewritten so each
+  shared-noun form is spelled out and marked (A) or left (B); (2) `search term`
+  reflowed onto one line (A) or read across the break (B); (3) `provenance` left
+  unmarked on both lines (A) or marked on line 363 (B); (4) the borderline
+  single words as drafted (A) or flipped (B); (5) the bare forms marked with
+  "(in English text)" outside the backticks (A) or left unmarked (B).
+- Ruling: "Ratify the marking: 1A, 2A, 3A, 4A, 5A"
+- Folded into: CONTEXT.md, when the marking lands
