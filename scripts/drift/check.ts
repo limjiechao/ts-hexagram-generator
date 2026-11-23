@@ -1,20 +1,27 @@
 // `drift:check [--root <dir>]` (ADR-0042, R-208, R-209, R-231, R-232,
-// R-243, R-247): reads the `CONTEXT.md` of the repo `<dir>` names, resolved
-// from the working directory, or of this repo, scans its `overhaul/`, and
-// runs signals 2 and 4 over it; their contracts are `glossary-finding.ts`'s
-// and `ephemeral-finding.ts`'s. Report paths are relative to that repo's
-// root, with `/`. It exits 1 on any finding, 0 when clean, and 2 on a tool
-// error, which prints only the error, naming the root, `CONTEXT.md` or the
-// file.
+// R-243, R-247, R-253 to R-255): in the repo `<dir>` names, resolved from
+// the working directory, or this repo, runs signal 1 over its source
+// documents, reads its `CONTEXT.md`, scans its `overhaul/`, and runs signals
+// 2 and 4 over it; their contracts are `doc-truth-finding.ts`'s,
+// `glossary-finding.ts`'s and `ephemeral-finding.ts`'s. Report paths are
+// relative to that repo's root, with `/`. It exits 1 on any finding, 0 when
+// clean, and 2 on a tool error, which prints only the error, naming the
+// root, `AGENTS.md`, `CONTEXT.md`, the exception file's line or the file.
 
-import { readFile, stat } from 'node:fs/promises'
+import { readdir, readFile, stat } from 'node:fs/promises'
 import path from 'node:path'
 import process from 'node:process'
 import { fileURLToPath } from 'node:url'
 
+import type {
+  DocTruthException,
+  DocTruthFinding,
+  FormerRoot,
+} from './doc-truth-finding.js'
 import type { EphemeralCode } from './ephemeral-finding.js'
 import type { AvoidForm } from './glossary-finding.js'
 import { scanTree } from './scanner.js'
+import { checkPaths, readExceptions, readSource } from './signal-1.js'
 import { findGlossaryForms, readGlossary } from './signal-2.js'
 import { findEphemeralIds } from './signal-4.js'
 
@@ -57,6 +64,123 @@ function fail(message: string): void {
   process.exitCode = 2
 }
 
+const exceptionFile = 'scripts/drift/doc-truth-exceptions.md'
+const citeD = '(ADR-0042, R-195)'
+
+function quoted(names: readonly string[]): string {
+  return names.map((name) => `"${name}"`).join(', ')
+}
+
+function describeMiss({ code, names }: DocTruthFinding): string {
+  const several = names.length > 1
+  const what =
+    code === 'D2'
+      ? `${several ? 'globs' : 'glob'} ${quoted(names)}${several ? ': each' : ''} matches nothing`
+      : `${several ? 'paths' : 'path'} ${quoted(names)} ${several ? 'do' : 'does'} not exist`
+  return `${what}; docs name only what exists ${citeD}`
+}
+
+async function readOptional(file: string): Promise<string | undefined> {
+  try {
+    return await readFile(file, 'utf8')
+  } catch {
+    return
+  }
+}
+
+async function namesIn(folder: string, pattern: RegExp): Promise<string[]> {
+  const entries = await readdir(folder, { withFileTypes: true }).catch(() => [])
+  return entries
+    .filter((entry) => entry.isFile() && pattern.test(entry.name))
+    .map((entry) => entry.name)
+    .toSorted(byCodeUnits)
+}
+
+interface Signal1Run {
+  readonly reports: readonly Report[]
+  readonly summary: string
+}
+
+// Signal 1 over `AGENTS.md`, the Accepted ADRs and `docs/design/*.md`
+// (R-207, R-253), with the exception file's entries and former roots
+// (R-254); undefined after a tool error.
+async function runSignal1(repo: string): Promise<Signal1Run | undefined> {
+  const agents = await readOptional(path.join(repo, 'AGENTS.md'))
+  if (agents === undefined) {
+    fail('no AGENTS.md to read')
+    return undefined
+  }
+  const documents: [string, string][] = [['AGENTS.md', agents]]
+  for (const name of await namesIn(
+    path.join(repo, 'docs/adr'),
+    /^\d{4}-.*\.md$/,
+  )) {
+    const file = `docs/adr/${name}`
+    const text = await readFile(path.join(repo, file), 'utf8')
+    if (readSource(text).status?.startsWith('Accepted') === true)
+      documents.push([file, text])
+  }
+  for (const name of await namesIn(path.join(repo, 'docs/design'), /\.md$/)) {
+    const file = `docs/design/${name}`
+    documents.push([file, await readFile(path.join(repo, file), 'utf8')])
+  }
+  const exceptionText = await readOptional(path.join(repo, exceptionFile))
+  let exceptions: readonly DocTruthException[] = []
+  let formerRoots: readonly FormerRoot[] = []
+  if (exceptionText !== undefined) {
+    const read = readExceptions(exceptionText)
+    if (!read.ok) {
+      fail(`${exceptionFile}:${read.line}: ${read.message}`)
+      return undefined
+    }
+    ;({ exceptions, formerRoots } = read)
+  }
+  for (const { line, root } of formerRoots) {
+    const there = await stat(path.join(repo, root)).then(
+      () => true,
+      () => false,
+    )
+    if (there) {
+      fail(`${exceptionFile}:${line}: former root ${root} exists`)
+      return undefined
+    }
+  }
+  const reports: Report[] = []
+  const used = new Set<DocTruthException>()
+  const counts = new Map(formerRoots.map(({ root }) => [root, 0]))
+  for (const [file, text] of documents) {
+    const own = exceptions.filter((entry) => entry.file === file)
+    const paths = await checkPaths(
+      repo,
+      readSource(text).words,
+      formerRoots.map(({ root }) => root),
+      new Set(own.map(({ name }) => name)),
+    )
+    for (const finding of paths.findings)
+      reports.push({ file, ...finding, text: describeMiss(finding) })
+    for (const entry of own)
+      if (paths.excepted.includes(entry.name)) used.add(entry)
+    for (const [root, count] of paths.formerRoots)
+      counts.set(root, (counts.get(root) ?? 0) + count)
+  }
+  // An entry that excepts no miss is stale (R-195, R-254).
+  for (const entry of exceptions)
+    if (!used.has(entry))
+      reports.push({
+        file: exceptionFile,
+        line: entry.line,
+        code: 'D4',
+        text: `exception for "${entry.name}" in ${entry.file} no longer matches a miss ${citeD}`,
+      })
+  const roots =
+    [...counts].map(([root, count]) => `${root} ${count}`).join(', ') || 'none'
+  const files = new Set(reports.map(({ file }) => file)).size
+  return {
+    reports,
+    summary: `signal 1: ${reports.length} findings in ${files} files (${documents.length} documents read, ${exceptions.length} exceptions, former roots: ${roots})`,
+  }
+}
+
 async function check(args: readonly string[]): Promise<void> {
   const given = args[0] === '--root' ? args[1] : undefined
   if (args.length > 0 && (given === undefined || args.length !== 2)) {
@@ -85,6 +209,8 @@ async function check(args: readonly string[]): Promise<void> {
     fail('no CONTEXT.md to read')
     return
   }
+  const signal1 = await runSignal1(repo)
+  if (signal1 === undefined) return
   const glossary = readGlossary(glossaryText)
   if (!glossary.ok) {
     fail(`CONTEXT.md:${glossary.line}: ${glossary.message}`)
@@ -96,7 +222,7 @@ async function check(args: readonly string[]): Promise<void> {
     return
   }
   const forms = new Map(glossary.forms.map((form) => [form.form, form]))
-  const reports: Report[] = []
+  const reports: Report[] = [...signal1.reports]
   // Files with findings, per signal; N counts report lines (R-230, R-236).
   const filesWith = { G: new Set<string>(), E: new Set<string>() }
   for (const [scanned, records] of scan.files) {
@@ -137,6 +263,7 @@ async function check(args: readonly string[]): Promise<void> {
   const count = (family: string) =>
     sorted.filter((report) => report.code.startsWith(family)).length
   console.info(`drift:check: ${scan.files.size} files parsed in ${named}`)
+  console.info(signal1.summary)
   console.info(
     `signal 2: ${count('G')} findings in ${filesWith.G.size} files (${glossary.forms.length} forms checked, ${glossary.unmarked} unmarked)`,
   )
