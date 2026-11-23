@@ -303,3 +303,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 45 in M-003 of 60 (R-195 to R-239)
 - Landed: 78c5c79 (the tester's acceptance material), 3545cad (signal 4, squashing f63f43c, 173ee73, 9bafe64) · Phase estimate: 2 Matters / 1 week
 - Notes: the clerk held the landing for Q-M-003-43 to -46, since the slice's size exceeded R-234 and the summary count was undecided. Before writing the plants, the tester checked an independent implementation of the ruled patterns against the expected list (57 lines, no difference).
+
+### Iteration 21 — M-003 — 2026-11-23
+
+- Attempt: 2/2 (slice 3; R-058) · Outcome: slice 3 landed; M-003 landed
+- Review: attempt 1 `REQUEST CHANGES` (`import * as X` and `export * as X` declared no name, against R-245) · attempt 2 `APPROVE`
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check (80 files; signal 2: 0 findings, 55 forms, 70 unmarked; signal 4: 0) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for B1–B12, G1–G2, E1–E7, the analysis, the scanner and `--only`
+- Owner touches: 55 of M-003's 60 (R-195 to R-249)
+- Landed: d9a1c23, 42806c9 (the owner's Avoid marking, R-242); 6785d33 (acceptance material), 20cfacf (signal 2, squashing 2207bac, 7dea34f, d524ae9) · Phase estimate: 3 Matters / 1 week
+- Notes: R-240 moved signal 1 into M-004 when M-003 reached 45 touches. The owner's ruling on slice 3's size read "Q-M-003-5: A"; the clerk recorded it as Q-M-003-55, the only open question, and says so in R-249. The owner should correct R-249 if that reading is wrong.

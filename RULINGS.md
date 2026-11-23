@@ -3191,3 +3191,14 @@ identifiers and UI strings use glossary terms (ADR-0042, R-197)`; the summary
   `Z1` listing 21 codes; (b) split into two slices.
 - Ruling: "Q-M-003-49 to -54: A"
 - Folded into: not yet
+
+### R-249: Slice 3 lands at about 1,130 lines in two commits
+
+- Date: 2026-11-23
+- Raised in: M-003 (question Q-M-003-55, slice 3's size after its final review)
+- Question: R-248 accepted about 800 lines; the slice comes to about 1,130
+  (about 820 of acceptance material, 310 of code). (a) accept it as two
+  commits, as R-238 did; (b) first cut about 70 lines of duplicated proof.
+- Ruling: "Q-M-003-5: A" (the clerk reads this as Q-M-003-55, the only open
+  question; Q-M-003-5 was ruled as R-199)
+- Folded into: not yet
