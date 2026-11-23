@@ -8,7 +8,8 @@
 // `<dir>` names a stand-in repo, resolved from the working directory, whose
 // `overhaul/` alone is scanned, against its own `CONTEXT.md`; without it, the
 // repo's own (R-232, R-243). A completed run prints a line holding `<N> files
-// parsed`, then signal 2's summary, then signal 4's (R-231, R-247). It exits
+// parsed`, then signal 1's summary, signal 2's and signal 4's (R-231, R-247,
+// R-255). It exits
 // 0 when clean and 2 on a tool error, such as a missing root or a file that
 // does not parse; then only the error prints, to stderr, naming the root or
 // the file, relative to the repo root with `/` (R-220, R-232). Exit 1, a
@@ -258,7 +259,7 @@ export async function proveScanner(): Promise<string[]> {
   try {
     // Each fixture is copied into a stand-in repo's `overhaul/`, as
     // `--root` scans (R-232), beside an empty `CONTEXT.md`, which signal 2
-    // needs (R-243).
+    // needs (R-243), and an empty `AGENTS.md`, which signal 1 needs (R-253).
     const walkRepo = path.join(temp, 'walk')
     const walkRoot = path.join(walkRepo, 'overhaul')
     const brokenRepo = path.join(temp, 'broken')
@@ -266,8 +267,10 @@ export async function proveScanner(): Promise<string[]> {
     await cp(parseErrorFixture, path.join(brokenRepo, 'overhaul'), {
       recursive: true,
     })
-    for (const repo of [walkRepo, brokenRepo])
+    for (const repo of [walkRepo, brokenRepo]) {
       await writeFile(path.join(repo, 'CONTEXT.md'), '')
+      await writeFile(path.join(repo, 'AGENTS.md'), '')
+    }
     for (const file of addedSkipped) {
       const target = path.join(walkRoot, file)
       await mkdir(path.dirname(target), { recursive: true })

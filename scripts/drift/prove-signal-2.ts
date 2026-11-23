@@ -5,7 +5,9 @@
 // the one E report R-247 plants; reports of other E codes, and on other
 // lines, are signal 4's to judge. Every report must be in R-209's order,
 // before the "files parsed" line, signal 2's summary and signal 4's, in that
-// order. A root without `CONTEXT.md`, or with a broken span, exits 2 (R-243).
+// order; a run judging a D code also needs signal 1's empty summary before
+// signal 2's (R-255). A root without `CONTEXT.md`, or with a broken span,
+// exits 2 (R-243).
 // It then runs `readGlossary` and `findGlossaryForms` in memory. The contract
 // is `glossary-finding.ts`'s.
 
@@ -14,6 +16,7 @@ import os from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { docTruthCodes } from './doc-truth-finding.js'
 import {
   ephemeralLine,
   expected,
@@ -31,6 +34,7 @@ import {
   compareCodes,
   compareReports,
   describeRun,
+  proveSignal1Summary,
   type Codes,
   type Report,
 } from './prove-signal-4.js'
@@ -102,7 +106,11 @@ function summaries(): readonly [string, string] {
 
 // The order of every report and summary line, the citations, and what the
 // named reports say about their forms (R-209, R-247).
-function proveOutput(lines: readonly string[], reports: Report[]): string[] {
+function proveOutput(
+  lines: readonly string[],
+  reports: Report[],
+  only: ReadonlySet<string>,
+): string[] {
   const failures: string[] = []
   const sorted = reports.toSorted(compareReports)
   if (sorted.some((report, index) => report !== reports[index]))
@@ -139,6 +147,8 @@ function proveOutput(lines: readonly string[], reports: Report[]): string[] {
     failures.push(`drift:check: no "${signal4}" line after signal 2's summary`)
   if (parsed !== -1 && reports.some((report) => report.index > parsed))
     failures.push('drift:check: a report follows the "files parsed" line')
+  if (docTruthCodes.some((code) => only.has(code)))
+    failures.push(...proveSignal1Summary(lines, parsed, second))
   return failures
 }
 
@@ -166,7 +176,7 @@ async function proveCheck(only: ReadonlySet<string>): Promise<string[]> {
   return [
     ...failures,
     ...compareCodes('drift:check', expectedFor(only), reported),
-    ...proveOutput(lines, reports),
+    ...proveOutput(lines, reports, only),
   ]
 }
 
@@ -213,6 +223,12 @@ async function proveToolErrors(): Promise<string[]> {
         {
           recursive: true,
         },
+      )
+      // The stand-in's `AGENTS.md` comes too, so only `CONTEXT.md` is at
+      // fault (R-253).
+      await cp(
+        path.join(fixtureRoot, 'AGENTS.md'),
+        path.join(repo, 'AGENTS.md'),
       )
       if (glossaryText !== undefined)
         await writeFile(path.join(repo, 'CONTEXT.md'), glossaryText)

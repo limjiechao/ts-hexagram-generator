@@ -3,7 +3,8 @@
 // on `fixtures/signal-4/`, a stand-in repo, and expects exit 1 with exactly
 // the expected reports, matched both ways, in R-209's order, before the
 // "files parsed" line and signal 4's summary (R-231); a run judging a G code
-// also needs signal 2's empty summary between them (R-247). It then scans every
+// also needs signal 2's empty summary between them (R-247), and a run judging
+// a D code signal 1's before that (R-255). It then scans every
 // fixture file in memory with each line terminator (R-225) and matches
 // `findEphemeralIds` against the same list. The contract is
 // `ephemeral-finding.ts`'s.
@@ -12,7 +13,9 @@ import { readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { docTruthCodes } from './doc-truth-finding.js'
 import type { EphemeralFinding } from './ephemeral-finding.js'
+import { emptyStandInSummary } from './fixtures/signal-1/expected.js'
 import { expected, scanned } from './fixtures/signal-4/expected.js'
 import { glossaryCodes } from './glossary-finding.js'
 import { runTsx, type Run } from './run-tsx.js'
@@ -115,6 +118,24 @@ function proveSignal2Summary(
     : []
 }
 
+// The fixture's `AGENTS.md` is empty, and it has no `docs/` and no exception
+// file, so signal 1 finds nothing; its summary still prints, after the
+// "files parsed" line and before `next`, the summary that follows it
+// (R-253, R-255). It is signal 1's output, so only a run judging a D code
+// needs it, as R-247 has it for signal 2's.
+export function proveSignal1Summary(
+  lines: readonly string[],
+  parsed: number,
+  next: number,
+): string[] {
+  const at = lines.indexOf(emptyStandInSummary)
+  return at === -1 || at < parsed || (next !== -1 && at > next)
+    ? [
+        `drift:check: no "${emptyStandInSummary}" line after the "files parsed" line and before the next summary (R-255)`,
+      ]
+    : []
+}
+
 // The report lines, their order, the citations and the summary (R-209,
 // R-231). The summary's finding count is only bounded below by the reports,
 // as R-230 leaves open whether it counts reports or IDs.
@@ -152,6 +173,16 @@ function proveOutput(
     failures.push('drift:check: a report follows the "files parsed" line')
   if (glossaryCodes.some((code) => only.has(code)))
     failures.push(...proveSignal2Summary(lines, parsed, summary))
+  if (docTruthCodes.some((code) => only.has(code))) {
+    const signal2At = lines.indexOf(signal2Summary)
+    failures.push(
+      ...proveSignal1Summary(
+        lines,
+        parsed,
+        signal2At === -1 ? summary : signal2At,
+      ),
+    )
+  }
   const [, findings, files] = summaryLine.exec(lines[summary] ?? '') ?? []
   const filesWanted = new Set(
     Object.keys(expected).map((key) => key.replace(/:\d+$/, '')),
