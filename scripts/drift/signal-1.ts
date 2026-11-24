@@ -1,8 +1,8 @@
-// Drift signal 1, paths (ADR-0042, R-195, R-201, R-207, R-251 to R-255):
-// the paths a source document names in code spans must exist. The contract
-// is `doc-truth-finding.ts`'s.
+// Drift signal 1 (ADR-0042, R-195, R-201, R-202, R-207, R-251 to R-255,
+// R-261, R-262): the paths and symbols a source document names in code
+// spans must exist. The contract is `doc-truth-finding.ts`'s.
 
-import { glob, readdir } from 'node:fs/promises'
+import { glob, readdir, readFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import type {
@@ -14,6 +14,7 @@ import type {
   PathCheck,
   SourceRead,
   SourceWord,
+  SymbolCheck,
 } from './doc-truth-finding.js'
 
 const heading = /^ {0,3}(#{1,6})(?:[ \t](.*))?$/
@@ -267,4 +268,61 @@ export async function checkPaths(
     (a, b) => a.line - b.line || (a.code < b.code ? -1 : 1),
   )
   return { findings, excepted: exceptedNames, formerRoots: counts }
+}
+
+const codeFile = /\.(?:ts|tsx|mts|cts|js|mjs|cjs|json)$/
+const skippedFolders: ReadonlySet<string> = new Set([
+  'node_modules',
+  'dist',
+  'consultations',
+])
+
+// Every whole word in the code and JSON under `root` (R-210, R-262). A
+// skipped folder is never entered, so nothing under `consultations/` is
+// ever opened; a read error on a file that is entered is not swallowed.
+export async function presentNames(root: string): Promise<ReadonlySet<string>> {
+  const names = new Set<string>()
+  const walk = async (folder: string): Promise<void> => {
+    for (const entry of await readdir(folder, { withFileTypes: true })) {
+      const at = path.join(folder, entry.name)
+      if (entry.isDirectory()) {
+        if (!entry.name.startsWith('.') && !skippedFolders.has(entry.name))
+          await walk(at)
+      } else if (entry.isFile() && codeFile.test(entry.name)) {
+        const text = await readFile(at, 'utf8')
+        for (const [word] of text.matchAll(/[\w$]+/g)) names.add(word)
+      }
+    }
+  }
+  await walk(root)
+  return names
+}
+
+// camelCase, or PascalCase with a lower-to-upper hump (R-261).
+const symbol = /^(?=[A-Za-z]).*[a-z][A-Z]/
+
+export function checkSymbols(
+  words: readonly SourceWord[],
+  present: ReadonlySet<string>,
+  excepted: ReadonlySet<string>,
+): SymbolCheck {
+  const misses = new Map<number, string[]>()
+  const exceptedNames: string[] = []
+  for (const { line, word } of words) {
+    // Paths are D1's and D2's (R-261).
+    if (word.includes('/')) continue
+    for (const token of word.split(/[^\w$]+/)) {
+      if (!symbol.test(token) || present.has(token)) continue
+      if (excepted.has(token)) {
+        if (!exceptedNames.includes(token)) exceptedNames.push(token)
+        continue
+      }
+      const names = misses.get(line) ?? []
+      if (!names.includes(token)) misses.set(line, [...names, token])
+    }
+  }
+  const findings = [...misses]
+    .map(([line, names]): DocTruthFinding => ({ line, code: 'D3', names }))
+    .toSorted((a, b) => a.line - b.line)
+  return { findings, excepted: exceptedNames }
 }

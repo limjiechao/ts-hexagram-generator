@@ -1,5 +1,5 @@
 // `drift:check [--root <dir>]` (ADR-0042, R-208, R-209, R-231, R-232,
-// R-243, R-247, R-253 to R-255): in the repo `<dir>` names, resolved from
+// R-243, R-247, R-253 to R-255, R-262, R-264): in the repo `<dir>` names, resolved from
 // the working directory, or this repo, runs signal 1 over its source
 // documents, reads its `CONTEXT.md`, scans its `overhaul/`, and runs signals
 // 2 and 4 over it; their contracts are `doc-truth-finding.ts`'s,
@@ -21,7 +21,13 @@ import type {
 import type { EphemeralCode } from './ephemeral-finding.js'
 import type { AvoidForm } from './glossary-finding.js'
 import { scanTree } from './scanner.js'
-import { checkPaths, readExceptions, readSource } from './signal-1.js'
+import {
+  checkPaths,
+  checkSymbols,
+  presentNames,
+  readExceptions,
+  readSource,
+} from './signal-1.js'
 import { findGlossaryForms, readGlossary } from './signal-2.js'
 import { findEphemeralIds } from './signal-4.js'
 
@@ -73,6 +79,8 @@ function quoted(names: readonly string[]): string {
 
 function describeMiss({ code, names }: DocTruthFinding): string {
   const several = names.length > 1
+  if (code === 'D3')
+    return `${several ? 'symbols' : 'symbol'} ${quoted(names)} ${several ? 'are' : 'is'} not in the code; docs name only what exists ${citeD}`
   const what =
     code === 'D2'
       ? `${several ? 'globs' : 'glob'} ${quoted(names)}${several ? ': each' : ''} matches nothing`
@@ -148,22 +156,30 @@ async function runSignal1(repo: string): Promise<Signal1Run | undefined> {
   const reports: Report[] = []
   const used = new Set<DocTruthException>()
   const counts = new Map(formerRoots.map(({ root }) => [root, 0]))
+  const present = await presentNames(repo)
   for (const [file, text] of documents) {
     const own = exceptions.filter((entry) => entry.file === file)
+    const { words } = readSource(text)
+    const excepted = new Set(own.map(({ name }) => name))
     const paths = await checkPaths(
       repo,
-      readSource(text).words,
+      words,
       formerRoots.map(({ root }) => root),
-      new Set(own.map(({ name }) => name)),
+      excepted,
     )
-    for (const finding of paths.findings)
+    const symbols = checkSymbols(words, present, excepted)
+    for (const finding of [...paths.findings, ...symbols.findings])
       reports.push({ file, ...finding, text: describeMiss(finding) })
     for (const entry of own)
-      if (paths.excepted.includes(entry.name)) used.add(entry)
+      if (
+        paths.excepted.includes(entry.name) ||
+        symbols.excepted.includes(entry.name)
+      )
+        used.add(entry)
     for (const [root, count] of paths.formerRoots)
       counts.set(root, (counts.get(root) ?? 0) + count)
   }
-  // An entry that excepts no miss is stale (R-195, R-254).
+  // An entry that excepts no miss of either checker is stale (R-195, R-254).
   for (const entry of exceptions)
     if (!used.has(entry))
       reports.push({
