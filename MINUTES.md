@@ -330,3 +330,20 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 17 of M-004's 60 (R-251 to R-267)
 - Landed: 6863d41 (acceptance material, squashing cd0985f, 12873af, a4bb249, 2b1d12d), a09ce0b (D3, squashing a4b4864, 6991ce6) · Phase estimate: 3 Matters / 1 week
 - Notes: the implementer found that the prover's own seed literals made the seeded names "present" under R-262 (ruled R-267). The clerk added a run-time proof that the presence walk never opens `consultations/`. One tester grep over the worktree did not exclude `consultations/` by name; the worktree has none, so nothing was read, and every later brief names the exclusion.
+
+### Iteration 24 — M-004 — 2026-11-24
+
+- Attempt: 1/2 (slice 3; R-058) · Outcome: slice 3 landed; M-004 landed
+- Review: `APPROVE` (each of R-271's checks shown to fail with its wiring removed)
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check · `turbo run drift:check` (no cache hit) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for all 25 codes, the analysis, the scanner, `--only` and the landing wiring
+- Owner touches: 21 of M-004's 60 (R-251 to R-271)
+- Landed: 9bd3ac3 (acceptance material), 4882d35 (the wiring: turbo task, `check:all`, `check:affected`, CI, clerk Step 6)
+- Notes: the tester found that R-206 alone would have run `drift:check` at no landing (R-268). The tester briefly applied the wiring itself to prove its checks could go green, then reverted it before committing; the implementer made the real edits.
+
+### Phase 2 milestone — 2026-11-24
+
+- Landed: M-002 (signal 3, the boundary rules), M-003 (the scanner, signals 2 and 4), M-004 (signal 1, and drift:check at every landing). Budget 3 Matters / 1 week (R-250); actual 3 Matters in 4 days.
+- Owner touches: 49 + 55 + 21 = 125 across the three Matters, under the 60-per-Matter cap each (R-138); M-003 split at 45 (R-240).
+- Review attempts: 10 slices; 4 passed first time; 5 took two attempts; M-002 slice 4 took four (R-193, R-194). Every blocking finding after M-002's first slices was a silent miss: something that should have been reported or should have failed, but passed.
+- Size: slices ran at about 1.5 to 3 times their estimates, almost all in acceptance material; the owner accepted each overrun (R-191, R-238, R-249, R-259).
+- Process: the challenger caught six factual errors and seven missed spec holes in M-003's proposal before the owner saw it; grouping spec holes by topic held each round to 5–12 touches.
