@@ -172,10 +172,10 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   and former roots in R-254; the acceptance list in R-256). Attempt 1 (e9cfe81 fixtures, 9304172 code) APPROVED;
   Q-M-004-7 to -10 ruled as R-257 to R-260; slice 1 landed 2026-11-23. Stated limits of signal 1: links, bare text
   and fences are not read (R-251); a path in parentheses or quotes inside a span is skipped; malformed markdown can
-  swallow a span; macOS globbing ignores case (R-260). In flight: slice 2 (signal 1 symbols, D3, R-202) on branch
-  m/M-004-s2, worktree ../hexagram-wt-M-004-s2. Q-M-004-11 to -16 ruled as R-261 to R-266 (the symbol seed
-  and the contract line-edit in R-265). Fixtures cd0985f, 12873af; code a4b4864. Q-M-004-17 ruled as R-267 (split the literals; tester edits, then a fresh review). Was: the prover's seed
-  table spells `castMethod` and `ReadoutShell` as string literals, which R-262 counts as present, so the real tree
-  reports both seed rows as stale (D4) and exits 1.
-- Commits: slice 1: 50aeb4e, 865d55b
+  swallow a span; macOS globbing ignores case (R-260). Slice 2 (D3) landed 2026-11-24; Q-M-004-11 to -17 ruled as
+  R-261 to R-267. Stated limits of D3: a name in the drift fixtures or provers counts as present (R-267); a `<…>` word is
+  still split for symbols; symlinked code is not read; tokens starting `_` or `$` are not candidates. In flight: slice 3
+  (`drift:check` joins `check:all`, R-206) on branch m/M-004-s3, worktree ../hexagram-wt-M-004-s3: the tester's spec
+  audit first.
+- Commits: slice 1: 50aeb4e, 865d55b; slice 2: 6863d41, a09ce0b
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.

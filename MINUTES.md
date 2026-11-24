@@ -321,3 +321,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 10 of M-004's 60; R-250 raised Phase 2's budget to 3 Matters
 - Landed: 50aeb4e (acceptance material and the exception seed, squashing e9cfe81, b88bf83), 865d55b (signal 1 paths, squashing 9304172, a38a5f7) · Phase estimate: 3 Matters / 1 week
 - Notes: the first slice since M-002 to pass review on its first attempt. The tester proved the prover against a throwaway implementation with six planted faults before handing over.
+
+### Iteration 23 — M-004 — 2026-11-24
+
+- Attempt: 2/2 (slice 2; R-058) · Outcome: slice 2 landed
+- Review: attempt 1 `REQUEST CHANGES` (the candidate pattern missed a hump in a name's first two letters, R-261) · attempt 2 `APPROVE`
+- Verify: type:check · oxlint and uncached eslint · format · lint:check · drift:check (signal 1: 39 documents, 5 exceptions, `packages/` 7; signals 2 and 4: 0) · build and test forced on matters 18/18 and 36/36 · unfiltered drift:prove passes for all 25 codes, the analysis, the scanner and `--only`
+- Owner touches: 17 of M-004's 60 (R-251 to R-267)
+- Landed: 6863d41 (acceptance material, squashing cd0985f, 12873af, a4bb249, 2b1d12d), a09ce0b (D3, squashing a4b4864, 6991ce6) · Phase estimate: 3 Matters / 1 week
+- Notes: the implementer found that the prover's own seed literals made the seeded names "present" under R-262 (ruled R-267). The clerk added a run-time proof that the presence walk never opens `consultations/`. One tester grep over the worktree did not exclude `consultations/` by name; the worktree has none, so nothing was read, and every later brief names the exclusion.
