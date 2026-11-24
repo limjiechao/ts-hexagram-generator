@@ -18,7 +18,7 @@ Still under the options: `docs/considered-fenced.md`.
 
 ### A subsection
 
-- Move to `docs/considered-deeper.md`.
+- Move to `docs/considered-deeper.md` or rename to `consideredSymbol`.
 
 ## Decision
 

@@ -30,3 +30,34 @@ cat `docs/fenced-missing.md`
 
 Former root: `legacy/old/tool.ts` and `legacy/old/shim.ts`.
 Planned: `docs/planned/guide.md`.
+
+## Symbols
+
+Missing camelCase: `castWithoutCode`.
+Missing PascalCase: `ReadingWithoutCode`.
+Two on one line: `lostHelper` and `LostRecord`.
+Forms: `missingCall()` and `PresentRecord.missingField`.
+Wrong case: `PresentHelper`.
+Whole word only: `presentHelp`.
+Named only in docs: `docOnlyName`.
+The call `run
+lostAcrossLines()` wraps.
+A camelCase path: `docs/missingCamelFile.md`.
+
+Present: `presentHelper`, `PresentRecord`, `presentHelper()` and `PresentRecord.presentField`.
+Only in JSON: `jsonOnlyKey`.
+Only in legacy-style code: `legacyOnlyName`.
+Only in a comment: `commentedName`.
+Not symbols: `keep`, `Casting`, `ID`, `URL`, `ETag`, `snake_case_name` and `SCREAMING_NAME`.
+A former root in the wrong case: `Legacy/old/caseTool.ts`.
+Planned: `plannedName`.
+A template: `use<Name>`.
+
+```sh
+echo `fencedMissing`
+```
+A link [to the helper](linkedMissing) and a bare bareMissing.
+
+Only under skipped folders: `nodeModulesName`, `distName`, `dotFolderName` and `consultationsName`.
+
+Hump at the start: `xLost` and `iMissing`.

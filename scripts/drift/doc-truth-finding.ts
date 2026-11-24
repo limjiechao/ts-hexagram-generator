@@ -1,7 +1,10 @@
-// Signal 1's contract for paths (ADR-0042, R-195, R-201, R-207, R-251 to
-// R-255): how it reads the exception file and a source document, how it
-// checks the paths a document names, and what `drift:check` prints.
-// `drift:prove` matches all of it against `fixtures/signal-1/expected.ts`.
+// Signal 1's contract (ADR-0042, R-195, R-201, R-202, R-207, R-251 to
+// R-255, R-261 to R-265): how it reads the exception file and a source
+// document, how it checks the paths and symbols a document names, and what
+// `drift:check` prints. `drift:prove` matches all of it against
+// `fixtures/signal-1/expected.ts`, running `drift:check` on a temporary copy
+// of that stand-in without `expected.ts`, whose quoted names would otherwise
+// be present (R-263).
 //
 // `scripts/drift/signal-1.ts` exports:
 //
@@ -48,8 +51,8 @@
 //     trailing `:N`, `:N-M`, `#…` or `/` is stripped first; a word starting
 //     `./`, `../` or `/`, or holding `<…>`, is skipped; the rest is a
 //     candidate if it holds `/` and its first segment is an entry of `root`,
-//     ignoring case (R-257), or a former root. A candidate under a former
-//     root is not checked but is counted (R-201). Any other candidate is
+//     or a former root, each ignoring case (R-257). A candidate under a
+//     former root is not checked but is counted (R-201). Any other candidate is
 //     checked under `root` (R-252): one holding `*`, `?`, `[` or `{` is a
 //     glob, through Node's `fs.glob`, and is D2 unless it matches at least
 //     one file or folder; any other is D1 unless each of its segments names,
@@ -65,13 +68,49 @@
 //     maps each former root met to its count of candidates, by occurrence
 //     (R-255).
 //
+//   presentNames(root: string): Promise<ReadonlySet<string>>
+//     The names present in the code under `root` (R-202, R-262): every run
+//     of the characters `[A-Za-z0-9_$]` in the text of every file under
+//     `root` whose extension is `.ts`, `.tsx`, `.mts`, `.cts`, `.js`, `.mjs`,
+//     `.cjs` (R-210's) or `.json`, read as UTF-8. The walk never enters, at
+//     any depth, a folder named `node_modules`, `dist` or `consultations`,
+//     or one whose name starts with `.`. So a name is present if it appears
+//     as a whole word, by exact case, anywhere in such a file: code,
+//     comments, strings and JSON keys alike. Markdown, and every other
+//     extension, never makes a name present; legacy code counts while it
+//     lives. `drift:check` calls it once per run.
+//
+//   checkSymbols(
+//     words: readonly SourceWord[],
+//     present: ReadonlySet<string>,
+//     excepted: ReadonlySet<string>,
+//   ): SymbolCheck
+//     `present` is as `presentNames` read it; `excepted` is as for
+//     `checkPaths`. For each word (R-261): a word holding `/` is skipped, as
+//     D1 and D2 check paths; any other word is split at every character
+//     outside `[A-Za-z0-9_$]`, so `foo()` gives `foo` and `Foo.bar` gives
+//     `Foo` and `bar`. A token is a candidate if it starts with a letter and
+//     holds a lowercase letter followed directly by an uppercase one:
+//     camelCase, or PascalCase with a lower-to-upper hump. A single
+//     lowercase or capitalised word (`keep`, `Casting`), an all-caps word or
+//     one whose capitals all lead (`ID`, `ETag`) and snake_case are not. A
+//     candidate not in `present` is D3, unless it is in `excepted`, the
+//     token being the exception's Name.
+//
+//     `findings` holds one D3 finding per distinct line (R-230), sorted by
+//     line, its `names` the tokens in document order, each once. `excepted`
+//     lists, each once, the names in the argument `excepted` that would have
+//     been a finding.
+//
 // `drift:check [--root <dir>]` reads, under `<dir>` or this repo (R-232):
 //   - `AGENTS.md`, which must exist;
 //   - each `docs/adr/NNNN-*.md` whose status starts with `Accepted`;
 //   - each `docs/design/*.md`, not recursively (R-207, R-253);
 // and `scripts/drift/doc-truth-exceptions.md`, whose absence means no
-// exceptions and no former roots. An entry that excepts no miss in a read
-// document is D4 at its own line in the exception file (R-195, R-254).
+// exceptions and no former roots. Each document's words go through both
+// `checkPaths` and `checkSymbols`, each given that document's entries; an
+// entry that excepts no miss of either in a read document is D4 at its own
+// line in the exception file (R-195, R-254).
 //
 // Tool errors exit 2, printing only the error, to stderr (R-220): a missing
 // `AGENTS.md`, naming `AGENTS.md`; a `readExceptions` error, or a former
@@ -84,19 +123,22 @@
 //     with one name reads `path "<name>" does not exist; docs name only what
 //     exists (ADR-0042, R-195)`; every D message quotes each of its names
 //     (a D4 its entry's Name) and cites ADR-0042 and R-195; a D2 says the
-//     glob "matches nothing" (R-255);
+//     glob "matches nothing" (R-255). A D3 with one name reads
+//     `symbol "<name>" is not in the code; docs name only what exists
+//     (ADR-0042, R-195)`, and with several `symbols "<a>", "<b>" are not in
+//     the code; …` (R-264);
 //   - then the `<N> files parsed` line;
 //   - then `signal 1: <N> findings in <M> files (<S> documents read, <X>
 //     exceptions, former roots: <root> <count>)`, N counting report lines,
-//     even when N is 0 (R-255);
+//     D3's included, even when N is 0 (R-255, R-264);
 //   - then signal 2's summary, then signal 4's (R-247).
 //
 // It exits 1 when any signal finds anything, 0 when clean, 2 on a tool
 // error.
 
-export type DocTruthCode = 'D1' | 'D2' | 'D4'
+export type DocTruthCode = 'D1' | 'D2' | 'D3' | 'D4'
 
-export const docTruthCodes: readonly DocTruthCode[] = ['D1', 'D2', 'D4']
+export const docTruthCodes: readonly DocTruthCode[] = ['D1', 'D2', 'D3', 'D4']
 
 export interface DocTruthException {
   // 1-based: the entry's line in the exception file.
@@ -143,4 +185,9 @@ export interface PathCheck {
   readonly findings: readonly DocTruthFinding[]
   readonly excepted: readonly string[]
   readonly formerRoots: ReadonlyMap<string, number>
+}
+
+export interface SymbolCheck {
+  readonly findings: readonly DocTruthFinding[]
+  readonly excepted: readonly string[]
 }

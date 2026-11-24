@@ -10,6 +10,8 @@ An invented exception file for signal 1's proof.
 | `docs/adr/0001-accepted.md` | `docs/considered-only.md` | stale: named only under Considered options |
 | `docs/gone.md` | `docs/gone-target.md` | stale: the file is gone |
 | `AGENTS.md` | `legacy/old/tool.ts` | stale: under a former root |
+| `AGENTS.md` | `presentHelper` | stale: the symbol exists |
+| `AGENTS.md` | `plannedName` | planned, written before the code's phase |
 
 ## Former roots
 

@@ -6,7 +6,7 @@
 // B-number and each twin by none. Reports from rules outside B1 to B12 are
 // ignored. Drift signal 4's prover (R-231, `prove-signal-4.ts`) judges E1
 // to E7 the same way, signal 2's (R-247, `prove-signal-2.ts`) G1 and G2, and
-// signal 1's (R-255, `prove-signal-1.ts`) D1, D2 and D4. `--only B1,E3`
+// signal 1's (R-255, R-264, `prove-signal-1.ts`) D1 to D4. `--only B1,E3`
 // limits the run to the codes named; an unknown code is an error that lists
 // the valid ones (R-233, R-255).
 //
@@ -50,8 +50,8 @@ const subpathFixtures = fileURLToPath(
 const allFixtures = fileURLToPath(new URL('fixtures/', import.meta.url))
 const entryFile = fileURLToPath(import.meta.url)
 const boundaryRules = Array.from({ length: 12 }, (_, index) => `B${index + 1}`)
-// The codes `--only` accepts grow as signals land, in R-204's family order;
-// D3 joins with signal 1's symbol check (R-204, R-215, R-233, R-255).
+// The codes `--only` accepts, in R-204's family order: B1 to B12, D1 to D4,
+// G1 and G2, E1 to E7 (R-204, R-215, R-233, R-255, R-266).
 const validCodes: readonly string[] = [
   ...boundaryRules,
   ...docTruthCodes,
@@ -227,11 +227,15 @@ async function proveSubpaths(): Promise<string[]> {
 // `--only` as R-215 and R-233 set it: an unknown code, alone or beside a
 // valid one, is an error listing every valid code; valid ones, B, D, G and
 // E codes mixed, run only those codes, and skip the analysis, the scanner
-// and the clean-tree check. `Z1` never becomes a valid code, and D3 is not
-// one yet (R-255).
+// and the clean-tree check. `Z1` never becomes a valid code, and the error
+// lists all 25, D3 among them (R-266).
 async function proveOnly(): Promise<string[]> {
   const failures: string[] = []
-  for (const codes of ['Z1', 'B1,Z1', 'D3']) {
+  if (validCodes.length !== 25)
+    failures.push(
+      `--only: expected 25 valid codes, found ${String(validCodes.length)}: ${validCodes.join(', ')} (R-266)`,
+    )
+  for (const codes of ['Z1', 'B1,Z1']) {
     const run = await runTsx(entryFile, ['--only', codes])
     const listed = validCodes.every((code) =>
       new RegExp(String.raw`\b${code}\b`).test(run.stderr),
@@ -241,7 +245,17 @@ async function proveOnly(): Promise<string[]> {
         `--only ${codes}: expected exit 1 listing ${validCodes.join(', ')}, got exit ${String(run.code)}: ${run.stderr.trim()}`,
       )
   }
-  for (const codes of ['B3', 'E3', 'G1', 'B3,E3', 'G2,E3', 'D1', 'B3,D4,E3']) {
+  for (const codes of [
+    'B3',
+    'E3',
+    'G1',
+    'B3,E3',
+    'G2,E3',
+    'D1',
+    'D3',
+    'B3,D3,E3',
+    'B3,D4,E3',
+  ]) {
     const run = await runTsx(entryFile, ['--only', codes])
     const scope = codes.replaceAll(',', ', ')
     if (
