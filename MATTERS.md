@@ -157,7 +157,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-004: Build drift signal 1 and run drift:check at every landing
 
-- Status: in-progress
+- Status: awaiting-ruling
 - Phase: 2
 - Licensed by: ADR-0042 (drift signals); R-147; R-240
 - Scope: Doc truth (signal 1): paths and symbols named in `AGENTS.md`, Accepted ADRs and `docs/design/*.md` must exist
@@ -175,7 +175,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   swallow a span; macOS globbing ignores case (R-260). Slice 2 (D3) landed 2026-11-24; Q-M-004-11 to -17 ruled as
   R-261 to R-267. Stated limits of D3: a name in the drift fixtures or provers counts as present (R-267); a `<…>` word is
   still split for symbols; symlinked code is not read; tokens starting `_` or `$` are not candidates. In flight: slice 3
-  (`drift:check` joins `check:all`, R-206) on branch m/M-004-s3, worktree ../hexagram-wt-M-004-s3: the tester's spec
-  audit first.
+  (`drift:check` joins `check:all`, R-206) on branch m/M-004-s3, worktree ../hexagram-wt-M-004-s3, awaits Q-M-004-18
+  to -21 (nothing at a landing runs `check:all`; caching; failure output; the acceptance list).
 - Commits: slice 1: 50aeb4e, 865d55b; slice 2: 6863d41, a09ce0b
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.
