@@ -3431,3 +3431,16 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (b) split.
 - Ruling: "Q-M-004-11 to -16: A"
 - Folded into: not yet
+
+### R-267: The prover spells seed symbols so they are no whole word in code
+
+- Date: 2026-11-24
+- Raised in: M-004 (question Q-M-004-17, from slice 2's implementation)
+- Question: The prover quotes `castMethod` and `ReadoutShell` as string
+  literals, which R-262 counts as present, so the real tree reports both seed
+  rows as stale. (a) the prover writes such names so no whole word appears in
+  code (e.g. `'cast' + 'Method'`), with a comment citing R-262; names in drift
+  fixtures and provers counting as present is a stated limit; (b)
+  `presentNames` skips `scripts/drift/`; (c) drop the two seed rows.
+- Ruling: "Q-M-004-17: A"
+- Folded into: not yet
