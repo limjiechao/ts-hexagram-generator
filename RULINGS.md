@@ -3444,3 +3444,51 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `presentNames` skips `scripts/drift/`; (c) drop the two seed rows.
 - Ruling: "Q-M-004-17: A"
 - Folded into: not yet
+
+### R-268: drift:check runs in check:all, in CI's check job and at the clerk's landing check
+
+- Date: 2026-11-24
+- Raised in: M-004 (question Q-M-004-18, slice 3's spec audit)
+- Question: Neither CI nor the clerk's Step 6 runs `check:all`, so R-206 alone
+  runs `drift:check` at no landing. (a) add `//#drift:check` to `check:all`
+  (R-206), a `pnpm drift:check` step to CI's `check` job in
+  `unit-test.yml`, and `pnpm drift:check` to `clerk.md` Step 6; (b)
+  `check:all` only; (c) CI only.
+- Ruling: "Q-M-004-18 to -21: A"
+- Folded into: not yet
+
+### R-269: The drift:check task is not cached, and check:affected runs it too
+
+- Date: 2026-11-24
+- Raised in: M-004 (question Q-M-004-19)
+- Question: Turbo's root-task hash leaves out files in the `overhaul/*`
+  packages, so a cached run can pass stale. (a) `"cache": false`, as
+  `//#lint:fix` and `//#format:fix`; `check:affected` also names
+  `drift:check`; (b) an explicit inputs list; (c) the default, and
+  `check:affected` unchanged.
+- Ruling: "Q-M-004-18 to -21: A"
+- Folded into: not yet
+
+### R-270: Under turbo, findings and tool errors both show as a failed task
+
+- Date: 2026-11-24
+- Raised in: M-004 (question Q-M-004-20)
+- Question: (a) accept it: findings still print in the grouped log, and the
+  exit-1 and exit-2 distinction stays visible through `pnpm drift:check`; (b)
+  make turbo preserve the distinction.
+- Ruling: "Q-M-004-18 to -21: A"
+- Folded into: not yet
+
+### R-271: M-004 slice 3's acceptance list
+
+- Date: 2026-11-24
+- Raised in: M-004 (question Q-M-004-21)
+- Question: (a) six checks, none running `check:all`: a structural check that
+  `//#drift:check` exists with no `dependsOn` and `cache: false`, and that
+  `check:all` and `check:affected` name it; `pnpm turbo run drift:check`
+  exits 0 on the real tree, the second run without a cache hit; a finding
+  planted in a throwaway copy fails the turbo run and shows in its log; CI's
+  `check` job has the step; `clerk.md` Step 6 names `pnpm drift:check`;
+  M-004's Acceptance passes; (b) change it.
+- Ruling: "Q-M-004-18 to -21: A"
+- Folded into: not yet
