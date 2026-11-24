@@ -13,8 +13,9 @@
 // Without `--only`, it also proves the Oracle-subpath analysis (R-151,
 // R-179) on its fixture trees: the analysis must report each fake subpath as
 // its expected list says, the two matching both ways (R-184, R-189); the
-// scanner (R-208, `prove-scanner.ts`); and `--only` itself. It then checks the
-// working tree is unchanged. Every prover runs, and every failure is listed,
+// scanner (R-208, `prove-scanner.ts`); `--only` itself; and that
+// `drift:check` runs at every landing (R-271, `prove-landing.ts`). It then
+// checks the working tree is unchanged. Every prover runs, and every failure is listed,
 // before the entry exits 1 (R-215).
 
 import { execFile } from 'node:child_process'
@@ -36,6 +37,7 @@ import {
 import { expected } from './fixtures/signal-3/expected.js'
 import { glossaryCodes } from './glossary-finding.js'
 import { analyseOracleSubpaths } from './oracle-subpaths.js'
+import { proveLanding } from './prove-landing.js'
 import { proveScanner } from './prove-scanner.js'
 import { proveSignal1 } from './prove-signal-1.js'
 import { proveSignal2 } from './prove-signal-2.js'
@@ -349,6 +351,7 @@ if (analysed) {
     ...(await collect('the scanner proof', proveScanner)),
     ...(await collect('the --only proof', proveOnly)),
     ...(await collect('the clean-tree hash', proveHashCoversFixtures)),
+    ...(await collect('the landing proof', proveLanding)),
   )
   if ((await workingTreeState()) !== before)
     failures.push('the working tree changed during the proof')
@@ -356,7 +359,7 @@ if (analysed) {
 const scope =
   describeRules(validCodes.filter((code) => only.has(code))) +
   (analysed
-    ? ', the Oracle-subpath analysis (R-151), the scanner (R-208) and --only (R-215)'
+    ? ', the Oracle-subpath analysis (R-151), the scanner (R-208), --only (R-215) and the landing wiring (R-271)'
     : '')
 if (failures.length > 0) {
   console.error(`drift:prove failed for ${scope}:`)
