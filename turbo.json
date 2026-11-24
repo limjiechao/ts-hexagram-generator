@@ -4,6 +4,9 @@
   // test env (FORCE_COLOR) + cache posture: docs/adr/0013-test-execution-and-ci-posture.md
   "tasks": {
     "//#check:affected": {},
+    "//#drift:check": {
+      "cache": false
+    },
     "//#format:check": {},
     "//#format:fix": {
       "cache": false
