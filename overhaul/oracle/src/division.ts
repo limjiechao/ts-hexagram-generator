@@ -2,6 +2,8 @@ import type { Casting, PartialCasting } from '#src/casting.js'
 import type { LinePosition } from '#src/line-position.js'
 import type { Pick } from '#src/pick.js'
 import type { Remainder } from '#src/remainder.js'
+import type { Round } from '#src/round.js'
+import type { SetAside } from '#src/set-aside.js'
 
 /** ADR-0038's Empty Casting: no Rounds yet, so the next Round has 49 stalks. */
 export const emptyCasting: PartialCasting = { state: 'partial', rounds: [] }
@@ -74,7 +76,9 @@ export type NextRoundResult =
  * Picks and refuses, with rule `replay`, a Casting that does not replay.
  */
 export function nextRound(casting: PartialCasting): NextRoundResult {
-  return notImplemented(casting)
+  const replayed = replay(casting)
+  if (replayed.outcome === 'refused') return replayed
+  return { outcome: 'next', round: roundAwaited(replayed.next.stalks) }
 }
 
 /**
@@ -96,6 +100,130 @@ export function transcribe(
   transcription: Transcription,
 ): DivisionResult {
   return notImplemented(casting, transcription)
+}
+
+/** Where the next Round falls in a Casting, and the stalks it starts from. */
+interface NextPlace {
+  readonly line: LinePosition
+  readonly round: 1 | 2 | 3
+  readonly stalks: number
+}
+
+/** A partial Casting's Picks replayed: the next Round's place, or a refusal. */
+type Replay =
+  | { readonly outcome: 'replayed'; readonly next: NextPlace }
+  | {
+      readonly outcome: 'refused'
+      readonly refusal: Refusal & { readonly rule: 'replay' }
+    }
+
+const linePositions: readonly LinePosition[] = [1, 2, 3, 4, 5, 6]
+const roundsOfLine: readonly (1 | 2 | 3)[] = [1, 2, 3]
+
+/**
+ * The places a partial Casting can hold a Round, bottom-up: every place but
+ * the eighteenth, which its type never holds.
+ */
+const heldPlaces = linePositions
+  .flatMap((line) => roundsOfLine.map((round) => ({ line, round })))
+  .slice(0, -1)
+
+/**
+ * Replays a partial Casting Round by Round: each Line starts from 49 stalks,
+ * and each later Round from the stalks the Round before leaves. Each Round is
+ * rebuilt from its Pick and those stalks, and the first whose recorded fields
+ * differ, or whose Pick is not valid, is refused with what it records.
+ */
+function replay(casting: PartialCasting): Replay {
+  let stalks = 49
+  for (const { line, round } of heldPlaces) {
+    if (round === 1) stalks = 49
+    const recorded = casting.rounds[line - 1]?.[round - 1]
+    if (recorded === undefined) {
+      return { outcome: 'replayed', next: { line, round, stalks } }
+    }
+    const rebuilt = roundFrom(stalks, recorded.pick)
+    if (rebuilt === undefined || !recordsSame(recorded, rebuilt)) {
+      const { stalks: recordedStalks, pick } = recorded
+      return {
+        outcome: 'refused',
+        refusal: { line, round, stalks: recordedStalks, pick, rule: 'replay' },
+      }
+    }
+    stalks -= rebuilt.setAside
+  }
+  return { outcome: 'replayed', next: { line: 6, round: 3, stalks } }
+}
+
+/** Every field a Round records, the Pick aside, as replay rebuilds them. */
+function recordsSame(recorded: Round, rebuilt: Round): boolean {
+  return (
+    recorded.stalks === rebuilt.stalks &&
+    recorded.remainderLeft === rebuilt.remainderLeft &&
+    recorded.remainderRight === rebuilt.remainderRight &&
+    recorded.setAside === rebuilt.setAside
+  )
+}
+
+/**
+ * The Round a Pick makes of `stalks`: the left heap holds the Pick, the Hung
+ * Stalk comes from the right heap, and each heap is counted off in fours.
+ * Absent when the Pick is not valid (ADR-0023), or the stalks are not ones a
+ * Casting reaches, so the Hung Stalk and both Remainders make no Set-aside.
+ */
+function roundFrom(stalks: number, pick: Pick): Round | undefined {
+  if (!isValidPick(stalks, pick)) return undefined
+  const remainderLeft = remainderOf(pick)
+  const remainderRight = remainderOf(stalks - pick - 1)
+  const setAside = setAsideOf(1 + remainderLeft + remainderRight)
+  if (setAside === undefined) return undefined
+  return { stalks, pick, remainderLeft, remainderRight, setAside }
+}
+
+/** A valid Pick is a whole number from 1 to stalks − 2 (ADR-0023). */
+function isValidPick(stalks: number, pick: Pick): boolean {
+  return Number.isInteger(pick) && pick >= 1 && pick <= stalks - 2
+}
+
+/** What counting off a heap of at least one stalk in fours leaves. */
+function remainderOf(count: number): Remainder {
+  switch (count % 4) {
+    case 1:
+      return 1
+    case 2:
+      return 2
+    case 3:
+      return 3
+    default:
+      return 4
+  }
+}
+
+function setAsideOf(total: number): SetAside | undefined {
+  switch (total) {
+    case 4:
+    case 5:
+    case 8:
+    case 9:
+      return total
+    default:
+      return undefined
+  }
+}
+
+/** The Round awaited at `stalks`, its Remainder Groups in ascending Picks. */
+function roundAwaited(stalks: number): NextRound {
+  const max = stalks - 2
+  const remainderGroups: Record<Remainder, Pick[]> = {
+    1: [],
+    2: [],
+    3: [],
+    4: [],
+  }
+  for (let pick = 1; pick <= max; pick += 1) {
+    remainderGroups[remainderOf(pick)].push(pick)
+  }
+  return { stalks, validPicks: { min: 1, max }, remainderGroups }
 }
 
 /** Carries the inputs as the cause, so each signature keeps its names. */
