@@ -3492,3 +3492,13 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   M-004's Acceptance passes; (b) change it.
 - Ruling: "Q-M-004-18 to -21: A"
 - Folded into: not yet
+
+### R-272: The clerk opens the pull request that lands matters on main
+
+- Date: 2026-11-25
+- Raised in: landing Phases 1 and 2 (a direct push of `matters` to `main`
+  bypassed the pull-request rule and the required `check`)
+- Question: Should "the clerk opens the PR that lands `matters`" be a standing
+  rule, with a Ruling and a change to `clerk.md`'s "never open PRs" line?
+- Ruling: "The clerk should open the PR." and, asked whether it stands, "Yes"
+- Folded into: `docs/agents/clerk.md` (Git constraints)
