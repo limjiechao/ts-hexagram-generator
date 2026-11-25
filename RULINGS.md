@@ -3691,3 +3691,16 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `nextRound`, the incoming Pick for `divide`.
 - Ruling: "Q-M-005-1 to -2: A"
 - Folded into: not yet
+
+### R-289: M-005 slice 1's acceptance list
+
+- Date: 2026-11-25
+- Raised in: M-005 (slice 1's test list, `overhaul/oracle/tests/next-round.test.ts`)
+- Question: Approve the 36 tests of `next-round.test.ts` as listed: the Empty
+  Casting; Castings that replay (stalks after each Round, ADR-0023's group
+  sizes, the largest shape, every valid Pick of a whole Line over 67,996
+  paths); Castings that do not replay (wrong stalks, wrong recorded
+  Remainders and Set-aside in three places, six invalid Picks at 49 and 44
+  stalks carrying the recorded Pick, and the earlier of two failing Rounds)?
+- Ruling: "approve the list"
+- Folded into: not yet
