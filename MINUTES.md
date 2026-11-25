@@ -354,3 +354,10 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - GitHub refused the rebase merge ("This branch can't be rebased"), probably because the PR held 224 commits. The owner fast-forwarded `main` to a4a2ba2, the commit CI passed; GitHub marked #56 merged. Only the one-approving-review rule was bypassed, since an author cannot approve their own PR.
 - An earlier direct push of `matters` to `main` (before R-272) was undone by the owner (force-push back to 74cc6db) so the landing could go through the PR.
 - Notes: land later phases phase by phase or Matter by Matter, to stay under GitHub's rebase-merge limit; the one-review rule needs the owner's admin bypass or a rule change while the owner is the only maintainer.
+
+### Phase 3 breakdown — 2026-11-25
+
+- The owner asked for a drafter's breakdown of Phase 3 (Oracle core). A drafter wrote `docs/reviews/2026-11-25-phase-3-oracle-core.md` (a107166); a fresh challenger returned five blocking findings: an unratified `cli-adapter` dev dependency, ADR-0011's check order missed, a Pick-order choice placed in the wrong Matter, an error-policy choice left in a Free to choose, and Acceptance commands that could pass vacuously (a stub grep; `--passWithNoTests`). The drafter applied all ten findings after checking each (3ef5fcf); landed squashed as bf089b7.
+- Rulings: PH3-1 to PH3-13 as R-273 to R-285, all (A); M-005 to M-009 ratified as drafted (R-286).
+- Owner touches: 2 (the request and the ruling), counted against no Matter, since R-138's cap is per Matter.
+- Notes: R-276 amends ADR-0011's check order for the overhaul; the clerk drafts the amendment for the owner's ratification before M-006 lands. Phase 4 needs a data decision, possibly a spike: the legacy data holds no 用九/用六 text, no 文言 and no 焦氏易林.
