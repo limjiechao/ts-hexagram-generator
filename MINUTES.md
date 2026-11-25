@@ -347,3 +347,10 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Review attempts: 10 slices; 4 passed first time; 5 took two attempts; M-002 slice 4 took four (R-193, R-194). Every blocking finding after M-002's first slices was a silent miss: something that should have been reported or should have failed, but passed.
 - Size: slices ran at about 1.5 to 3 times their estimates, almost all in acceptance material; the owner accepted each overrun (R-191, R-238, R-249, R-259).
 - Process: the challenger caught six factual errors and seven missed spec holes in M-003's proposal before the owner saw it; grouping spec holes by topic held each round to 5–12 touches.
+
+### Landing — Phases 1 and 2 on main — 2026-11-25
+
+- PR #56 (`matters` → `main`, opened by the clerk under R-272): CI passed on a4a2ba2 (`check` with Drift check, `test` on ubuntu and windows).
+- GitHub refused the rebase merge ("This branch can't be rebased"), probably because the PR held 224 commits. The owner fast-forwarded `main` to a4a2ba2, the commit CI passed; GitHub marked #56 merged. Only the one-approving-review rule was bypassed, since an author cannot approve their own PR.
+- An earlier direct push of `matters` to `main` (before R-272) was undone by the owner (force-push back to 74cc6db) so the landing could go through the PR.
+- Notes: land later phases phase by phase or Matter by Matter, to stay under GitHub's rebase-merge limit; the one-review rule needs the owner's admin bypass or a rule change while the owner is the only maintainer.
