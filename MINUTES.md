@@ -361,3 +361,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Rulings: PH3-1 to PH3-13 as R-273 to R-285, all (A); M-005 to M-009 ratified as drafted (R-286).
 - Owner touches: 2 (the request and the ruling), counted against no Matter, since R-138's cap is per Matter.
 - Notes: R-276 amends ADR-0011's check order for the overhaul; the clerk drafts the amendment for the owner's ratification before M-006 lands. Phase 4 needs a data decision, possibly a spike: the legacy data holds no 用九/用六 text, no 文言 and no 焦氏易林.
+
+### Iteration 25 — M-005 — 2026-11-25
+
+- Attempt: 1/2 (slice 1; R-058) · Outcome: slice 1 landed
+- Tests: the first tester found two replay spec holes (R-287, R-288); a fresh tester wrote 36 tests, approved as R-289. The tester checked them against a throwaway reference: a version without the Pick check failed 12, one comparing only stalks failed 11.
+- Review: `APPROVE` (probes: NaN stalks, a string Pick, 1e300, wrong stalks with right Remainders in Line 2)
+- Verify: type:check · lint:check · format · drift:check (0) · build and test forced 18/18 and 36/36
+- Brief size: implementer about 1,100 lines of required reading
+- Owner touches: 3 of M-005's 60 (R-287 to R-289)
+- Landed: 0daeaa6 (acceptance), a2dcf51 (`nextRound` and replay)
+- Notes: the reviewer found that shapes the type forbids (R-101) are skipped or throw at run time; asked as Q-M-005-3. A recorded Round with extra keys replays; slice 2's `divide` should build the next Casting from rebuilt Rounds.
