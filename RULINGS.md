@@ -3668,3 +3668,26 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   drafts that each tester fixes in the test list the owner approves.
 - Ruling: "PH3-1 to -13: A; ratify the Matters"
 - Folded into: `MATTERS.md` (M-005 to M-009)
+
+### R-287: Replay rebuilds each Round and compares every recorded field
+
+- Date: 2026-11-25
+- Raised in: M-005 (question Q-M-005-1)
+- Question: Which recorded fields does replay compare? (a) Replay rebuilds
+  each Round from its Pick and the derived stalks; a Round fails if any
+  recorded field differs (stalks, either Remainder, Set-aside); the next
+  Round's stalks always come from the derived values; (b) only the recorded
+  stalks and the Pick's validity; (c) as (b), plus the last Round's recorded
+  Set-aside.
+- Ruling: "Q-M-005-1 to -2: A"
+- Folded into: not yet
+
+### R-288: A replay refusal carries the failing Round's recorded Pick
+
+- Date: 2026-11-25
+- Raised in: M-005 (question Q-M-005-2)
+- Question: (a) the failing Round's recorded Pick, even when it is out of
+  range or not a whole number; (b) no Pick; (c) the recorded Pick for
+  `nextRound`, the incoming Pick for `divide`.
+- Ruling: "Q-M-005-1 to -2: A"
+- Folded into: not yet
