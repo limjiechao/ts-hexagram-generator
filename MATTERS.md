@@ -38,12 +38,14 @@ from its actual figures when it lands (R-006).
 | ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                     | uncapped          | –                              | landed (M-001)              |
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004) | 1,500             | –                              | landed (M-002 to M-004)     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | –                           | 60 per Matter / 0                                  | 1,500             | –                              | not yet broken into Matters |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 0                                  | 1,500             | –                              | M-005 to M-009 (R-286)      |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                  | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                  | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                  | 1,500             | –                              | not yet broken into Matters |
+
+**Phase 3 broken into Matters 2026-11-25**: M-005 to M-009 (R-273, R-274, R-286), from `docs/reviews/2026-11-25-phase-3-oracle-core.md`.
 
 **Phase 2 landed 2026-11-24**: drift signals 1 to 4 run at every landing (M-002 to M-004).
 
@@ -181,3 +183,109 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   Step 6, uncached. M-004 landed 2026-11-24; Acceptance passes on matters.
 - Commits: slice 1: 50aeb4e, 865d55b; slice 2: 6863d41, a09ce0b; slice 3: 9bd3ac3, 4882d35
 - Notes: Started 2026-11-23, after M-003 landed. Slices (the M-003 proposal's §4): signal 1 paths, signal 1 symbols, and R-206's step.
+
+### M-005: Pick Division: `nextRound` and `divide`
+
+- Status: pending
+- Phase: 3
+- Licensed by: ADR-0023 (valid Pick, Remainder Groups), ADR-0026, ADR-0038;
+  CONTEXT.md (Round, Division, Pick, Hung Stalk, Remainder, Set-aside); R-030,
+  R-047, R-055, R-056, R-087 to R-101
+- Scope: Make `nextRound` and `divide` real, each replaying the incoming
+  partial Casting first. The eighteenth Round yields a complete Casting and
+  its Transformation. `composeCli` gains use case 1's steps, and a test drives
+  eighteen Divisions by Pick to a complete Casting through `cli-adapter`.
+- Tier-A surface: implements ratified signatures in `oracle/src/division.ts`;
+  widens `composeCli`'s return type (R-137).
+- Free to choose: how replay is structured, so `transcribe` can reuse it; how
+  the next `PartialCasting` is built as a literal (R-056); test layout. A
+  private `PartialCasting` guard is not free: it comes to the owner as a
+  question. Not free either: the order of Picks within each Remainder Group,
+  which `nextRound` returns (R-278), and refusal fields.
+- Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/next-round.test.ts tests/divide.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/pick-division.test.ts`
+- Open questions: none (R-275, R-277 and R-278 rule its Phase 3 questions).
+  Likely from the tester: a Pick that is not a whole number; which refusal comes first
+  when the Casting fails replay and the new Pick is also invalid.
+- Commits: –
+- Notes: about 750 lines, two slices: replay and `nextRound`; `divide` to the
+  complete Casting, with `composeCli`.
+
+### M-006: Physical Division: `transcribe`
+
+- Status: pending
+- Phase: 3
+- Licensed by: ADR-0011 (the check order), ADR-0038 (the Transcription
+  checks); CONTEXT.md (Transcription); R-091, R-093
+- Scope: Make `transcribe` real on M-005's replay. `composeCli` gains
+  `transcribe`, and a test transcribes eighteen Rounds to a complete Casting
+  through `cli-adapter`.
+- Tier-A surface: implements a ratified signature; widens `composeCli`.
+- Free to choose: private helpers; test layout.
+- Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/transcribe.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/physical-division.test.ts`, its tests asserting that each `DivisionRule` R-276 keeps reachable is reported by at least one Transcription.
+- Open questions: none (R-276). Likely from the tester: the Pick a refusal names when
+  the Transcription is complete but fails a later check.
+- Commits: –
+- Notes: about 450 lines, one slice.
+
+### M-007: Automatic Division: the Remainder-Group policy
+
+- Status: pending
+- Phase: 3
+- Licensed by: ADR-0023; ADR-0037 (the policy outside the Oracle); R-026,
+  R-109, R-119
+- Scope: Make `choosePick` real. `composeCli` gains `drawAutomaticPick` and
+  takes a Random Source, and a test casts a whole Automatic Casting through
+  `cli-adapter` with a scripted Random Source.
+- Tier-A surface: implements a ratified signature; widens `composeCli`'s
+  return type and, for the first time, its ports input.
+- Free to choose: the body of `choosePick`; helpers that script
+  `integerBelow`.
+- Acceptance: `pnpm type:check && pnpm --filter @hexagram/remainder-group-policy exec vitest run tests/choose-pick.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/automatic-division.test.ts`, the first file asserting ADR-0023's four probabilities exactly (R-279).
+- Open questions: none (R-278, the draw mapping; R-279).
+- Commits: –
+- Notes: about 300 lines, one slice.
+
+### M-008: Keep and record a Consultation
+
+- Status: pending
+- Phase: 3
+- Licensed by: ADR-0026, ADR-0027, ADR-0030 (ULID); R-031, R-032, R-108,
+  R-110, R-111, R-112, R-135
+- Scope: Make `keepCastConsultation` and `recordConsultation` real, building
+  the Consultation Id from the Clock and the Random Source. `composeCli` gains
+  both, and a test runs use case 1 from `beginCasting` to a kept Cast
+  Consultation, and use case 2, against stub ports.
+- Tier-A surface: implements ratified signatures; widens `composeCli` and its
+  ports input (Store, Clock); **adds `consultation-journal` to `cli-adapter`'s
+  dev dependencies and to B8's arrows** (R-281).
+- Free to choose: the ULID helper's private name, file and structure inside
+  `application`, within R-280.
+- Acceptance: `pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/application exec vitest run tests/keep-cast-consultation.test.ts tests/record-consultation.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/keep-and-record.test.ts`
+- Open questions: none (R-280, R-281).
+- Commits: –
+- Notes: about 450 lines, one or two slices. Consultation Journal work inside
+  the Oracle phase (section 1).
+
+### M-009: Resolve a Transformation: the Hexagram table, `resolve` and use case 3
+
+- Status: pending
+- Phase: 3
+- Licensed by: ADR-0024, ADR-0025, ADR-0028, ADR-0037; CONTEXT.md (Figure,
+  Polarity, Trigram, Fuxi Sequence Number, Nuclear, Inverse and Reversed
+  Hexagram, Moving Line, Resolution, Applicable Passages, Passage Reference,
+  Commentary, Yilin Verse, Reading Preference); R-061, R-064, R-080, R-081,
+  R-085, R-104, R-108, R-114 to R-117
+- Scope: Draft ADR-0025's 64-row table with tests that check every row
+  against the glossary's rules; make `resolve` real over it; make
+  `resolveTransformation` real. `composeCli` gains use case 3, and a test
+  drives it through `cli-adapter` against a stub Scripture Catalogue.
+- Tier-A surface: **drafts Tier-A files for ratification**: the table's
+  public row type, its subpath and its lookup (R-282). `resolve` and
+  `resolveTransformation` implement ratified signatures; widens `composeCli`.
+- Free to choose: how rows are written (literal data, as ADR-0025 requires);
+  private lookup structure; test layout.
+- Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/hexagram-table.test.ts tests/resolution.test.ts && pnpm --filter @hexagram/application exec vitest run tests/resolve-transformation.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/resolve.test.ts`. The table test asserts 64 rows and 64 distinct Figures; the Resolution test asserts it ran over 4,096 distinct Transformations.
+- Open questions: none (R-282 to R-285). Likely from the tester:
+  Commentaries asked for an X之X Transformation.
+- Commits: –
+- Notes: about 1,350 lines, three slices: the table; `resolve`; use case 3.

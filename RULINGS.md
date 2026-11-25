@@ -3502,3 +3502,169 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   rule, with a Ruling and a change to `clerk.md`'s "never open PRs" line?
 - Ruling: "The clerk should open the PR." and, asked whether it stands, "Yes"
 - Folded into: `docs/agents/clerk.md` (Git constraints)
+
+### R-273: The Oracle core covers the divination path against stub ports
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-1;
+  `docs/reviews/2026-11-25-phase-3-oracle-core.md`)
+- Question: (a) the divination path against stub ports: the four `oracle`
+  stubs, `choosePick`, and use cases 1 (keep), 2 and 3, in 5 Matters; keep
+  and record are Consultation Journal work inside the phase; use cases 4–7,
+  9 and 10 and every driven adapter go to Phase 4; (b) as (a), plus
+  `node-effects` and `catalogue-bundled` with the legacy data; (c) only the
+  pure packages; (d) every `application` stub except 7 and 9.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-274: Phase 3 is cut into five vertical Matters
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-12)
+- Question: (a) Pick Division (`nextRound`, `divide`); Physical Division
+  (`transcribe`); Automatic Division; keep and record; Resolution (the
+  Hexagram table, `resolve`, use case 3) as one Matter in three slices;
+  (b) the first draft's cut, all three Division steps in one Matter and the
+  table apart from use case 3.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: `MATTERS.md` (M-005 to M-009)
+
+### R-275: Each Phase 3 Matter widens composeCli and drives its use cases through cli-adapter
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-2)
+- Question: (a) each Matter adds its use cases to `composeCli`, bound to the
+  ports it takes, and drives them in a `cli-adapter` test with stub ports
+  (R-131); each widening of R-137's signature is a digest line;
+  (b) acceptance runs at `application`, and `composeCli` stays as R-137 left
+  it until Phase 4.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-276: The Transcription checks run complete, remainders, set-aside, conservation
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-3)
+- Question: ADR-0011's order (incomplete, remainders, conservation, Set-aside)
+  never reports `set-aside` or `valid-pick` while pile counts are whole
+  numbers from 0. (a) Amend ADR-0011's order for the overhaul: `complete`,
+  `remainders`, `set-aside`, `conservation`, first failure wins; a pile count
+  that is not a whole number from 0 is `complete`; `valid-pick` stays
+  unreachable for `transcribe`, and its tests assert that; how the CLI shows
+  conservation is the CLI manual's; (b) keep ADR-0011's order and document
+  `set-aside` as unreachable; (c) drop `set-aside` from `DivisionRule`,
+  amending ADR-0038 and `CONTEXT.md`.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet (ADR-0011's amendment to be drafted for the owner's
+  ratification before M-006 lands)
+
+### R-277: divide throws if its own output fails isCompleteCasting
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-4)
+- Question: (a) throw an `Error`: a defect in the Oracle, not a refusal, and
+  the comment says so; (b) return a `replay` refusal.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-278: Picks are listed in ascending order, and choosePick's draws map to them exactly
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-5)
+- Question: (a) `nextRound` lists each Remainder Group's Picks in ascending
+  order (M-005); `choosePick`'s first draw, `integerBelow(4)`, gives 0–3 for
+  Remainder 1–4, and its second, `integerBelow(size)`, indexes the group
+  (M-007); (b) leave both to the implementers.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-279: ADR-0023's probabilities are proved by exact enumeration
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-6)
+- Question: (a) exact enumeration of every pair of draws in every Round of a
+  Line, giving exactly 1/16, 5/16, 7/16 and 3/16; (b) a sampled test like the
+  legacy one; (c) both.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-280: The Consultation Id is built by a private ULID helper in application
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-7)
+- Question: (a) a private helper in `application`: a 48-bit millisecond time
+  from the Clock's `epochMilliseconds`, then 80 random bits as 16 draws of
+  `integerBelow(32)`, in Crockford base 32, admitted through
+  `isConsultationId` (R-051); keep reads the Clock once, for both the Id and
+  Divined At; no new dependency; (b) the `ulid` package; (c) a public builder
+  in `consultation-journal`.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-281: cli-adapter gains consultation-journal as a dev dependency
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-8)
+- Question: (a) `cli-adapter` gains `consultation-journal` as a dev
+  dependency, used only by tests, as R-135 did for `scripture-catalogue`;
+  B8's arrow and the manifest change with M-008 (R-148, R-165); (b) keep and
+  record are tested at `application` only.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-282: The Hexagram table is a typed constant on a new oracle subpath
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-9)
+- Question: (a) a typed constant in `oracle` on a new subpath, 64 rows in Fuxi
+  Sequence Number order, each row the Figure, Lower and Upper Trigram,
+  Nuclear, Inverse and Reversed Hexagram, and Fuxi Sequence Number, with one
+  lookup by Figure; names for the owner's line-edit; no JSON until a consumer
+  needs it; (b) as (a), plus a generated JSON now; (c) private to `oracle`
+  until Phase 5.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-283: The order of a Resolution's Applicable Passages
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-10)
+- Question: (a) the Standing Hexagram's Hexagram Statement, the Moving Lines'
+  Line Statements bottom-up, the All-Moving Statement, then the Emerging
+  Hexagram's Hexagram Statement (none for X之X); (b) as (a), with the
+  All-Moving Statement last; (c) unspecified, tests comparing as sets.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-284: Both Hexagrams carry Commentaries, in the Reading Preference's order
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-11)
+- Question: R-061 fixes each Commentary's Citation and R-115(6) puts
+  Commentaries after their passage. (a) The Emerging Hexagram's Hexagram
+  Statement is followed by its 彖傳, 大象 and 文言 like the Standing one's;
+  within one passage, Commentaries come in the Reading Preference's order;
+  (b) Commentaries follow only the Standing Hexagram's passages; (c) as (a),
+  but in a fixed Work order (彖傳, 大象, 小象, 文言).
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-285: Use case 3 calls the Catalogue in sequence and stops at the first rejection
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (question PH3-13)
+- Question: (a) in sequence, in the result's order, stopping at the first
+  rejection, which the Promise passes on unchanged; (b) concurrently, the
+  first rejection in time passed on while the other calls still run.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: not yet
+
+### R-286: M-005 to M-009 are ratified as drafted
+
+- Date: 2026-11-25
+- Raised in: Phase 3's breakdown (section 2 of the proposal)
+- Question: Ratify the five Matter entries as drafted, each with its Scope,
+  Tier-A surface, Free to choose and Acceptance? Their test file names are
+  drafts that each tester fixes in the test list the owner approves.
+- Ruling: "PH3-1 to -13: A; ratify the Matters"
+- Folded into: `MATTERS.md` (M-005 to M-009)
