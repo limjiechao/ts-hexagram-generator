@@ -3911,3 +3911,28 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   whole Automatic Castings?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-306: The 17 existing composeCli calls in approved tests gain a stub randomSource
+
+- Date: 2026-11-26
+- Raised in: M-007 (question Q-M-007-3, from the implementer)
+- Question: A required `randomSource` port breaks 17 calls of
+  `composeCli({ scriptureCatalogue })` in approved tests
+  (`composition-root.test.ts` 15, `pick-division.test.ts` 1,
+  `physical-division.test.ts` 1). (a) license a mechanical change: each call
+  gains a stub `randomSource`, made by a fresh tester; (b) make `randomSource`
+  optional.
+- Ruling: "Q-M-007-3 to -4: A"
+- Folded into: not yet
+
+### R-307: choosePick keeps one untested throw for a draw past the group
+
+- Date: 2026-11-26
+- Raised in: M-007 (question Q-M-007-4, from the implementer)
+- Question: `noUncheckedIndexedAccess` types `group[i]` as `Pick | undefined`,
+  and R-051 bans asserting it away. (a) keep the one untested
+  `throw new Error('a draw past the Remainder Group')`, which only gives the
+  type a Pick and promises callers nothing, consistent with R-304; (b) a form
+  with no throw, such as the group's last Pick.
+- Ruling: "Q-M-007-3 to -4: A"
+- Folded into: not yet
