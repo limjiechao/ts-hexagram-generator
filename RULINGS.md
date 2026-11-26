@@ -4919,3 +4919,26 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `src/process-adapters.ts`?
 - Ruling: "Q-M-010-20 to -22: A; ratify the text and bins"
 - Folded into: not yet
+
+### R-413: M-010 slice 2's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-010 (slice 2's tests, e3ec98b)
+- Question: Approve the 262 tests of `frame.test.ts` and
+  `frame-spawn.test.ts` as listed (nine in-process tables; seven spawned
+  cases), each checking stderr exactly, empty stdout, exit 1 and no port
+  touched, with the not-built line and the terminal refusal ending in a
+  newline?
+- Ruling: "approve the list; Q-M-010-23: A"
+- Folded into: not yet
+
+### R-414: Import paths come directly after --import-legacy; a lone -- is dropped anywhere
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-23, corners slice 2's tests left open)
+- Question: (a) paths are accepted only directly after `--import-legacy`; a
+  lone `--` is dropped wherever it appears; `--plain --no-ui` together is a
+  repeat, so a usage refusal (R-402); a fresh tester adds those cases;
+  (b) leave them untested.
+- Ruling: "approve the list; Q-M-010-23: A"
+- Folded into: not yet
