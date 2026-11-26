@@ -510,3 +510,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - R-352 removed the `docs/manual/cli.md` exception row, but `scripts/drift/prove-signal-1.ts` holds R-254's and R-265's seed word for word, so `drift:prove` failed from 0fdbbbd onward, on `main` too since PR #59. Neither CI's `check` job nor the clerk's Step 6 ran `drift:prove`; the clerk ran only `drift:check` when landing the manual.
 - Fixed: the prover's seed drops the row (R-386), CI's `check` job runs `drift:prove` and the clerk's Step 6 names it (R-387). `drift:prove` exits 0 on `matters`.
+
+### Landing — the drift:prove fix and Phase 4's breakdown on main — 2026-11-26
+
+- PR #60 (11 commits) passed CI, the first landing whose `check` job ran `drift:prove`; the owner fast-forwarded `main` to 8dca492 under R-302. `drift:prove` is green on `main` again.
