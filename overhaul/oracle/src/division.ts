@@ -1,4 +1,5 @@
-import type { Casting, PartialCasting } from '#src/casting.js'
+import type { Casting, CompleteCasting, PartialCasting } from '#src/casting.js'
+import { isCompleteCasting } from '#src/complete-casting.js'
 import type { LinePosition } from '#src/line-position.js'
 import type { Pick } from '#src/pick.js'
 import type { Remainder } from '#src/remainder.js'
@@ -87,7 +88,37 @@ export function nextRound(casting: PartialCasting): NextRoundResult {
  * replay.
  */
 export function divide(casting: PartialCasting, pick: Pick): DivisionResult {
-  return notImplemented(casting, pick)
+  const replayed = replay(casting)
+  if (replayed.outcome === 'refused') return replayed
+  const { next, rebuilt } = replayed
+  const round = roundFrom(next.stalks, pick)
+  if (round === undefined) {
+    return {
+      outcome: 'refused',
+      refusal: { ...next, pick, rule: 'valid-pick' },
+    }
+  }
+  const { finished, open } = rebuilt
+  if (open.length !== 2) {
+    return {
+      outcome: 'divided',
+      casting: {
+        state: 'partial',
+        rounds:
+          open.length === 0
+            ? [...finished, [round]]
+            : [...finished, [open[0], round]],
+      },
+    }
+  }
+  const line: LineRounds = [open[0], open[1], round]
+  if (finished.length !== 5) {
+    return {
+      outcome: 'divided',
+      casting: { state: 'partial', rounds: [...finished, line] },
+    }
+  }
+  return { outcome: 'divided', casting: completed([...finished, line]) }
 }
 
 /**
@@ -109,9 +140,29 @@ interface NextPlace {
   readonly stalks: number
 }
 
-/** A partial Casting's Picks replayed: the next Round's place, or a refusal. */
+type LineRounds = CompleteCasting['rounds'][number]
+
+/**
+ * The Rounds a replay rebuilds, grouped by Line as a partial Casting holds
+ * them: the finished Lines, and the open Line's Rounds so far.
+ */
+interface Rebuilt {
+  readonly finished: Extract<PartialCasting['rounds'], readonly LineRounds[]>
+  readonly open:
+    | readonly []
+    | Exclude<PartialCasting['rounds'][number], LineRounds>
+}
+
+/**
+ * A partial Casting's Picks replayed: the next Round's place and the Rounds
+ * rebuilt before it, or a refusal.
+ */
 type Replay =
-  | { readonly outcome: 'replayed'; readonly next: NextPlace }
+  | {
+      readonly outcome: 'replayed'
+      readonly next: NextPlace
+      readonly rebuilt: Rebuilt
+    }
   | {
       readonly outcome: 'refused'
       readonly refusal: Refusal & { readonly rule: 'replay' }
@@ -136,23 +187,45 @@ const heldPlaces = linePositions
  */
 function replay(casting: PartialCasting): Replay {
   let stalks = 49
+  let rebuilt: Rebuilt = { finished: [], open: [] }
   for (const { line, round } of heldPlaces) {
     if (round === 1) stalks = 49
     const recorded = casting.rounds[line - 1]?.[round - 1]
     if (recorded === undefined) {
-      return { outcome: 'replayed', next: { line, round, stalks } }
+      return {
+        outcome: 'replayed',
+        next: { line, round, stalks },
+        rebuilt,
+      }
     }
-    const rebuilt = roundFrom(stalks, recorded.pick)
-    if (rebuilt === undefined || !recordsSame(recorded, rebuilt)) {
+    const rebuiltRound = roundFrom(stalks, recorded.pick)
+    if (rebuiltRound === undefined || !recordsSame(recorded, rebuiltRound)) {
       const { stalks: recordedStalks, pick } = recorded
       return {
         outcome: 'refused',
         refusal: { line, round, stalks: recordedStalks, pick, rule: 'replay' },
       }
     }
-    stalks -= rebuilt.setAside
+    stalks -= rebuiltRound.setAside
+    const { finished, open } = rebuilt
+    if (open.length === 0) {
+      rebuilt = { finished, open: [rebuiltRound] }
+    } else if (open.length === 1) {
+      rebuilt = { finished, open: [open[0], rebuiltRound] }
+    } else if (finished.length !== 5) {
+      // Always taken: a sixth Line would finish at the eighteenth place,
+      // which the walk never reaches.
+      rebuilt = {
+        finished: [...finished, [open[0], open[1], rebuiltRound]],
+        open: [],
+      }
+    }
   }
-  return { outcome: 'replayed', next: { line: 6, round: 3, stalks } }
+  return {
+    outcome: 'replayed',
+    next: { line: 6, round: 3, stalks },
+    rebuilt,
+  }
 }
 
 /** Every field a Round records, the Pick aside, as replay rebuilds them. */
@@ -224,6 +297,29 @@ function roundAwaited(stalks: number): NextRound {
     remainderGroups[remainderOf(pick)].push(pick)
   }
   return { stalks, validPicks: { min: 1, max }, remainderGroups }
+}
+
+/**
+ * The complete Casting of six finished Lines, each Line Value being 49 less
+ * its three Set-asides, over 4 (ADR-0023). It is made only through
+ * `isCompleteCasting`, and Rounds that replay always pass it, so a failure is
+ * a defect in the Oracle, thrown rather than refused.
+ */
+function completed(lines: readonly LineRounds[]): CompleteCasting {
+  const casting = {
+    state: 'complete',
+    rounds: lines,
+    transformation: lines.map(
+      (line) =>
+        (49 - line.reduce((sum, { setAside }) => sum + setAside, 0)) / 4,
+    ),
+  }
+  if (!isCompleteCasting(casting)) {
+    throw new Error('Defect: the Oracle made a Casting that is not complete', {
+      cause: casting,
+    })
+  }
+  return casting
 }
 
 /** Carries the inputs as the cause, so each signature keeps its names. */
