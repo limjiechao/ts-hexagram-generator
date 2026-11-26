@@ -1,5 +1,5 @@
 {
-  "//": "Linted as overhaul/cli-adapter/package.json",
+  "//": "Linted as overhaul/cli-adapter/package.json. Plant for B9: missing production arrows.",
   "name": "@hexagram/cli-adapter",
   "type": "module",
   "version": "0.0.0",

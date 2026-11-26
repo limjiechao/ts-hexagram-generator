@@ -9,6 +9,12 @@
 //
 // Stated limit, with no plant: B2 does not follow aliases of `Math` or
 // `Date`, so `const m = Math; m.random()` passes lint and is left to review.
+//
+// Stated limit, with no subject: no package keeps a test-only dependency
+// (R-358), so R-165's check that a dev arrow sits under `devDependencies`, not
+// `dependencies`, has nothing to bite on until one does again. The plant
+// `b9-dev-arrow-in-dependencies` now stands for missing production arrows
+// (R-395).
 
 export type BoundaryRule =
   | 'B1'
@@ -61,9 +67,9 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b5-journal-beyond-divined-at.ts': 'B5',
   'plants/b6-imports-adapter.ts': 'B6',
   'plants/b6-legacy-package.ts': 'B6',
-  'plants/b7-dynamic-import-oracle.ts': 'B7',
-  'plants/b7-imports-catalogue.ts': 'B7',
-  'plants/b8-test-imports-oracle.test.ts': 'B8',
+  'plants/b7-dynamic-import-policy.ts': 'B7',
+  'plants/b7-imports-policy.ts': 'B7',
+  'plants/b8-test-imports-policy.test.ts': 'B8',
   'plants/b9-dev-arrow-in-dependencies.package.json': 'B9',
   'plants/b9-extra-dependency.package.json': 'B9',
   'plants/b9-missing-dependency.package.json': 'B9',
@@ -87,6 +93,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'twins/catalogue-imports-divined-at.ts': null,
   'twins/cli-adapter.package.json': null,
   'twins/journal-value-imports-oracle.ts': null,
+  'twins/node-effects.package.json': null,
   'twins/oracle-imports-own-guard.test.ts': null,
   'twins/policy-type-imports-oracle.ts': null,
   'twins/pure-date-console-math.ts': null,
