@@ -4099,3 +4099,28 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   worked by hand); and the Inverse and Reversed involutions?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-323: M-009 slice 2's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 2's test list, `overhaul/oracle/tests/resolution.test.ts`)
+- Question: Approve the 23 tests as listed: `resolve` over all 4,096
+  Transformations as the glossary derives them, structures equal to the
+  table's rows, Moving Lines bottom-up, only the Standing Hexagram's Line
+  Statements, the input unchanged; the X之X and all-moving anchors (用九 and
+  用六 only for 乾 and 坤); a single Moving Line at each position; and order?
+- Ruling: "approve the list; digest ratified"
+- Folded into: not yet
+
+### R-324: M-009 slice 1's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 1, 5cb3ef1, d9bfb2f)
+- Question: Ratify: (1) each row a plain object literal in
+  `HexagramTableRow`'s field order; (2) `lookUpRow` over a private
+  `ReadonlyMap` built once at load, keyed by the Figure's Polarities joined by
+  spaces, an index over the data rather than computed data; (3) a missing
+  Figure throws, which the Figure type makes impossible; (4)
+  `FuxiSequenceNumber`'s comment in the glossary's words?
+- Ruling: "approve the list; digest ratified"
+- Folded into: not yet
