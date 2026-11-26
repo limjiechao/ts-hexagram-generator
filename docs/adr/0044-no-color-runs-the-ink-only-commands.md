@@ -1,6 +1,6 @@
 # With NO_COLOR on a TTY, the Ink-only commands run
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-26
 Amends: [ADR-0010](0010-interactive-environment-policy-and-input-modes.md) ("Environment guard"), for the overhaul only
 

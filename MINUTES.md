@@ -497,3 +497,11 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Note — Acceptance commands and missing test files — 2026-11-26
 
 - Phase 4's challenger found that `vitest run a.test.ts missing.test.ts` exits 0 when at least one listed file exists; only a list in which every file is missing fails. Phase 3's proposal had claimed otherwise. All 14 files named by M-005 to M-009's Acceptance commands exist, so no Phase 3 landing passed vacuously. Phase 4's Acceptance commands will start with `test -f` for each file.
+
+### Phase 4 breakdown — 2026-11-26
+
+- A drafter proposed twelve Matters from the ratified CLI manual (afa1b4c). A challenger returned nine blocking findings, among them a question that contradicted R-340, an ADR-0022/ADR-0030 conflict stated as settled, a false premise that the default Readout never needs 用九/用六, Acceptance commands that pass with a missing test file, hidden test seams in spawned commands, three drift plants a widened arrow would make legal, and Store work outside the port; the drafter applied all and dropped three answered questions (1981cf1, landed as 6e7b845).
+- In parallel a drafter folded R-332 into ADR-0044 (25f83f9), ratified as R-384 (da85145).
+- Rulings: PH4-1 to PH4-30 as R-354 to R-383, all (A); M-010 to M-021 ratified (R-385).
+- Owner touches: 2 (the request, the ruling), against no Matter.
+- Notes: M-011 waits for the owner's 用九 and 用六 text with its Witness (R-370). A Typst spike, which only the owner starts, precedes M-016 (R-376). ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384). The budget estimate of 5 to 10 weeks overruns the 8-week budget at its slow end.

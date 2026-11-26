@@ -40,10 +40,12 @@ from its actual figures when it lands (R-006).
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/cli.md` ratified  | gate open; not yet broken   |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | –                              | not yet broken into Matters |
+
+**Phase 4 broken into Matters 2026-11-26**: M-010 to M-021 (R-354 to R-385), from `docs/reviews/2026-11-26-phase-4-cli.md`. M-011 waits for the owner's 用九 and 用六 text (R-370); ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384).
 
 **Phase 3 landed on matters 2026-11-26**: the Oracle core runs use cases 1 to 3 end to end against stub ports (M-005 to M-009).
 
@@ -290,3 +292,267 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   Commentaries asked for an X之X Transformation.
 - Commits: 7b787d9 (ratified surface), f95c445 (acceptance), 5cb3ef1 (rows and lookup), d9bfb2f (comment) for slice 1; 51def64 (acceptance), c74eab4 (`resolve`) for slice 2; 23f7164, 201492c (acceptance), 9289882 (use case 3), 150091a (`composeCli`), f6f3b42 (comment) for slice 3
 - Notes: about 1,350 lines, three slices: the table; `resolve`; use case 3.
+
+### M-010: The command frame and the Node effects
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0010 as R-332 amends it, ADR-0020, ADR-0037; manual
+  sections 2, 6.1, 7; R-331, R-332, R-350, R-351
+- Scope: Build `node-effects` (system Clock; Random Source on `node:crypto`).
+  Give each of the six commands an in-process entry point and a bin that
+  calls it with the process and real adapters. Each command parses its
+  options (section 7), applies section 2's terminal table, and refuses with
+  the manual's line or a usage line, exit 1. A command whose body is not
+  built yet exits 1 with one line. A test casts through `composeCli` with the
+  real Clock and Random Source.
+- Tier-A surface: **drafts for ratification** the entry point's signature
+  (R-361) and the usage line. Boundary changes: `node-effects`' row (not pure)
+  and `cli-adapter`'s production arrows (R-358), with B9 twins. Plants to
+  retire or replace: `b7-imports-catalogue.ts`, `b7-dynamic-import-oracle.ts`,
+  `b8-test-imports-oracle.test.ts`, replaced by plants importing a package
+  still outside the arrows (for example `remainder-group-policy`).
+- Free to choose: the option parser (`node:util` `parseArgs` or by hand);
+  how the frame is shared among commands.
+- Acceptance: `test -f overhaul/node-effects/tests/system-clock.test.ts && test -f overhaul/node-effects/tests/crypto-random-source.test.ts && test -f overhaul/cli-adapter/tests/commands/frame.test.ts && test -f overhaul/cli-adapter/tests/commands/frame-spawn.test.ts && test -f overhaul/cli-adapter/tests/real-effects-casting.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/node-effects exec vitest run tests/system-clock.test.ts tests/crypto-random-source.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/commands/frame.test.ts tests/commands/frame-spawn.test.ts tests/real-effects-casting.test.ts`.
+  `frame.test.ts` drives every column of section 2's table through the entry
+  point; `frame-spawn.test.ts` spawns the bins only for the non-TTY and `CI`
+  columns.
+- Open questions: none open; ruled in R-355, R-357, R-358, R-359, R-361. Likely from the tester:
+  `--wrap-width 0`; an option given twice; `CI=false`.
+- Commits: –
+- Notes: about 800 lines, two slices. The clerk folds R-332 and ADR-0010's
+  32-row amendment into ADR-0010 before it starts.
+
+### M-011: The bundled Scripture Catalogue
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0025, ADR-0028, ADR-0032, ADR-0037; CONTEXT.md (Edition,
+  Witness, Translation, Licence Gate, Received Sequence Number, Commentary,
+  Citation); R-061, R-064, R-081, R-085, R-283, R-284, R-326, R-341, R-344
+- Scope: Build `catalogue-bundled` from the legacy texts, plus 用九 / 用六 as
+  R-370 rules, with an Edition and Witness record for each Edition, applying
+  the Reading Preference, then the Licence Gate for a Private Channel. Widen
+  the Catalogue port and use case 8 (R-372). A test resolves through
+  `composeCli` with the real Catalogue.
+- Tier-A surface: **drafts for ratification** the widened port and use-case
+  8 signatures, the data format and EditionIds (R-369), and the Edition
+  records (R-373); widens `composeCli`; stub Catalogues gain the new members
+  (R-306's procedure); new row (pure, R-357) and twin.
+- Free to choose: the one-off conversion script (not kept); private lookup
+  structure.
+- Acceptance: `test -f overhaul/catalogue-bundled/tests/passage-texts.test.ts && test -f overhaul/catalogue-bundled/tests/editions.test.ts && test -f overhaul/catalogue-bundled/tests/names.test.ts && test -f overhaul/cli-adapter/tests/bundled-catalogue.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/catalogue-bundled exec vitest run tests/passage-texts.test.ts tests/editions.test.ts tests/names.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/bundled-catalogue.test.ts`.
+  The passage test counts a text for every Citation the legacy data holds,
+  and for 用九 and 用六, in each Edition; the names test asserts 64 distinct
+  Received Sequence Numbers.
+- Open questions: none open; ruled in R-369, R-370 (M-011 waits for the owner's 用九 and 用六 text), R-372, R-373. Likely from
+  the tester: a Reading Preference naming an unknown Edition.
+- Commits: –
+- Notes: about 1,500 lines plus data, three slices: port and stubs; data and
+  Editions; gate and lookups.
+
+### M-012: The Markdown Consultation Store, and browsing and opening
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0015, ADR-0020, ADR-0026, ADR-0030, ADR-0037; manual
+  sections 4, 5; R-037, R-337
+- Scope: Draft the codec (R-363); build `store-markdown` with `keep`, `get`
+  and `list`, atomic writes that never overwrite, ADR-0030's filenames,
+  Unreadable files, and an injected body renderer (R-364), a stub until
+  M-013. Make use cases 4 and 5 real. A test keeps, browses and opens
+  through `composeCli` and the real Store in a temporary folder.
+- Tier-A surface: **drafts for ratification** the codec's signature and
+  Unreadable reasons (R-366), the frontmatter byte fixture (R-375), and
+  `store-markdown`'s public surface (R-362); widens `composeCli`; new row and
+  twin.
+- Free to choose: the temporary-file scheme within ADR-0030; private
+  helpers. YAML emission is not free: the frontmatter fixture fixes it.
+- Acceptance: `test -f overhaul/consultation-journal/tests/record-codec.test.ts && test -f overhaul/store-markdown/tests/keep-get-list.test.ts && test -f overhaul/store-markdown/tests/unreadable.test.ts && test -f overhaul/application/tests/browse-consultations.test.ts && test -f overhaul/application/tests/open-consultation.test.ts && test -f overhaul/cli-adapter/tests/journal.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/consultation-journal exec vitest run tests/record-codec.test.ts && pnpm --filter @hexagram/store-markdown exec vitest run tests/keep-get-list.test.ts tests/unreadable.test.ts && pnpm --filter @hexagram/application exec vitest run tests/browse-consultations.test.ts tests/open-consultation.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/journal.test.ts`.
+  The Unreadable test produces each ratified reason from a planted file.
+- Open questions: none open; ruled in R-362 to R-366, R-378. Likely from the tester: a Query
+  with trailing newlines; two keeps of one Id at once.
+- Commits: –
+- Notes: about 1,300 lines, three slices: codec; Store; use cases 4 and 5.
+
+### M-013: The Readout: plain text, Ink sections and the Markdown file
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0013, ADR-0014, ADR-0022, ADR-0024, ADR-0025, ADR-0027,
+  ADR-0030; manual sections 4, 5; R-105, R-283, R-284, R-340 to R-345
+- Scope: Build the medium-neutral Readout of a Consultation or a
+  Transformation in `presentation`. Under R-374 (A), the plain renderer, the
+  Ink section strings and the Markdown body renderer live in `cli-adapter`;
+  under (B), the Markdown body renderer moves to `presentation`. The Store's
+  body renderer becomes real, and `hexagram-history --rerender-bodies` runs
+  end to end.
+- Tier-A surface: **drafts for ratification** `presentation`'s public
+  surface and the byte fixtures for plain output, Ink sections, the Markdown
+  body and the whole file (R-375); new row for `presentation` (pure) and
+  the `cli-adapter` → `presentation` arrow, with twins.
+- Free to choose: the Readout's private structure; width and wrapping
+  computation within the fixtures.
+- Acceptance: `test -f overhaul/presentation/tests/readout.test.ts && test -f overhaul/cli-adapter/tests/plain-readout-fixtures.test.ts && test -f overhaul/cli-adapter/tests/ink-section-fixtures.test.ts && test -f overhaul/cli-adapter/tests/markdown-file-fixtures.test.ts && test -f overhaul/cli-adapter/tests/commands/rerender-bodies.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/presentation exec vitest run tests/readout.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/plain-readout-fixtures.test.ts tests/ink-section-fixtures.test.ts tests/markdown-file-fixtures.test.ts tests/commands/rerender-bodies.test.ts`
+- Open questions: none open; ruled in R-374, R-375. Likely from the tester: the Witness
+  section with no Translation chosen; a Query of several lines in the ledger.
+- Commits: –
+- Notes: about 2,000 lines, three slices: the Readout; plain and Ink
+  sections; the Markdown file and `--rerender-bodies`.
+
+### M-014: Plain casting: `hexagram-random` and `hexagram-interactive`
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0010, ADR-0023, ADR-0027; manual sections 6.3, 6.4, 7;
+  R-346, R-350
+- Scope: With `--plain` or a stdout that is not a TTY, ask for the Query on
+  one line, cast (Automatic; Virtual by typed Pick), print the Readout and
+  keep the Consultation, with the manual's endings. The first commands at
+  parity.
+- Tier-A surface: prompt and welcome wording.
+- Free to choose: the line reader (`node:readline`).
+- Acceptance: `test -f overhaul/cli-adapter/tests/commands/random-plain.test.ts && test -f overhaul/cli-adapter/tests/commands/interactive-plain.test.ts && pnpm type:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/commands/random-plain.test.ts tests/commands/interactive-plain.test.ts`,
+  through the entry point with scripted stdin, a scripted Random Source and a
+  temporary Journal, comparing stdout with M-013's fixtures.
+- Open questions: none open; ruled in R-377 (ruled before it starts). Likely from the tester:
+  Ctrl+C at a Pick prompt; EOF mid-Casting.
+- Commits: –
+- Notes: about 800 lines, two slices, one per command.
+
+### M-015: Deleting, Merging Journals and importing legacy files
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0015, ADR-0026, ADR-0027, ADR-0030, ADR-0037; manual
+  sections 4, 5, 6.7, 6.8; R-334, R-348, R-349, R-350
+- Scope: Build the Store's `remove` and `deletionRecords`; make use cases 6,
+  7 and 10 real; build `legacy-import`, a parser of legacy `.txt` and
+  version-1 files; run `hexagram-history --export-journal`, `--merge-journal`
+  and `--import-legacy` end to end, with their reports.
+- Tier-A surface: **drafts for ratification** the Deletion Record file
+  (R-367) and the bundle with a byte fixture (R-368); report wording; new
+  row for `legacy-import` (purity per R-357) and twin; widens `composeCli`.
+- Free to choose: the parser's structure; what of the legacy converter it
+  copies (R-360).
+- Acceptance: `test -f overhaul/store-markdown/tests/remove.test.ts && test -f overhaul/application/tests/delete-consultation.test.ts && test -f overhaul/application/tests/merge-journals.test.ts && test -f overhaul/application/tests/import-legacy-files.test.ts && test -f overhaul/legacy-import/tests/parse-legacy.test.ts && test -f overhaul/cli-adapter/tests/commands/merge-journal.test.ts && test -f overhaul/cli-adapter/tests/commands/import-legacy.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/store-markdown exec vitest run tests/remove.test.ts && pnpm --filter @hexagram/application exec vitest run tests/delete-consultation.test.ts tests/merge-journals.test.ts tests/import-legacy-files.test.ts && pnpm --filter @hexagram/legacy-import exec vitest run tests/parse-legacy.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/commands/merge-journal.test.ts tests/commands/import-legacy.test.ts`.
+  The merge test merges two Journals both ways and twice and asserts both
+  folders end identical; import fixtures come from the fictional
+  `legacy-real-*.txt` corpus.
+- Open questions: none open; ruled in R-365, R-367, R-368, R-380. Likely from the tester: a
+  bundle that is not JSON; a Shape B `.txt` with no timestamp.
+- Commits: –
+- Notes: about 2,000 lines, three slices: delete; merge; import. Merged under
+  R-356 (A) to absorb the Viewer's split.
+
+### M-016: Exporting to Typst and PDF
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0015, ADR-0037; manual sections 6.8, 7, 8; R-105, R-125,
+  R-347
+- Scope: Make use case 9 real with `presentation`'s Typst renderer;
+  `hexagram-history --export <path> [--filter <text>]` writes `.typ`, or a
+  PDF compiled in-process by Typst's WebAssembly build.
+- Tier-A surface: **drafts for ratification** the Typst byte fixtures and the
+  dependency's package and version (R-376); the `application` →
+  `presentation` arrow (R-105) and its twin; widens `composeCli`.
+- Free to choose: the Typst template's private structure.
+- Acceptance: `test -f overhaul/application/tests/export-consultations.test.ts && test -f overhaul/cli-adapter/tests/commands/export.test.ts && pnpm type:check && pnpm lint:check && pnpm drift:prove && pnpm --filter @hexagram/application exec vitest run tests/export-consultations.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/commands/export.test.ts`,
+  asserting the `.typ` bytes and that the `.pdf` begins `%PDF-`.
+- Open questions: none open; ruled in R-376, R-380. Likely from the tester: an extension that
+  is neither; an empty filter result.
+- Commits: –
+- Notes: about 900 lines, two slices, after the spike R-376 (A) asks for.
+
+### M-017: The Viewer and full-screen Automatic Division
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0009, ADR-0010, ADR-0012, ADR-0013, ADR-0023, ADR-0027;
+  manual sections 5, 6.1, 6.3, 7, 8; R-332, R-342, R-343, R-350
+- Scope: Port the full-screen Readout and Viewer (tabs, scroll, pan, footer,
+  quit confirmation, retry after a failed keep) and run `hexagram-random`
+  full-screen, with the settling slider, typed reveal and `Space` to skip.
+- Tier-A surface: Ink and React in `cli-adapter` (R-359); the copied test
+  helper (R-360); on-screen strings (R-382).
+- Free to choose: component structure.
+- Acceptance: `test -f overhaul/cli-adapter/tests/viewer/readout.test.tsx && test -f overhaul/cli-adapter/tests/viewer/random.test.tsx && pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/viewer/readout.test.tsx tests/viewer/random.test.tsx`
+- Open questions: none open; ruled in R-381, R-382. Likely from the tester: resizing during
+  playback; a keep failure mid-playback.
+- Commits: –
+- Notes: about 2,500 lines, three slices. The brief names files to port, not
+  packages.
+
+### M-018: Full-screen Virtual Division: `hexagram-interactive`
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0010, ADR-0012, ADR-0027; manual sections 6.4, 7; R-332
+- Scope: The sweeping slider with `Space`, the Pick reveal, and typed input
+  (`--numeric-input`, `NO_COLOR`, `CI`), keeping with Division Method
+  Virtual.
+- Tier-A surface: on-screen strings.
+- Free to choose: how the tick is derived within section 7's formula.
+- Acceptance: `test -f overhaul/cli-adapter/tests/viewer/interactive.test.tsx && test -f overhaul/cli-adapter/tests/viewer/typed-pick.test.tsx && pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/viewer/interactive.test.tsx tests/viewer/typed-pick.test.tsx`
+- Open questions: none open; ruled in R-381. Likely from the tester: Escape during the reveal.
+- Commits: –
+- Notes: about 1,500 lines, two slices.
+
+### M-019: Physical Division: `hexagram-manual`
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0010, ADR-0011 with ADR-0043, ADR-0038 (Line Retraction a
+  client policy); manual section 6.5; R-276, R-339
+- Scope: The Transcription form, the strip naming the first failing check,
+  the `MISSING STALKS` gauge, Line Retraction, the help overlay and the
+  32-row rule, keeping with Division Method Physical.
+- Tier-A surface: strip and notice wording.
+- Free to choose: how a retracted `PartialCasting` is built as a literal
+  without assertions (R-056, B11); a private guard is not free.
+- Acceptance: `test -f overhaul/cli-adapter/tests/viewer/manual.test.tsx && test -f overhaul/cli-adapter/tests/viewer/line-retraction.test.tsx && pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/viewer/manual.test.tsx tests/viewer/line-retraction.test.tsx`,
+  the first asserting each strip state for each check ADR-0043 keeps
+  reachable.
+- Open questions: none yet. Likely from the tester: Ctrl+R at the first
+  Round.
+- Commits: –
+- Notes: about 1,500 lines, two slices. The clerk folds ADR-0043 into
+  ADR-0011 before it starts.
+
+### M-020: Browsing the Journal, and Record a Consultation
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0026, ADR-0030, ADR-0037; manual sections 5, 6.7, 6.8;
+  R-333, R-336, R-337
+- Scope: `hexagram-history`'s browse list (counts, rows, filter, Unreadable
+  rows), opening a Readout, deleting with confirmation, and the Record a
+  Consultation form.
+- Tier-A surface: footer and form wording.
+- Free to choose: list windowing; form widgets.
+- Acceptance: `test -f overhaul/cli-adapter/tests/viewer/browse.test.tsx && test -f overhaul/cli-adapter/tests/viewer/record-form.test.tsx && pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/viewer/browse.test.tsx tests/viewer/record-form.test.tsx`
+- Open questions: none open; ruled in R-378, R-379. Likely from the tester: deleting the last
+  row; Enter on an empty list.
+- Commits: –
+- Notes: about 1,800 lines, three slices: list; open and delete; form.
+
+### M-021: The Playground, Home, and the cutover
+
+- Status: pending
+- Phase: 4
+- Licensed by: ADR-0014, ADR-0024, ADR-0026; manual sections 6.2, 6.6;
+  R-331, R-338
+- Scope: `hexagram-playground` and `hexagram`; then the cutover under R-355:
+  the six names and root scripts run the new code, and `AGENTS.md`'s
+  commands and `docs/legacy-architecture.md` are updated.
+- Tier-A surface: menu wording; the cutover; `AGENTS.md`.
+- Free to choose: banner animation internals.
+- Acceptance: `test -f overhaul/cli-adapter/tests/viewer/playground.test.tsx && test -f overhaul/cli-adapter/tests/viewer/home.test.tsx && test -f overhaul/cli-adapter/tests/commands/cutover.test.ts && pnpm type:check && pnpm lint:check && pnpm --filter @hexagram/cli-adapter exec vitest run tests/viewer/playground.test.tsx tests/viewer/home.test.tsx tests/commands/cutover.test.ts`,
+  the last spawning each root script under `CI` and expecting M-010's
+  refusal line.
+- Open questions: none open; ruled in R-355.
+- Commits: –
+- Notes: about 1,500 lines, three slices. The owner migrates the real Journal
+  after it lands; no agent opens `consultations/`.

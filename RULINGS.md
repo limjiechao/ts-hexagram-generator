@@ -4208,7 +4208,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Question: (a) on a TTY with `NO_COLOR`, the Ink-only commands run without colour and with typed input; only a headless stdout or `CI` refuses; this amends ADR-0010; (b) keep ADR-0010 as it stands.
 - Ruling: "CLI-1 to -21: A; DT-1: A"
 - Note (clerk): the clerk first recorded this as "NO_COLOR or CI", misreading the draft's (A); asked again, the owner ruled "Q-R-332: A": `CI` still refuses.
-- Folded into: not yet
+- Folded into: `docs/adr/0044-no-color-runs-the-ink-only-commands.md` (R-384)
 
 ### R-333: Record a Consultation is a full-screen form
 
@@ -4380,3 +4380,268 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   R-350)?
 - Ruling: "ratify the CLI manual"
 - Folded into: `docs/manual/cli.md`
+
+### R-354: PH4-1, What Phase 4 covers
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-1; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) As section 1's table, with the cutover. (B) As (A) without use cases 9 and 10; about 10 Matters, short of the manual. Recommend (A): it is what the manual describes.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-355: PH4-2, Retirement and the Journal before the cutover
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-2; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: ADR-0020 anchors `consultations/` at the root of whichever checkout runs a command. (A) No root scripts for the new commands until M-021; before then they run only in tests on temporary folders. The owner may try one from a separate worktree, whose `consultations/` is its own. M-021 moves the six names and scripts; the owner then runs `--import-legacy` on the real Journal; the legacy packages are deleted later as a Tier-C chore, and the bug loop stops on them at the cutover. (B) Temporary `next:` scripts in the main checkout, writing version 2 into the real Journal beside version 1. (C) Swap each bin as its Matter lands. Recommend (A): (B) and (C) leave the Journal half Unreadable to both apps.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-356: PH4-3, Slicing, and the Matter count
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-3; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: Porting the Viewer is about 7,800 lines of source and 10,000 of tests, too large for one Matter's touch and brief caps. (A) Split it (M-017, M-018) and merge deleting, merging and importing into one Matter (M-015), keeping 12. (B) Thirteen Matters, which changes the budget, a Tier-A event. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-357: PH4-4, Purity of `catalogue-bundled` and `legacy-import`
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-4; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: R-025 names both and R-105 makes `presentation` pure. (A) Both pure: the Catalogue as literal data, the parser taking file text, since the PWA shares it (ADR-0037); reading files stays in `cli-adapter`. (B) Both impure, reading their own files. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-358: PH4-5, `cli-adapter`'s production arrows
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-5; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) It may import `oracle`, `consultation-journal`, `scripture-catalogue`, `presentation` and every CLI adapter, not `remainder-group-policy`; M-010 retires or replaces the plants this legalises. (B) The domain packages for types and guards only. Recommend (A): the composition root is where everything meets (ADR-0037).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-359: PH4-6, New runtime dependencies
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-6; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Ink and React at the legacy versions in `cli-adapter`; `js-yaml` in `store-markdown`, without `gray-matter`; Typst as PH4-23 names it; `node:readline` and `node:util` in place of `@inquirer/prompts` and an option library. (B) As (A) with `yaml` for `js-yaml` 3. Recommend (A): nothing the repository lacks except R-347's.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-360: PH4-7, Reusing today's code
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-7; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Copy and adapt legacy components, the legacy converter and `@hexagram/test-utils`' helpers into the overhaul; never import a legacy package. (B) Import legacy packages through new arrows. (C) Rewrite from the manual. Recommend (A): it keeps ADR-0012's patterns and leaves the legacy deletable.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-361: PH4-8, The commands' in-process entry point
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-8; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: A spawned child is never a TTY, and scripted ports in a bin would need a hidden option. (A) Each command exports `run(argv, io, ports)`, where `io` carries stdin, stdout, stderr, `isTTY`, rows, columns and the environment, and `ports` are the four driven ports plus the Journal folder; it resolves to the exit code. The bin passes the process and real adapters. (B) One `run` for all six, the command named in `argv`. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-362: PH4-9, `store-markdown`'s surface beyond the port
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-9; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: `--rerender-bodies` cannot go through `keep`, and moving imported originals and locating the Journal have no port. (A) It exports a builder taking the folder and body renderer and returning a `ConsultationStore`, `rerenderBodies` and `moveToLegacy`; locating the folder (ADR-0020) stays in the bins. (B) Widen the port, which the PWA's store would stub. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-363: PH4-10, Where ADR-0030's shared codec lives
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-10; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) A pure public subpath of `consultation-journal`, version-2 record to `Consultation` and back, checking replay through `oracle`'s `divide` from `emptyCasting`, returning an Unreadable reason on failure; YAML text stays in `store-markdown`; the bundle and the PWA reuse the codec. (B) Private to `store-markdown`. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-364: PH4-11, How `keep` gets its body
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-11; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) The body renderer is injected when the Store is built, built from use case 3 and the Markdown renderer with the default Reading Preference, so `--rerender-bodies` has one answer. (B) With the keeping command's Reading Preference. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-365: PH4-12, Legacy `.txt` files in the Journal folder
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-12; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: Version-1 `.md` files are Unreadable (manual section 2). (A) `.txt` files are neither read nor counted, as today, until imported. (B) Counted as Unreadable. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-366: PH4-13, Unreadable reasons, and a duplicate Id
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-13; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: The reason shows in the footer. (A) A closed list drafted with the codec: no frontmatter; not YAML; not version 2; a field missing or invalid, named; the Casting does not replay; and a second file holding an Id already read. (B) Free text; a duplicate shows twice. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-367: PH4-14, The Deletion Record file
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-14; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) `deleted/<Id>.json` holding the record as the bundle encodes it; `remove` writes it before deleting the `.md`. (B) YAML. Recommend (A): one encoding in both places.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-368: PH4-15, The bundle's shape
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-15; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) A JSON object with a format name and version, `consultations` as the codec's records and `deletionRecords`, sorted by Id for reproducible bytes, with a byte fixture binding on the PWA. (B) Unsorted. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-369: PH4-16, The Catalogue's data
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-16; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) A one-off conversion of the legacy models into literal data in `catalogue-bundled`, with EditionIds such as `legge-1882` and Witness records from ADR-0028; no runtime link to `@hexagram/core`. (B) Import the legacy models at runtime. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-370: PH4-17, 用九 / 用六, for the whole phase
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-17; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: The default Readout needs it for all-moving 乾 and 坤, and the tree has none. (A) The owner supplies the two Witnessed passages, with their 小象, in each Edition that has them, before M-011 starts; M-011 bundles them and M-013's fixtures show them; this blocks M-011. (B) Ship without and amend the manual. (C) A 13th Matter to source them, an overrun of the budget and a Tier-A event. Recommend (A): two short passages, and agents must not transcribe scripture unsupervised.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-371: PH4-18, 文言 and the Yilin
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-18; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: Neither is in the default Reading Preference. (A) Until the owner supplies Witnessed texts, they show nothing, as for a Translation lacking a passage, and the manual's "Still open" says so; their data Matter comes after Phase 4. (B) Source them in Phase 4 as a 13th Matter, a Tier-A overrun. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-372: PH4-19, The Catalogue port's gaps
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-19; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) The port and use case 8 gain the Received Sequence Number of a Hexagram, and a Trigram's name and imagery in each Edition shown (R-341). (B) The Received Sequence Number as a table in `presentation`, outside its context. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-373: PH4-20, The conversion label (R-344)
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-20; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Part of the Witness's `description`; `Edition` unchanged. (B) A new field. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-374: PH4-21, Where the Markdown renderer lives: an ADR conflict
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-21; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: ADR-0030 says "Presentation's Markdown renderer" and `CONTEXT.md` makes Presentation "Readouts in every medium"; ADR-0022 puts the monospace Markdown body on the CLI side. (A) Read ADR-0030 as naming the Presentation context: the `presentation` package holds the medium-neutral Readout and the Typst renderer, and the monospace grid, plain, Ink and Markdown renderers live in `cli-adapter`, as ADR-0022 holds; a note in ADR-0030 says so. (B) The Markdown renderer and the monospace grid go in `presentation`, superseding ADR-0022. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-375: PH4-22, Where byte fixtures come from
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-22; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: The manual changes the Readout, so today's fixtures cannot stand. (A) The tester derives each fixture by editing today's bytes (plain output, Ink sections, Markdown body, whole file; frontmatter in M-012) to the manual's changes, so the owner reviews a diff, and adds cases for X之X, all-moving 乾 with its 用九 text as PH4-17 rules, several Moving Lines, a Recorded Consultation and a date-only Divined At; the owner ratifies them with the test list, before the renderer. No fixture may record a missing default passage. (B) Generated by the first implementation and ratified before landing. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-376: PH4-23, Typst in Node
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-23; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: R-347 did not name the package, the fonts for Chinese, or the time. (A) The owner starts a spike before M-016. (B) Decide from documentation. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-377: PH4-24, Closed stdin before the Query (R-350, open)
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-24; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Exit 1 with one line, as the manual proposes. (B) Exit 0, as a quit. Rule before M-014.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-378: PH4-25, Clarifying R-337
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-25; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: In a newest-first list, "sorts before" reads as "listed above". (A) A date-only row is listed above that day's moments, the day of a moment being its date in its own offset; moments order by instant, ties by Consultation Id. (B) Below them. Recommend (A), the literal reading.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-379: PH4-26, A date and time entered without an offset
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-26; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) The Record form shows the system's current offset as an editable part of the field. (B) The offset is applied silently. Recommend (A): a past date may fall in another offset.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-380: PH4-27, Maintenance options together
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-27; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) `--import-legacy`, `--rerender-bodies`, `--export`, `--export-journal` and `--merge-journal` exclude each other; two together is a usage refusal (R-351). (B) Run in a fixed order. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-381: PH4-28, How Ink Matters are accepted
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-28; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Named `ink-testing-library` files that wait on `onReady` (ADR-0012), with `pnpm lint:check` in the Acceptance for the `await tick()` ban; the clerk runs `pnpm test:stress:once` before each lands, outside Acceptance. (B) `test:stress` in Acceptance. Recommend (A).
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-382: PH4-29, On-screen strings
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-29; `docs/reviews/2026-11-26-phase-4-cli.md`)
+- Question: (A) Tab content is fixed by M-013's Ink-section fixtures, as today; each Matter's test list names every new footer, prompt and menu string, and its approval ratifies them. (B) Byte fixtures of whole Ink frames. Recommend (A): frames depend on terminal size.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-383: PH4-30, colour-borne meaning gets a text marker under NO_COLOR
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (question PH4-30, from ADR-0044's draft)
+- Question: ADR-0044 requires that no screen rely on colour alone, but the
+  manual does not say how the red MISSING STALKS gauge or a miscount in the
+  Transcription strip shows under `NO_COLOR`. (a) each gets a text marker as
+  well, added to the manual's §6.5 as an addendum in M-019; (b) leave it to
+  the implementer.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: not yet
+
+### R-384: ADR-0044 is ratified, kept separate until ADR-0010 is consolidated
+
+- Date: 2026-11-26
+- Raised in: folding R-332 (draft 25f83f9 on `docs/adr-0010-amendment`)
+- Question: Ratify ADR-0044, which amends ADR-0010 so `NO_COLOR` on a TTY runs
+  the Ink-only commands while `CI` and a non-TTY stdout refuse? Consolidation:
+  (a) keep ADR-0044 separate, as R-297 did, and consolidate ADR-0010 with
+  ADR-0011 and ADR-0043 before M-019; (b) consolidate now.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: `docs/adr/0044-no-color-runs-the-ink-only-commands.md` (da85145)
+
+### R-385: M-010 to M-021 are ratified as drafted
+
+- Date: 2026-11-26
+- Raised in: Phase 4's breakdown (section 2 of the proposal, 1981cf1)
+- Question: Ratify the twelve Matter entries as drafted, each with its Scope,
+  Tier-A surface, Free to choose and Acceptance? Test file names are drafts
+  each tester fixes in the list the owner approves.
+- Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
+- Folded into: `MATTERS.md` (M-010 to M-021)
