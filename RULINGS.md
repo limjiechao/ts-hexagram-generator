@@ -3995,3 +3995,26 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   calls in four approved test files?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-313: The B9 twin fixture for cli-adapter gains consultation-journal
+
+- Date: 2026-11-26
+- Raised in: M-008 (question Q-M-008-4; `drift:prove` reported
+  `twins/cli-adapter.package.json: expected none, reported B9`)
+- Question: May `scripts/drift/fixtures/signal-3/twins/cli-adapter.package.json`,
+  M-002's acceptance material, gain `"@hexagram/consultation-journal":
+"workspace:*"` in `devDependencies`, as part of M-008? (a) yes, made by a
+  fresh tester, nothing else changed; (b) no, change the prover otherwise.
+- Ruling: "Q-M-008-4 to -5: A"
+- Folded into: not yet
+
+### R-314: A Matter that changes a boundary arrow lists its twin fixture in its Tier-A surface
+
+- Date: 2026-11-26
+- Raised in: M-008 (question Q-M-008-5)
+- Question: (a) as a standing rule, any Matter that changes a boundary arrow
+  lists the matching B9 twin fixture under `scripts/drift/fixtures/signal-3/`
+  in its Tier-A surface, so the tester updates it with the acceptance tests;
+  (b) ask each time.
+- Ruling: "Q-M-008-4 to -5: A"
+- Folded into: `docs/agents/clerk.md` (Step 3)
