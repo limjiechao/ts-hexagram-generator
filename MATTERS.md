@@ -186,7 +186,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-005: Pick Division: `nextRound` and `divide`
 
-- Status: in-progress
+- Status: awaiting-ruling (Q-M-005-4)
 - Phase: 3
 - Licensed by: ADR-0023 (valid Pick, Remainder Groups), ADR-0026, ADR-0038;
   CONTEXT.md (Round, Division, Pick, Hung Stalk, Remainder, Set-aside); R-030,
