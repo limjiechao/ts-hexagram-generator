@@ -175,6 +175,10 @@ Every spec hole becomes a question (§3), and the Matter goes to
 The tests are Tier A. Show the owner the list of test names and get approval
 before implementation starts. The implementer may not edit them.
 
+When a Matter changes a boundary arrow, its Tier-A surface lists the matching
+B9 twin fixture under `scripts/drift/fixtures/signal-3/twins/`, and the tester
+updates that fixture with the acceptance tests (R-314).
+
 ### Step 4: Implement (a fresh implementer agent)
 
 Create a worktree from the integration tip with
