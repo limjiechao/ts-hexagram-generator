@@ -383,10 +383,15 @@ importers:
       '@hexagram/application':
         specifier: workspace:*
         version: link:../application
-    devDependencies:
       '@hexagram/consultation-journal':
         specifier: workspace:*
         version: link:../consultation-journal
+      '@hexagram/node-effects':
+        specifier: workspace:*
+        version: link:../node-effects
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
       '@hexagram/scripture-catalogue':
         specifier: workspace:*
         version: link:../scripture-catalogue
@@ -402,6 +407,9 @@ importers:
       '@hexagram/application':
         specifier: workspace:*
         version: link:../application
+      '@hexagram/consultation-journal':
+        specifier: workspace:*
+        version: link:../consultation-journal
 
   overhaul/oracle: {}
 

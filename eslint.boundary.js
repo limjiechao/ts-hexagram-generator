@@ -87,14 +87,27 @@ const overhaulPackages = {
       'remainder-group-policy': 'any',
     },
   },
+  // R-393: the Clock admits its offset through `isUtcOffset`.
+  'node-effects': {
+    rule: 'B7',
+    testsRule: 'B8',
+    pure: false,
+    dependencies: {
+      application: 'any',
+      'consultation-journal': ['divined-at'],
+    },
+  },
+  // R-358: the composition root, where every package but the policy meets.
   'cli-adapter': {
     rule: 'B7',
     testsRule: 'B8',
     pure: false,
-    dependencies: { application: 'any' },
-    devDependencies: {
-      'scripture-catalogue': 'any',
+    dependencies: {
+      application: 'any',
       'consultation-journal': 'any',
+      'node-effects': 'any',
+      oracle: 'any',
+      'scripture-catalogue': 'any',
     },
   },
 }
