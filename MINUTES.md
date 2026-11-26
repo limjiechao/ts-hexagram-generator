@@ -493,3 +493,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — Phase 3 and the CLI manual on main — 2026-11-26
 
 - PR #59 (43 commits: M-008, M-009, the ratified CLI manual, R-308 to R-353) passed CI; the owner fast-forwarded `main` to be8989a under R-302, keeping every SHA. Phases 1 to 3 and Phase 4's entry gate are now on `main`.
+
+### Note — Acceptance commands and missing test files — 2026-11-26
+
+- Phase 4's challenger found that `vitest run a.test.ts missing.test.ts` exits 0 when at least one listed file exists; only a list in which every file is missing fails. Phase 3's proposal had claimed otherwise. All 14 files named by M-005 to M-009's Acceptance commands exist, so no Phase 3 landing passed vacuously. Phase 4's Acceptance commands will start with `test -f` for each file.
