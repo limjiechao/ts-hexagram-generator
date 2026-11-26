@@ -9,7 +9,7 @@ checking. A manual becomes authoritative only when the owner ratifies it.
 
 | Manual    | Channel     | Status  | Gate                                   |
 | --------- | ----------- | ------- | -------------------------------------- |
-| `cli.md`  | CLI         | pending | must be ratified before Phase 4 starts |
+| `cli.md`  | CLI         | draft   | must be ratified before Phase 4 starts |
 | `rest.md` | REST engine | pending | must be ratified before Phase 5 starts |
 
 Manuals are not Matters. Each is drafted in a copilot session with the owner
