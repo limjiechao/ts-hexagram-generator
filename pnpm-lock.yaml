@@ -397,6 +397,12 @@ importers:
         specifier: workspace:*
         version: link:../oracle
 
+  overhaul/node-effects:
+    dependencies:
+      '@hexagram/application':
+        specifier: workspace:*
+        version: link:../application
+
   overhaul/oracle: {}
 
   overhaul/remainder-group-policy:

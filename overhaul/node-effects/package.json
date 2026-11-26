@@ -1,0 +1,37 @@
+{
+  "name": "@hexagram/node-effects",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The Node adapters for the Clock and the Random Source driven ports: the system clock and node:crypto (ADR-0037)",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./crypto-random-source": {
+      "source": "./src/crypto-random-source.ts",
+      "types": "./dist/crypto-random-source.d.mts",
+      "import": "./dist/crypto-random-source.mjs"
+    },
+    "./system-clock": {
+      "source": "./src/system-clock.ts",
+      "types": "./dist/system-clock.d.mts",
+      "import": "./dist/system-clock.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/application": "workspace:*"
+  }
+}
