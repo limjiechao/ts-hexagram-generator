@@ -295,7 +295,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-010: The command frame and the Node effects
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0010 as R-332 amends it, ADR-0020, ADR-0037; manual
   sections 2, 6.1, 7; R-331, R-332, R-350, R-351
@@ -321,8 +321,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Open questions: none open; ruled in R-355, R-357, R-358, R-359, R-361. Likely from the tester:
   `--wrap-width 0`; an option given twice; `CI=false`.
 - Commits: –
-- Notes: about 800 lines, two slices. The clerk folds R-332 and ADR-0010's
-  32-row amendment into ADR-0010 before it starts.
+- Notes: about 800 lines, two slices. R-332 is folded into ADR-0044 (R-384);
+  ADR-0010 is consolidated before M-019, not before this Matter.
 
 ### M-011: The bundled Scripture Catalogue
 
