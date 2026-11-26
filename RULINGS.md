@@ -4776,3 +4776,99 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   dev-arrow plant re-described; `expected.ts` to match, with R-395's note?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-397: A command not built yet names the mode the table chose
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-8, slice 2's spec audit)
+- Question: The manual is silent. (a) one line on stderr, exit 1, naming the mode §2's table chose (for example "hexagram-random: plain mode is not built yet"), its wording ratified by the owner; (b) one line, "<command> is not built yet"; (c) a ratified, exported mode classifier the tests call.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-398: The other five usage lines are drafted for ratification
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-9, slice 2's spec audit)
+- Question: Only hexagram-random's was ratified (R-392). (a) the implementer drafts the five from §7 as `usage` constants for the owner's ratification, the tests import them, each written to stderr with a newline; (b) the tester drafts them in the tests.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-399: Options are parsed before the terminal is checked
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-10, slice 2's spec audit)
+- Question: (a) options first, so a usage refusal wins over a terminal refusal; (b) the terminal refusal wins.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-400: NO_COLOR and CI are set when present and non-empty
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-11, slice 2's spec audit)
+- Question: (a) present and non-empty, for both; `CI=false` counts as set; (b) as (a), with `CI=false` and `CI=0` unset; (c) present at all, even empty.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-401: A positive whole number is decimal digits with no leading zero
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-12, slice 2's spec audit)
+- Question: (a) decimal digits only, no leading zero, the `--option=value` form accepted, no upper bound; (b) anything `Number` reads as a positive integer.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-402: A non-repeatable option given twice is a usage refusal
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-13, slice 2's spec audit)
+- Question: (a) a usage refusal; (b) the last one wins.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-403: The frame accepts any non-empty --translation and --commentary value
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-14, slice 2's spec audit)
+- Question: (a) any non-empty string; the Readout's Matter checks it against the Catalogue; (b) the frame checks now.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-404: A positional is a usage refusal, except paths after --import-legacy
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-15, slice 2's spec audit)
+- Question: (a) a positional is a usage refusal except paths after `--import-legacy`; a lone `--` is dropped; (b) every positional is refused.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-405: hexagram-history options that do not apply are refused
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-16, slice 2's spec audit)
+- Question: (a) each is a usage refusal (`--division-method` without `--import-legacy`, `--filter` without `--export`, display options with `--import-legacy` or `--rerender-bodies`), display options allowed with `--export`; (b) ignore what does not apply.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-406: The 32-row check for hexagram-manual is in the frame
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-17, slice 2's spec audit)
+- Question: (a) in the frame, after the TTY and `CI` refusals, with §6.5's line; (b) deferred to hexagram-manual's Matter.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-407: The bins live in cli-adapter/src/bin and pass stubs until the adapters land
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-18, slice 2's spec audit)
+- Question: (a) `src/bin/<command>.ts`, no `package.json` `bin` field until M-021 (R-355), spawn tests through `tsx --conditions=source`; the bins pass throwing stubs for the Catalogue and Store until their Matters; the Journal folder found by a helper copied from the legacy `workspace-root` (ADR-0020, R-360); (b) `bin` entries and a build now, or wait for the real adapters.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
+
+### R-408: The frame's tests fake the Catalogue and Store with throwing stubs
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-19, slice 2's spec audit)
+- Question: (a) throwing stubs, and no refusal or not-built path touches a port; (b) other fakes.
+- Ruling: "Q-M-010-8 to -19: A"
+- Folded into: not yet
