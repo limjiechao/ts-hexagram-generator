@@ -34,16 +34,18 @@ Two sets of figures sit side by side (ADR-0042, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)            | Owner touches (cap / used)                                 | Brief cap (lines) | Entry gate                     | Status                      |
-| ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | ---------------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                             | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)         | 1,500             | –                              | landed (M-002 to M-004)     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008) | 1,500             | –                              | M-005 to M-009 (R-286)      |
-| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                          | – (no brief)      | –                              | pending                     |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                          | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
-| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                          | – (no brief)      | –                              | pending                     |
-| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                          | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                          | 1,500             | –                              | not yet broken into Matters |
+| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)            | Owner touches (cap / used)                                             | Brief cap (lines) | Entry gate                     | Status                      |
+| ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | ---------------------------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                                         | uncapped          | –                              | landed (M-001)              |
+| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
+| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
+| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
+| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | –                              | not yet broken into Matters |
+
+**Phase 3 landed on matters 2026-11-26**: the Oracle core runs use cases 1 to 3 end to end against stub ports (M-005 to M-009).
 
 **Phase 3 broken into Matters 2026-11-25**: M-005 to M-009 (R-273, R-274, R-286), from `docs/reviews/2026-11-25-phase-3-oracle-core.md`.
 
@@ -267,7 +269,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-009: Resolve a Transformation: the Hexagram table, `resolve` and use case 3
 
-- Status: in-progress
+- Status: landed
 - Phase: 3
 - Licensed by: ADR-0024, ADR-0025, ADR-0028, ADR-0037; CONTEXT.md (Figure,
   Polarity, Trigram, Fuxi Sequence Number, Nuclear, Inverse and Reversed
@@ -286,5 +288,5 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/hexagram-table.test.ts tests/resolution.test.ts && pnpm --filter @hexagram/application exec vitest run tests/resolve-transformation.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/resolve.test.ts`. The table test asserts 64 rows and 64 distinct Figures; the Resolution test asserts it ran over 4,096 distinct Transformations.
 - Open questions: none (R-282 to R-285). Likely from the tester:
   Commentaries asked for an X之X Transformation.
-- Commits: 7b787d9 (ratified surface), f95c445 (acceptance), 5cb3ef1 (rows and lookup), d9bfb2f (comment) for slice 1; 51def64 (acceptance), c74eab4 (`resolve`) for slice 2
+- Commits: 7b787d9 (ratified surface), f95c445 (acceptance), 5cb3ef1 (rows and lookup), d9bfb2f (comment) for slice 1; 51def64 (acceptance), c74eab4 (`resolve`) for slice 2; 23f7164, 201492c (acceptance), 9289882 (use case 3), 150091a (`composeCli`), f6f3b42 (comment) for slice 3
 - Notes: about 1,350 lines, three slices: the table; `resolve`; use case 3.

@@ -451,3 +451,24 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 9 of M-009's 60 (R-315 to R-320, R-322 to R-324)
 - Landed: 51def64, c74eab4
 - Notes: a Resolution shares the table's Trigram and Hexagram arrays, and the table is not frozen; asked as Q-M-009-6. The private helpers closely mirror the test's own; the reviewer's independent probe agrees with both.
+
+### Iteration 32 — M-009 — 2026-11-26
+
+- Attempt: 1/2 (slice 3 of 3; R-058) · Outcome: slice 3 landed; M-009 landed
+- Tests: no holes reported, but the tester avoided one case (文言 for other Hexagrams) instead of raising it; the clerk asked it (R-326) and a fresh tester added one test. 18 tests (16 + 2), approved as R-327. That tester briefly placed reference files in `src/` and restored them; the clerk confirmed `src` unchanged.
+- Review: `APPROVE` (an independent use case 3 over 4,096 Transformations × 5 Reading Preferences, 20,480 runs: 0 mismatches, 0 overlapping calls; a rejection at every call k stops after call k, 112 cases)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 18/18 and 36/36 · M-009's full Acceptance on matters
+- Brief size: implementer about 1,200 lines of required reading
+- Owner touches: 13 of M-009's 60 (R-315 to R-320, R-322 to R-328)
+- Landed: 23f7164, 201492c, 9289882, 150091a, f6f3b42
+- Notes: the remaining `application` stubs are use cases 4 to 7, 9 and 10, which R-273 places in Phase 4.
+
+### Phase 3 milestone — 2026-11-26
+
+- Landed on `matters`: M-005 (Pick Division), M-006 (Physical Division), M-007 (Automatic Division), M-008 (keep and record), M-009 (the Hexagram table, `resolve`, use case 3). ADR-0043 amended ADR-0011. `oracle` and `remainder-group-policy` hold no stubs.
+- Budget 5 Matters / 3 weeks; actual 5 Matters in 2 days.
+- Owner touches: 7 + 6 + 5 + 6 + 13 = 37, each under the 60-per-Matter cap (R-138); plus 2 for the breakdown.
+- Briefs: implementer briefs ran about 800 to 1,300 lines, under the 1,500 cap.
+- Review attempts: 10 slices, all approved on the first attempt; no retries. Spec holes came at the tester's audit (17 questions across the five Matters) rather than at review.
+- Clerk slips: `format:check` red on `matters` for two commits (exit codes checked since); a tester brief that did not ask whether a widening breaks existing calls (R-306); an unlisted B9 twin fixture (R-314).
+- Testers read code they should not have three times (Oracle bodies, pass-through bodies, `src/` swaps); each was reported, and the owner approved the lists knowing it.
