@@ -4201,12 +4201,13 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: "CLI-1 to -21: A; DT-1: A"
 - Folded into: not yet
 
-### R-332: With NO_COLOR or CI on a TTY, the full-screen commands run without colour and with typed input
+### R-332: With NO_COLOR on a TTY, the full-screen commands run without colour and with typed input
 
 - Date: 2026-11-26
 - Raised in: Phase 4-pre, the CLI manual (question CLI-2; `docs/manual/cli.md` at 602aecc)
-- Question: (a) the Ink-only commands run without colour and with typed input instead of refusing, amending ADR-0010; (b) keep refusing.
+- Question: (a) on a TTY with `NO_COLOR`, the Ink-only commands run without colour and with typed input; only a headless stdout or `CI` refuses; this amends ADR-0010; (b) keep ADR-0010 as it stands.
 - Ruling: "CLI-1 to -21: A; DT-1: A"
+- Note (clerk): the clerk first recorded this as "NO_COLOR or CI", misreading the draft's (A); asked again, the owner ruled "Q-R-332: A": `CI` still refuses.
 - Folded into: not yet
 
 ### R-333: Record a Consultation is a full-screen form
