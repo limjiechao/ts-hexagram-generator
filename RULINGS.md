@@ -3950,3 +3950,36 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   its ports in the existing `PortsSupplied` pattern (R-275's digest line)?
 - Ruling: "digest ratified"
 - Folded into: not yet
+
+### R-309: A Clock reading a ULID cannot hold rejects keep and record
+
+- Date: 2026-11-26
+- Raised in: M-008 (question Q-M-008-1)
+- Question: `epochMilliseconds` of 2^48 or more, below 0, or not an integer
+  gives an Id `isConsultationId` refuses. (a) keep and record reject the
+  Promise with an Error and keep nothing, as the ULID spec refuses above
+  2^48 − 1; tested at 2^48 − 1 (kept), 2^48, −1 and 1.5 (rejected, the Store
+  never called); (b) the Clock is trusted, stated in its doc comment, untested;
+  (c) wrap modulo 2^48 or floor fractions.
+- Ruling: "Q-M-008-1 to -3: A"
+- Folded into: not yet
+
+### R-310: Random draw k is the Id's character 10 + k, its value the alphabet index
+
+- Date: 2026-11-26
+- Raised in: M-008 (question Q-M-008-2)
+- Question: (a) draw k (1 to 16) becomes character 10 + k, and its value v is
+  the v-th symbol (0 to 31) of Crockford's alphabet, as ULID's layout gives;
+  (b) the order is free, tests using uniform draws only.
+- Ruling: "Q-M-008-1 to -3: A"
+- Folded into: not yet
+
+### R-311: A Clock or Random Source failure rejects the Promise unchanged
+
+- Date: 2026-11-26
+- Raised in: M-008 (question Q-M-008-3)
+- Question: (a) keep and record reject with the port's error unchanged and
+  keep nothing, as R-108 does for the Store; one test per port per use case;
+  (b) unspecified and untested; (c) throw synchronously.
+- Ruling: "Q-M-008-1 to -3: A"
+- Folded into: not yet
