@@ -4169,3 +4169,26 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (5) `structureOf`'s comment reworded to "filled field by field" in slice 3?
 - Ruling: "Q-M-009-6 to -7: A; approve the list; digest ratified"
 - Folded into: not yet
+
+### R-329: A future Commentary Work is classified when the Reading Preference's type changes
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-8, from slice 3's review)
+- Question: Use case 3 treats every preferred Commentary except 小象 as
+  following a Hexagram Statement. (a) keep it: the Reading Preference's type
+  is closed to the four Works, so a new Work needs a ratified type change
+  first, and the question is asked then; (b) list 彖傳, 大象 and 文言
+  explicitly now.
+- Ruling: "Q-M-009-8: A; digest ratified; start the CLI manual"
+- Folded into: not yet
+
+### R-330: M-009 slice 3's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 3, 9289882, 150091a, f6f3b42)
+- Question: Ratify: (1) two private helpers, `commentariesOn` and
+  `citationsOf`, in `resolve-transformation.ts`; (2) the 經 Citation built as
+  `{ work: 'zhouyi', ...passage }`; (3) the Catalogue calls in a `for…of` loop
+  with `await`, no try/catch; (4) the loop variable named `passage`?
+- Ruling: "Q-M-009-8: A; digest ratified; start the CLI manual"
+- Folded into: not yet
