@@ -4124,3 +4124,48 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `FuxiSequenceNumber`'s comment in the glossary's words?
 - Ruling: "approve the list; digest ratified"
 - Folded into: not yet
+
+### R-325: A Resolution may share the table's arrays; readonly types guard them
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-6, from slice 2's review)
+- Question: A Resolution reuses the table's Trigram and Hexagram arrays, and
+  the table is not frozen, so untyped code could corrupt it. (a) keep it: the
+  readonly types and R-051 are the guard, as R-290 relies on types; (b)
+  deep-freeze the table at load; (c) `resolve` copies each array.
+- Ruling: "Q-M-009-6 to -7: A; approve the list; digest ratified"
+- Folded into: not yet
+
+### R-326: Use case 3 asks for 文言 for any Hexagram the Reading Preference wants it for
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-7, from slice 3's tests)
+- Question: (a) ask for 文言 for any Hexagram when the Reading Preference wants
+  it; the Catalogue returns no text for those without it and the passage is
+  left out; use case 3 holds no Work-specific knowledge; a fresh tester adds one
+  test pinning it on a Hexagram other than 乾 and 坤; (b) only for 乾 and 坤.
+- Ruling: "Q-M-009-6 to -7: A; approve the list; digest ratified"
+- Folded into: not yet
+
+### R-327: M-009 slice 3's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 3's test list,
+  `overhaul/application/tests/resolve-transformation.test.ts` and
+  `overhaul/cli-adapter/tests/resolve.test.ts`)
+- Question: Approve the 17 tests as listed (15 for use case 3, 2 for
+  `composeCli`), plus R-326's one added test?
+- Ruling: "Q-M-009-6 to -7: A; approve the list; digest ratified"
+- Folded into: not yet
+
+### R-328: M-009 slice 2's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 2, c74eab4)
+- Question: Ratify: (1) `resolve`'s helpers private in `resolution.ts`;
+  (2) Figures built by mapping each Line Value to its Polarity, positions by
+  destructuring; (3) structures filled field by field from `lookUpRow`'s row;
+  (4) the All-Moving Statement decided by "all six move and one Polarity";
+  (5) `structureOf`'s comment reworded to "filled field by field" in slice 3?
+- Ruling: "Q-M-009-6 to -7: A; approve the list; digest ratified"
+- Folded into: not yet
