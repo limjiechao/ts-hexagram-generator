@@ -3896,3 +3896,18 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `Error`, tested per bad draw; (c) return what indexing yields.
 - Ruling: "Q-M-007-1 to -2: A"
 - Folded into: not yet
+
+### R-305: M-007's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-007 (the test list,
+  `overhaul/remainder-group-policy/tests/choose-pick.test.ts` and
+  `overhaul/cli-adapter/tests/automatic-division.test.ts`)
+- Question: Approve the 15 tests as listed: Round arithmetic as ADR-0023
+  tabulates it; the draw mapping for each Remainder; two draws with bounds 4
+  and the group's size; first and last Picks; one-Pick groups; each Pick's
+  probability and the four Line Values' probabilities by exact enumeration;
+  and `composeCli` binding `drawAutomaticPick` to a Random Source, casting
+  whole Automatic Castings?
+- Ruling: "approve the list"
+- Folded into: not yet
