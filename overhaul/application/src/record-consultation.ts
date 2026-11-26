@@ -4,17 +4,19 @@ import type { RecordedConsultation } from '@hexagram/consultation-journal/record
 import type { Transformation } from '@hexagram/oracle/transformation'
 
 import type { Clock } from '#src/clock.js'
+import { buildConsultationId } from '#src/consultation-id-builder.js'
 import type { ConsultationStore } from '#src/consultation-store.js'
-import { notImplemented } from '#src/not-implemented.js'
 import type { RandomSource } from '#src/random-source.js'
 
 /**
  * Use case 2, Record a Consultation: keeps a Recorded Consultation, divined
  * elsewhere, and returns it. Divined At is as entered, never the Clock's;
  * the Clock and the Random Source only build its Consultation Id, a ULID
- * (ADR-0030). A Store failure rejects the Promise unchanged.
+ * (ADR-0030). A Store failure rejects the Promise unchanged. A Clock or
+ * Random Source failure, or a Moment a ULID cannot hold, rejects it before
+ * anything is kept.
  */
-export function recordConsultation(
+export async function recordConsultation(
   ports: {
     readonly consultationStore: ConsultationStore
     readonly clock: Clock
@@ -24,5 +26,16 @@ export function recordConsultation(
   divinedAt: DivinedAt,
   transformation: Transformation,
 ): Promise<RecordedConsultation> {
-  return notImplemented(ports, query, divinedAt, transformation)
+  const consultation: RecordedConsultation = {
+    origin: 'recorded',
+    id: buildConsultationId(
+      ports.clock.now().epochMilliseconds,
+      ports.randomSource,
+    ),
+    query,
+    divinedAt,
+    transformation,
+  }
+  await ports.consultationStore.keep(consultation)
+  return consultation
 }
