@@ -3,8 +3,9 @@ import type { Hexagram } from '#src/hexagram.js'
 import type { Trigram } from '#src/trigram.js'
 
 /**
- * A Hexagram's place 1–64, its Figure read as a number; the same for every
- * text tradition (ADR-0025).
+ * A Hexagram's place 1–64: its Figure read as a binary number (yin = 1, the
+ * first Line Position the highest bit), plus one; the same for every text
+ * tradition (ADR-0025).
  */
 export type FuxiSequenceNumber =
   | 1
