@@ -505,3 +505,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Rulings: PH4-1 to PH4-30 as R-354 to R-383, all (A); M-010 to M-021 ratified (R-385).
 - Owner touches: 2 (the request, the ruling), against no Matter.
 - Notes: M-011 waits for the owner's 用九 and 用六 text with its Witness (R-370). A Typst spike, which only the owner starts, precedes M-016 (R-376). ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384). The budget estimate of 5 to 10 weeks overruns the 8-week budget at its slow end.
+
+### Fix — drift:prove red since the CLI manual landed — 2026-11-26
+
+- R-352 removed the `docs/manual/cli.md` exception row, but `scripts/drift/prove-signal-1.ts` holds R-254's and R-265's seed word for word, so `drift:prove` failed from 0fdbbbd onward, on `main` too since PR #59. Neither CI's `check` job nor the clerk's Step 6 ran `drift:prove`; the clerk ran only `drift:check` when landing the manual.
+- Fixed: the prover's seed drops the row (R-386), CI's `check` job runs `drift:prove` and the clerk's Step 6 names it (R-387). `drift:prove` exits 0 on `matters`.
