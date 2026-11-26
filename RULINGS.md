@@ -3870,3 +3870,29 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   landing.
 - Ruling: "Q-M-006-5: A; Q-LAND-1: A"
 - Folded into: `docs/agents/clerk.md` (Git constraints)
+
+### R-303: The probability enumeration builds its own Rounds from ADR-0023
+
+- Date: 2026-11-26
+- Raised in: M-007 (question Q-M-007-1)
+- Question: B4 lets `remainder-group-policy` reach the Oracle as types only,
+  so its tests cannot call `nextRound` or `divide`. (a) `choose-pick.test.ts`
+  builds each Round's Remainder Groups from ADR-0023's definitions (valid Picks
+  1 to stalks − 2; left Remainder = Pick mod 4, right = (stalks − 1 − Pick)
+  mod 4, 0 as 4; Set-aside = 1 + both), keeping the boundaries and the
+  Acceptance line; (b) a test-only arrow from its tests to the Oracle;
+  (c) the enumeration moves to `cli-adapter`'s test and the Acceptance line
+  changes.
+- Ruling: "Q-M-007-1 to -2: A"
+- Folded into: not yet
+
+### R-304: An unusable draw is a precondition on choosePick's caller
+
+- Date: 2026-11-26
+- Raised in: M-007 (question Q-M-007-2)
+- Question: `integerBelow` returning 4, −1, 2.5, NaN or an index past the
+  group. (a) a precondition on the caller, like "every group holds a Pick";
+  unspecified and untested; the JSDoc says so in one line; (b) throw a defect
+  `Error`, tested per bad draw; (c) return what indexing yields.
+- Ruling: "Q-M-007-1 to -2: A"
+- Folded into: not yet
