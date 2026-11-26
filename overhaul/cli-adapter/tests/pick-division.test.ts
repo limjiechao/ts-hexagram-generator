@@ -1,6 +1,7 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
 import type { divide } from '@hexagram/application/divide'
 import { nextRound } from '@hexagram/application/next-round'
+import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
 
@@ -18,6 +19,13 @@ const stubCatalogue = () => {
   return scriptureCatalogue
 }
 
+/** Casting by hand draws no random integer, so drawing one fails the test. */
+const randomSource = {
+  integerBelow: () => {
+    throw new Error('casting drew a random integer')
+  },
+} satisfies RandomSource
+
 /** The steps of use case 1 that a Division by Pick needs. */
 interface PickDivisionSteps {
   readonly beginCasting: typeof beginCasting
@@ -26,7 +34,7 @@ interface PickDivisionSteps {
 }
 
 const compose = (scriptureCatalogue = stubCatalogue()): PickDivisionSteps =>
-  composeCli({ scriptureCatalogue })
+  composeCli({ scriptureCatalogue, randomSource })
 
 describe('composeCli for Division by Pick', () => {
   it('gives beginCasting, nextRound and divide the signatures @hexagram/application gives them', () => {

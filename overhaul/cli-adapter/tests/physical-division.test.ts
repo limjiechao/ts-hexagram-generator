@@ -1,5 +1,6 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
 import { divide } from '@hexagram/application/divide'
+import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { transcribe } from '@hexagram/application/transcribe'
 import { describe, expect, expectTypeOf, it, vi } from 'vitest'
@@ -20,6 +21,13 @@ const stubCatalogue = () => {
   return scriptureCatalogue
 }
 
+/** Casting by hand draws no random integer, so drawing one fails the test. */
+const randomSource = {
+  integerBelow: () => {
+    throw new Error('casting drew a random integer')
+  },
+} satisfies RandomSource
+
 /** The steps of use case 1 that a Physical Division needs. */
 interface PhysicalDivisionSteps {
   readonly beginCasting: typeof beginCasting
@@ -27,7 +35,7 @@ interface PhysicalDivisionSteps {
 }
 
 const compose = (scriptureCatalogue = stubCatalogue()): PhysicalDivisionSteps =>
-  composeCli({ scriptureCatalogue })
+  composeCli({ scriptureCatalogue, randomSource })
 
 const heaps = (
   pilesLeft: number | undefined,

@@ -1,3 +1,4 @@
+import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { Citation } from '@hexagram/scripture-catalogue/citation'
 import type { Edition } from '@hexagram/scripture-catalogue/edition'
@@ -101,10 +102,18 @@ function stubCatalogue(
   }
 }
 
+/** A stub Random Source; a lookup that draws a random integer throws. */
+const randomSource: RandomSource = {
+  integerBelow: () => {
+    throw new Error('a lookup drew a random integer')
+  },
+}
+
 describe('composeCli: looking up passage texts', () => {
   it("returns the Scripture Catalogue's passage texts unchanged and in order", async () => {
     const expected = passageTexts(lineCitation)
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -120,6 +129,7 @@ describe('composeCli: looking up passage texts', () => {
       Promise.resolve([]),
     )
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({ passageTexts: port }),
     })
 
@@ -138,6 +148,7 @@ describe('composeCli: looking up passage texts', () => {
 
   it('returns an empty list when the Scripture Catalogue has no passage text', async () => {
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve([]),
       }),
@@ -151,6 +162,7 @@ describe('composeCli: looking up passage texts', () => {
   it('returns the Yilin Verse for a yilin Citation even when the Reading Preference hides the Yilin Verse', async () => {
     const expected = passageTexts(yilinCitation)
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -167,6 +179,7 @@ describe('composeCli: looking up passage texts', () => {
   it("returns a Commentary's text for its Citation even when the Reading Preference shows no Commentaries", async () => {
     const expected = passageTexts(commentaryCitation)
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -183,6 +196,7 @@ describe('composeCli: looking up passage texts', () => {
   it("rejects with the Scripture Catalogue's own error when the lookup fails", async () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.reject(failure),
       }),
@@ -197,6 +211,7 @@ describe('composeCli: looking up passage texts', () => {
 describe('composeCli: looking up Hexagram names', () => {
   it("returns the Scripture Catalogue's Hexagram names unchanged and in order", async () => {
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.resolve(hexagramNames),
       }),
@@ -223,6 +238,7 @@ describe('composeCli: looking up Hexagram names', () => {
       Promise.resolve([]),
     )
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({ hexagramNames: port }),
     })
 
@@ -241,6 +257,7 @@ describe('composeCli: looking up Hexagram names', () => {
 
   it('returns an empty list when the Scripture Catalogue has no Hexagram name', async () => {
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.resolve([]),
       }),
@@ -254,6 +271,7 @@ describe('composeCli: looking up Hexagram names', () => {
   it("rejects with the Scripture Catalogue's own error when the lookup fails", async () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.reject(failure),
       }),
@@ -273,6 +291,7 @@ describe('composeCli: looking up Editions', () => {
       unidentifiedEdition,
     ]
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.resolve(editions),
       }),
@@ -290,6 +309,7 @@ describe('composeCli: looking up Editions', () => {
       Promise.resolve([]),
     )
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({ editions: port }),
     })
 
@@ -300,6 +320,7 @@ describe('composeCli: looking up Editions', () => {
 
   it('returns an empty list when the Scripture Catalogue has no Edition of the Work', async () => {
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.resolve([]),
       }),
@@ -311,6 +332,7 @@ describe('composeCli: looking up Editions', () => {
   it("rejects with the Scripture Catalogue's own error when the lookup fails", async () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
+      randomSource,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.reject(failure),
       }),
