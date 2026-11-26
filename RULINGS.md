@@ -4668,3 +4668,60 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `drift:check`; (b) the clerk runs it by hand at every landing.
 - Ruling: "Q-DT-2 to -3: A"
 - Folded into: not yet
+
+### R-388: CommandIo's streams are small structural interfaces
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-1, from the surface's draft e972fae)
+- Question: (a) small structural interfaces in `entry-point.ts`, holding only
+  what a command uses (`write`, `on`, `isTTY`, `columns` and the like), which
+  `process.*` and a test fake both satisfy without an assertion; the bin and
+  the Ink code narrow to Node's streams where Ink needs them; (b)
+  `NodeJS.ReadStream` and `NodeJS.WriteStream`; (c) `node:stream`'s
+  `Readable` and `Writable`.
+- Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
+- Folded into: not yet
+
+### R-389: The usage line is the full synopsis on one line
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-2)
+- Question: (a) the full synopsis on one line, from the manual's §7 rows for
+  the command; (b) a short line pointing to the manual; (c) the problem
+  first, then the synopsis.
+- Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
+- Folded into: not yet
+
+### R-390: CommandIo's env is narrowed to NO_COLOR and CI
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-3)
+- Question: (a) `env` narrowed to `NO_COLOR` and `CI`; whether an empty
+  value or `CI=false` counts as set goes to the tester's audit; (b) any
+  environment.
+- Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
+- Folded into: not yet
+
+### R-391: The terminal size is read once at start
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-4)
+- Question: (a) `rows` and `columns` read once at start, Ink tracking
+  resizes itself; (b) a `terminalSize` object that can be undefined.
+- Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
+- Folded into: not yet
+
+### R-392: M-010's public surface is ratified, with R-388 to R-391
+
+- Date: 2026-11-26
+- Raised in: M-010 (draft e972fae: `node-effects`' `systemClock` and
+  `cryptoRandomSource`; `cli-adapter/src/commands/entry-point.ts`; the
+  usage line)
+- Question: Ratify the surface, amended by R-388, with its digest: (1) the
+  adapters are constants; (2) `node-effects` depends only on `application`
+  until the boundary row adds arrows; (3) `isTTY` is stdout's (ADR-0044);
+  (4) `ExitCode` is `0 | 1` (R-350); (5) the modules are
+  `src/commands/entry-point.ts` and `src/commands/<command>.ts`; (6)
+  `cli-adapter` gets no `exports`; (7) stubs carry their inputs as `cause`?
+- Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
+- Folded into: not yet
