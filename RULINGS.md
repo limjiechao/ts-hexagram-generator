@@ -4645,3 +4645,26 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   each tester fixes in the list the owner approves.
 - Ruling: "PH4-1 to -30: A; ratify ADR-0044 with consolidation A; ratify the Matters"
 - Folded into: `MATTERS.md` (M-010 to M-021)
+
+### R-386: The prover's copy of the exception rows drops the cli.md row
+
+- Date: 2026-11-26
+- Raised in: `drift:prove` red on `matters` and `main` since the CLI manual
+  landed (question Q-DT-2)
+- Question: `scripts/drift/prove-signal-1.ts` holds R-254's and R-265's seed
+  word for word, including the `docs/manual/cli.md` row R-352 removed from the
+  real file. (a) drop that entry from the prover's seed, made by a fresh
+  implementer before M-010; (b) restore the row, contradicting R-352.
+- Ruling: "Q-DT-2 to -3: A"
+- Folded into: not yet
+
+### R-387: drift:prove runs in CI's check job and at the clerk's Step 6
+
+- Date: 2026-11-26
+- Raised in: question Q-DT-3 (the break above passed CI, which runs only
+  `drift:check`)
+- Question: (a) add `pnpm drift:prove` to CI's `check` job
+  (`.github/workflows/unit-test.yml`) and to `clerk.md` Step 6 beside
+  `drift:check`; (b) the clerk runs it by hand at every landing.
+- Ruling: "Q-DT-2 to -3: A"
+- Folded into: not yet
