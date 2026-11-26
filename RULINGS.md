@@ -4725,3 +4725,41 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `cli-adapter` gets no `exports`; (7) stubs carry their inputs as `cause`?
 - Ruling: "Q-M-010-1 to -4: A; ratify the surface with those"
 - Folded into: not yet
+
+### R-393: node-effects may import application and consultation-journal/divined-at
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-5, slice 1's spec audit)
+- Question: The Clock must return a `UtcOffset`, admitted only by
+  `isUtcOffset` in `consultation-journal/divined-at`. (a) `node-effects`
+  may import `application` freely and `consultation-journal` only by
+  `divined-at`, as `scripture-catalogue` does; not pure; its tests reach the
+  same arrows; B7 and B8 reused; its twin lists both; (b) all of
+  `consultation-journal`; (c) a new rule B13 with its own plant.
+- Ruling: "Q-M-010-5 to -7: A"
+- Folded into: not yet
+
+### R-394: An offset outside isUtcOffset's range makes the Clock throw
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-6)
+- Question: `isUtcOffset` admits −12:00 to +14:00, but Node honours, for
+  example, `TZ=XYZ+15`. (a) `now()` throws an Error naming the offset, so
+  keep and record reject unchanged and keep nothing (R-311, as R-309); an
+  offset with seconds is folded into the same answer; (b) fall back to
+  `+00:00`; (c) clamp to the nearest admitted offset.
+- Ruling: "Q-M-010-5 to -7: A"
+- Folded into: not yet
+
+### R-395: The B9 dev-arrow plant is kept as "missing production arrows"
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-7)
+- Question: Under R-358 no package keeps a test-only dependency, so
+  `b9-dev-arrow-in-dependencies.package.json` loses its subject. (a) keep the
+  plant, re-described as "missing production arrows", with a note in
+  `expected.ts` that R-165's field check has no subject until a package has a
+  test-only dependency again; (b) retire it; (c) give some package a dev arrow
+  to keep it.
+- Ruling: "Q-M-010-5 to -7: A"
+- Folded into: not yet

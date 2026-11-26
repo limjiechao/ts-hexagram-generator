@@ -295,7 +295,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-010: The command frame and the Node effects
 
-- Status: awaiting-ruling (Q-M-010-5 to Q-M-010-7)
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0010 as R-332 amends it, ADR-0020, ADR-0037; manual
   sections 2, 6.1, 7; R-331, R-332, R-350, R-351
