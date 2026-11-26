@@ -23,8 +23,9 @@ export interface Transcription {
 
 /**
  * The rule a Division broke: ADR-0023's valid Pick, one of ADR-0038's
- * Transcription checks (complete, Remainders 1–4, conservation, Set-aside),
- * or `replay` when the incoming partial Casting's Picks do not replay.
+ * Transcription checks in ADR-0043's order (complete, Remainders 1–4,
+ * Set-aside, conservation), or `replay` when the incoming partial Casting's
+ * Picks do not replay.
  */
 export type DivisionRule =
   | 'valid-pick'
