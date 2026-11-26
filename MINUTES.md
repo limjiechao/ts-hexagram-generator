@@ -428,3 +428,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 6 of M-008's 60 (R-309 to R-314)
 - Landed: c28118e, 16e7a63, 32b6565, ceb136e, 2d8a35f, a731185
 - Notes: the twin fixture landed directly after the arrow, so `drift:prove` passes at every commit.
+
+### Iteration 30 — M-009 — 2026-11-26
+
+- Attempt: 1/2 (slice 1 of 3; R-058) · Outcome: slice 1 landed
+- Surface: a drafter drafted the table's public surface (R-282); the owner ratified it with five questions (R-315 to R-320).
+- Tests: no holes; 140 tests, approved as R-322. A reference built from 邵雍's 8×8 square passed; five wrong tables (Trigrams swapped, wrong Nuclear lines, Inverse and Reversed swapped, bit order reversed, King Wen order) each failed.
+- Review: `APPROVE` (an independent check by Trigram names found 0 mismatches in 64 rows; the eight symmetric Hexagrams and 泰/否 confirmed; `lookUpRow` total over fresh copies)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 18/18 and 36/36 · slice 1's Acceptance on matters
+- Brief size: implementer about 800 lines of required reading
+- Owner touches: 7 of M-009's 60 (R-315 to R-320, R-322)
+- Landed: 7b787d9, f95c445, 5cb3ef1, d9bfb2f
+- Notes: the table and rows are readonly by type only, not frozen.
