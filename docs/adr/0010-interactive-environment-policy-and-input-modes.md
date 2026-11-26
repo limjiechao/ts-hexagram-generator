@@ -3,6 +3,8 @@
 Status: Accepted
 Date: 2026-05-29
 
+> **Amended by [ADR-0044](0044-no-color-runs-the-ink-only-commands.md) (2026-11-26).** For the overhaul, `NO_COLOR` on a TTY no longer makes the Ink-only commands refuse: they run without colour and with typed input. Only a non-TTY stdout or `CI` refuses. For the legacy app, this ADR stands whole, its 2026-06-06 amendment included.
+
 The CLIs make an explicit decision about _when_ a rich terminal UI is appropriate
 and _what input widget_ to present, driven by the environment rather than assumed.
 
