@@ -3759,3 +3759,20 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `divide`, driving eighteen Divisions to a complete Casting?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-294: M-005 slice 2's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-005 (slice 2, b7d8b28, 58dc1c0, 3b8c18e)
+- Question: Ratify: (1) `replay` also returns the rebuilt Rounds, for
+  `divide` and `transcribe` to reuse; (2) its private types derive from the
+  ratified `CompleteCasting` and `PartialCasting`; (3) the next partial Casting
+  is a literal chosen by tuple length, with no guard or assertion; (4) a
+  private `completed(lines)` computes Line Values and makes the complete
+  Casting only through `isCompleteCasting`, throwing a defect `Error`
+  otherwise; (5) slice 1's local `rebuilt` renamed `rebuiltRound`;
+  (6) `composeCli` returns `beginCasting`, `nextRound` and `divide` unchanged,
+  as they take no ports (R-275's digest line); (7) the `PartialCasting`
+  comment cites ADR-0038's strict URLs?
+- Ruling: "digest ratified"
+- Folded into: not yet

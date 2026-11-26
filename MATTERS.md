@@ -212,7 +212,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-006: Physical Division: `transcribe`
 
-- Status: pending
+- Status: in-progress
 - Phase: 3
 - Licensed by: ADR-0011 (the check order), ADR-0038 (the Transcription
   checks); CONTEXT.md (Transcription); R-091, R-093
