@@ -3831,3 +3831,18 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   for the overhaul, with ADR-0011's banner and the index row?
 - Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
 - Folded into: `docs/adr/0043-transcription-check-order.md` (0320eae)
+
+### R-300: M-006's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-006 (the test list, `overhaul/oracle/tests/transcribe.test.ts`
+  and `overhaul/cli-adapter/tests/physical-division.test.ts`)
+- Question: Approve the 184 tests as listed: `transcribe` at every place, the
+  check order over a 6,084-Transcription grid at every place, the bounds of
+  `complete`, `remainders`, `set-aside` and `conservation`, where a refusal
+  points, replay first, extra keys dropped, the rules reported (never
+  `valid-pick`), and `composeCli` gaining `transcribe`? The tester's grep had
+  shown it about 15 lines of `divide`'s and `replay`'s bodies, which it says it
+  did not use.
+- Ruling: "approve the list"
+- Folded into: not yet
