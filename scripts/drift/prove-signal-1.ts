@@ -440,14 +440,9 @@ function describeExceptions(read: ExceptionsRead): string {
 }
 
 // R-254's and R-265's seed, word for word, as the real exception file must
-// hold it.
+// hold it, less the `docs/manual/cli.md` row R-352 removed.
 // Symbol names are split, as a whole word in a code file is present (R-262, R-267).
 const seed = [
-  [
-    'docs/adr/0042-how-the-overhaul-is-built.md',
-    'docs/manual/cli.md',
-    'planned, written and ratified before the CLI phase',
-  ],
   [
     'docs/adr/0042-how-the-overhaul-is-built.md',
     'docs/manual/rest.md',
