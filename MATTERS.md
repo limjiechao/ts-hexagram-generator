@@ -286,5 +286,5 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/hexagram-table.test.ts tests/resolution.test.ts && pnpm --filter @hexagram/application exec vitest run tests/resolve-transformation.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/resolve.test.ts`. The table test asserts 64 rows and 64 distinct Figures; the Resolution test asserts it ran over 4,096 distinct Transformations.
 - Open questions: none (R-282 to R-285). Likely from the tester:
   Commentaries asked for an X之X Transformation.
-- Commits: 7b787d9 (ratified surface), f95c445 (acceptance), 5cb3ef1 (rows and lookup), d9bfb2f (comment) for slice 1
+- Commits: 7b787d9 (ratified surface), f95c445 (acceptance), 5cb3ef1 (rows and lookup), d9bfb2f (comment) for slice 1; 51def64 (acceptance), c74eab4 (`resolve`) for slice 2
 - Notes: about 1,350 lines, three slices: the table; `resolve`; use case 3.

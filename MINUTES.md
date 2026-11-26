@@ -440,3 +440,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 7 of M-009's 60 (R-315 to R-320, R-322)
 - Landed: 7b787d9, f95c445, 5cb3ef1, d9bfb2f
 - Notes: the table and rows are readonly by type only, not frozen.
+
+### Iteration 31 — M-009 — 2026-11-26
+
+- Attempt: 1/2 (slice 2 of 3; R-058) · Outcome: slice 2 landed
+- Tests: no holes; 23 tests over all 4,096 Transformations, approved as R-323; five wrong versions each caught.
+- Review: `APPROVE` (an independent bitmask `resolve` matched all 4,096 under deep strict equality, no extra keys; the All-Moving Statement in exactly 2 Transformations; the input never shared or changed)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 18/18 and 36/36 · slice 2's Acceptance on matters
+- Brief size: implementer about 900 lines of required reading
+- Owner touches: 9 of M-009's 60 (R-315 to R-320, R-322 to R-324)
+- Landed: 51def64, c74eab4
+- Notes: a Resolution shares the table's Trigram and Hexagram arrays, and the table is not frozen; asked as Q-M-009-6. The private helpers closely mirror the test's own; the reviewer's independent probe agrees with both.
