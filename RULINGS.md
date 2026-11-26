@@ -4018,3 +4018,72 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (b) ask each time.
 - Ruling: "Q-M-008-4 to -5: A"
 - Folded into: `docs/agents/clerk.md` (Step 3)
+
+### R-315: The table's row stays separate from the Resolution's structure
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-1, from the table surface's draft)
+- Question: (a) keep `HexagramTableRow` separate from the Resolution's private
+  `HexagramStructure`, as R-114 and R-115(1) rule, with matching field names;
+  (b) export a shared structure both extend, amending them.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
+
+### R-316: The row's key field is figure: Figure
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-2)
+- Question: (a) `figure: Figure`, as R-282 and ADR-0025 word it; (b) `hexagram`.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
+
+### R-317: The table is a readonly tuple of exactly 64 rows
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-3)
+- Question: (a) a readonly tuple of exactly 64, built by a private `TupleOf`,
+  the constant stubbed by a throw until the rows are written; (b)
+  `readonly HexagramTableRow[]`, the length checked by tests only.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
+
+### R-318: FuxiSequenceNumber is a literal union in hexagram-table.ts
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-4)
+- Question: (a) the union `1 | … | 64`, after `LinePosition`'s pattern, in
+  `hexagram-table.ts`; (b) its own subpath.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
+
+### R-319: The table's lookup is lookUpRow
+
+- Date: 2026-11-26
+- Raised in: M-009 (question Q-M-009-5)
+- Question: (a) `lookUpRow(figure: Figure): HexagramTableRow`, total; (b)
+  `hexagramTableRow`; (c) `rowOf`.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
+
+### R-320: The Hexagram table's public surface is ratified
+
+- Date: 2026-11-26
+- Raised in: M-009 (draft ac7eb6a: `overhaul/oracle/src/hexagram-table.ts`, the
+  `./hexagram-table` export and its `tsdown.config.ts` entry)
+- Question: Ratify the surface as drafted? The clerk's suggested comment
+  wording for `FuxiSequenceNumber` (the glossary's "read as a binary number
+  (yin = 1, the first Line Position the highest bit), plus one") is comment
+  wording, Tier B, and goes to the slice's implementer and digest.
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: `overhaul/oracle/src/hexagram-table.ts`
+
+### R-321: M-008's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-008 (ceb136e, 2d8a35f, 16e7a63)
+- Question: Ratify: (1) a private `buildConsultationId` in
+  `consultation-id-builder.ts`, not exported; (2) the time checked before any
+  draw; (3) keep and record `async`, signatures unchanged; (4) the dev
+  dependency in alphabetical order?
+- Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
+- Folded into: not yet
