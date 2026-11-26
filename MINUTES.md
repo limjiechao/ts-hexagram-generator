@@ -489,3 +489,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - The clerk mis-recorded CLI-2 as covering CI as well as NO_COLOR; the drafter caught it while folding, the owner confirmed the draft's own option (Q-R-332), and R-332 carries a clerk's note (6d61daa, 0e75111).
 - Ratified as R-353 (6ae9a9a). One item stays open: the exit code when stdin closes in plain mode (R-350). Phase 4's entry gate is open.
 - Owner touches: 4 (the request, the 22 answers in one reply, Q-R-332, the ratification), against no Matter.
+
+### Landing — Phase 3 and the CLI manual on main — 2026-11-26
+
+- PR #59 (43 commits: M-008, M-009, the ratified CLI manual, R-308 to R-353) passed CI; the owner fast-forwarded `main` to be8989a under R-302, keeping every SHA. Phases 1 to 3 and Phase 4's entry gate are now on `main`.
