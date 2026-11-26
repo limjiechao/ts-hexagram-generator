@@ -383,3 +383,20 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 7 of M-005's 60 (R-287 to R-293)
 - Landed: df2748b (acceptance), b7d8b28 (`divide`), 58dc1c0 (the `PartialCasting` comment), 3b8c18e (`composeCli`)
 - Notes: slice 2's digest goes to the owner. The reviewer notes that M-006's `transcribe` will want `divide`'s inline "next Casting from the rebuilt Rounds" step pulled into a private helper.
+
+### Landing — M-005 and ADR-0043 on main — 2026-11-26
+
+- PR #57 (`matters` → `main`, 23 commits) passed CI and was merged by the owner with `gh pr merge --rebase --admin`. The rebase merge gave every commit a new SHA, and GitHub deleted the `matters` branch. The owner reset local `matters` onto `origin/main` (`reset --keep`) and carried R-300 over.
+- SHAs on main for records written before the merge: 0daeaa6 → f67caf2, a2dcf51 → aca0100, df2748b → ed0f3e6, b7d8b28 → 151a7bc, 58dc1c0 → 9b24e1f, 3b8c18e → 326a588 (M-005); 0320eae → 523db2a (ADR-0043); bf089b7 → 8f23412 (the Phase 3 proposal). `MATTERS.md` now cites the main SHAs.
+- Notes: a fast-forward of `main` to the CI-tested tip keeps SHAs and the branch (as for PR #56); the clerk asked the owner whether to make that a standing rule.
+
+### Iteration 27 — M-006 — 2026-11-26
+
+- Attempt: 1/2 (one slice; R-058) · Outcome: M-006 landed
+- Tests: the first tester found one hole (R-295, R-296); ADR-0043 drafted and ratified with R-297 to R-299; a fresh tester wrote 184 tests (179 + 5), approved as R-300. Checked against a reference and four wrong versions (old order, no whole-number condition, incoming Rounds kept, Pick omitted), each caught. That tester's grep showed it about 15 lines of `divide`'s and `replay`'s bodies; it reported this, and the owner approved the list knowing it.
+- Review: `APPROVE` (the refactor moves `divide`'s post-replay body unchanged; an exhaustive probe over 127,008 Transcriptions found every success equal to `divide` with the derived Pick, and no `valid-pick`)
+- Verify: type:check · lint:check · format · drift:check (0) · build and test forced 18/18 and 36/36 · M-005's and M-006's Acceptance on matters
+- Brief size: implementer about 1,200 lines of required reading
+- Owner touches: 6 of M-006's 60 (R-295 to R-300)
+- Landed: 72eeda2, 8fc9baa, 1352070, a513415, 4e16dd2
+- Notes: a `null` Remainder, which the type forbids (R-290), is refused as `remainders` rather than `complete`. `DivisionRule`'s members still list `conservation` before `set-aside`; asked as Q-M-006-5.
