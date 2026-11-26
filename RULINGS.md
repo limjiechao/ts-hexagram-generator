@@ -4872,3 +4872,50 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Question: (a) throwing stubs, and no refusal or not-built path touches a port; (b) other fakes.
 - Ruling: "Q-M-010-8 to -19: A"
 - Folded into: not yet
+
+### R-409: --export-journal and --merge-journal refuse the display options
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-20, from the usage lines' draft 818a172)
+- Question: R-405 allows the display options only with browsing and
+  `--export`. (a) `--export-journal` and `--merge-journal` refuse them, as
+  neither produces a Readout; (b) allow and ignore them.
+- Ruling: "Q-M-010-20 to -22: A; ratify the text and bins"
+- Folded into: not yet
+
+### R-410: --plain names plain mode and --numeric-input names typed input
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-21)
+- Question: Which mode a flag names on a TTY. (a) `--plain` gives "plain
+  mode" (manual §6.3) and `--numeric-input` gives "full-screen, typed input";
+  (b) only the terminal and environment column decides.
+- Ruling: "Q-M-010-20 to -22: A; ratify the text and bins"
+- Folded into: not yet
+
+### R-411: The not-built phrases keep §2's words for -manual and -playground
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-22)
+- Question: §2's cells say "typed input" for `hexagram-manual` and
+  `hexagram-playground`, which have no slider. (a) keep the table's words;
+  (b) amend the manual's §2.
+- Ruling: "Q-M-010-20 to -22: A; ratify the text and bins"
+- Folded into: not yet
+
+### R-412: The usage lines, the not-built lines and the bins are ratified
+
+- Date: 2026-11-26
+- Raised in: M-010 (draft 818a172: five `usage` constants,
+  `src/commands/not-built.ts`, `src/bin/<command>.ts` and
+  `src/process-adapters.ts`)
+- Question: Ratify the five usage lines, the template
+  `<command>: <mode> is not built yet` with each command's reachable phrases,
+  and the six bins, with the digest: (1) phrases are §2's cells word for word;
+  (2) maintenance runs are named by their option; (3) `--wrap-width` is left
+  off `-playground` and `-history`, as §7 lists it; (4) `--division-method`
+  values in the manual's order; (5) the journal operand is `<file>`; (6)
+  repeats marked with ASCII `...`; (7) process helpers shared in
+  `src/process-adapters.ts`?
+- Ruling: "Q-M-010-20 to -22: A; ratify the text and bins"
+- Folded into: not yet
