@@ -25,6 +25,10 @@ type UnfinishedLine =
  * A Casting short of its eighteenth Round, held by the caller between
  * Divisions. Its Rounds are grouped by Line, bottom-up, and its type admits
  * only the shapes a Casting passes through on the way to eighteen.
+ *
+ * The type holds those limits: the Oracle runs no shape check at run time,
+ * and replays only the Rounds it is given. Untyped data is the adapter's to
+ * reject before it reaches the Oracle, as ADR-0038's strict URLs do.
  */
 export interface PartialCasting {
   readonly state: 'partial'
