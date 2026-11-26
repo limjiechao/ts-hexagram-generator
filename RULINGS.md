@@ -3846,3 +3846,27 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   did not use.
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-301: DivisionRule's members follow ADR-0043's order
+
+- Date: 2026-11-26
+- Raised in: M-006 (question Q-M-006-5, from the implementer's suggestion)
+- Question: The ratified `DivisionRule` type lists `conservation` before
+  `set-aside`, with no effect at run time. (a) reorder the members to
+  ADR-0043's order, as a one-line change inside M-007; (b) leave them, since
+  the comment gives the order.
+- Ruling: "Q-M-006-5: A; Q-LAND-1: A"
+- Folded into: not yet
+
+### R-302: The owner lands matters by fast-forwarding main to the tested tip
+
+- Date: 2026-11-26
+- Raised in: landing M-005 (question Q-LAND-1; PR #57's rebase merge gave
+  every commit a new SHA and deleted `matters`)
+- Question: (a) after CI passes on the landing PR, the owner fast-forwards
+  `main` to the tested tip of `origin/matters`, and GitHub marks the PR
+  merged; SHAs and the branch are kept; a line in `clerk.md` says so;
+  (b) keep `gh pr merge --rebase --admin` and repair `matters` after each
+  landing.
+- Ruling: "Q-M-006-5: A; Q-LAND-1: A"
+- Folded into: `docs/agents/clerk.md` (Git constraints)
