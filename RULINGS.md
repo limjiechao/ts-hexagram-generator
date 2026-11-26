@@ -3983,3 +3983,15 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (b) unspecified and untested; (c) throw synchronously.
 - Ruling: "Q-M-008-1 to -3: A"
 - Folded into: not yet
+
+### R-312: M-008's acceptance list and stub ports
+
+- Date: 2026-11-26
+- Raised in: M-008 (the test list, `overhaul/application/tests/keep-cast-consultation.test.ts`,
+  `record-consultation.test.ts` and `overhaul/cli-adapter/tests/keep-and-record.test.ts`)
+- Question: Approve the 32 tests as listed (17 for keep, 12 for record, 3 for
+  `composeCli`), and the mechanical addition of stub `consultationStore` and
+  `clock` ports, which throw if touched, to the 17 existing `composeCli(...)`
+  calls in four approved test files?
+- Ruling: "approve the list"
+- Folded into: not yet
