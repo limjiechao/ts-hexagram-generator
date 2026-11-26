@@ -1,8 +1,8 @@
 # CLI manual
 
-Status: **draft**, for the owner's line-edit. Not authoritative until ratified
-(`docs/manual/README.md`). Once ratified, it is the standard for what the CLI
-does in Phase 4; byte fixtures stay the standard for exact output (R-008).
+Status: **ratified** by the owner on 2026-11-26 (R-353). It is the standard for
+what the CLI does in Phase 4; byte fixtures stay the standard for exact output
+(R-008, `docs/manual/README.md`).
 
 It follows Brooks's nine items, one section each. Where the CLI differs from
 today's app, the change is marked _Today's app_ and cites the ADR or Ruling
@@ -508,5 +508,5 @@ perceptible time. What a user waits for is pace, set on purpose:
 ## Still open
 
 - The exit code when stdin is closed in plain mode before the Query is given
-  (R-350 leaves it proposed). The draft proposes exit 1, as an error; today's
+  (R-350 leaves it proposed). This manual proposes exit 1, as an error; today's
   behaviour is not verified.

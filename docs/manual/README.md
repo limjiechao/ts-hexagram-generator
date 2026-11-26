@@ -7,10 +7,10 @@ functions and algorithms; input-output formats; operating instructions,
 including normal and abnormal endings; options; running time; accuracy and
 checking. A manual becomes authoritative only when the owner ratifies it.
 
-| Manual    | Channel     | Status  | Gate                                   |
-| --------- | ----------- | ------- | -------------------------------------- |
-| `cli.md`  | CLI         | draft   | must be ratified before Phase 4 starts |
-| `rest.md` | REST engine | pending | must be ratified before Phase 5 starts |
+| Manual    | Channel     | Status   | Gate                                   |
+| --------- | ----------- | -------- | -------------------------------------- |
+| `cli.md`  | CLI         | ratified | must be ratified before Phase 4 starts |
+| `rest.md` | REST engine | pending  | must be ratified before Phase 5 starts |
 
 Manuals are not Matters. Each is drafted in a copilot session with the owner
 and then ratified by the owner. The clerk raises "draft the manual" as a
