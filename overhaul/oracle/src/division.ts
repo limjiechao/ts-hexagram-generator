@@ -90,35 +90,7 @@ export function nextRound(casting: PartialCasting): NextRoundResult {
 export function divide(casting: PartialCasting, pick: Pick): DivisionResult {
   const replayed = replay(casting)
   if (replayed.outcome === 'refused') return replayed
-  const { next, rebuilt } = replayed
-  const round = roundFrom(next.stalks, pick)
-  if (round === undefined) {
-    return {
-      outcome: 'refused',
-      refusal: { ...next, pick, rule: 'valid-pick' },
-    }
-  }
-  const { finished, open } = rebuilt
-  if (open.length !== 2) {
-    return {
-      outcome: 'divided',
-      casting: {
-        state: 'partial',
-        rounds:
-          open.length === 0
-            ? [...finished, [round]]
-            : [...finished, [open[0], round]],
-      },
-    }
-  }
-  const line: LineRounds = [open[0], open[1], round]
-  if (finished.length !== 5) {
-    return {
-      outcome: 'divided',
-      casting: { state: 'partial', rounds: [...finished, line] },
-    }
-  }
-  return { outcome: 'divided', casting: completed([...finished, line]) }
+  return divideReplayed(replayed.next, replayed.rebuilt, pick)
 }
 
 /**
@@ -226,6 +198,46 @@ function replay(casting: PartialCasting): Replay {
     next: { line: 6, round: 3, stalks },
     rebuilt,
   }
+}
+
+/**
+ * Takes the Round a Pick makes at the next place, after a replay: refused
+ * with rule `valid-pick` when the Pick is not valid (ADR-0023), otherwise the
+ * rebuilt Rounds plus the new one, complete after the eighteenth Round.
+ */
+function divideReplayed(
+  next: NextPlace,
+  rebuilt: Rebuilt,
+  pick: Pick,
+): DivisionResult {
+  const round = roundFrom(next.stalks, pick)
+  if (round === undefined) {
+    return {
+      outcome: 'refused',
+      refusal: { ...next, pick, rule: 'valid-pick' },
+    }
+  }
+  const { finished, open } = rebuilt
+  if (open.length !== 2) {
+    return {
+      outcome: 'divided',
+      casting: {
+        state: 'partial',
+        rounds:
+          open.length === 0
+            ? [...finished, [round]]
+            : [...finished, [open[0], round]],
+      },
+    }
+  }
+  const line: LineRounds = [open[0], open[1], round]
+  if (finished.length !== 5) {
+    return {
+      outcome: 'divided',
+      casting: { state: 'partial', rounds: [...finished, line] },
+    }
+  }
+  return { outcome: 'divided', casting: completed([...finished, line]) }
 }
 
 /** Every field a Round records, the Pick aside, as replay rebuilds them. */
