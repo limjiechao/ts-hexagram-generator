@@ -85,8 +85,9 @@ in Tier A**.
   - Never push and never touch `main`. To land `matters` on `main`, the clerk
     opens a pull request from `matters` to `main` once the owner has pushed
     `matters`; the owner merges it after CI's `check` passes (R-272), by
-    fast-forwarding `main` to the tested tip (`git push origin
-    origin/matters:main`), which keeps every SHA and the branch (R-302).
+    fast-forwarding `main` to the tested tip, which keeps every SHA and the
+    branch (R-302):
+    `git push origin origin/matters:main`.
   - Never gate on `pnpm check:all`, which flakes. Use a sequential
     `pnpm build && pnpm test`.
 - **Commit messages** state WHY and name the Matter. They end with:
