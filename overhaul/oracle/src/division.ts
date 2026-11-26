@@ -96,13 +96,43 @@ export function divide(casting: PartialCasting, pick: Pick): DivisionResult {
 /**
  * Takes the next Round from a Transcription. It first replays the incoming
  * partial Casting's Picks and refuses, with rule `replay`, a Casting that
- * does not replay.
+ * does not replay. It then runs ADR-0043's checks in order, refusing with the
+ * first that fails, and otherwise divides by the Pick the left heap gives.
  */
 export function transcribe(
   casting: PartialCasting,
   transcription: Transcription,
 ): DivisionResult {
-  return notImplemented(casting, transcription)
+  const replayed = replay(casting)
+  if (replayed.outcome === 'refused') return replayed
+  const { next, rebuilt } = replayed
+  const { pilesLeft, remainderLeft, pilesRight, remainderRight } = transcription
+  if (
+    pilesLeft === undefined ||
+    remainderLeft === undefined ||
+    pilesRight === undefined ||
+    remainderRight === undefined ||
+    !isPileCount(pilesLeft) ||
+    !isPileCount(pilesRight)
+  ) {
+    return {
+      outcome: 'refused',
+      refusal: { ...next, pick: undefined, rule: 'complete' },
+    }
+  }
+  const pick = 4 * pilesLeft + remainderLeft
+  const rule = transcriptionRuleBroken(next, {
+    pilesLeft,
+    remainderLeft,
+    pilesRight,
+    remainderRight,
+  })
+  if (rule !== undefined) {
+    return { outcome: 'refused', refusal: { ...next, pick, rule } }
+  }
+  // ADR-0043: a Transcription that passes its checks gives a valid Pick, so
+  // this never refuses with `valid-pick`.
+  return divideReplayed(next, rebuilt, pick)
 }
 
 /** Where the next Round falls in a Casting, and the stalks it starts from. */
@@ -240,6 +270,41 @@ function divideReplayed(
   return { outcome: 'divided', casting: completed([...finished, line]) }
 }
 
+/** A pile count is a whole number from 0 (ADR-0043's `complete`). */
+function isPileCount(count: number): boolean {
+  return Number.isInteger(count) && count >= 0
+}
+
+/**
+ * The first of ADR-0043's checks after `complete` that a complete
+ * Transcription fails at the next place: `remainders`, `set-aside` or
+ * `conservation`. Absent when it passes all three.
+ */
+function transcriptionRuleBroken(
+  next: NextPlace,
+  {
+    pilesLeft,
+    remainderLeft,
+    pilesRight,
+    remainderRight,
+  }: { readonly [Field in keyof Transcription]: number },
+): DivisionRule | undefined {
+  if (!isRemainderCount(remainderLeft) || !isRemainderCount(remainderRight)) {
+    return 'remainders'
+  }
+  const setAside = 1 + remainderLeft + remainderRight
+  const setAsides = next.round === 1 ? [5, 9] : [4, 8]
+  if (!setAsides.includes(setAside)) return 'set-aside'
+  const counted =
+    4 * pilesLeft + remainderLeft + 4 * pilesRight + remainderRight + 1
+  return counted === next.stalks ? undefined : 'conservation'
+}
+
+/** A Remainder is 1, 2, 3 or 4, never 0. */
+function isRemainderCount(count: number): boolean {
+  return [1, 2, 3, 4].includes(count)
+}
+
 /** Every field a Round records, the Pick aside, as replay rebuilds them. */
 function recordsSame(recorded: Round, rebuilt: Round): boolean {
   return (
@@ -332,9 +397,4 @@ function completed(lines: readonly LineRounds[]): CompleteCasting {
     })
   }
   return casting
-}
-
-/** Carries the inputs as the cause, so each signature keeps its names. */
-function notImplemented(...inputs: readonly unknown[]): never {
-  throw new Error('Not implemented', { cause: inputs })
 }
