@@ -12,6 +12,7 @@ import {
 import { nextRound } from '@hexagram/application/next-round'
 import type { RandomSource } from '@hexagram/application/random-source'
 import { recordConsultation } from '@hexagram/application/record-consultation'
+import { resolveTransformation } from '@hexagram/application/resolve-transformation'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { transcribe } from '@hexagram/application/transcribe'
 
@@ -26,9 +27,9 @@ type PortsSupplied<UseCase> = UseCase extends (
 /**
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
  * use case 8's lookups, use case 1's Automatic Division step and last step,
- * keep, and use case 2, record, with those ports supplied, and use case 1's
- * steps for a Division by Pick and a Physical Division, which take no ports
- * and so pass through unchanged.
+ * keep, use case 2, record, and use case 3, resolve, with those ports
+ * supplied, and use case 1's steps for a Division by Pick and a Physical
+ * Division, which take no ports and so pass through unchanged.
  */
 export function composeCli(ports: {
   readonly scriptureCatalogue: ScriptureCatalogue
@@ -46,6 +47,7 @@ export function composeCli(ports: {
   readonly transcribe: typeof transcribe
   readonly keepCastConsultation: PortsSupplied<typeof keepCastConsultation>
   readonly recordConsultation: PortsSupplied<typeof recordConsultation>
+  readonly resolveTransformation: PortsSupplied<typeof resolveTransformation>
 } {
   return {
     lookUpPassageTexts: (citation, preference) =>
@@ -63,5 +65,7 @@ export function composeCli(ports: {
       keepCastConsultation(ports, query, casting, divisionMethod),
     recordConsultation: (query, divinedAt, transformation) =>
       recordConsultation(ports, query, divinedAt, transformation),
+    resolveTransformation: (transformation, preference) =>
+      resolveTransformation(ports, transformation, preference),
   }
 }
