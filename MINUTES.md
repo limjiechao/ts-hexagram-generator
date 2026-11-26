@@ -412,3 +412,19 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 5 of M-007's 60 (R-303 to R-307)
 - Landed: b669ace, 77c2238, 094ea54, 4f7cf8c, d7e3f2d
 - Notes: the clerk found `format:check` red on `matters` (788e890 fixed it) after reading only the last line of oxfmt's output; exit codes are checked from now on. The clerk's tester brief did not ask whether a widening breaks existing calls; M-008's and M-009's briefs will.
+
+### Landing — M-006 and M-007 on main — 2026-11-26
+
+- PR #58 (22 commits) passed CI; the owner fast-forwarded `main` to f7aead9 under R-302. GitHub marked #58 merged, and every SHA stayed the same. GitHub deleted the remote `matters` branch again ("Automatically delete head branches"); local `matters` was untouched. The clerk offered the owner the setting change.
+
+### Iteration 29 — M-008 — 2026-11-26
+
+- Attempt: 1/2 (one slice; R-058) · Outcome: M-008 landed
+- Tests: the first tester found three holes (R-309 to R-311); a fresh tester wrote 32 tests (17 keep, 12 record, 3 `composeCli`) and added stub Store and Clock ports to 17 older calls, approved together as R-312. Checked against a reference and seven wrong versions, each caught.
+- Implement: `drift:prove` failed on the B9 twin fixture for `cli-adapter`, which no one had listed; a fresh tester made the licensed one-line edit (R-313), and R-314 makes listing the twin a standing rule.
+- Review: `APPROVE` (200,000 random times matched an independent encoder; bad readings reject before any draw; port failures reject with the same error object; keep returns what it built)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 18/18 and 36/36 · M-008's Acceptance on matters
+- Brief size: implementer about 1,300 lines of required reading
+- Owner touches: 6 of M-008's 60 (R-309 to R-314)
+- Landed: c28118e, 16e7a63, 32b6565, ceb136e, 2d8a35f, a731185
+- Notes: the twin fixture landed directly after the arrow, so `drift:prove` passes at every commit.
