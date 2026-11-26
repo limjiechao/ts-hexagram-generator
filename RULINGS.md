@@ -3733,3 +3733,15 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `complete-casting.ts`, since the guard checks shape only (R-055)?
 - Ruling: "Q-M-005-3: A; digest ratified"
 - Folded into: not yet
+
+### R-292: divide returns the rebuilt Rounds plus the new one
+
+- Date: 2026-11-26
+- Raised in: M-005 (question Q-M-005-4)
+- Question: A recorded Round with an extra key still replays (R-287). Which
+  Rounds does `divide`'s next Casting hold? (a) the rebuilt Rounds plus the
+  new one, so extra keys are dropped and the Casting depends only on its
+  Picks; tests compare with `toStrictEqual`; (b) the incoming Rounds as given
+  plus the new one; (c) Tier B, tests comparing only the five recorded fields.
+- Ruling: "Q-M-005-4: A"
+- Folded into: not yet
