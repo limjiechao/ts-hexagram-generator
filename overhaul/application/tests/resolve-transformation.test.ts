@@ -346,6 +346,38 @@ describe('resolveTransformation: Commentaries in the Reading Preference order', 
     expect(stub.citations()).toStrictEqual(citations)
     expect(result.passageTexts).toStrictEqual(citations.flatMap(textsFor))
   })
+
+  it('asks for the 文言 of a Hexagram other than 乾 and 坤 in its place, and leaves it out when the Catalogue has no text for it', async () => {
+    const missing: readonly Citation[] = [
+      { work: 'wenyan', hexagram: fu },
+      { work: 'wenyan', hexagram: zhen },
+    ]
+    const stub = recordingCatalogue({ missing })
+    const citations: readonly Citation[] = [
+      { work: 'zhouyi', hexagram: fu },
+      { work: 'tuan', hexagram: fu },
+      { work: 'wenyan', hexagram: fu },
+      { work: 'daxiang', hexagram: fu },
+      { work: 'zhouyi', hexagram: fu, line: 4 },
+      { work: 'zhouyi', hexagram: zhen },
+      { work: 'tuan', hexagram: zhen },
+      { work: 'wenyan', hexagram: zhen },
+      { work: 'daxiang', hexagram: zhen },
+    ]
+
+    const result = await resolveTransformation(
+      { scriptureCatalogue: stub.catalogue },
+      fuFourthMoving,
+      preferenceWith(['tuan', 'wenyan', 'daxiang'], false),
+    )
+
+    expect(stub.citations()).toStrictEqual(citations)
+    expect(result.passageTexts).toStrictEqual(
+      citations
+        .filter((citation) => citation.work !== 'wenyan')
+        .flatMap(textsFor),
+    )
+  })
 })
 
 describe('resolveTransformation: the Yilin Verse', () => {
