@@ -212,9 +212,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-006: Physical Division: `transcribe`
 
-- Status: awaiting-ruling (Q-M-006-1, Q-M-006-2)
+- Status: in-progress
 - Phase: 3
-- Licensed by: ADR-0011 (the check order), ADR-0038 (the Transcription
+- Licensed by: ADR-0043 (the check order), ADR-0038 (the Transcription
   checks); CONTEXT.md (Transcription); R-091, R-093
 - Scope: Make `transcribe` real on M-005's replay. `composeCli` gains
   `transcribe`, and a test transcribes eighteen Rounds to a complete Casting
@@ -222,8 +222,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Tier-A surface: implements a ratified signature; widens `composeCli`.
 - Free to choose: private helpers; test layout.
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/oracle exec vitest run tests/transcribe.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/physical-division.test.ts`, its tests asserting that each `DivisionRule` R-276 keeps reachable is reported by at least one Transcription.
-- Open questions: none (R-276). Likely from the tester: the Pick a refusal names when
-  the Transcription is complete but fails a later check.
+- Open questions: none (R-276, R-295 to R-298).
 - Commits: –
 - Notes: about 450 lines, one slice.
 
