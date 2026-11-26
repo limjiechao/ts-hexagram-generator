@@ -3938,3 +3938,15 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   with no throw, such as the group's last Pick.
 - Ruling: "Q-M-007-3 to -4: A"
 - Folded into: not yet
+
+### R-308: M-007's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-007 (77c2238, d7e3f2d)
+- Question: Ratify: (1) `remainderDrawn` maps draws 0, 1 and 2 to Remainders
+  1, 2 and 3 and any other draw to 4, left unspecified under R-304 with no
+  documentation change; (2) the second draw indexes the group directly, R-307's
+  throw covering a draw past it; (3) `composeCli` binds `drawAutomaticPick` to
+  its ports in the existing `PortsSupplied` pattern (R-275's digest line)?
+- Ruling: "digest ratified"
+- Folded into: not yet
