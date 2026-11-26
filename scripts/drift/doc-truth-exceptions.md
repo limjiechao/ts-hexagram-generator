@@ -7,7 +7,6 @@ miss is reported as D4 (R-254). The owner ratifies every row.
 
 | File                                                         | Name                  | Reason                                                      |
 | ------------------------------------------------------------ | --------------------- | ----------------------------------------------------------- |
-| `docs/adr/0042-how-the-overhaul-is-built.md`                 | `docs/manual/cli.md`  | planned, written and ratified before the CLI phase          |
 | `docs/adr/0042-how-the-overhaul-is-built.md`                 | `docs/manual/rest.md` | planned, written and ratified before the REST phase (R-008) |
 | `docs/adr/0019-domain-cli-boundary.md`                       | `cli/cli`             | a former location the ADR names as history                  |
 | `docs/adr/0027-cast-consultation-records-division-method.md` | `castMethod`          | the field ADR-0011 rejected, named as history               |
