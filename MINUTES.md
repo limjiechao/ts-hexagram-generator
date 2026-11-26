@@ -472,3 +472,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Review attempts: 10 slices, all approved on the first attempt; no retries. Spec holes came at the tester's audit (17 questions across the five Matters) rather than at review.
 - Clerk slips: `format:check` red on `matters` for two commits (exit codes checked since); a tester brief that did not ask whether a widening breaks existing calls (R-306); an unlisted B9 twin fixture (R-314).
 - Testers read code they should not have three times (Oracle bodies, pass-through bodies, `src/` swaps); each was reported, and the owner approved the lists knowing it.
+
+### Phase 3 milestone — signal 6, cold-read variance — 2026-11-26
+
+- Three fresh agents reconstructed Phase 3 from `overhaul/` and `eslint.boundary.js` alone, reading no Markdown. All three matched the ADRs and Rulings on the concepts, the Division steps and replay, the check order, ADR-0023's probabilities, the Consultation Id, the Resolution's order and the All-Moving Statement, use case 3's Commentaries and sequential calls, and the boundary table.
+- Where the theory did not reach the code:
+  1. Why the Transcription checks run in ADR-0043's order: all three inferred "local to global, most specific first"; none found ADR-0043's reason (under ADR-0011's order the Set-aside check could never fire). The code names ADR-0043 but not its reason.
+  2. The PWA: comments in `casting.ts` and `complete-casting.ts` say the PWA makes a complete Casting with `isCompleteCasting` (R-031's trust function), while B10 lets only `oracle` import it. All three flagged the contradiction. B10 will need the PWA's arrow when Phase 6 builds it (R-055, R-175).
+  3. `eslint.boundary.js`'s header still describes the legacy domain-to-CLI rule, and B4 labels two packages (two readers).
+  4. 文言 is asked for at hexagram level only (R-061); one reader noted that 乾's and 坤's 文言 also comments line by line.
+- Read as intended by all three: `isCompleteCasting` checks shape only and keep trusts it, because only the Oracle can mint one (R-031, R-055); the type, not a run-time check, keeps untyped data out (R-290).
