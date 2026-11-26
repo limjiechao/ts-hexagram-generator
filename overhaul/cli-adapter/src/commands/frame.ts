@@ -109,6 +109,9 @@ export function parseOptions<Rules extends OptionRules>(
       const value = inline ?? tokens[index]
       if (inline === undefined) index += 1
       if (value === undefined || !isValid(value, rule.value)) return undefined
+      // A separate value starting with `-` may be the next option, its own
+      // value forgotten; such a value must be written with `=` instead.
+      if (inline === undefined && !isPositional(value)) return undefined
       taken = [value]
     }
     given.set(name, [...(values ?? []), ...taken])
