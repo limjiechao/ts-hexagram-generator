@@ -246,7 +246,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-008: Keep and record a Consultation
 
-- Status: in-progress
+- Status: awaiting-ruling (Q-M-008-1 to Q-M-008-3)
 - Phase: 3
 - Licensed by: ADR-0026, ADR-0027, ADR-0030 (ULID); R-031, R-032, R-108,
   R-110, R-111, R-112, R-135
