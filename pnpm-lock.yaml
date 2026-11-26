@@ -384,6 +384,9 @@ importers:
         specifier: workspace:*
         version: link:../application
     devDependencies:
+      '@hexagram/consultation-journal':
+        specifier: workspace:*
+        version: link:../consultation-journal
       '@hexagram/scripture-catalogue':
         specifier: workspace:*
         version: link:../scripture-catalogue

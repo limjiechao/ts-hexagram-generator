@@ -92,7 +92,10 @@ const overhaulPackages = {
     testsRule: 'B8',
     pure: false,
     dependencies: { application: 'any' },
-    devDependencies: { 'scripture-catalogue': 'any' },
+    devDependencies: {
+      'scripture-catalogue': 'any',
+      'consultation-journal': 'any',
+    },
   },
 }
 
