@@ -4763,3 +4763,16 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   to keep it.
 - Ruling: "Q-M-010-5 to -7: A"
 - Folded into: not yet
+
+### R-396: M-010 slice 1's acceptance list and boundary fixtures
+
+- Date: 2026-11-26
+- Raised in: M-010 (slice 1's tests, e7d0195)
+- Question: Approve the tests of `system-clock.test.ts`,
+  `crypto-random-source.test.ts` and `real-effects-casting.test.ts` as
+  listed, and the drift fixture changes: a `node-effects` twin; the
+  `cli-adapter` twin with five production arrows and no dev arrows; the three
+  plants replaced by plants importing `remainder-group-policy`; the b9
+  dev-arrow plant re-described; `expected.ts` to match, with R-395's note?
+- Ruling: "approve the list"
+- Folded into: not yet
