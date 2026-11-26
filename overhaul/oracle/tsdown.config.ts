@@ -7,6 +7,7 @@ export default defineConfig({
     './src/division.ts',
     './src/figure.ts',
     './src/hexagram.ts',
+    './src/hexagram-table.ts',
     './src/line-position.ts',
     './src/line-value.ts',
     './src/passage-reference.ts',

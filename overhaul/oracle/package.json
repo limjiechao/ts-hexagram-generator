@@ -33,6 +33,11 @@
       "types": "./dist/hexagram.d.mts",
       "import": "./dist/hexagram.mjs"
     },
+    "./hexagram-table": {
+      "source": "./src/hexagram-table.ts",
+      "types": "./dist/hexagram-table.d.mts",
+      "import": "./dist/hexagram-table.mjs"
+    },
     "./line-position": {
       "source": "./src/line-position.ts",
       "types": "./dist/line-position.d.mts",
