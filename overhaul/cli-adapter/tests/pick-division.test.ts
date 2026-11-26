@@ -1,4 +1,6 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
+import type { Clock } from '@hexagram/application/clock'
+import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { divide } from '@hexagram/application/divide'
 import { nextRound } from '@hexagram/application/next-round'
 import type { RandomSource } from '@hexagram/application/random-source'
@@ -33,8 +35,21 @@ interface PickDivisionSteps {
   readonly divide: typeof divide
 }
 
+/** Casting keeps nothing, so touching the Store or the Clock fails the test. */
+const untouched = (): never => {
+  throw new Error('casting touched the Store or the Clock')
+}
+const consultationStore: ConsultationStore = {
+  keep: untouched,
+  list: untouched,
+  get: untouched,
+  remove: untouched,
+  deletionRecords: untouched,
+}
+const clock: Clock = { now: untouched }
+
 const compose = (scriptureCatalogue = stubCatalogue()): PickDivisionSteps =>
-  composeCli({ scriptureCatalogue, randomSource })
+  composeCli({ scriptureCatalogue, randomSource, consultationStore, clock })
 
 describe('composeCli for Division by Pick', () => {
   it('gives beginCasting, nextRound and divide the signatures @hexagram/application gives them', () => {

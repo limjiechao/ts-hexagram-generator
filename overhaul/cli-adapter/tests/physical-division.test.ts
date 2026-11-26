@@ -1,4 +1,6 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
+import type { Clock } from '@hexagram/application/clock'
+import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import { divide } from '@hexagram/application/divide'
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
@@ -34,8 +36,21 @@ interface PhysicalDivisionSteps {
   readonly transcribe: typeof transcribe
 }
 
+/** Casting keeps nothing, so touching the Store or the Clock fails the test. */
+const untouched = (): never => {
+  throw new Error('casting touched the Store or the Clock')
+}
+const consultationStore: ConsultationStore = {
+  keep: untouched,
+  list: untouched,
+  get: untouched,
+  remove: untouched,
+  deletionRecords: untouched,
+}
+const clock: Clock = { now: untouched }
+
 const compose = (scriptureCatalogue = stubCatalogue()): PhysicalDivisionSteps =>
-  composeCli({ scriptureCatalogue, randomSource })
+  composeCli({ scriptureCatalogue, randomSource, consultationStore, clock })
 
 const heaps = (
   pilesLeft: number | undefined,

@@ -1,3 +1,5 @@
+import type { Clock } from '@hexagram/application/clock'
+import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { divide } from '@hexagram/application/divide'
 import type { drawAutomaticPick } from '@hexagram/application/draw-automatic-pick'
 import type { RandomSource } from '@hexagram/application/random-source'
@@ -32,10 +34,23 @@ const scriptedSource = (draws: readonly number[]) => {
   return { randomSource, bounds }
 }
 
+/** Casting keeps nothing, so touching the Store or the Clock fails the test. */
+const untouched = (): never => {
+  throw new Error('casting touched the Store or the Clock')
+}
+const consultationStore: ConsultationStore = {
+  keep: untouched,
+  list: untouched,
+  get: untouched,
+  remove: untouched,
+  deletionRecords: untouched,
+}
+const clock: Clock = { now: untouched }
+
 const compose = (
   randomSource: RandomSource,
   scriptureCatalogue = stubCatalogue(),
-) => composeCli({ scriptureCatalogue, randomSource })
+) => composeCli({ scriptureCatalogue, randomSource, consultationStore, clock })
 
 /**
  * Casts eighteen Divisions, each by the Pick `drawAutomaticPick` makes, and

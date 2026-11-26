@@ -1,3 +1,5 @@
+import type { Clock } from '@hexagram/application/clock'
+import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { Citation } from '@hexagram/scripture-catalogue/citation'
@@ -109,11 +111,26 @@ const randomSource: RandomSource = {
   },
 }
 
+/** A lookup keeps nothing, so touching the Store or the Clock fails the test. */
+const untouched = (): never => {
+  throw new Error('a lookup touched the Store or the Clock')
+}
+const consultationStore: ConsultationStore = {
+  keep: untouched,
+  list: untouched,
+  get: untouched,
+  remove: untouched,
+  deletionRecords: untouched,
+}
+const clock: Clock = { now: untouched }
+
 describe('composeCli: looking up passage texts', () => {
   it("returns the Scripture Catalogue's passage texts unchanged and in order", async () => {
     const expected = passageTexts(lineCitation)
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -130,6 +147,8 @@ describe('composeCli: looking up passage texts', () => {
     )
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({ passageTexts: port }),
     })
 
@@ -149,6 +168,8 @@ describe('composeCli: looking up passage texts', () => {
   it('returns an empty list when the Scripture Catalogue has no passage text', async () => {
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve([]),
       }),
@@ -163,6 +184,8 @@ describe('composeCli: looking up passage texts', () => {
     const expected = passageTexts(yilinCitation)
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -180,6 +203,8 @@ describe('composeCli: looking up passage texts', () => {
     const expected = passageTexts(commentaryCitation)
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.resolve(expected),
       }),
@@ -197,6 +222,8 @@ describe('composeCli: looking up passage texts', () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         passageTexts: () => Promise.reject(failure),
       }),
@@ -212,6 +239,8 @@ describe('composeCli: looking up Hexagram names', () => {
   it("returns the Scripture Catalogue's Hexagram names unchanged and in order", async () => {
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.resolve(hexagramNames),
       }),
@@ -239,6 +268,8 @@ describe('composeCli: looking up Hexagram names', () => {
     )
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({ hexagramNames: port }),
     })
 
@@ -258,6 +289,8 @@ describe('composeCli: looking up Hexagram names', () => {
   it('returns an empty list when the Scripture Catalogue has no Hexagram name', async () => {
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.resolve([]),
       }),
@@ -272,6 +305,8 @@ describe('composeCli: looking up Hexagram names', () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         hexagramNames: () => Promise.reject(failure),
       }),
@@ -292,6 +327,8 @@ describe('composeCli: looking up Editions', () => {
     ]
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.resolve(editions),
       }),
@@ -310,6 +347,8 @@ describe('composeCli: looking up Editions', () => {
     )
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({ editions: port }),
     })
 
@@ -321,6 +360,8 @@ describe('composeCli: looking up Editions', () => {
   it('returns an empty list when the Scripture Catalogue has no Edition of the Work', async () => {
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.resolve([]),
       }),
@@ -333,6 +374,8 @@ describe('composeCli: looking up Editions', () => {
     const failure = new Error('invented catalogue failure')
     const cli = composeCli({
       randomSource,
+      consultationStore,
+      clock,
       scriptureCatalogue: stubCatalogue({
         editions: () => Promise.reject(failure),
       }),
