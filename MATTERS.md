@@ -228,7 +228,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-007: Automatic Division: the Remainder-Group policy
 
-- Status: pending
+- Status: in-progress
 - Phase: 3
 - Licensed by: ADR-0023; ADR-0037 (the policy outside the Oracle); R-026,
   R-109, R-119
