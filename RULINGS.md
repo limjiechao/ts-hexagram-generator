@@ -4087,3 +4087,15 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   dependency in alphabetical order?
 - Ruling: "Q-M-009-1 to -5: A; ratify the table surface; digest ratified"
 - Folded into: not yet
+
+### R-322: M-009 slice 1's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-009 (slice 1's test list, `overhaul/oracle/tests/hexagram-table.test.ts`)
+- Question: Approve the 140 tests as listed: the table typed and holding 64
+  rows, 64 distinct Figures and Fuxi Sequence Numbers in order; each of the 64
+  rows computed from its Figure by the glossary's rules; `lookUpRow` for all 64
+  Figures; anchors (乾 1, 坤 64, the eight symmetric Hexagrams, one Figure
+  worked by hand); and the Inverse and Reversed involutions?
+- Ruling: "approve the list"
+- Folded into: not yet
