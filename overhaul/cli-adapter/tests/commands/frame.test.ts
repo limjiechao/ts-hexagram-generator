@@ -481,6 +481,36 @@ describe('flags that name a mode', () => {
       terminal: tty({ CI: 'true' }),
       expected: refusal('hexagram'),
     },
+    {
+      case: 'hexagram-random -- --plain on a TTY drops the lone --',
+      run: randomCommand.run,
+      argv: ['--', '--plain'],
+      terminal: tty(),
+      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+    },
+    {
+      case: 'hexagram-random --yilin -- --plain on a TTY drops the lone --',
+      run: randomCommand.run,
+      argv: ['--yilin', '--', '--plain'],
+      terminal: tty(),
+      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+    },
+    {
+      case: 'hexagram-random --plain -- on a TTY drops the lone --',
+      run: randomCommand.run,
+      argv: ['--plain', '--'],
+      terminal: tty(),
+      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+    },
+    {
+      case: 'hexagram-interactive -- --numeric-input on a TTY drops the lone --',
+      run: interactiveCommand.run,
+      argv: ['--', '--numeric-input'],
+      terminal: tty(),
+      expected: line(
+        notBuiltLine('hexagram-interactive', 'full-screen, typed input'),
+      ),
+    },
   ]
 
   it.each(rows)('$case', async ({ run, argv, terminal, expected }) => {
@@ -728,6 +758,8 @@ describe('a bad value, a repeat, an unknown option or a positional is a usage re
     ['--yilin', '--yilin'],
     ['--plain', '--plain'],
     ['--numeric-input', '--numeric-input'],
+    ['--plain', '--no-ui'],
+    ['--no-ui', '--plain'],
     ['--script', 'cantonese'],
     ['--script', 'Simplified'],
     ['--script', ''],
@@ -764,6 +796,8 @@ describe('a bad value, a repeat, an unknown option or a positional is a usage re
     { ...commands[2], argv: ['--cast-reveal-ms', '700'] },
     { ...commands[2], argv: ['--manual-reveal-ms', '2500'] },
     { ...commands[2], argv: ['--wrap-width', '0'] },
+    { ...commands[2], argv: ['--plain', '--no-ui'] },
+    { ...commands[2], argv: ['--no-ui', '--plain'] },
     { ...commands[3], argv: ['--plain'] },
     { ...commands[3], argv: ['--numeric-input'] },
     { ...commands[3], argv: ['--slider-sweep-ms', '1800'] },
@@ -833,6 +867,24 @@ describe('hexagram-history: the maintenance options and what applies to them', (
       argv: ['--division-method', 'physical', '--import-legacy'],
       option: '--import-legacy',
     },
+    {
+      argv: [
+        '--import-legacy',
+        'a.txt',
+        'b.txt',
+        '--division-method',
+        'physical',
+      ],
+      option: '--import-legacy',
+    },
+    {
+      argv: ['--division-method', 'physical', '--import-legacy', 'a.txt'],
+      option: '--import-legacy',
+    },
+    {
+      argv: ['--', '--import-legacy', '--division-method', 'physical', '--'],
+      option: '--import-legacy',
+    },
     { argv: ['--rerender-bodies'], option: '--rerender-bodies' },
     { argv: ['--export', 'out.pdf'], option: '--export' },
     {
@@ -872,6 +924,9 @@ describe('hexagram-history: the maintenance options and what applies to them', (
   const refused: readonly (readonly string[])[] = [
     ['--import-legacy'],
     ['--import-legacy', 'a.txt'],
+    ['a.txt', '--import-legacy', '--division-method', 'physical'],
+    ['--import-legacy', 'a.txt', '--division-method', 'physical', 'b.txt'],
+    ['--import-legacy', '--division-method', 'physical', 'a.txt'],
     ['--import-legacy', '--division-method', 'manual'],
     ['--import-legacy', '--division-method', 'Physical'],
     ['--import-legacy', '--division-method'],
