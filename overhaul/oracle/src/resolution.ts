@@ -74,7 +74,7 @@ const positioned = (
   ]
 }
 
-/** The Hexagram's structure, copied field by field from its row (ADR-0025). */
+/** The Hexagram's structure, filled field by field from its row (ADR-0025). */
 const structureOf = (hexagram: Hexagram): HexagramStructure => {
   const row = lookUpRow(hexagram)
   return {
