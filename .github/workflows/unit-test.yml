@@ -37,6 +37,9 @@ jobs:
       - name: Drift check
         run: pnpm run drift:check
 
+      - name: Drift prove
+        run: pnpm run drift:prove
+
   test:
     runs-on: ${{ matrix.os }}
 
