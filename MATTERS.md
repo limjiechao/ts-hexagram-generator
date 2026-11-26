@@ -38,7 +38,7 @@ from its actual figures when it lands (R-006).
 | ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                     | uncapped          | –                              | landed (M-001)              |
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004) | 1,500             | –                              | landed (M-002 to M-004)     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 0                                  | 1,500             | –                              | M-005 to M-009 (R-286)      |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 7 (M-005)                          | 1,500             | –                              | M-005 to M-009 (R-286)      |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                  | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
@@ -186,7 +186,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-005: Pick Division: `nextRound` and `divide`
 
-- Status: in-progress
+- Status: landed
 - Phase: 3
 - Licensed by: ADR-0023 (valid Pick, Remainder Groups), ADR-0026, ADR-0038;
   CONTEXT.md (Round, Division, Pick, Hung Stalk, Remainder, Set-aside); R-030,
@@ -206,7 +206,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Open questions: none (R-275, R-277 and R-278 rule its Phase 3 questions).
   Likely from the tester: a Pick that is not a whole number; which refusal comes first
   when the Casting fails replay and the new Pick is also invalid.
-- Commits: –
+- Commits: 0daeaa6, a2dcf51 (slice 1); df2748b, b7d8b28, 58dc1c0, 3b8c18e (slice 2)
 - Notes: about 750 lines, two slices: replay and `nextRound`; `divide` to the
   complete Casting, with `composeCli`.
 

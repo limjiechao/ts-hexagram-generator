@@ -372,3 +372,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 3 of M-005's 60 (R-287 to R-289)
 - Landed: 0daeaa6 (acceptance), a2dcf51 (`nextRound` and replay)
 - Notes: the reviewer found that shapes the type forbids (R-101) are skipped or throw at run time; asked as Q-M-005-3. A recorded Round with extra keys replays; slice 2's `divide` should build the next Casting from rebuilt Rounds.
+
+### Iteration 26 — M-005 — 2026-11-26
+
+- Attempt: 1/2 (slice 2; R-058) · Outcome: slice 2 landed; M-005 landed
+- Tests: the first tester found one hole (R-292, the next Casting's Rounds); a fresh tester wrote 87 tests (82 in `divide.test.ts`, 5 in `pick-division.test.ts`), approved as R-293. Checked against a throwaway reference and five wrong versions, each caught.
+- Review: `APPROVE` (probes: extra keys on the Casting and on Rounds dropped, nothing shared with the input, NaN and ±Infinity at the first and eighteenth places, replay failing only in the open Line)
+- Verify: type:check · lint:check · format · drift:check (0) · build and test forced 18/18 and 36/36 · M-005's Acceptance on matters
+- Brief size: implementer about 1,200 lines of required reading
+- Owner touches: 7 of M-005's 60 (R-287 to R-293)
+- Landed: df2748b (acceptance), b7d8b28 (`divide`), 58dc1c0 (the `PartialCasting` comment), 3b8c18e (`composeCli`)
+- Notes: slice 2's digest goes to the owner. The reviewer notes that M-006's `transcribe` will want `divide`'s inline "next Casting from the rebuilt Rounds" step pulled into a private helper.
