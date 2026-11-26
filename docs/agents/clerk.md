@@ -246,8 +246,10 @@ pnpm type:check && pnpm lint:check && pnpm format:check
 pnpm build && pnpm test
 ```
 
-Also run drift signals 1–4 (`pnpm drift:check`) once M-002 has landed. If the diff touches an Ink
-component, also run `pnpm test:stress:once`.
+Also run drift signals 1–4 (`pnpm drift:check`) once M-002 has landed, and
+the provers (`pnpm drift:prove`, R-387). Judge each command by its exit code,
+not its last line. If the diff touches an Ink component, also run
+`pnpm test:stress:once`.
 
 ### Step 7: Land and record
 
