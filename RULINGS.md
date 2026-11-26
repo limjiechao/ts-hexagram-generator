@@ -3704,3 +3704,32 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   stalks carrying the recorded Pick, and the earlier of two failing Rounds)?
 - Ruling: "approve the list"
 - Folded into: not yet
+
+### R-290: The Oracle relies on the partial Casting's type, with no runtime shape guard
+
+- Date: 2026-11-26
+- Raised in: M-005 (question Q-M-005-3, from slice 1's review)
+- Question: Shapes the type forbids (R-101), such as 18 or more Rounds, a
+  fourth Round in a Line or `null` entries, are skipped or throw at run time.
+  (a) Rely on R-101: the type holds the limits and lint keeps untyped data
+  out; untyped data is the adapter's to reject (ADR-0038's strict URLs give
+  404); a doc comment on `PartialCasting` says so; no runtime guard; (b) a
+  private shape guard, refusing with rule `replay`; (c) as (b), with a new
+  `DivisionRule`.
+- Ruling: "Q-M-005-3: A; digest ratified"
+- Folded into: not yet
+
+### R-291: M-005 slice 1's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-005 (slice 1, a2dcf51)
+- Question: Ratify the implementer's choices in `division.ts`: (1) one private
+  `replay` returning the next Round's Line, Round and stalks, or a refusal
+  shaped as `nextRound`'s, for `divide` and `transcribe` to reuse;
+  (2) `roundFrom(stalks, pick)` rebuilds a Round, and replay compares every
+  recorded field with it; (3) the walk visits only the 17 places the type
+  allows, with no throw; (4) Remainder Groups filled by one ascending loop;
+  (5) ADR-0023's arithmetic stays duplicated between `division.ts` and
+  `complete-casting.ts`, since the guard checks shape only (R-055)?
+- Ruling: "Q-M-005-3: A; digest ratified"
+- Folded into: not yet
