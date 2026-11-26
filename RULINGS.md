@@ -3555,8 +3555,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   `set-aside` as unreachable; (c) drop `set-aside` from `DivisionRule`,
   amending ADR-0038 and `CONTEXT.md`.
 - Ruling: "PH3-1 to -13: A; ratify the Matters"
-- Folded into: not yet (ADR-0011's amendment to be drafted for the owner's
-  ratification before M-006 lands)
+- Folded into: `docs/adr/0043-transcription-check-order.md` (R-299)
 
 ### R-277: divide throws if its own output fails isCompleteCasting
 
@@ -3776,3 +3775,59 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   comment cites ADR-0038's strict URLs?
 - Ruling: "digest ratified"
 - Folded into: not yet
+
+### R-295: A complete Transcription's refusal carries its derived Pick
+
+- Date: 2026-11-26
+- Raised in: M-006 (question Q-M-006-1)
+- Question: Which Pick does a Transcription refusal carry? (a) when the
+  Transcription is complete (`remainders`, `set-aside`, `conservation`), Pick
+  = 4 × pilesLeft + remainderLeft, even when invalid, fractional or NaN, as
+  R-288 does for replay; a `complete` refusal carries none; the glossary's
+  "become a Pick" reads as "become the Round's Pick"; (b) no Transcription
+  refusal carries a Pick; (c) as (a), and a `complete` refusal also carries
+  the Pick when the left heap's fields are present and valid.
+- Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
+- Folded into: not yet
+
+### R-296: transcribe returns the rebuilt Rounds plus the new one
+
+- Date: 2026-11-26
+- Raised in: M-006 (question Q-M-006-2)
+- Question: (a) a successful Transcription returns what
+  `divide(casting, 4 × pilesLeft + remainderLeft)` returns: the rebuilt
+  Rounds plus the new one, extra keys dropped (as R-292); (b) Tier B.
+- Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
+- Folded into: not yet
+
+### R-297: ADR-0043 stays a separate amending ADR
+
+- Date: 2026-11-26
+- Raised in: M-006 (question Q-M-006-3, from ADR-0043's draft)
+- Question: ADR-0042 asks that amended ADRs be consolidated before code
+  depends on them. (a) keep ADR-0043 separate: it is the single current
+  statement of the overhaul's check order, the topic M-006 depends on, and
+  ADR-0011 is mostly the legacy screen; (b) consolidate ADR-0011, ADR-0027's
+  part and ADR-0043 into one ADR superseding ADR-0011 before M-006 lands.
+- Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
+- Folded into: not yet
+
+### R-298: ADR-0038 keeps its list; M-006 updates the DivisionRule comment
+
+- Date: 2026-11-26
+- Raised in: M-006 (question Q-M-006-4, from ADR-0043's draft)
+- Question: ADR-0038 and the `DivisionRule` comment list the checks in the
+  old order. (a) leave ADR-0038, which only lists them, since ADR-0043 owns
+  the order; M-006's implementer updates the `DivisionRule` comment;
+  (b) reorder ADR-0038's list too.
+- Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
+- Folded into: not yet
+
+### R-299: ADR-0043 is ratified
+
+- Date: 2026-11-26
+- Raised in: folding R-276 (draft 3bfbefb on `docs/adr-0011-amendment`)
+- Question: Ratify ADR-0043, which amends ADR-0011's Transcription check order
+  for the overhaul, with ADR-0011's banner and the index row?
+- Ruling: "Q-M-006-1 to -4: A; ratify ADR-0043"
+- Folded into: `docs/adr/0043-transcription-check-order.md` (0320eae)

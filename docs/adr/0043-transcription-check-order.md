@@ -1,6 +1,6 @@
 # The Transcription checks run complete, Remainders, Set-aside, conservation
 
-Status: Proposed
+Status: Accepted
 Date: 2026-11-26
 Amends: [ADR-0011](0011-manual-casting-flow-design.md) ("Tiered validation, in priority order"), for the overhaul only
 
