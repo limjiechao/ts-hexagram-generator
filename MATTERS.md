@@ -38,7 +38,7 @@ from its actual figures when it lands (R-006).
 | ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
 | 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                     | uncapped          | –                              | landed (M-001)              |
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004) | 1,500             | –                              | landed (M-002 to M-004)     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 7 (M-005), 6 (M-006)               | 1,500             | –                              | M-005 to M-009 (R-286)      |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 3 weeks         | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007)    | 1,500             | –                              | M-005 to M-009 (R-286)      |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
 | 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                  | 1,500             | `docs/manual/cli.md` ratified  | not yet broken into Matters |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                  | – (no brief)      | –                              | pending                     |
@@ -228,7 +228,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-007: Automatic Division: the Remainder-Group policy
 
-- Status: in-progress
+- Status: landed
 - Phase: 3
 - Licensed by: ADR-0023; ADR-0037 (the policy outside the Oracle); R-026,
   R-109, R-119
@@ -241,7 +241,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   `integerBelow`.
 - Acceptance: `pnpm type:check && pnpm --filter @hexagram/remainder-group-policy exec vitest run tests/choose-pick.test.ts && pnpm --filter @hexagram/cli-adapter exec vitest run tests/automatic-division.test.ts`, the first file asserting ADR-0023's four probabilities exactly (R-279).
 - Open questions: none (R-278, the draw mapping; R-279).
-- Commits: –
+- Commits: b669ace (acceptance), 77c2238 (`choosePick`), 094ea54 (`DivisionRule` order), 4f7cf8c (stub Random Source in tests), d7e3f2d (`composeCli`)
 - Notes: about 300 lines, one slice.
 
 ### M-008: Keep and record a Consultation

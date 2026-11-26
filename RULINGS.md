@@ -3923,6 +3923,8 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   gains a stub `randomSource`, made by a fresh tester; (b) make `randomSource`
   optional.
 - Ruling: "Q-M-007-3 to -4: A"
+- Note (clerk): the calls numbered 16, not 17 (14 in `composition-root.test.ts`);
+  the implementer had counted type errors. All 16 were changed (4f7cf8c).
 - Folded into: not yet
 
 ### R-307: choosePick keeps one untested throw for a draw past the group

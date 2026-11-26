@@ -400,3 +400,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 6 of M-006's 60 (R-295 to R-300)
 - Landed: 72eeda2, 8fc9baa, 1352070, a513415, 4e16dd2
 - Notes: a `null` Remainder, which the type forbids (R-290), is refused as `remainders` rather than `complete`. `DivisionRule`'s members still list `conservation` before `set-aside`; asked as Q-M-006-5.
+
+### Iteration 28 — M-007 — 2026-11-26
+
+- Attempt: 1/2 (one slice; R-058) · Outcome: M-007 landed
+- Tests: the first tester found two holes (R-303, R-304) and had read the Oracle's `division.ts` bodies, so a fresh tester wrote 15 tests (10 + 5), approved as R-305; probabilities by exact enumeration with bigint fractions. Checked against a reference and four wrong versions, each caught. That tester read three short bodies (`drawAutomaticPick`, `composeCli`, 3 lines of `nextRound`), none of them `choosePick`.
+- Implement: the implementer stopped on two questions (R-306: the widening broke 16 calls in approved tests; R-307: the type needs one throw). A fresh tester made the licensed stub change (4f7cf8c); 4f7cf8c does not type-check on its own, only with d7e3f2d.
+- Review: `APPROVE` (`DivisionRule` reordered only; e957621's test names unchanged; probes of the draw mapping and each Pick's probability)
+- Verify: type:check · lint:check · format · drift:check (0) · build and test forced 18/18 and 36/36 · M-007's Acceptance on matters
+- Brief size: implementer about 900 lines of required reading
+- Owner touches: 5 of M-007's 60 (R-303 to R-307)
+- Landed: b669ace, 77c2238, 094ea54, 4f7cf8c, d7e3f2d
+- Notes: the clerk found `format:check` red on `matters` (788e890 fixed it) after reading only the last line of oxfmt's output; exit codes are checked from now on. The clerk's tester brief did not ask whether a widening breaks existing calls; M-008's and M-009's briefs will.
