@@ -267,7 +267,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-009: Resolve a Transformation: the Hexagram table, `resolve` and use case 3
 
-- Status: pending
+- Status: in-progress
 - Phase: 3
 - Licensed by: ADR-0024, ADR-0025, ADR-0028, ADR-0037; CONTEXT.md (Figure,
   Polarity, Trigram, Fuxi Sequence Number, Nuclear, Inverse and Reversed
