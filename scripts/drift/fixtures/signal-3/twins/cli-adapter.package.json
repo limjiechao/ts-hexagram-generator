@@ -8,6 +8,7 @@
     "@hexagram/application": "workspace:*"
   },
   "devDependencies": {
+    "@hexagram/consultation-journal": "workspace:*",
     "@hexagram/scripture-catalogue": "workspace:*"
   }
 }
