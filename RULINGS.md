@@ -4369,3 +4369,14 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Question: (a) remove the row from `scripts/drift/doc-truth-exceptions.md` when the manual lands on `matters`; (b) keep it until ratification.
 - Ruling: "CLI-1 to -21: A; DT-1: A"
 - Folded into: not yet
+
+### R-353: The CLI manual is ratified
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre (`docs/manual/cli.md`, folded with R-331 to R-352 and
+  the corrected R-332)
+- Question: Ratify `docs/manual/cli.md` as the standard for Phase 4 (R-008),
+  with one item still open (the exit code when stdin closes in plain mode,
+  R-350)?
+- Ruling: "ratify the CLI manual"
+- Folded into: `docs/manual/cli.md`

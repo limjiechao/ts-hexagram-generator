@@ -482,3 +482,10 @@ ephemeral-tier material: it may be cited by people, never by source code.
   3. `eslint.boundary.js`'s header still describes the legacy domain-to-CLI rule, and B4 labels two packages (two readers).
   4. 文言 is asked for at hexagram level only (R-061); one reader noted that 乾's and 坤's 文言 also comments line by line.
 - Read as intended by all three: `isCompleteCasting` checks shape only and keep trusts it, because only the Oracle can mint one (R-031, R-055); the type, not a run-time check, keeps untyped data out (R-290).
+
+### Phase 4-pre — the CLI manual ratified — 2026-11-26
+
+- A drafter wrote `docs/manual/cli.md` from the glossary, the ADRs, the use cases and today's app (2880ea7). A challenger returned eight blocking findings, among them a wrong account of NO_COLOR and CI, use case 8 never offered, error and exit policy stated as settled, and Deletion Records' format undecided; the drafter applied all twenty (602aecc). The owner ruled 21 questions and DT-1 (R-331 to R-352); the drafter folded them (17a2240), and the manual went from 732 to 511 lines.
+- The clerk mis-recorded CLI-2 as covering CI as well as NO_COLOR; the drafter caught it while folding, the owner confirmed the draft's own option (Q-R-332), and R-332 carries a clerk's note (6d61daa, 0e75111).
+- Ratified as R-353 (6ae9a9a). One item stays open: the exit code when stdin closes in plain mode (R-350). Phase 4's entry gate is open.
+- Owner touches: 4 (the request, the 22 answers in one reply, Q-R-332, the ratification), against no Matter.
