@@ -4192,3 +4192,179 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   with `await`, no try/catch; (4) the loop variable named `passage`?
 - Ruling: "Q-M-009-8: A; digest ratified; start the CLI manual"
 - Folded into: not yet
+
+### R-331: The CLI keeps all six command names
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-1; `docs/manual/cli.md` at 602aecc)
+- Question: (a) keep `hexagram`, `hexagram-random`, `hexagram-interactive`, `hexagram-manual`, `hexagram-playground` and `hexagram-history` for parity, with glossary terms in the on-screen text; (b) rename them to glossary terms.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-332: With NO_COLOR or CI on a TTY, the full-screen commands run without colour and with typed input
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-2; `docs/manual/cli.md` at 602aecc)
+- Question: (a) the Ink-only commands run without colour and with typed input instead of refusing, amending ADR-0010; (b) keep refusing.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-333: Record a Consultation is a full-screen form
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-3; `docs/manual/cli.md` at 602aecc)
+- Question: (a) a full-screen form reached from Home and from `hexagram-history`; (b) other forms in the draft.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-334: Import takes paths and a Division Method per batch
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-4; `docs/manual/cli.md` at 602aecc)
+- Question: (a) `--import-legacy [<path>…] --division-method <m>`, defaulting to the Journal folder, one batch per Division Method, also doing ADR-0030's version-1 migration; (b) other forms in the draft.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-335: Bodies are re-rendered by hexagram-history --rerender-bodies
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-5; `docs/manual/cli.md` at 602aecc)
+- Question: (a) `hexagram-history --rerender-bodies`, each file written atomically, Unreadable files skipped; (b) other forms in the draft.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-336: Deleting an Unreadable row is refused
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-6; `docs/manual/cli.md` at 602aecc)
+- Question: (a) Ctrl+D on an Unreadable row is refused, and the owner deals with the file by hand; (b) delete it with a record of its own.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-337: Browse order for mixed dates
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-7; `docs/manual/cli.md` at 602aecc)
+- Question: (a) moments sort by instant, a day-only Divined At sorts before the moments of its day, and each moment shows in its own offset; (b) other orders in the draft.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-338: Use case 8 is reached through the Readout and the Playground
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-8; `docs/manual/cli.md` at 602aecc)
+- Question: (a) no command of its own; (b) a command to see Editions, Witnesses or any passage by Citation.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-339: The Transcription strip names the first failing check
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-9; `docs/manual/cli.md` at 602aecc)
+- Question: (a) the strip names the first failing check in ADR-0043's order; the MISSING STALKS gauge turns red only when conservation fails first; a terminal shrunk below 32 rows shows a notice and loses nothing; (b) other displays in the draft.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-340: Reading Preference options on every Readout and export
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-10; `docs/manual/cli.md` at 602aecc)
+- Question: (a) Reading Preference options on every command that shows a Readout or exports (R-105, R-125), defaulting to CONTEXT.md's; (b) fewer.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-341: Names through use case 8; Trigram imagery from the Translations shown
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-11; `docs/manual/cli.md` at 602aecc)
+- Question: (a) Hexagram names through use case 8, following the preference; Trigram imagery from the Translations shown; (b) other sources.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-342: Applicable Passages split across the Standing and Emerging tabs
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-12; `docs/manual/cli.md` at 602aecc)
+- Question: (a) split across the two Hexagram tabs, keeping R-283's order; (b) one list.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-343: Nuclear, Inverse and Reversed Hexagrams in each Hexagram's tab
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-13; `docs/manual/cli.md` at 602aecc)
+- Question: (a) shown in each Hexagram's tab; (b) elsewhere or not shown.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-344: Editions and Witnesses are shown with every text
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-14; `docs/manual/cli.md` at 602aecc)
+- Question: (a) each block headed by its Edition, and a closing section lists Witnesses and conversion labels; (b) other forms.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-345: R-061 is not reopened for line-level 文言
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-15; `docs/manual/cli.md` at 602aecc)
+- Question: (a) no line-level 文言 Citation; (b) reopen R-061.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-346: Queries of several lines
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-16; `docs/manual/cli.md` at 602aecc)
+- Question: (a) typing stays on one line; longer Queries are shown in full; (b) multi-line entry.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-347: Export uses Typst's WebAssembly build
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-17; `docs/manual/cli.md` at 602aecc)
+- Question: (a) `--export <path>`, PDF compiled by Typst's WebAssembly build as an npm dependency (a new runtime dependency), as the PWA does; (b) an external `typst` on PATH; (c) Typst source only.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-348: The merge bundle is one JSON file
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-18; `docs/manual/cli.md` at 602aecc)
+- Question: (a) one JSON file, used by `--export-journal` and `--merge-journal`, read and written by the PWA too; (b) other containers.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-349: Deletion Records are one file each in deleted/
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-19; `docs/manual/cli.md` at 602aecc)
+- Question: (a) one file per Deletion Record in `deleted/`, written atomically; (b) other forms.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-350: The CLI's error and exit policy
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-20; `docs/manual/cli.md` at 602aecc)
+- Question: (a) one line on stderr and exit 1; discarding after a failed save exits 0; import and merge exit 0 and report what they skipped; a Store failure partway exits 1; the exit code for closed stdin in plain mode stays proposed; (b) other policies.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-351: Unknown options or bad values are refused
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question CLI-21; `docs/manual/cli.md` at 602aecc)
+- Question: (a) a usage line and exit 1; (b) fall back silently, as today.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
+
+### R-352: The doc-truth exception for docs/manual/cli.md is removed
+
+- Date: 2026-11-26
+- Raised in: Phase 4-pre, the CLI manual (question DT-1; `docs/manual/cli.md` at 602aecc)
+- Question: (a) remove the row from `scripts/drift/doc-truth-exceptions.md` when the manual lands on `matters`; (b) keep it until ratification.
+- Ruling: "CLI-1 to -21: A; DT-1: A"
+- Folded into: not yet
