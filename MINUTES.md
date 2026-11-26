@@ -514,3 +514,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — the drift:prove fix and Phase 4's breakdown on main — 2026-11-26
 
 - PR #60 (11 commits) passed CI, the first landing whose `check` job ran `drift:prove`; the owner fast-forwarded `main` to 8dca492 under R-302. `drift:prove` is green on `main` again.
+
+### Iteration 33 — M-010 — 2026-11-26
+
+- Attempt: 1/2 (slice 1 of 2; R-058) · Outcome: slice 1 landed
+- Surface: a drafter drafted `node-effects` and the command entry point; the owner ratified it with four questions, changing the streams to structural interfaces (R-388 to R-392).
+- Tests: the first tester found three holes (R-393 to R-395); a fresh tester wrote the tests and the R-314 fixtures (two twins, three plants replaced, one plant re-described), approved as R-396.
+- Review: `APPROVE` (B10 still forbids `isCompleteCasting` in `cli-adapter`; the Clock agreed with `Intl` in all 418 IANA zones; `randomInt` edge bounds and a chi-square over 10⁶ draws looked uniform)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 19/19 and 38/38 · slice 1's Acceptance on matters
+- Brief size: implementer about 900 lines of required reading
+- Owner touches: 9 of M-010's 60 (R-388 to R-396)
+- Landed: a51a550, 10b8315, 4f912ed, e01b8c2, 5bdad2c, 9ca03c5
+- Notes: commits a51a550 to 4f912ed fail eslint's B9 on their own, until e01b8c2 adds the boundary row. Each later package's Matter adds its own arrow to `cli-adapter`'s row and twin, under R-314 and R-358.

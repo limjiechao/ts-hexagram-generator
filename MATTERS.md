@@ -320,7 +320,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   columns.
 - Open questions: none open; ruled in R-355, R-357, R-358, R-359, R-361. Likely from the tester:
   `--wrap-width 0`; an option given twice; `CI=false`.
-- Commits: –
+- Commits: a51a550, 10b8315 (ratified surface), 4f912ed (acceptance and fixtures), e01b8c2 (boundary rows), 5bdad2c (Clock), 9ca03c5 (Random Source) for slice 1
 - Notes: about 800 lines, two slices. R-332 is folded into ADR-0044 (R-384);
   ADR-0010 is consolidated before M-019, not before this Matter.
 
