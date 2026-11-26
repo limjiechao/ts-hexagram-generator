@@ -42,16 +42,16 @@ hexagram-random` and its siblings run the same command from source; options
   where depends on stdout and on `NO_COLOR` and `CI` (ADR-0010, amended by
   R-332):
 
-  | Command                                                                  | TTY         | TTY with `NO_COLOR` or `CI`         | stdout not a TTY |
-  | ------------------------------------------------------------------------ | ----------- | ----------------------------------- | ---------------- |
-  | `hexagram-random`, `hexagram-interactive`                                | full-screen | full-screen, typed input            | plain mode       |
-  | `hexagram`, `hexagram-manual`, `hexagram-playground`, `hexagram-history` | full-screen | full-screen, no colour, typed input | refuses          |
-  | `hexagram-history` maintenance options (6.7, 6.8)                        | runs        | runs                                | runs             |
+  | Command                                                                  | TTY         | TTY with `NO_COLOR`                 | TTY with `CI`            | stdout not a TTY |
+  | ------------------------------------------------------------------------ | ----------- | ----------------------------------- | ------------------------ | ---------------- |
+  | `hexagram-random`, `hexagram-interactive`                                | full-screen | full-screen, typed input            | full-screen, typed input | plain mode       |
+  | `hexagram`, `hexagram-manual`, `hexagram-playground`, `hexagram-history` | full-screen | full-screen, no colour, typed input | refuses                  | refuses          |
+  | `hexagram-history` maintenance options (6.7, 6.8)                        | runs        | runs                                | runs                     | runs             |
 
   With `NO_COLOR` or `CI`, typed input replaces the moving slider, so a screen
   reader or a script is never left watching an animation. _Today's app_
   refuses the four Ink-only commands under `NO_COLOR` or `CI` even on a TTY;
-  R-332 amends ADR-0010.
+  R-332 amends ADR-0010 for `NO_COLOR` only, and `CI` still refuses them.
 
 - **Height.** `hexagram-manual` needs a terminal at least 32 rows tall
   (ADR-0010, amendment; ADR-0011).
@@ -253,7 +253,7 @@ Reading Preference (R-341).
 - If keeping fails, the Readout stays on screen with the error, and `r`
   retries. Discarding the unsaved Consultation instead is a quit, exit 0.
 - After a Consultation is kept, the footer shows the file it was kept in.
-- A full-screen command run with stdout not a TTY prints `<command> requires
+- A full-screen command it refuses to run (section 2) prints `<command> requires
 an interactive terminal` to stderr and exits 1.
 
 **Exit codes** (R-350). 0 on a normal ending, including the user quitting; 1
@@ -272,7 +272,7 @@ casting options of section 7 and passes them on. All six command names are
 kept for parity; on-screen text uses the glossary terms (R-331).
 
 - Normal ending: the user quits from the menu. Exit 0.
-- Abnormal ending: stdout is not a TTY (6.1). Exit 1.
+- Abnormal ending: stdout is not a TTY, or `CI` is set (6.1). Exit 1.
 
 ### 6.3 `hexagram-random`: cast with Automatic Division
 
@@ -337,7 +337,8 @@ diagram shows the stalks of the Round and how the counts account for them.
 Endings:
 
 - Normal ending: the user quits after the Readout. Exit 0.
-- Abnormal endings, each on stderr with exit 1: stdout is not a TTY (6.1); the
+- Abnormal endings, each on stderr with exit 1: stdout is not a TTY, or `CI`
+  is set (6.1); the
   terminal is under 32 rows at start (`hexagram-manual needs a terminal at
 least 32 rows tall; yours is N`). Keeping fails: as 6.1.
 
@@ -354,7 +355,7 @@ ADR-0026 replace both; recording a divination done elsewhere is its own
 action (6.8).
 
 - Normal ending: the user quits. Exit 0.
-- Abnormal ending: stdout is not a TTY (6.1), exit 1.
+- Abnormal ending: stdout is not a TTY, or `CI` is set (6.1), exit 1.
 
 ### 6.7 `hexagram-history`: browse, open, delete, and maintenance
 
@@ -402,7 +403,7 @@ Endings:
 
 - Normal ending: the user quits from the list; or a maintenance run finishes,
   even with files skipped. Exit 0.
-- Abnormal endings, exit 1: stdout is not a TTY when browsing (6.1); the
+- Abnormal endings, exit 1: stdout is not a TTY, or `CI` is set, when browsing (6.1); the
   Journal cannot be read; a Store failure partway through an import, which
   stops it at once after reporting what was kept (rerunning it keeps those
   files twice).
@@ -443,7 +444,7 @@ value is a positive whole number. An unknown option or a bad value is refused
 | --------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- | ------------------ |
 | `--plain`, `--no-ui`                                | `hexagram-random`, `hexagram-interactive`             | the plain scrolling output; implied when stdout is not a TTY                                                     | off                |
 | `--wrap-width <n>`                                  | the casting commands and `hexagram`                   | the content wrap width, capped to the terminal                                                                   | 120                |
-| `--numeric-input`                                   | `hexagram-interactive`, `hexagram-random`, `hexagram` | typed input instead of the slider; forced on by `NO_COLOR` or `CI`                                               | off                |
+| `--numeric-input`                                   | `hexagram-interactive`, `hexagram-random`, `hexagram` | typed input instead of the slider; forced on by `NO_COLOR`, and by `CI` on the two commands with a plain mode    | off                |
 | `--slider-sweep-ms <n>`                             | `hexagram-interactive`, `hexagram-random`, `hexagram` | the time of one end-to-end sweep of the slider; each step is `n ÷ (valid Picks − 1)` ms, held between 30 and 250 | 1800               |
 | `--cast-bounce-ms <n>`                              | `hexagram-random`, `hexagram`                         | how long the slider moves before it settles on the machine's Pick                                                | 1500               |
 | `--cast-reveal-ms <n>`                              | `hexagram-random`, `hexagram`                         | with typed input, the pause before each Pick appears                                                             | 700                |
