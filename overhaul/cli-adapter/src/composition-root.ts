@@ -1,6 +1,9 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
+import type { Clock } from '@hexagram/application/clock'
+import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import { divide } from '@hexagram/application/divide'
 import { drawAutomaticPick } from '@hexagram/application/draw-automatic-pick'
+import { keepCastConsultation } from '@hexagram/application/keep-cast-consultation'
 import {
   lookUpEditions,
   lookUpHexagramNames,
@@ -8,6 +11,7 @@ import {
 } from '@hexagram/application/look-up-catalogue'
 import { nextRound } from '@hexagram/application/next-round'
 import type { RandomSource } from '@hexagram/application/random-source'
+import { recordConsultation } from '@hexagram/application/record-consultation'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { transcribe } from '@hexagram/application/transcribe'
 
@@ -21,13 +25,16 @@ type PortsSupplied<UseCase> = UseCase extends (
 
 /**
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
- * use case 8's lookups and use case 1's Automatic Division step with those
- * ports supplied, and use case 1's steps for a Division by Pick and a Physical
- * Division, which take no ports and so pass through unchanged.
+ * use case 8's lookups, use case 1's Automatic Division step and last step,
+ * keep, and use case 2, record, with those ports supplied, and use case 1's
+ * steps for a Division by Pick and a Physical Division, which take no ports
+ * and so pass through unchanged.
  */
 export function composeCli(ports: {
   readonly scriptureCatalogue: ScriptureCatalogue
   readonly randomSource: RandomSource
+  readonly consultationStore: ConsultationStore
+  readonly clock: Clock
 }): {
   readonly lookUpPassageTexts: PortsSupplied<typeof lookUpPassageTexts>
   readonly lookUpHexagramNames: PortsSupplied<typeof lookUpHexagramNames>
@@ -37,6 +44,8 @@ export function composeCli(ports: {
   readonly drawAutomaticPick: PortsSupplied<typeof drawAutomaticPick>
   readonly divide: typeof divide
   readonly transcribe: typeof transcribe
+  readonly keepCastConsultation: PortsSupplied<typeof keepCastConsultation>
+  readonly recordConsultation: PortsSupplied<typeof recordConsultation>
 } {
   return {
     lookUpPassageTexts: (citation, preference) =>
@@ -50,5 +59,9 @@ export function composeCli(ports: {
       drawAutomaticPick(ports, remainderGroups),
     divide,
     transcribe,
+    keepCastConsultation: (query, casting, divisionMethod) =>
+      keepCastConsultation(ports, query, casting, divisionMethod),
+    recordConsultation: (query, divinedAt, transformation) =>
+      recordConsultation(ports, query, divinedAt, transformation),
   }
 }
