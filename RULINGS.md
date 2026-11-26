@@ -4942,3 +4942,67 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (b) leave them untested.
 - Ruling: "approve the list; Q-M-010-23: A"
 - Folded into: not yet
+
+### R-415: A separate value starting with - is refused; such a value needs the = form
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-24, from slice 2's review)
+- Question: A value taken from the next argument swallows a forgotten value's
+  next option (`--translation --yilin`, `--export --filter`,
+  `--merge-journal --export-journal`). (a) refuse a separate value that
+  starts with `-`; such a value needs the `=` form (`--translation=--x`), so
+  R-403 still holds through `=`; a fresh tester adds the cases first; (b) keep
+  it; (c) refuse only the command's own options.
+- Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
+- Folded into: not yet
+
+### R-416: Empty values for --export, --filter, --export-journal and --merge-journal are refused
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-25, from slice 2's review)
+- Question: (a) ratify the refusal (a bad value under R-351), with tests added
+  beside R-415's; (b) accept an empty `--filter` as "match all".
+- Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
+- Folded into: not yet
+
+### R-417: processPorts keeps its unused process parameter
+
+- Date: 2026-11-26
+- Raised in: M-010 (question Q-M-010-26, from slice 2's implementer)
+- Question: The Journal folder is found from the module's own location
+  (ADR-0020), so `processPorts(process)` does not read `process`. (a) keep the
+  ratified signature, with the narrow lint comment saying why; (b) drop the
+  parameter; (c) start from `process.argv[1]`.
+- Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
+- Folded into: not yet
+
+### R-418: M-010 slice 2's Tier-B digest
+
+- Date: 2026-11-26
+- Raised in: M-010 (slice 2, 77bacca, e3e933c, 18c362a)
+- Question: Ratify: (1) a hand-written parser from a rules table per command,
+  `--no-ui` an alias of `--plain`; (2) the Reading Preference options defined
+  once in `frame.ts`; (3) `hexagram-history`'s order: parse, one maintenance
+  option at most, inapplicable options, the not-built line, the terminal
+  table; (4) the 32-row check skipped when a TTY reports no row count; (5) no
+  `run` declares `ports`, so no frame ending can touch a port; (6) the
+  stand-in Catalogue and Store reject their Promise (R-407 and the ratified
+  comment say "throwing")?
+- Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
+- Folded into: not yet
+
+### R-419: A ratified PWA manual, with its UI design, gates Phase 6
+
+- Date: 2026-11-26
+- Raised in: question Q-PH6-1 (the owner asked how Phase 6 settles its UI
+  design; nothing does, and ADR-0042 gates only Phases 4 and 5)
+- Question: (a) a "6-pre" row: `docs/manual/pwa.md`, drafted with the copilot
+  and ratified by the owner as Phase 6's entry gate, covering Brooks's nine
+  items plus a ratified UI design (screens, navigation, touch entry for
+  Transcription), worked out with throwaway prototypes in the browser; it
+  amends ADR-0042's gates and `MATTERS.md`; the clerk raises "draft the
+  manual" when Phase 5 lands; (b) settle the UI Matter by Matter; (c) an ADR
+  for principles and stack now, screens per Matter.
+- Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
+- Folded into: not yet (`MATTERS.md`'s 6-pre row added; ADR-0042's gates to be
+  amended by a draft for the owner's ratification)
