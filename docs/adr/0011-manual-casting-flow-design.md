@@ -4,6 +4,8 @@ Status: Accepted
 
 > **Amended.** [ADR-0027](0027-cast-consultation-records-division-method.md) reverses "No provenance field": a Cast Consultation records its Division Method. The overhaul also moves Line Retraction out of the core into the casting use case (see `CONTEXT.md`).
 > Date: 2026-05-29
+>
+> **Amended by [ADR-0043](0043-transcription-check-order.md) (2026-11-26).** For the overhaul, the Transcription checks run `complete`, `remainders`, `set-aside`, `conservation`, first failure wins, replacing the tier order below. How the CLI shows conservation, the `MISSING STALKS` gauge included, is now the CLI manual's. For the legacy app, this ADR stands whole.
 
 `hexagram-manual` lets a user who casts with physical yarrow stalks transcribe each
 division, while the app does the arithmetic and bookkeeping. This ADR consolidates
@@ -20,6 +22,8 @@ size.
 
 **Tiered validation, in priority order** — the prompt always shows the
 highest-priority failing rule:
+
+> For the overhaul, [ADR-0043](0043-transcription-check-order.md) replaces this order.
 
 1. **incomplete** — any field empty → neutral placeholder.
 2. **zero-remainder** — any remainder typed as `0` → red strip text, with the

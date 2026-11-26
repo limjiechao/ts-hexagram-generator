@@ -23,7 +23,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0008 | Consultation file format                                      | Superseded by 0030       |
 | 0009 | Terminal UI architecture & flow state machine                 | Accepted                 |
 | 0010 | Interactive-environment policy & input modes                  | Accepted                 |
-| 0011 | Manual casting flow design                                    | Amended by 0027          |
+| 0011 | Manual casting flow design                                    | Amended by 0027, 0043    |
 | 0012 | Terminal-test reliability                                     | Accepted                 |
 | 0013 | Test execution & CI posture                                   | Accepted                 |
 | 0014 | Product identity                                              | Accepted                 |
@@ -55,6 +55,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0040 | How the overhaul is built (consolidates 0036 and 0039)        | Superseded by 0042       |
 | 0041 | Ratification by exception and a wider Free to choose          | Superseded by 0042       |
 | 0042 | How the overhaul is built (consolidates 0040 and 0041)        | Accepted                 |
+| 0043 | The Transcription checks run complete, Remainders, Set-aside  | Proposed                 |
 
 ## Template
 
