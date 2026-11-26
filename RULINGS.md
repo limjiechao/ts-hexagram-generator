@@ -3745,3 +3745,17 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   plus the new one; (c) Tier B, tests comparing only the five recorded fields.
 - Ruling: "Q-M-005-4: A"
 - Folded into: not yet
+
+### R-293: M-005 slice 2's acceptance list
+
+- Date: 2026-11-26
+- Raised in: M-005 (slice 2's test list, `overhaul/oracle/tests/divide.test.ts`
+  and `overhaul/cli-adapter/tests/pick-division.test.ts`)
+- Question: Approve the 87 tests as listed: `divide` at every place, at the
+  bounds of the valid Picks, on a Casting that does not replay (the replay
+  refusal winning over `valid-pick`), dropping extra keys on recorded Rounds,
+  at the eighteenth Round, and the eight Set-aside paths and 4,096
+  Transformations; and `composeCli` gaining `beginCasting`, `nextRound` and
+  `divide`, driving eighteen Divisions to a complete Casting?
+- Ruling: "approve the list"
+- Folded into: not yet
