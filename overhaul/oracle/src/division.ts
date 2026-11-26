@@ -31,8 +31,8 @@ export type DivisionRule =
   | 'valid-pick'
   | 'complete'
   | 'remainders'
-  | 'conservation'
   | 'set-aside'
+  | 'conservation'
   | 'replay'
 
 /**
