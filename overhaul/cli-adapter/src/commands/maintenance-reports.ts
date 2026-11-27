@@ -228,3 +228,13 @@ export function importedLine(counts: {
   const { cast, recorded, skipped } = counts
   return `Imported ${String(cast + recorded)} of ${counted(cast + recorded + skipped, 'file')} (${String(cast)} cast, ${String(recorded)} recorded); ${String(skipped)} skipped. Originals moved to legacy/ in the Journal folder.`
 }
+
+/**
+ * `--rerender-bodies`'s one line, for example `Re-rendered 40 bodies.`, a
+ * count of one taking the singular. Unreadable files are skipped and not
+ * counted. A failure partway prints `journalFailureLine('written')`
+ * instead, and no count.
+ */
+export function rerenderedLine(rewritten: number): string {
+  throw new Error('not built', { cause: rewritten })
+}
