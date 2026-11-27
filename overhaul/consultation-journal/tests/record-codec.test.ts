@@ -511,6 +511,68 @@ describe('decodeRecord: invalid-field', () => {
       }),
     ).toEqual(invalidField('divisionMethod'))
   })
+
+  it('names divisionMethod when a Recorded record carries one', () => {
+    expect(
+      decodeRecord({ ...recordedRecord(), divisionMethod: 'automatic' }),
+    ).toEqual(invalidField('divisionMethod'))
+  })
+
+  it('names casting when it is null', () => {
+    expect(decodeRecord({ ...castRecord(), casting: null })).toEqual(
+      invalidField('casting'),
+    )
+  })
+
+  it('names divisionMethod when it is null', () => {
+    expect(decodeRecord({ ...castRecord(), divisionMethod: null })).toEqual(
+      invalidField('divisionMethod'),
+    )
+  })
+
+  it.each([
+    '2026-02-30T08:00:00.123+08:00',
+    '2026-11-26T24:00:00.000+08:00',
+    '2026-11-26T08:60:00.000+08:00',
+    '2026-11-26T08:00:60.000+08:00',
+  ])('names divinedAt with the impossible date-time %s', (divinedAt) => {
+    expect(decodeRecord({ ...castRecord(), divinedAt })).toEqual(
+      invalidField('divinedAt'),
+    )
+  })
+
+  it.each(['2026-11-26t08:00:00.123+08:00', '2026-11-26 08:00:00.123+08:00'])(
+    'names divinedAt with the separator in %s',
+    (divinedAt) => {
+      expect(decodeRecord({ ...castRecord(), divinedAt })).toEqual(
+        invalidField('divinedAt'),
+      )
+    },
+  )
+
+  it('names id when the ULID is lower case', () => {
+    expect(
+      decodeRecord({ ...castRecord(), id: firstId.toLowerCase() }),
+    ).toEqual(invalidField('id'))
+  })
+
+  it('names casting when a Pick is not an integer', () => {
+    const casting: number[][] = mixedPicks.map((line) => [...line])
+    casting[2] = [22, 2.5, 3]
+    expect(decodeRecord({ ...castRecord(), casting })).toEqual(
+      invalidField('casting'),
+    )
+  })
+
+  it("names a Cast record's Day divinedAt before its malformed casting", () => {
+    expect(
+      decodeRecord({
+        ...castRecord(),
+        divinedAt: '2026-11-26',
+        casting: 'six lines',
+      }),
+    ).toEqual(invalidField('divinedAt'))
+  })
 })
 
 describe('decodeRecord: casting-does-not-replay', () => {
@@ -539,6 +601,14 @@ describe('decodeRecord: casting-does-not-replay', () => {
   it('refuses a Pick beyond the first Round of 49 stalks', () => {
     const casting: number[][] = oldYangPicks.map((line) => [...line])
     casting[0] = [48, 1, 1]
+    expect(
+      decodeRecord({ ...castRecord(), transformation: '999999', casting }),
+    ).toEqual(unreadable({ kind: 'casting-does-not-replay' }))
+  })
+
+  it.each([0, -1])('refuses the integer Pick %d', (pick) => {
+    const casting: number[][] = oldYangPicks.map((line) => [...line])
+    casting[1] = [1, pick, 1]
     expect(
       decodeRecord({ ...castRecord(), transformation: '999999', casting }),
     ).toEqual(unreadable({ kind: 'casting-does-not-replay' }))
@@ -590,7 +660,7 @@ describe('decodeRecord never throws', () => {
     }
   })
 
-  it('returns a reason the codec reports for every field replaced by junk', () => {
+  it('returns the ruled reason for every field replaced by junk', () => {
     const junk: readonly unknown[] = [
       undefined,
       null,
@@ -607,15 +677,17 @@ describe('decodeRecord never throws', () => {
     ]
     for (const key of Object.keys(castRecord())) {
       for (const value of junk) {
-        const result = decodeRecord({ ...castRecord(), [key]: value })
-        expect(result.outcome).toBe('unreadable')
-        if (result.outcome === 'unreadable') {
-          expect([
-            'not-version-2',
-            'invalid-field',
-            'casting-does-not-replay',
-          ]).toContain(result.reason.kind)
+        // An undefined casting counts as missing, which leaves a Recorded
+        // record carrying divisionMethod (ADR-0030's table).
+        let reason: unknown = { kind: 'invalid-field', field: key }
+        if (key === 'schemaVersion') reason = { kind: 'not-version-2' }
+        if (key === 'casting' && value === undefined) {
+          reason = { kind: 'invalid-field', field: 'divisionMethod' }
         }
+        expect(
+          decodeRecord({ ...castRecord(), [key]: value }),
+          `${key}: ${String(JSON.stringify(value))}`,
+        ).toEqual(unreadable(reason))
       }
     }
   })
