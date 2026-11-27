@@ -71,7 +71,7 @@ ADR-0028 records this Edition as ctext's own conversion, not an independent
 - 小象 (Legge's "symbolism" for it): 
 
 ```
-'The same undivided line is used' (in all the places of this hexagram), but the attribute of heaven (thereby denoted) should not (always) take the foremost place.
+‘The same undivided line is used’ (in all the places of this hexagram), but the attribute of heaven (thereby denoted) should not (always) take the foremost place.
 ```
 
 ### 坤 · 用六
@@ -85,7 +85,7 @@ ADR-0028 records this Edition as ctext's own conversion, not an independent
 - 小象: 
 
 ```
-(The lines are all weak and divided, as appears from) the use of the number six:'—but (those who are thus represented) becoming perpetually correct and firm, there will thereby be a great consummation.
+‘(The lines are all weak and divided, as appears from) the use of the number six:’—but (those who are thus represented) becoming perpetually correct and firm, there will thereby be a great consummation.
 ```
 
 ---
@@ -128,9 +128,9 @@ Lasting perseverance furthers.
 - 小象: 
 
 ```
-On all the nines changing:
-b) 7. When THE CREATIVE, the great, undergoes change in all the nines, the world is set in order.
-c) 7. When THE CREATIVE, the great, undergoes change in all the nines, one perceives the law of heaven.
+When all the lines are sixes:
+a) Lasting perseverance furthers.
+b) “Lasting perseverance”: it ends in great things.
 ```
 
 ---

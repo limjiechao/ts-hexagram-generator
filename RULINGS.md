@@ -6171,3 +6171,17 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   ratified bytes out of the formatter; a directory glob for the owner's later
   texts (R-371).
 - Folded into: `.oxfmtrc.json`
+
+### R-509: The 用九 and 用六 texts as the owner corrected them
+
+- Date: 2026-11-27
+- Raised in: the clerk's review of the owner's file (d94ff35): the
+  Wilhelm–Baynes 坤 小象 looked like 乾's commentary; the ctext retrieval dates
+  were blank; a Witness line read "Text Text"; the Notes named local paths
+- Question: correct the file, or confirm what is intended.
+- Ruling: "Take it as now" (the blank ctext retrieval dates), "Otherwise,
+  passages updated." The owner replaced the Wilhelm–Baynes 坤 小象 with the
+  sixes commentary and set Legge's quotation marks as curly quotes; "Text
+  Text" and the local paths stay as the owner left them.
+- Folded into: `docs/source-texts/yong-jiu-yong-liu.md`; the ctext Witness
+  records carry no retrieval date
