@@ -453,7 +453,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   `legacy-real-*.txt` corpus.
 - Open questions: none open; ruled in R-365, R-367, R-368, R-380. Likely from the tester: a
   bundle that is not JSON; a Shape B `.txt` with no timestamp.
-- Commits: –
+- Commits: 652c9ab, 1ccd13a, dd437b4, a8685a9, f60c5b2, 7264ff1, 0d6ba16 (drafted surface, R-494); for slice 1, a9f670e, b4a0250, 9113d9e (acceptance), 44ce96d (legacy-import's row and twins), c2e7d2e (Deletion Record codec), b2246f8 (`remove`, `deletionRecords`), 565775e (use case 6), be53b4b, e7abc01 (review fixes)
 - Notes: about 2,000 lines, three slices: delete; merge; import. Merged under
   R-356 (A) to absorb the Viewer's split.
   Raise when slices 2 and 3 are drafted (R-496): import and merge check each

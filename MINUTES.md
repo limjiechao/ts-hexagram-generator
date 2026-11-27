@@ -594,3 +594,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — M-012 complete on main — 2026-11-27
 
 - PR #63 (M-012 slice 3, R-479 to R-486) passed every leg at e1efd95; the owner fast-forwarded `main` to e1efd95, which under ADR-0047 is the owner's word to land its delegate rulings.
+
+### Iteration 38 — M-015 — 2026-11-27
+
+- Attempt: 1/2 (slice 1 of 3; R-058) · Outcome: slice 1 landed
+- Surface: a drafter drafted the Deletion Record file, the Journal bundle codec, `legacy-import`, `composeCli`'s widening and the reports' wording; the delegate ruled 25 questions (R-494) and referred Q-M-015-24 (the real Store in the bins) to the owner.
+- Tests: 37 approved with two added (R-495); after review, strict UTF-8, a symlinked record and direct codec rows (R-496).
+- Review: `APPROVE` by reading (the reviewer's probe was refused permission to run); the follow-up fixes re-reviewed `APPROVE`.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · slice 1's tests · build and test forced 21/21 and 42/42, on matters
+- Owner touches: 2 (R-492, R-493); delegate rulings: 3 (R-494 to R-496)
+- Landed: 652c9ab to e7abc01 (17 commits)
