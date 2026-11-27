@@ -81,6 +81,17 @@ export function exportTargetExistsLine(file: string): string {
 }
 
 /**
+ * `--export-journal`'s failure, on stderr before exit 1, when the bundle
+ * cannot be written for any reason but a file already holding the path,
+ * such as a missing folder, no permission, or a filesystem without hard
+ * links: `hexagram-history: journal.json cannot be written`, the file as
+ * the user gave it.
+ */
+export function bundleUnwritableLine(file: string): string {
+  return `hexagram-history: ${file} cannot be written`
+}
+
+/**
  * `--merge-journal`'s refusal, on stderr before exit 1, when the file
  * cannot be read at all and nothing is merged:
  * `hexagram-history: journal.json cannot be read`.

@@ -17,6 +17,7 @@ import { endWith } from '#src/commands/frame.js'
 import {
   bundleRefusedLine,
   bundleUnreadableLine,
+  bundleUnwritableLine,
   exportedLine,
   exportTargetExistsLine,
   journalFailureLine,
@@ -40,8 +41,10 @@ export function exportJournalRun(
 ): Promise<ExitCode> {
   return reportingJournalFailure(io, async () => {
     const journal = await useCases(ports).exportJournal()
-    if (!(await createExclusively(file, encodeJournalBundle(journal)))) {
-      return endWith(io, exportTargetExistsLine(file))
+    const written = await createExclusively(file, encodeJournalBundle(journal))
+    if (written === 'exists') return endWith(io, exportTargetExistsLine(file))
+    if (written === 'unwritable') {
+      return endWith(io, bundleUnwritableLine(file))
     }
     io.stdout.write(
       `${exportedLine(file, {
@@ -168,12 +171,16 @@ function strictUtf8(bytes: Uint8Array): string | undefined {
 }
 
 /**
- * Writes `text` at `file` only if no file holds that path, resolving to
- * whether it did. The text is written whole beside it first and then
- * linked in, since a hard link, unlike a rename, refuses to replace a file,
- * so a reader never sees part of a bundle.
+ * Writes `text` at `file` only if no file holds that path: `exists` when
+ * one does, `unwritable` on any other failure. The text is written whole
+ * beside it first and then linked in, since a hard link, unlike a rename,
+ * refuses to replace a file, so a reader never sees part of a bundle. A
+ * known limit: a filesystem without hard links cannot be exported to.
  */
-async function createExclusively(file: string, text: string): Promise<boolean> {
+async function createExclusively(
+  file: string,
+  text: string,
+): Promise<'created' | 'exists' | 'unwritable'> {
   const temporary = path.join(
     path.dirname(file),
     `.${path.basename(file)}.${randomUUID()}.tmp`,
@@ -187,12 +194,12 @@ async function createExclusively(file: string, text: string): Promise<boolean> {
       await handle.close()
     }
     await link(temporary, file)
-    return true
+    return 'created'
   } catch (error) {
     if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
-      return false
+      return 'exists'
     }
-    throw error
+    return 'unwritable'
   } finally {
     await rm(temporary, { force: true, maxRetries: 3 })
   }
