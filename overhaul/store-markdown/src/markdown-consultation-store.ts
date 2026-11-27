@@ -78,8 +78,8 @@ export function markdownConsultationStore(options: {
   const { journalFolder, renderBody } = options
 
   async function holdsAt(name: string, id: ConsultationId): Promise<boolean> {
-    const text = await readFile(path.join(journalFolder, name), 'utf8')
-    return loadFile(text).consultation?.id === id
+    const bytes = await readFile(path.join(journalFolder, name))
+    return loadFile(bytes).consultation?.id === id
   }
 
   const consultationStore: ConsultationStore = {
@@ -171,7 +171,7 @@ async function readJournal(folder: string): Promise<{
   const firstLocations = new Map<ConsultationId, string>()
   // One file at a time, so a large Journal never exhausts file handles.
   for (const name of await markdownFileNames(folder)) {
-    const file = loadFile(await readFile(path.join(folder, name), 'utf8'))
+    const file = loadFile(await readFile(path.join(folder, name)))
     if (file.consultation === undefined) {
       unreadable.push({ location: name, reason: file.reason })
       continue
@@ -190,13 +190,13 @@ async function readJournal(folder: string): Promise<{
   return { loaded, unreadable }
 }
 
-function loadFile(text: string):
+function loadFile(bytes: Buffer):
   | { readonly consultation: Consultation; readonly frontmatter: string }
   | {
       readonly consultation?: undefined
       readonly reason: UnreadableFile['reason']
     } {
-  const read = readFrontmatter(text)
+  const read = readFrontmatter(bytes)
   if (read.outcome === 'unreadable') {
     return { reason: read.reason }
   }
