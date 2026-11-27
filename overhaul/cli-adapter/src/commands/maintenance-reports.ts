@@ -174,8 +174,7 @@ export function keptLine(
  * One line for each file an import skips, which stays where it is:
  * `Skipped <path>: ` and the reason's words. A file that holds nothing to
  * import, such as a version-2 file, gets no line. The legacy reasons are
- * worded as follows; the function that words them takes `legacy-import`'s
- * reason once `cli-adapter` may import that package:
+ * worded as follows, by `legacyUnreadableReasonText`:
  *
  * - `no-frontmatter`: `it has no frontmatter`
  * - `not-yaml`: `its frontmatter is not YAML`
