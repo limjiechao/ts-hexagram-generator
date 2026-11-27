@@ -1,5 +1,5 @@
 import { Buffer } from 'node:buffer'
-import { mkdir, readdir, readFile, unlink } from 'node:fs/promises'
+import { lstat, mkdir, readdir, readFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
@@ -217,7 +217,8 @@ interface LoadedFile {
 
 /**
  * Writes the Deletion Record's file unless its name holds one: an earlier
- * record for the same Id stands, and any other file there is a failure.
+ * record for the same Id, in a regular file, stands, and any other entry
+ * there is a failure.
  */
 async function keepDeletionRecord(
   deletedFolder: string,
@@ -229,12 +230,16 @@ async function keepDeletionRecord(
   if (await createExclusively(deletedFolder, name, text)) {
     return
   }
-  const earlier = loadDeletionRecord(
-    await readFile(path.join(deletedFolder, name)),
-  )
+  const taken = path.join(deletedFolder, name)
+  // A symbolic link is refused, not followed: `deletionRecords` lists only
+  // regular files, so a record reached through one would never be read back.
+  const entry = await lstat(taken)
+  const earlier = entry.isFile()
+    ? loadDeletionRecord(await readFile(taken))
+    : undefined
   if (earlier?.consultationId !== record.consultationId) {
     throw new Error(
-      `deleted/${name} is taken by a file that is not a Deletion Record for ${record.consultationId}`,
+      `deleted/${name} is taken by an entry that is not a Deletion Record for ${record.consultationId}`,
     )
   }
 }
