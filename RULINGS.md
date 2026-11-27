@@ -6184,4 +6184,9 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   sixes commentary and set Legge's quotation marks as curly quotes; "Text
   Text" and the local paths stay as the owner left them.
 - Folded into: `docs/source-texts/yong-jiu-yong-liu.md`; the ctext Witness
-  records carry no retrieval date
+  records for 乾 and 坤 (Traditional and Simplified) take the retrieval date
+  2026-11-27
+- Clerk's note: the clerk first misread "Take it as now" as "leave the dates
+  blank"; the owner restated "Take it as now", meaning the retrieval date is
+  today, 2026-11-27. The file stays as the owner left it; M-011's Witness
+  records carry that date.
