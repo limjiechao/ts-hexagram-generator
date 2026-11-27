@@ -63,7 +63,7 @@ export async function replaceAtomically(
   let renaming = false
   try {
     await writeDurably(temporary, await write())
-    await chmod(temporary, mode)
+    await chmod(temporary, mode & 0o7777)
     renaming = true
     await rename(temporary, target)
     return true
