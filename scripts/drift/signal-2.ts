@@ -1,4 +1,5 @@
-// Drift signal 2 (ADR-0042, R-196, R-197, R-200, R-203, R-243 to R-246):
+// Drift signal 2 (ADR-0042, R-196, R-197, R-200, R-203, R-243 to R-246,
+// R-515):
 // marked _Avoid_ forms from `CONTEXT.md` in `overhaul/` identifiers and UI
 // strings. The contract is `glossary-finding.ts`'s.
 
@@ -107,6 +108,9 @@ function codeFor(
   const place = /^overhaul\/[^/]+\/(src|tests)\//.exec(file)?.[1]
   if (record.kind === 'identifier' && place !== undefined) return 'G1'
   if (record.kind !== 'string' || place !== 'src') return undefined
+  // Bundled scripture is its Witness's wording, not wording the glossary
+  // governs (R-370, R-515).
+  if (file.startsWith('overhaul/catalogue-bundled/src/data/')) return undefined
   // The string copy of a test name is not read (R-212, R-246).
   const isTestName =
     previous?.kind === 'test-name' &&

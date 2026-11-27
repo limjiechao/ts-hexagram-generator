@@ -1,4 +1,5 @@
-// Signal 2's contract (ADR-0042, R-196, R-197, R-200, R-203, R-243 to R-247):
+// Signal 2's contract (ADR-0042, R-196, R-197, R-200, R-203, R-243 to R-247,
+// R-515):
 // how it reads `CONTEXT.md`, what it finds in one file's scan records, and
 // what `drift:check` prints. `drift:prove` matches all three against
 // `fixtures/signal-2/expected.ts`.
@@ -26,6 +27,8 @@
 //         `string` records, as G2, except a test name's string copy, the
 //         `string` record that directly follows a `test-name` record with the
 //         same line and text (`scan-record.ts`);
+//       - under `overhaul/catalogue-bundled/src/data/`: `identifier` records
+//         only, as G1; its strings are bundled scripture;
 //       - under `overhaul/<package>/tests/`: `identifier` records only;
 //       - anywhere else, such as a package-root config file: nothing.
 //     Comments and test names are never read. The scanner yields an
