@@ -185,6 +185,24 @@ describe('duplicate-id', () => {
     expect(await consultationStore.get(cast.id)).toEqual(cast)
   })
 
+  it('loads a valid file after an Unreadable one holding the same Id', async () => {
+    const folder = await temporaryFolder()
+    const noReplay = { kind: 'casting-does-not-replay' } as const
+    await plant(
+      folder,
+      'a-no-replay.md',
+      fileText(castFrontmatter({ transformation: "'678977'" })),
+    )
+    await plant(folder, 'b-valid.md', fileText(castFrontmatter()))
+    const { consultationStore } = storeOver(folder)
+
+    expect(await consultationStore.list()).toEqual({
+      consultations: [cast],
+      unreadable: [{ location: 'a-no-replay.md', reason: noReplay }],
+    })
+    expect(await consultationStore.get(cast.id)).toEqual(cast)
+  })
+
   it('names the first file in every later duplicate', async () => {
     const folder = await temporaryFolder()
     for (const name of ['a.md', 'b.md', 'c.md']) {

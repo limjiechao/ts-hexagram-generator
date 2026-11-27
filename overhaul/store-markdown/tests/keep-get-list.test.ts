@@ -160,6 +160,20 @@ describe("a Consultation's file (ADR-0030)", () => {
     },
   )
 
+  it('names a Moment by its date in its own offset, not in UTC', async () => {
+    const folder = await temporaryFolder()
+    const earlyMorning = consultationOf({
+      ...recordedMomentRecord(),
+      id: '01JE0E0000000000000000000S',
+      divinedAt: '2026-11-26T07:30:00.000+08:00',
+    })
+    await storeOver(folder).consultationStore.keep(earlyMorning)
+
+    expect(await regularFiles(folder)).toEqual([
+      '2026-11-26--01JE0E0000000000000000000S.md',
+    ])
+  })
+
   it.each(kinds)(
     'writes $kind as the fixture frontmatter, a blank line, then the rendered body',
     async ({ consultation, file, fixture }) => {
@@ -239,25 +253,33 @@ describe('keeping never overwrites (ADR-0030)', () => {
     expect(await snapshot(folder)).toEqual(before)
   })
 
-  it('leaves a foreign file at the name it would take untouched', async () => {
-    const folder = await temporaryFolder()
-    await plant(folder, castFile, 'Notes the owner left here.\n')
-    const before = await snapshot(folder)
+  it.each([
+    ['a foreign file', 'Notes the owner left here.\n'],
+    [
+      'an Unreadable file holding the Id',
+      fileText(castFrontmatter({ transformation: "'678977'" })),
+    ],
+  ])(
+    'rejects and writes nothing when %s holds the name it would take',
+    async (_, text) => {
+      const folder = await temporaryFolder()
+      await plant(folder, castFile, text)
+      const before = await snapshot(folder)
 
-    // Whether `keep` resolves or rejects here is not yet decided.
-    await Promise.allSettled([storeOver(folder).consultationStore.keep(cast)])
+      await expect(
+        storeOver(folder).consultationStore.keep(cast),
+      ).rejects.toThrow()
 
-    const after = await snapshot(folder)
-    expect(after[castFile]).toBe(before[castFile])
-  })
+      expect(await snapshot(folder)).toEqual(before)
+    },
+  )
 
   it('leaves exactly one whole file when one Consultation is kept twice at once', async () => {
     const folder = await temporaryFolder()
     const renderBody = fakeRenderBody()
     const { consultationStore } = storeOver(folder, renderBody)
 
-    // Whether the second `keep` resolves or rejects is not yet decided.
-    await Promise.allSettled([
+    await Promise.all([
       consultationStore.keep(cast),
       consultationStore.keep(cast),
     ])
@@ -420,7 +442,7 @@ describe('rerenderBodies', () => {
     )
   })
 
-  it('leaves the bytes of a hand-written frontmatter untouched', async () => {
+  it('leaves the bytes of a hand-written frontmatter untouched and adds the blank line', async () => {
     const folder = await temporaryFolder()
     const frontmatter = [
       '---',
@@ -454,9 +476,7 @@ describe('rerenderBodies', () => {
     })
 
     const text = await readFile(path.join(folder, 'by-hand.md'), 'utf8')
-    expect(text.startsWith(frontmatter)).toBe(true)
-    expect(text.endsWith(await renderBody(cast))).toBe(true)
-    expect(text).not.toContain('Old body.')
+    expect(text).toBe(`${frontmatter}\n${await renderBody(cast)}`)
   })
 
   it('renders each body from the Consultation its file holds', async () => {
@@ -472,6 +492,13 @@ describe('rerenderBodies', () => {
     await storeOver(folder, renderBody).rerenderBodies()
 
     expect(byId(rendered)).toEqual(byId([cast, recordedDay]))
+  })
+
+  it('rewrites nothing and creates nothing when the folder is missing', async () => {
+    const missing = path.join(await temporaryFolder(), 'consultations')
+
+    expect(await storeOver(missing).rerenderBodies()).toEqual({ rewritten: 0 })
+    await expect(stat(missing)).rejects.toThrow()
   })
 
   it('rewrites nothing in an empty Journal', async () => {
