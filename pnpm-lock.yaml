@@ -395,6 +395,9 @@ importers:
       '@hexagram/application':
         specifier: workspace:*
         version: link:../application
+      '@hexagram/catalogue-bundled':
+        specifier: workspace:*
+        version: link:../catalogue-bundled
       '@hexagram/consultation-journal':
         specifier: workspace:*
         version: link:../consultation-journal

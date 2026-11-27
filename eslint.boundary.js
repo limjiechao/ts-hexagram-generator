@@ -135,6 +135,7 @@ const overhaulPackages = {
     pure: false,
     dependencies: {
       application: 'any',
+      'catalogue-bundled': 'any',
       'consultation-journal': 'any',
       'legacy-import': 'any',
       'node-effects': 'any',

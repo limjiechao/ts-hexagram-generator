@@ -6,6 +6,7 @@
   "private": true,
   "dependencies": {
     "@hexagram/application": "workspace:*",
+    "@hexagram/catalogue-bundled": "workspace:*",
     "@hexagram/consultation-journal": "workspace:*",
     "@hexagram/legacy-import": "workspace:*",
     "@hexagram/node-effects": "workspace:*",
