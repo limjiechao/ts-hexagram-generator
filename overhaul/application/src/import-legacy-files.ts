@@ -1,4 +1,5 @@
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
+import type { ConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import type {
   DivinedAt,
   Moment,
@@ -9,8 +10,8 @@ import type { CompleteCasting } from '@hexagram/oracle/casting'
 import type { Transformation } from '@hexagram/oracle/transformation'
 
 import type { Clock } from '#src/clock.js'
+import { buildConsultationId } from '#src/consultation-id-builder.js'
 import type { ConsultationStore } from '#src/consultation-store.js'
-import { notImplemented } from '#src/not-implemented.js'
 import type { RandomSource } from '#src/random-source.js'
 
 /** What every legacy record holds. */
@@ -57,7 +58,7 @@ export type LegacyRecord =
  * kept, and a file that could not be parsed never becomes a record, so the
  * adapter reports it. A Store failure rejects the Promise unchanged.
  */
-export function importLegacyFiles(
+export async function importLegacyFiles(
   ports: {
     readonly consultationStore: ConsultationStore
     readonly clock: Clock
@@ -66,5 +67,48 @@ export function importLegacyFiles(
   records: readonly LegacyRecord[],
   divisionMethod: DivisionMethod,
 ): Promise<readonly Consultation[]> {
-  return notImplemented(ports, records, divisionMethod)
+  if (records.length === 0) return []
+  const deleted = new Set(
+    (await ports.consultationStore.deletionRecords()).map(
+      (record) => record.consultationId,
+    ),
+  )
+  const kept: Consultation[] = []
+  for (const record of records) {
+    const id = newId(ports, deleted)
+    const consultation: Consultation =
+      record.casting === undefined
+        ? {
+            origin: 'recorded',
+            id,
+            query: record.query,
+            divinedAt: record.divinedAt,
+            transformation: record.transformation,
+          }
+        : {
+            origin: 'cast',
+            id,
+            query: record.query,
+            divinedAt: record.divinedAt,
+            transformation: record.casting.transformation,
+            casting: record.casting,
+            divisionMethod,
+          }
+    await ports.consultationStore.keep(consultation)
+    kept.push(consultation)
+  }
+  return kept
+}
+
+/** A Consultation Id no Deletion Record names, drawn at one Clock time. */
+function newId(
+  ports: { readonly clock: Clock; readonly randomSource: RandomSource },
+  deleted: ReadonlySet<ConsultationId>,
+): ConsultationId {
+  const { epochMilliseconds } = ports.clock.now()
+  let id = buildConsultationId(epochMilliseconds, ports.randomSource)
+  while (deleted.has(id)) {
+    id = buildConsultationId(epochMilliseconds, ports.randomSource)
+  }
+  return id
 }
