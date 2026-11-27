@@ -590,3 +590,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - ADR-0047 (the delegate, amending ADR-0042) drafted, challenged and revised; it waits for the owner with Q-0047-1 to -3.
 - Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 20/20 and 40/40, on matters.
 - Owner touches: 0; delegate rulings: 5 (R-487 to R-491).
+
+### Landing — M-012 complete on main — 2026-11-27
+
+- PR #63 (M-012 slice 3, R-479 to R-486) passed every leg at e1efd95; the owner fast-forwarded `main` to e1efd95, which under ADR-0047 is the owner's word to land its delegate rulings.
