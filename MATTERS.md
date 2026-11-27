@@ -379,6 +379,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   with trailing newlines; two keeps of one Id at once.
 - Commits: –
 - Notes: about 1,300 lines, three slices: codec; Store; use cases 4 and 5.
+  Surface ruled by the delegate as R-426 to R-441. For the manual's next
+  revision (§6.7): R-366's duplicate-Id reason, `legacy/` names that take a
+  suffix (R-437), and a missing folder read as an empty Journal (R-438).
 
 ### M-013: The Readout: plain text, Ink sections and the Markdown file
 
