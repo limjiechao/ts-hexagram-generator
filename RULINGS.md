@@ -6292,3 +6292,21 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   one authoritative representation of the ratified wording (AGENTS.md §5);
   Edition names are bibliographic metadata, not scripture.
 - Folded into: not yet
+
+### R-515: The glossary's string check skips the bundled scripture
+
+- Date: 2026-11-27
+- Raised in: M-011 slice 2, question Q-M-011-20 (referred by the delegate:
+  drift signal 2 flagged 19 glossary _Avoid_ words inside verbatim Legge and
+  Wilhelm–Baynes texts in `overhaul/catalogue-bundled/src/data/`; signal 2's
+  scope is the owner's R-200 and R-246)
+- Question: (A) signal 2 (G2) skips string records in files under
+  `overhaul/catalogue-bundled/src/data/` only; G1 still reads those files;
+  every other `src/` keeps G2; the data files' bibliographic strings lose G2
+  too, their wording fixed by R-512; a prover fixture shows the skip and that
+  an _Avoid_ string elsewhere is still caught. (B) move the data out of `src/`.
+  (C) a signal-2 exception list of the 19 occurrences.
+- Ruling: "Q-M-011-20: A"
+- Folded into: not yet (`scripts/drift/signal-2.ts`, the contract comment in
+  `scripts/drift/glossary-finding.ts`, and a `signal-2` prover fixture);
+  narrows R-200 and R-246 for that folder only
