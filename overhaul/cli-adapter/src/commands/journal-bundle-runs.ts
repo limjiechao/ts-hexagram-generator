@@ -201,6 +201,8 @@ async function createExclusively(
     }
     return 'unwritable'
   } finally {
-    await rm(temporary, { force: true, maxRetries: 3 })
+    // What is reported is the bundle, or the failure that stopped it; a
+    // leftover dotfile `.tmp` is harmless, so a failed removal is ignored.
+    await rm(temporary, { force: true, maxRetries: 3 }).catch(() => undefined)
   }
 }
