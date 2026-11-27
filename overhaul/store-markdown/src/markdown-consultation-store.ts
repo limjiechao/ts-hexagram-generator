@@ -1,5 +1,27 @@
+import { Buffer } from 'node:buffer'
+import { mkdir, readdir, readFile } from 'node:fs/promises'
+import path from 'node:path'
+
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
+import type { ConsultationId } from '@hexagram/consultation-journal/consultation-id'
+import {
+  decodeRecord,
+  encodeRecord,
+} from '@hexagram/consultation-journal/record-codec'
+import type { UnreadableFile } from '@hexagram/consultation-journal/unreadable-file'
+
+import {
+  createExclusively,
+  hasCode,
+  moveExclusively,
+  replaceAtomically,
+} from '#src/atomic-files.js'
+import {
+  composeFile,
+  readFrontmatter,
+  writeFrontmatter,
+} from '#src/markdown-file.js'
 
 /**
  * Renders the body of a Consultation's file: a Readout in Markdown, in the
@@ -53,5 +75,152 @@ export function markdownConsultationStore(options: {
   readonly journalFolder: string
   readonly renderBody: RenderBody
 }): MarkdownConsultationStore {
-  throw new Error('not built', { cause: options })
+  const { journalFolder, renderBody } = options
+
+  async function holdsAt(name: string, id: ConsultationId): Promise<boolean> {
+    const text = await readFile(path.join(journalFolder, name), 'utf8')
+    return loadFile(text).consultation?.id === id
+  }
+
+  const consultationStore: ConsultationStore = {
+    keep: async (consultation) => {
+      const journal = await readJournal(journalFolder)
+      if (
+        journal.loaded.some((file) => file.consultation.id === consultation.id)
+      ) {
+        return
+      }
+      const record = encodeRecord(consultation)
+      const text = composeFile(
+        writeFrontmatter(record),
+        await renderBody(consultation),
+      )
+      const name = `${record.divinedAt.slice(0, 10)}--${record.id}.md`
+      await mkdir(journalFolder, { recursive: true })
+      // Losing a race to a keep of the same Consultation is keeping an Id
+      // the Journal already holds, so it does nothing.
+      if (
+        !(await createExclusively(journalFolder, name, text)) &&
+        !(await holdsAt(name, consultation.id))
+      ) {
+        throw new Error(
+          `${name} is taken by a file that does not hold Consultation ${consultation.id}`,
+        )
+      }
+    },
+    list: async () => {
+      const journal = await readJournal(journalFolder)
+      return {
+        consultations: journal.loaded.map((file) => file.consultation),
+        unreadable: journal.unreadable,
+      }
+    },
+    get: async (id) => {
+      const journal = await readJournal(journalFolder)
+      return journal.loaded.find((file) => file.consultation.id === id)
+        ?.consultation
+    },
+    // Deleting a Consultation is built with its own use case.
+    remove: (record) =>
+      Promise.reject(new Error('not built', { cause: record })),
+    deletionRecords: () => Promise.reject(new Error('not built')),
+  }
+
+  return {
+    consultationStore,
+    rerenderBodies: async () => {
+      const journal = await readJournal(journalFolder)
+      for (const file of journal.loaded) {
+        const body = await renderBody(file.consultation)
+        await replaceAtomically(
+          journalFolder,
+          file.name,
+          composeFile(file.frontmatter, body),
+        )
+      }
+      return { rewritten: journal.loaded.length }
+    },
+    moveToLegacy: async (file) => {
+      const legacyFolder = path.join(journalFolder, 'legacy')
+      await mkdir(legacyFolder, { recursive: true })
+      const { name, ext } = path.parse(file)
+      for (let copy = 1; ; copy += 1) {
+        const free = copy === 1 ? `${name}${ext}` : `${name}-${copy}${ext}`
+        if (await moveExclusively(file, path.join(legacyFolder, free))) {
+          return
+        }
+      }
+    },
+  }
+}
+
+/** A file that loaded as a Consultation, with the frontmatter it was read from. */
+interface LoadedFile {
+  readonly name: string
+  readonly frontmatter: string
+  readonly consultation: Consultation
+}
+
+/** Reads every `.md` file directly in the folder, in file-name order. */
+async function readJournal(folder: string): Promise<{
+  readonly loaded: readonly LoadedFile[]
+  readonly unreadable: readonly UnreadableFile[]
+}> {
+  const loaded: LoadedFile[] = []
+  const unreadable: UnreadableFile[] = []
+  const firstLocations = new Map<ConsultationId, string>()
+  // One file at a time, so a large Journal never exhausts file handles.
+  for (const name of await markdownFileNames(folder)) {
+    const file = loadFile(await readFile(path.join(folder, name), 'utf8'))
+    if (file.consultation === undefined) {
+      unreadable.push({ location: name, reason: file.reason })
+      continue
+    }
+    const firstLocation = firstLocations.get(file.consultation.id)
+    if (firstLocation !== undefined) {
+      unreadable.push({
+        location: name,
+        reason: { kind: 'duplicate-id', firstLocation },
+      })
+      continue
+    }
+    firstLocations.set(file.consultation.id, name)
+    loaded.push({ name, ...file })
+  }
+  return { loaded, unreadable }
+}
+
+function loadFile(text: string):
+  | { readonly consultation: Consultation; readonly frontmatter: string }
+  | {
+      readonly consultation?: undefined
+      readonly reason: UnreadableFile['reason']
+    } {
+  const read = readFrontmatter(text)
+  if (read.outcome === 'unreadable') {
+    return { reason: read.reason }
+  }
+  const decoded = decodeRecord(read.record)
+  if (decoded.outcome === 'unreadable') {
+    return { reason: decoded.reason }
+  }
+  return { consultation: decoded.consultation, frontmatter: read.frontmatter }
+}
+
+async function markdownFileNames(folder: string): Promise<string[]> {
+  try {
+    const entries = await readdir(folder, { withFileTypes: true })
+    return (
+      entries
+        .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+        .map((entry) => entry.name)
+        // UTF-8 bytes sort in code-point order; UTF-16 code units do not.
+        .toSorted((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))
+    )
+  } catch (error) {
+    if (hasCode(error, 'ENOENT')) {
+      return []
+    }
+    throw error
+  }
 }
