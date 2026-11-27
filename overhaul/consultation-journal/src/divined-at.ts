@@ -45,6 +45,7 @@ const offsetPattern = /^(?<sign>[+-])(?<hours>\d{2}):(?<minutes>\d{2})$/
 export function isUtcOffset(value: string): value is UtcOffset {
   const minutesEast = offsetMinutes(value)
   if (minutesEast === undefined) return false
+  // `-00:00` reads as -0, which is not below 0, so the sign test refuses it.
   return minutesEast < 0
     ? minutesEast >= -12 * 60
     : minutesEast <= 14 * 60 && !value.startsWith('-')
