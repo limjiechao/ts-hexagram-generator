@@ -5913,3 +5913,36 @@ query` (Q-17, flagged: the owner's data); legacy Divined At forms as the old
   refuse rather than repair; the Store's readers and writer must agree on what
   a record is.
 - Folded into: not yet
+
+### R-497: M-015 slice 2's holes, fixtures and test list
+
+- Date: 2026-11-27
+- Raised in: M-015 slice 2 (tester's 45ea399, 8f7f5b0), questions Q-M-015-32
+  to -37, the tooling item and the byte fixtures
+- Ruled by: delegate (R-423)
+- Ruling: (Q-32) A — an unreadable `--merge-journal` file prints
+  `hexagram-history: <file> cannot be read`, exit 1, nothing merged. (Q-33) A
+  — after a double deletion each side keeps its own `deleted/<Id>.json`; the
+  Journals agree on Consultations and deleted Ids; byte-identity is asserted
+  only without double deletions (ADR-0037's "union of the Deletion Records" is
+  read as a union by Id, to note at its next pass). (Q-34) A — the bundle
+  holds at most one record per Id, the earliest `deletedAt` by instant (tie:
+  the smaller encoded text); `decodeJournalBundle` keeps duplicates;
+  `mergeJournal` removes a duplicated Id's records earliest first;
+  `exportJournal` passes the Store's records through; the export count counts
+  the bundle's records (flagged for the owner's eye). (Q-35) A — `added`
+  counts distinct Ids. (Q-36) A — "removed by Deletion Records" is fixed; only
+  counted nouns change number. (Q-37) A — relative paths resolve against the
+  working folder; a BOM bundle is `not-json`; the first bad record's index is
+  named; and the CLI reads the bundle as strict UTF-8, a bad byte making it
+  "is not a Journal bundle". (Tooling) A — the bundle fixtures stay in
+  `.oxfmtrc.json`'s ignorePatterns. (Fixtures) `journal-bundle.json` and
+  `journal-bundle-empty.json` ratified (flagged: a stored format). (List) the
+  83 tests approved with 14 added (97): two Q-32 rows, one Q-33, six Q-34,
+  one Q-35, five Q-37.
+- Reason: R-349, R-350, R-368, R-460, R-469, R-494, R-496; ADR-0037;
+  CONTEXT.md (Deletion Record, Merging Journals); every fixture byte follows
+  from rules already ratified.
+- Folded into: not yet (doc fixes to `journal-bundle.ts`, `merge-journals.ts`
+  and `exportedLine`; manual §6.8 gains the unreadable-file line at its next
+  fold)
