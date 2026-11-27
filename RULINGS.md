@@ -5233,3 +5233,21 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — Widen `composeCli` with `browseConsultations` and `openConsultation` in slice 3; M-013 and M-015 widen `CommandPorts` to reach `rerenderBodies` and `moveToLegacy`.
 - Reason: M-012's scope is use cases 4 and 5; M-013 and M-015 list their own widening.
 - Folded into: not yet
+
+### R-442: The POSIX-zone clock rows skip on Windows
+
+- Date: 2026-11-27
+- Raised in: M-010, question Q-M-010-28 (PR #61's Windows test leg: Windows
+  Node ignores POSIX `TZ` strings, so four rows of `system-clock.test.ts`
+  read `+00:00`; no IANA zone lies outside -12:00 to +14:00)
+- Ruled by: delegate (R-423)
+- Ruling: A — the POSIX-zone rows (`XYZ+0`, `XYZ+12`, `XYZ-14`, and the two
+  throw rows `XYZ+15`, `XYZ-15`) keep their names and assertions but run
+  under `it.skipIf(process.platform === 'win32')`; the IANA rows run
+  everywhere; one comment gives the reason; nothing under `src/` changes.
+- Reason: production is correct and the fault is the platform's; skipping
+  changes where the approved rows run, not what they say. (B) would widen
+  `node-effects`' ratified surface for a test, and (C) contradicts ADR-0013,
+  which makes the Windows leg load-bearing. In CI only Ubuntu proves the
+  throw (there is no macOS leg); macOS proves it locally.
+- Folded into: not yet
