@@ -107,12 +107,16 @@ export function localDate(divinedAt: DivinedAt): Day {
     divinedAt.epochMilliseconds +
       (offsetMinutes(divinedAt.offset) ?? 0) * 60_000,
   )
-  // Not checked with isDay: the result outside the stated limit is
-  // unspecified, and the function stays total.
-  return {
+  const date = {
     precision: 'day',
     year: wallClock.getUTCFullYear(),
     month: wallClock.getUTCMonth() + 1,
     day: wallClock.getUTCDate(),
-  } as Day
+  } as const
+  if (isDay(date)) return date
+  // Outside the stated limit the result is unspecified; any Day keeps the
+  // function total.
+  const anyDay = { precision: 'day', year: 1970, month: 1, day: 1 } as const
+  if (isDay(anyDay)) return anyDay
+  throw new Error('1970-01-01 is a Day')
 }
