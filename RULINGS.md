@@ -5946,3 +5946,28 @@ query` (Q-17, flagged: the owner's data); legacy Divined At forms as the old
 - Folded into: not yet (doc fixes to `journal-bundle.ts`, `merge-journals.ts`
   and `exportedLine`; manual §6.8 gains the unreadable-file line at its next
   fold)
+
+### R-498: M-010's frame rows follow the built options; an unwritable export
+
+- Date: 2026-11-27
+- Raised in: M-015 slice 2's build (3ff6cf4 to 4c54c51), questions
+  Q-M-015-38 and -39 and the implementer's digest
+- Ruled by: delegate (R-423)
+- Ruling: (Q-38) A — a tester rewrites the ten `frame.test.ts` rows to keep
+  what the frame owns (both options run in every terminal column) and assert
+  the built outcome: export with the throwing ports ends `hexagram-history:
+the Journal cannot be read`, exit 1, no file written; merge of a path
+  guaranteed missing ends `hexagram-history: <path> cannot be read`, exit 1,
+  no port touched; the two "to the line naming its option" rows likewise on a
+  TTY; the file's header comment names the export rows as touching the Store;
+  the rows come back for approval. (Q-39) A — an export that cannot write its
+  bundle prints `hexagram-history: <file> cannot be written`, exit 1, with a
+  test row; only EEXIST is "already exists"; a filesystem without hard links
+  cannot be exported to, documented as a limit; the Journal is read before
+  any write, so a read failure wins. (Digest) ratified whole; the export
+  count and the private never-overwrite write are flagged duplicates, the
+  latter to be raised only if a third copy appears.
+- Reason: R-306 covers mechanical widening changes only; R-350; R-408 (no
+  refusal or not-built path touches a port — these rows are neither); R-497
+  Q-32.
+- Folded into: not yet (manual §6.8 gains the line at its next fold)
