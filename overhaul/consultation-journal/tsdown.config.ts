@@ -9,6 +9,7 @@ export default defineConfig({
     './src/divined-at.ts',
     './src/division-method.ts',
     './src/journal.ts',
+    './src/journal-bundle.ts',
     './src/query.ts',
     './src/record-codec.ts',
     './src/recorded-consultation.ts',

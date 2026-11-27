@@ -43,6 +43,11 @@
       "types": "./dist/journal.d.mts",
       "import": "./dist/journal.mjs"
     },
+    "./journal-bundle": {
+      "source": "./src/journal-bundle.ts",
+      "types": "./dist/journal-bundle.d.mts",
+      "import": "./dist/journal-bundle.mjs"
+    },
     "./query": {
       "source": "./src/query.ts",
       "types": "./dist/query.d.mts",
