@@ -198,6 +198,11 @@ async function readJournal(folder: string): Promise<{
 /**
  * A listed file's bytes, or undefined when it was deleted after the folder
  * was read: it has left the Journal, so it is no Unreadable file either.
+ *
+ * A known gap, untested: on Windows a file another process holds open when
+ * it is deleted may read as EPERM rather than ENOENT until it is released,
+ * so `list` rejects meanwhile. Removing a temporary file is retried for a
+ * like Windows reason; reading is not.
  */
 async function readListedFile(file: string): Promise<Buffer | undefined> {
   try {
