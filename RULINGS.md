@@ -6353,3 +6353,38 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   is pure and read-only; no user-visible output changes, since every command
   reaching use case 3 or 8 still ends with its not-built line.
 - Folded into: not yet
+
+### R-519: M-013's drafted surface (Q-M-013-1 to -21, less Q-4 and Q-18)
+
+- Date: 2026-11-27
+- Raised in: M-013 (drafts 1b482d8, 5cffb8b, 740e1a6, f1932e4, e861255)
+- Ruled by: delegate (R-423)
+- Ruling: all (A), with Q-4 and Q-18 referred to the owner. In short:
+  `presentation` takes use case 3's result plus names gathered through use
+  case 8 (Q-1; when use case 9 is built, `consultationReadoutFor` moves into
+  `application`); the restated result shape is pinned by a type test (Q-2);
+  `presentation` gets a domain-tier row, pure, reaching `oracle`,
+  `consultation-journal` and `scripture-catalogue` 'any', and `cli-adapter`
+  reaches it (Q-3); `divinedAtText` lives in `presentation` if Q-4 is (A)
+  (Q-5); the Yilin Verse then the closing Editions list come last (Q-6); the
+  Emerging tab is always present (Q-7); one Editions entry per EditionId
+  (Q-8); Traditional glossary labels in every script, "(Scripture)" and
+  "(Exegesis)" gone (Q-9); a passage no shown Edition gives keeps its label
+  and Commentaries (Q-10); the ledger uses the glossary's terms with the
+  Chinese kept and a Division Method line (Q-11); piles derived in
+  `presentation`, a flagged duplicate (Q-12); ○ and ✕ mark Moving Lines
+  whether or not colour is on, the glyphs private to `cli-adapter` until
+  Typst needs them, and "and Changed" dropped from the text-marker sentences
+  (Q-13); pronunciation dropped, names exactly as the Editions give them
+  (Q-14, flagged for the owner's digest); the section titles as drafted
+  (Q-15); `CommandPorts` gains a flat `rerenderBodies` with R-306 stub
+  changes by a tester (Q-16); "Re-rendered N bodies." and any failure
+  "the Journal cannot be written" (Q-17); plain output coloured unless
+  `NO_COLOR` (Q-19); the Playground's sections are its own Matter's (Q-20);
+  a Catalogue failure in `renderBody` reads as a write failure (Q-21). Where
+  the manual and glossary change nothing, the fixtures keep today's bytes
+  (R-375). The `processPorts` wiring waits on Q-18.
+- Reason: R-105, R-331, R-341, R-344, R-364, R-373, R-375, R-383, R-435,
+  R-436, R-441, R-494, R-510, R-512, R-514; ADR-0022, ADR-0024, ADR-0044;
+  manual §4, §5, §6, §9.
+- Folded into: not yet
