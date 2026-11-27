@@ -9,6 +9,10 @@ import {
   type OptionRules,
 } from '#src/commands/frame.js'
 import {
+  exportJournalRun,
+  mergeJournalRun,
+} from '#src/commands/journal-bundle-runs.js'
+import {
   notBuiltLine,
   type MaintenanceOption,
 } from '#src/commands/not-built.js'
@@ -61,13 +65,17 @@ export const usage =
   'usage: hexagram-history [--script traditional|simplified] [--translation <edition>]... [--commentary <work>]... [--yilin] [--export <path> [--filter <text>]] | --import-legacy [<path>...] --division-method physical|virtual|automatic | --rerender-bodies | --export-journal <file> | --merge-journal <file>'
 
 /** `hexagram-history`: browse, open and delete, and the maintenance options. */
-export const run: Command = (argv, io) => {
+export const run: Command = (argv, io, ports) => {
   const given = parseOptions(argv, rules)
   if (given === undefined) return endWith(io, usage)
   const asked = maintenanceOptions.filter((option) => given.has(option))
   if (asked.length > 1) return endWith(io, usage)
   const [maintenance] = asked
   if (refusesWith(maintenance, given)) return endWith(io, usage)
+  const [exportFile] = given.get('--export-journal') ?? []
+  if (exportFile !== undefined) return exportJournalRun(exportFile, io, ports)
+  const [mergeFile] = given.get('--merge-journal') ?? []
+  if (mergeFile !== undefined) return mergeJournalRun(mergeFile, io, ports)
   if (maintenance !== undefined) {
     return endWith(io, notBuiltLine('hexagram-history', maintenance))
   }
