@@ -6260,3 +6260,17 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   and the owner-ratified `Edition.licence` union; the drafted `retrievedOn`
   field (c98d78f) and its `consultation-journal` arrow are dropped; the Legge
   Witness is the scan, citing pp. 58, 61 (text) and 267, 269 (小象)
+
+### R-513: M-011 slice 1's tests and digest
+
+- Date: 2026-11-27
+- Raised in: M-011 slice 1 (tester's 42eb867, a7415ef, 3efd402, 8d07a65)
+- Ruled by: delegate (R-423)
+- Ruling: approve, no amendments — the R-306 stub and Edition-literal
+  changes, `catalogue-bundled`'s boundary row, twins and plants, the nine
+  use-case-8 tests and the two type tests stand. Digest ratified: the ruled
+  titles are stored as plain text (italics in the Rulings are formatting); the
+  short name 武英殿本（简体） stays as the owner ratified it (R-512), a
+  one-string change at the owner's word if 簡體 is preferred.
+- Reason: R-306, R-314, R-357, R-372, R-510, R-512.
+- Folded into: not yet
