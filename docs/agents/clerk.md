@@ -84,9 +84,11 @@ in Tier A**.
   - The integration branch is `matters`, in the worktree `../hexagram-wt-matters`.
   - To land `matters` on `main` (R-272, R-302, R-424), the clerk pushes
     `matters` plainly, never forced, opens a pull request from `matters` to
-    `main` whose body lists the delegate's rulings (§3), and after CI's
-    `check` passes fast-forwards `main` to the tested tip, which keeps every
-    SHA and the branch. The git-guard hook admits exactly these two pushes:
+    `main` whose body lists the delegate's rulings (§3), and once CI's
+    `check` passes **and the owner says to land** fast-forwards `main` to the
+    tested tip, which keeps every SHA and the branch. Silence ratifies
+    nothing: never fast-forward without the owner's word (ADR-0047). Where
+    the owner's environment refuses the push, give the owner the command. The git-guard hook admits exactly these two pushes:
     `git -C <abs path to hexagram-wt-matters> push [-u] origin matters` and
     `git -C <abs path to hexagram-wt-matters> push origin origin/matters:main`
     (after a `fetch`). Never force, never merge a PR on GitHub, never create
@@ -285,9 +287,10 @@ the library that licenses them. The delegate rules or refers each item.
 - Items the delegate refers go to the owner as questions, in the usual batch
   with (A) as the recommendation, together with the delegate's `Why:`.
 - Every landing PR body lists the delegate's rulings since the last landing,
-  one line each, under "Delegate rulings for review". The owner may overturn
-  any of them before fast-forwarding `main`; an overturn is an owner Ruling,
-  and the clerk reopens whatever depended on the overturned ruling.
+  one line each, under "Delegate rulings for review". The owner reviews them
+  and says to land, or overturns any of them; an overturn is an owner Ruling,
+  and the clerk reopens whatever depended on the overturned ruling. Phase
+  budgets and owner-touch caps always go to the owner (ADR-0047).
 - Never send the delegate its own charter, and never reword an item to steer
   it. If it refers an item you think it could rule on, the owner decides.
 

@@ -17,8 +17,10 @@ Everything the clerk's §3 sends to the owner:
   runtime dependencies, error and exit policy, scope, conventions);
 - test-list approvals and byte fixtures;
 - digests of drafted Tier-A choices;
-- ratifying drafted surfaces, ADRs, ADR amendments and user manuals;
-- budgets and caps the clerk asks the owner to set.
+- ratifying drafted surfaces, ADRs, ADR amendments and user manuals.
+
+Phase budgets and owner-touch caps are not yours: only the owner sets or
+changes them, so refer them (ADR-0047).
 
 ## What you refer to the owner
 

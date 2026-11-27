@@ -5056,7 +5056,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: (1) "Option 3 BUT the delegate can exercise discretion and refer
   issues deemed critical/contentious/pivotal to me." (2) "Digest at each
   landing"
-- Folded into: `docs/agents/delegate.md` and `docs/agents/clerk.md` §3; an
+- Folded into: `docs/agents/delegate.md`, `docs/agents/clerk.md` §3, and ADR-0047 (R-493)
   ADR-0042 amendment is to be drafted for the owner (the delegate never rules
   on its own charter)
 - Clerk's note: the delegate may not overturn the owner's own Rulings, and
@@ -5796,3 +5796,31 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   assertions; history is never rewritten. A non-integer instant is truncated
   by `Date`, so only a year outside 0000–9999 or NaN reaches the fallback.
 - Folded into: not yet
+
+### R-492: M-015 runs next while M-011 waits
+
+- Date: 2026-11-27
+- Raised in: question Q-ORD-2 (referred by the delegate: going past R-385's
+  swaps narrows the owner's Ruling)
+- Question: (A) run M-015 next, then M-011 → M-013 → M-014 → M-016 when the
+  passages arrive; conditions: ADR-0030 and ADR-0045 consolidated first (done,
+  ADR-0046), and no M-015 fixture or assertion pins body bytes, which stay the
+  stub body until M-013. (B) only the follow-ups, then wait. (C) wait.
+- Ruling: "Q-ORD-2: A"
+- Folded into: `MATTERS.md` (M-015 in progress before M-011)
+
+### R-493: ADR-0047 is ratified; the owner says when to land
+
+- Date: 2026-11-27
+- Raised in: R-487 (ADR-0047 drafted, challenged, revised), questions
+  Q-0047-1 to Q-0047-3
+- Question: (1) (A) `main` is fast-forwarded only when the owner says to
+  land, so silence never ratifies a delegate ruling; (B) the owner may
+  overturn but nothing waits. (2) (A) only the owner sets or changes a phase
+  budget or owner-touch cap, and the delegate refers them; (B) the delegate
+  may set them. (3) (A) ADR-0042 and ADR-0047 are consolidated before Phase 5
+  starts; (B) at the next pass. Ratify ADR-0047.
+- Ruling: "Q-ORD-2: A; Q-0047-1 to -3: A; ratify ADR-0047"
+- Folded into: ADR-0047 (Accepted); `docs/agents/delegate.md` (budgets and
+  caps referred) and `docs/agents/clerk.md` §0 and §3 (landing waits for the
+  owner's word)

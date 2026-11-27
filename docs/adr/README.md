@@ -54,11 +54,12 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0039 | Brooks refinements to how the overhaul is built               | Superseded by 0040       |
 | 0040 | How the overhaul is built (consolidates 0036 and 0039)        | Superseded by 0042       |
 | 0041 | Ratification by exception and a wider Free to choose          | Superseded by 0042       |
-| 0042 | How the overhaul is built (consolidates 0040 and 0041)        | Accepted                 |
+| 0042 | How the overhaul is built (consolidates 0040 and 0041)        | Amended by 0047          |
 | 0043 | The Transcription checks run complete, Remainders, Set-aside  | Accepted                 |
 | 0044 | With NO_COLOR on a TTY, the Ink-only commands run             | Accepted                 |
 | 0045 | New Journal files are hard-linked                             | Superseded by 0046       |
 | 0046 | Consultation record v2 (consolidates 0030 and 0045)           | Accepted                 |
+| 0047 | A delegate rules in the owner's stead                         | Accepted                 |
 
 ## Template
 
