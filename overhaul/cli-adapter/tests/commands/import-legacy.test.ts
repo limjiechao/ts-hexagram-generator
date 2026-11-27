@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import { randomInt } from 'node:crypto'
 import {
   copyFile,
@@ -222,11 +223,16 @@ const importedAt = moment('2026-11-27T10:00:00.000+08:00')
 
 /**
  * The ports over a real Markdown Store, with a fixed Clock and a real
- * Random Source; `keep` can be replaced to make the Store fail.
+ * Random Source; `keep`, `deletionRecords` and `moveToLegacy` can be
+ * replaced to make the Store fail.
  */
 function portsOver(
   journalFolder: string,
-  options: { readonly keep?: ConsultationStore['keep'] } = {},
+  options: {
+    readonly keep?: ConsultationStore['keep']
+    readonly deletionRecords?: ConsultationStore['deletionRecords']
+    readonly moveToLegacy?: CommandPorts['moveToLegacy']
+  } = {},
 ): CommandPorts {
   const store = markdownStore(journalFolder)
   const scriptureCatalogue: ScriptureCatalogue = {
@@ -245,9 +251,12 @@ function portsOver(
     consultationStore: {
       ...store.consultationStore,
       ...(options.keep === undefined ? {} : { keep: options.keep }),
+      ...(options.deletionRecords === undefined
+        ? {}
+        : { deletionRecords: options.deletionRecords }),
     },
     journalFolder,
-    moveToLegacy: store.moveToLegacy,
+    moveToLegacy: options.moveToLegacy ?? store.moveToLegacy,
   }
 }
 
@@ -380,20 +389,16 @@ describe('hexagram-history --import-legacy <folder>', () => {
     expect(lines.at(-1)).toBe(
       summary({ files: '7 files', cast: 2, recorded: 2, skipped: 3 }),
     )
-    expect(lines.slice(0, -1).toSorted()).toEqual(
-      [
-        castLine(at(names.heap), await idOf(heapQuery)),
-        castLine(at(names.split), await idOf(splitQuery)),
-        noCastingLine(at(names.oldest), await idOf(oldestQuery)),
-        doesNotReplayLine(
-          at(names.unreplayable),
-          await idOf(unreplayableQuery),
-        ),
-        skipped(at(names.placeholder), 'it gives no Query'),
-        skipped(at(names.noDivinedAt), 'it gives no valid Divined At'),
-        skipped(at(names.badLineValues), 'it gives no valid Transformation'),
-      ].toSorted(),
-    )
+    // The folder's files in the code-point order of their names.
+    expect(lines.slice(0, -1)).toEqual([
+      noCastingLine(at(names.oldest), await idOf(oldestQuery)),
+      doesNotReplayLine(at(names.unreplayable), await idOf(unreplayableQuery)),
+      skipped(at(names.placeholder), 'it gives no Query'),
+      skipped(at(names.badLineValues), 'it gives no valid Transformation'),
+      castLine(at(names.heap), await idOf(heapQuery)),
+      castLine(at(names.split), await idOf(splitQuery)),
+      skipped(at(names.noDivinedAt), 'it gives no valid Divined At'),
+    ])
   })
 
   it('keeps each replaying file as a Cast Consultation with the run’s Division Method, and the others as Recorded Consultations', async () => {
@@ -579,12 +584,10 @@ describe('hexagram-history --import-legacy <file>…', () => {
     expect(lines.at(-1)).toBe(
       summary({ files: '2 files', cast: 1, recorded: 1, skipped: 0 }),
     )
-    expect(lines.slice(0, -1).toSorted()).toEqual(
-      [
-        castLine(file, heap.id),
-        noCastingLine(path.join(other, shapeBName), shapeB.id),
-      ].toSorted(),
-    )
+    expect(lines.slice(0, -1)).toEqual([
+      castLine(file, heap.id),
+      noCastingLine(path.join(other, shapeBName), shapeB.id),
+    ])
   })
 
   it.skipIf(process.platform === 'win32')(
@@ -644,7 +647,7 @@ describe('hexagram-history --import-legacy <file>…', () => {
     }
   })
 
-  it('stops at a Store failure partway, after printing the lines of the files already kept, with exit 1 and no summary', async () => {
+  it('stops at a Store failure partway, after printing the line of the first file, the only one kept, with exit 1 and no summary', async () => {
     const { journal, old } = await workspace()
     const files = [
       await place('legacy-real-heap-casting.txt', old, heapName),
@@ -680,20 +683,12 @@ describe('hexagram-history --import-legacy <file>…', () => {
     const [kept, ...others] = await held(journal)
     expect(kept).toBeDefined()
     expect(others).toEqual([])
-    const lines = linesOf(result.stdout)
-    expect(lines).toHaveLength(1)
-    const keptFile = files.find(
-      (file) =>
-        lines[0] === castLine(file, kept?.id ?? '') ||
-        lines[0] === noCastingLine(file, kept?.id ?? ''),
-    )
-    expect(keptFile).toBeDefined()
-    expect(await fileNames(path.join(journal, 'legacy'))).toEqual([
-      path.basename(keptFile ?? ''),
-    ])
+    expect(kept?.query).toBe(heapQuery)
+    expect(result.stdout).toBe(`${castLine(files[0] ?? '', kept?.id ?? '')}\n`)
+    expect(await fileNames(path.join(journal, 'legacy'))).toEqual([heapName])
     expect(await fileNames(old)).toEqual(
       files
-        .filter((file) => file !== keptFile)
+        .slice(1)
         .map((file) => path.basename(file))
         .toSorted(),
     )
@@ -752,12 +747,10 @@ describe('hexagram-history --import-legacy of version-1 files', () => {
     })
     expect(result.exitCode).toBe(0)
     const lines = linesOf(result.stdout)
-    expect(lines.slice(0, -1).toSorted()).toEqual(
-      [
-        castLine(path.join(old, castName), cast.id),
-        doesNotReplayLine(path.join(old, disagreeName), recorded.id),
-      ].toSorted(),
-    )
+    expect(lines.slice(0, -1)).toEqual([
+      castLine(path.join(old, castName), cast.id),
+      doesNotReplayLine(path.join(old, disagreeName), recorded.id),
+    ])
     expect(lines.at(-1)).toBe(
       summary({ files: '2 files', cast: 1, recorded: 1, skipped: 0 }),
     )
@@ -799,13 +792,11 @@ describe('hexagram-history --import-legacy of version-1 files', () => {
     expect(result.exitCode).toBe(0)
     expect(result.stderr).toBe('')
     const lines = linesOf(result.stdout)
-    expect(lines.slice(0, -1).toSorted()).toEqual(
-      [
-        skipped(files.version3, 'it is not a version-1 record'),
-        skipped(files.noFrontmatter, 'it has no frontmatter'),
-        skipped(files.notYaml, 'its frontmatter is not YAML'),
-      ].toSorted(),
-    )
+    expect(lines.slice(0, -1)).toEqual([
+      skipped(files.version3, 'it is not a version-1 record'),
+      skipped(files.notYaml, 'its frontmatter is not YAML'),
+      skipped(files.noFrontmatter, 'it has no frontmatter'),
+    ])
     expect(lines.at(-1)).toBe(
       summary({ files: '3 files', cast: 0, recorded: 0, skipped: 3 }),
     )
@@ -867,26 +858,10 @@ describe('hexagram-history --import-legacy with no path: the Journal folder', ()
       'Will the bridge at Greyfen Hold stand through the thaw?',
     )
     const legacy = await heldOf(journal, shapeBQuery)
-    const keptLines = lines.slice(0, -1)
-    expect(keptLines).toHaveLength(2)
-    expect(
-      keptLines.some(
-        (line) =>
-          line.startsWith('Kept ') &&
-          line.endsWith(
-            `${version1Name} as a Recorded Consultation, ${version1.id}: the file holds no Casting`,
-          ),
-      ),
-    ).toBe(true)
-    expect(
-      keptLines.some(
-        (line) =>
-          line.startsWith('Kept ') &&
-          line.endsWith(
-            `${legacyName} as a Recorded Consultation, ${legacy.id}: the file holds no Casting`,
-          ),
-      ),
-    ).toBe(true)
+    expect(lines.slice(0, -1)).toEqual([
+      noCastingLine(path.join(journal, legacyName), legacy.id),
+      noCastingLine(path.join(journal, version1Name), version1.id),
+    ])
     expect(await held(journal)).toHaveLength(3)
     expect(await readFile(path.join(journal, ownFile ?? ''), 'utf8')).toBe(
       ownBytes,
@@ -897,5 +872,239 @@ describe('hexagram-history --import-legacy with no path: the Journal folder', ()
     expect(
       await readFile(path.join(journal, 'legacy', earlierName), 'utf8'),
     ).toBe(await fixtureText('legacy-real-heap-casting.txt'))
+  })
+})
+
+describe('hexagram-history --import-legacy: files that cannot be read, failures and corners', () => {
+  const heapName = 'consultation-2026-05-19T11-08-42+0800.txt'
+  const shapeBName = 'consultation-2026-03-16T13-28-33+0800.txt'
+
+  it('stops when the Deletion Records cannot be read, keeping and moving nothing, with exit 1 and no summary', async () => {
+    const { journal, old } = await workspace()
+    await place('legacy-real-heap-casting.txt', old, heapName)
+
+    const result = await history(
+      ['--import-legacy', old, '--division-method', 'physical'],
+      portsOver(journal, {
+        deletionRecords: () => Promise.reject(new Error('EACCES')),
+      }),
+    )
+
+    expect(result).toEqual({
+      exitCode: 1,
+      stdout: '',
+      stderr: 'hexagram-history: the Journal cannot be read\n',
+    })
+    expect(await held(journal)).toEqual([])
+    expect(await fileNames(old)).toEqual([heapName])
+    await expect(readdir(path.join(journal, 'legacy'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    })
+  })
+
+  it('skips a named path that does not exist as one that cannot be read, counts it, and imports the rest', async () => {
+    const { root, journal, old } = await workspace()
+    const missing = path.join(root, 'missing', heapName)
+    const file = await place('legacy-real-heap-casting.txt', old, heapName)
+
+    const result = await history(
+      ['--import-legacy', missing, file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    const kept = await heldOf(journal, heapQuery)
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: [
+        skipped(missing, 'it cannot be read'),
+        castLine(file, kept.id),
+        summary({ files: '2 files', cast: 1, recorded: 0, skipped: 1 }),
+        '',
+      ].join('\n'),
+      stderr: '',
+    })
+  })
+
+  it('skips a file holding a byte that is not UTF-8 as one that cannot be read, and leaves it in place', async () => {
+    const { journal, old } = await workspace()
+    const text = await fixtureText('legacy-shape-b.txt')
+    const bytes = Buffer.concat([
+      Buffer.from(text.slice(0, 20), 'utf8'),
+      Buffer.from([0xff]),
+      Buffer.from(text.slice(20), 'utf8'),
+    ])
+    const file = path.join(old, shapeBName)
+    await writeFile(file, bytes)
+
+    const result = await history(
+      ['--import-legacy', old, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${skipped(file, 'it cannot be read')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stderr: '',
+    })
+    expect(await readFile(file)).toEqual(bytes)
+    expect(await held(journal)).toEqual([])
+  })
+
+  it('skips a .md file that starts with a byte-order mark as having no frontmatter', async () => {
+    const { journal, old } = await workspace()
+    const file = path.join(old, 'consultation-2026-05-19T14-23-11+0800.md')
+    const text = `﻿${version1Text({
+      timestamp: '2026-05-19T14:23:11+0800',
+      query: 'Will the bridge at Greyfen Hold stand through the thaw?',
+      withCasting: true,
+    })}`
+    await writeFile(file, text)
+
+    const result = await history(
+      ['--import-legacy', old, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${skipped(file, 'it has no frontmatter')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stderr: '',
+    })
+    expect(await readFile(file, 'utf8')).toBe(text)
+  })
+
+  it('imports nothing from a default Journal folder that does not exist, and creates nothing', async () => {
+    const root = await temporaryFolder()
+    const journal = path.join(root, 'journal')
+
+    const result = await history(
+      ['--import-legacy', '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${summary({ files: '0 files', cast: 0, recorded: 0, skipped: 0 })}\n`,
+      stderr: '',
+    })
+    await expect(readdir(journal)).rejects.toMatchObject({ code: 'ENOENT' })
+  })
+
+  it('reads and reports a folder’s files in the code-point order of their names, not the locale’s', async () => {
+    const { journal, old } = await workspace()
+    // Code points: `Z` 0x5A, `_` 0x5F, `a` 0x61, `~` 0x7E. A locale order
+    // puts `alder` before `Zed`.
+    const names = ['~tilde.txt', 'alder.txt', 'Zed.txt', '_under.txt']
+    for (const name of names) await place('legacy-shape-b.txt', old, name)
+
+    const result = await history(
+      ['--import-legacy', old, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: [
+        ...['Zed.txt', '_under.txt', 'alder.txt', '~tilde.txt'].map((name) =>
+          skipped(path.join(old, name), 'it gives no valid Divined At'),
+        ),
+        summary({ files: '4 files', cast: 0, recorded: 0, skipped: 4 }),
+        '',
+      ].join('\n'),
+      stderr: '',
+    })
+  })
+
+  it('stops when an original cannot be moved after its keep, printing its kept line, with exit 1 and no summary', async () => {
+    const { journal, old } = await workspace()
+    const file = await place('legacy-real-heap-casting.txt', old, heapName)
+    const other = await place('legacy-shape-b.txt', old, shapeBName)
+
+    const result = await history(
+      ['--import-legacy', file, other, '--division-method', 'physical'],
+      portsOver(journal, {
+        moveToLegacy: () => Promise.reject(new Error('EXDEV')),
+      }),
+    )
+
+    const kept = await heldOf(journal, heapQuery)
+    expect(result).toEqual({
+      exitCode: 1,
+      stdout: `${castLine(file, kept.id)}\n`,
+      stderr: 'hexagram-history: the Journal cannot be written\n',
+    })
+    expect(await held(journal)).toHaveLength(1)
+    expect(await fileNames(old)).toEqual([heapName, shapeBName].toSorted())
+  })
+
+  it('keeps a file named inside legacy/ and moves it there under a free suffixed name, its bytes unchanged', async () => {
+    const { journal } = await workspace()
+    const legacy = path.join(journal, 'legacy')
+    await mkdir(legacy)
+    const file = await place('legacy-real-heap-casting.txt', legacy, heapName)
+
+    const result = await history(
+      ['--import-legacy', file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    const kept = await heldOf(journal, heapQuery)
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${castLine(file, kept.id)}\n${summary({ files: '1 file', cast: 1, recorded: 0, skipped: 0 })}\n`,
+      stderr: '',
+    })
+    const [moved, ...others] = await fileNames(legacy)
+    expect(others).toEqual([])
+    expect(moved).not.toBe(heapName)
+    expect(moved?.startsWith(heapName.slice(0, -'.txt'.length))).toBe(true)
+    expect(moved?.endsWith('.txt')).toBe(true)
+    expect(await readFile(path.join(legacy, moved ?? ''), 'utf8')).toBe(
+      await fixtureText('legacy-real-heap-casting.txt'),
+    )
+  })
+
+  it('reads, keeps and reports a file named twice once', async () => {
+    const { journal, old } = await workspace()
+    const file = await place('legacy-real-heap-casting.txt', old, heapName)
+
+    const result = await history(
+      ['--import-legacy', file, file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    const kept = await heldOf(journal, heapQuery)
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${castLine(file, kept.id)}\n${summary({ files: '1 file', cast: 1, recorded: 0, skipped: 0 })}\n`,
+      stderr: '',
+    })
+  })
+
+  it('keeps a file named and found in its folder once, under the first path given', async () => {
+    const { journal, old } = await workspace()
+    await place('legacy-real-heap-casting.txt', old, heapName)
+    await place('legacy-shape-b.txt', old, shapeBName)
+    // Another spelling of the file's path, so the line shows which was used.
+    const named = `${old}${path.sep}.${path.sep}${heapName}`
+
+    const result = await history(
+      ['--import-legacy', named, old, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    const heap = await heldOf(journal, heapQuery)
+    const shapeB = await heldOf(journal, shapeBQuery)
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: [
+        castLine(named, heap.id),
+        noCastingLine(path.join(old, shapeBName), shapeB.id),
+        summary({ files: '2 files', cast: 1, recorded: 1, skipped: 0 }),
+        '',
+      ].join('\n'),
+      stderr: '',
+    })
+    expect(await held(journal)).toHaveLength(2)
   })
 })

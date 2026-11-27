@@ -665,3 +665,190 @@ describe('parseLegacyFile: a name that is neither .txt nor .md', () => {
     ).toEqual({ outcome: 'not-legacy' })
   })
 })
+
+describe('parseLegacyFile: corners of the legacy and version-1 layouts', () => {
+  const heapText = fixture('legacy-real-heap-casting.txt')
+  const heapRecord = {
+    query: query(
+      'Will I find a worthy post once my studies at Greyfen Hold are complete?',
+    ),
+    divinedAt: legacyMoment,
+    casting: heapCasting,
+  }
+
+  /** The heap fixture with one exact passage changed, which must be there. */
+  function heapWith(from: string, to: string): string {
+    if (!heapText.includes(from)) throw new Error(`no ${from} in the fixture`)
+    return heapText.replace(from, to)
+  }
+
+  function parseHeap(text: string): LegacyParseResult {
+    return parseLegacyFile({
+      name: legacyName('2026-05-19T11-08-42+0800'),
+      text,
+    })
+  }
+
+  it('reads a copy coloured with ANSI SGR sequences as the plain file', () => {
+    const esc = '\u001B'
+    const coloured = heapText
+      .split('\n')
+      .map((line) => {
+        if (/^[A-Z ]+:$/u.test(line)) return `${esc}[1;90m${line}${esc}[0m`
+        if (line.startsWith('│')) return `${esc}[2m${line}${esc}[0m`
+        if (line.startsWith('  Will I find'))
+          return `  ${esc}[1;97m${line.slice(2)}${esc}[0m`
+        if (line === '(First is line at bottom)') return `${esc}[0m${line}`
+        return line
+      })
+      .join('\n')
+
+    expect(parseHeap(coloured)).toEqual({
+      outcome: 'parsed',
+      record: heapRecord,
+      casting: 'replays',
+    })
+  })
+
+  it('removes only the exact two-space indent from each line of a Query of several lines', () => {
+    const text = [
+      'QUERY:',
+      '',
+      '  Will the granary at Greyfen Hold be full?',
+      '    Asked again after the storm.',
+      '  And by which moon?',
+      '',
+      'HEXAGRAM:',
+      '',
+      '(First is line at bottom)',
+      '',
+      '  8, 7, 8, 9, 9, 9',
+      '',
+    ].join('\n')
+    const result = parseHeap(text)
+
+    expect(result.outcome === 'parsed' && result.record.query).toBe(
+      'Will the granary at Greyfen Hold be full?\n  Asked again after the storm.\nAnd by which moon?',
+    )
+  })
+
+  it('reads a HEAP table whose Right Heap disagrees with Stalks less Left Heap as not replaying', () => {
+    const text = heapWith(
+      '│    6 │     48 │        22 │         26 │',
+      '│    6 │     48 │        22 │         25 │',
+    )
+
+    expect(parseHeap(text)).toEqual({
+      outcome: 'parsed',
+      record: {
+        query: heapRecord.query,
+        divinedAt: legacyMoment,
+        casting: undefined,
+        transformation: transformation(8, 8, 7, 8, 6, 7),
+      },
+      casting: 'does-not-replay',
+    })
+  })
+
+  it('reads a table of fewer than six rows as not replaying', () => {
+    const row1 = heapText
+      .split('\n')
+      .find((line) => line.startsWith('│    1 │'))
+    if (row1 === undefined) throw new Error('no Line 1 row in the fixture')
+    const text = heapWith(`${row1}\n`, '')
+
+    expect(parseHeap(text)).toEqual({
+      outcome: 'parsed',
+      record: {
+        query: heapRecord.query,
+        divinedAt: legacyMoment,
+        casting: undefined,
+        transformation: transformation(8, 8, 7, 8, 6, 7),
+      },
+      casting: 'does-not-replay',
+    })
+  })
+
+  it.each([
+    {
+      timestamp: '2026-05-19T06:23:11Z',
+      divinedAt: moment('2026-05-19T06:23:11+00:00'),
+    },
+    {
+      timestamp: '2026-05-19T14:23:11+08:00',
+      divinedAt: moment('2026-05-19T14:23:11+08:00'),
+    },
+    {
+      timestamp: '2026-05-19T14:23:11.5+0800',
+      divinedAt: moment('2026-05-19T14:23:11.500+08:00'),
+    },
+    {
+      timestamp: '2026-05-19T14:23:11.1234567+0800',
+      divinedAt: moment('2026-05-19T14:23:11.123+08:00'),
+    },
+  ])('reads the version-1 timestamp $timestamp', ({ timestamp, divinedAt }) => {
+    const result = parseLegacyFile(
+      version1File(version1Text({ ...castVersion1, timestamp })),
+    )
+
+    expect(result.outcome === 'parsed' && result.record.divinedAt).toEqual(
+      divinedAt,
+    )
+  })
+
+  it('skips a version-1 timestamp of a date only as invalid-field divinedAt', () => {
+    const text = version1Text({ ...castVersion1, timestamp: '2026-05-19' })
+
+    expect(parseLegacyFile(version1File(text))).toEqual(
+      unreadable({ kind: 'invalid-field', field: 'divinedAt' }),
+    )
+  })
+
+  it('skips a version-1 Query of the placeholder as invalid-field query', () => {
+    const text = version1Text({
+      ...castVersion1,
+      query: "'(Query not provided)'",
+    })
+
+    expect(parseLegacyFile(version1File(text))).toEqual(
+      unreadable({ kind: 'invalid-field', field: 'query' }),
+    )
+  })
+
+  it('reports the Query before the Transformation in a .txt file with both bad', () => {
+    const text = [
+      'QUERY:',
+      '',
+      '  (Query not provided)',
+      '',
+      'HEXAGRAM:',
+      '',
+      '(First is line at bottom)',
+      '',
+      '  8, 7, 8, 5, 9, 9',
+      '',
+    ].join('\n')
+
+    expect(parseHeap(text)).toEqual(
+      unreadable({ kind: 'invalid-field', field: 'query' }),
+    )
+  })
+
+  it('reports the Divined At before the Query in a version-1 file with both bad', () => {
+    const text = version1Text({
+      ...castVersion1,
+      timestamp: 'yesterday evening',
+      query: "''",
+    })
+
+    expect(parseLegacyFile(version1File(text))).toEqual(
+      unreadable({ kind: 'invalid-field', field: 'divinedAt' }),
+    )
+  })
+
+  it('skips an empty frontmatter as not-version-1', () => {
+    expect(parseLegacyFile(version1File('---\n---\n\nA body.\n'))).toEqual(
+      unreadable({ kind: 'not-version-1' }),
+    )
+  })
+})

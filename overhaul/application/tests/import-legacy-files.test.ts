@@ -8,6 +8,7 @@ import {
 } from '@hexagram/consultation-journal/divined-at'
 import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
 import { isQuery, type Query } from '@hexagram/consultation-journal/query'
+import { decodeDeletionRecord } from '@hexagram/consultation-journal/record-codec'
 import type { CompleteCasting } from '@hexagram/oracle/casting'
 import type { Transformation } from '@hexagram/oracle/transformation'
 import { describe, expect, it, vi } from 'vitest'
@@ -113,7 +114,11 @@ function rejecting(port: string) {
  * Random Source that draws 0, 1, 2 … 31, 0, 1 … in turn.
  */
 function stubPorts(
-  options: { readonly keep?: ConsultationStore['keep'] } = {},
+  options: {
+    readonly keep?: ConsultationStore['keep']
+    readonly deletionRecords?: ConsultationStore['deletionRecords']
+    readonly integerBelow?: RandomSource['integerBelow']
+  } = {},
 ) {
   let draws = 0
   const keep = vi.fn<ConsultationStore['keep']>(
@@ -125,15 +130,17 @@ function stubPorts(
     list: rejecting('list'),
     get: rejecting('get'),
     remove,
-    deletionRecords: () => Promise.resolve([]),
+    deletionRecords: options.deletionRecords ?? (() => Promise.resolve([])),
   }
   const now = vi.fn<Clock['now']>(() => clockMoment)
   const randomSource: RandomSource = {
-    integerBelow: (bound) => {
-      const draw = draws % bound
-      draws += 1
-      return draw
-    },
+    integerBelow:
+      options.integerBelow ??
+      ((bound) => {
+        const draw = draws % bound
+        draws += 1
+        return draw
+      }),
   }
   return {
     ports: { consultationStore, clock: { now }, randomSource },
@@ -345,5 +352,52 @@ describe('importLegacyFiles (use case 7)', () => {
         'physical',
       ),
     ).rejects.toBe(failure)
+  })
+
+  it('redraws an Id a Deletion Record names, at the same Clock time, and keeps every record in order', async () => {
+    // Each Id's sixteen draws are one symbol: `0…0`, then `1…1`, then `2…2`.
+    let draws = 0
+    const integerBelow: RandomSource['integerBelow'] = () => {
+      const draw = Math.floor(draws / 16)
+      draws += 1
+      return draw
+    }
+    const deleted = decodeDeletionRecord({
+      consultationId: `${clockTime}${'0'.repeat(16)}`,
+      deletedAt: '2026-11-20T08:30:00.000+08:00',
+    })
+    if (deleted.outcome !== 'decoded') throw new Error('no Deletion Record')
+    const { ports, keep } = stubPorts({
+      integerBelow,
+      deletionRecords: () => Promise.resolve([deleted.deletionRecord]),
+    })
+
+    const kept = await importLegacyFiles(
+      ports,
+      [castRecord, recordedRecord],
+      'physical',
+    )
+
+    expect(kept.map((consultation) => consultation.id)).toEqual([
+      `${clockTime}${'1'.repeat(16)}`,
+      `${clockTime}${'2'.repeat(16)}`,
+    ])
+    expect(kept.map((consultation) => consultation.query)).toEqual([
+      castRecord.query,
+      recordedRecord.query,
+    ])
+    expect(keptOf(keep)).toEqual(kept)
+  })
+
+  it('rejects with the Store failure unchanged, keeping nothing, when the Deletion Records cannot be read', async () => {
+    const failure = new Error('the folder cannot be read')
+    const { ports, keep } = stubPorts({
+      deletionRecords: () => Promise.reject(failure),
+    })
+
+    await expect(
+      importLegacyFiles(ports, [castRecord, recordedRecord], 'physical'),
+    ).rejects.toBe(failure)
+    expect(keep).not.toHaveBeenCalled()
   })
 })
