@@ -378,6 +378,18 @@ importers:
         specifier: workspace:*
         version: link:../scripture-catalogue
 
+  overhaul/catalogue-bundled:
+    dependencies:
+      '@hexagram/application':
+        specifier: workspace:*
+        version: link:../application
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+      '@hexagram/scripture-catalogue':
+        specifier: workspace:*
+        version: link:../scripture-catalogue
+
   overhaul/cli-adapter:
     dependencies:
       '@hexagram/application':
