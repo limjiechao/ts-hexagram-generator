@@ -30,8 +30,9 @@ type PortsSupplied<UseCase> = UseCase extends (
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
  * use case 8's lookups, use case 1's Automatic Division step and last step,
  * keep, use case 2, record, use case 3, resolve, use case 4, browse, and
- * use case 5, open, with those ports supplied, and use case 1's steps for a Division by Pick and a Physical
- * Division, which take no ports and so pass through unchanged.
+ * use case 5, open, with those ports supplied, and use case 1's steps for a
+ * Division by Pick and a Physical Division, which take no ports and so pass
+ * through unchanged.
  */
 export function composeCli(ports: {
   readonly scriptureCatalogue: ScriptureCatalogue
