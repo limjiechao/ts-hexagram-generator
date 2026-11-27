@@ -669,7 +669,7 @@ describe('decodeRecord never throws', () => {
       1.5,
       true,
       '',
-      'junk',
+      ' ',
       [],
       [[]],
       {},
