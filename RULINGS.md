@@ -6190,3 +6190,33 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   blank"; the owner restated "Take it as now", meaning the retrieval date is
   today, 2026-11-27. The file stays as the owner left it; M-011's Witness
   records carry that date.
+
+### R-510: M-011's drafted surface (Q-M-011-1 to -18, less those referred)
+
+- Date: 2026-11-27
+- Raised in: M-011 (drafts 3444eb2, ebee2a2, f55215d, c98d78f)
+- Ruled by: delegate (R-423)
+- Ruling: (Q-1) A — one Received Sequence Number per Hexagram, no Edition,
+  no gate; the doc says "the same in every Edition the Catalogue holds".
+  (Q-2) A — its own 1–64 literal union. (Q-3) A — one `TrigramName { trigram,
+edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
+  with the `zhouyi` Edition of their EditionId. (Q-5) A — one EditionId per
+  published text, shared across the Works it prints. (Q-6) A, conditional —
+  `wuyingdian-1739`, `wuyingdian-1739-simplified`, `legge-1882`, and
+  `wilhelm-baynes-1967` if the owner confirms the 1967 edition, else
+  `wilhelm-baynes`. (Q-7) A — the Simplified text is its own Edition record,
+  not unidentified, the conversion label in its Witness. (Q-12) A — the data
+  format as drafted. (Q-13) A — legacy fields with no Work are not bundled.
+  (Q-14) A — an unknown Edition in a preference shows nothing; a Chinese id in
+  `translations` shows nothing there either. (Q-15) A — one constant
+  Catalogue for a Private Channel. (Q-16) A, conditional on Q-17 — a test reads
+  the owner's file and asserts the bundled 用九/用六 strings equal it, changed
+  only by transformations the owner rules. (Q-18) A — `composeCli` widens in
+  slice 3. (C1) R-306: a tester adds the two members to the 13 stub
+  Catalogues; `catalogue-bundled`'s boundary row (pure; `application`
+  'types', `oracle` and `scripture-catalogue` 'any') and twins. Referred to
+  the owner: Q-8, Q-9, Q-10, Q-11, Q-17, and the EPUB's edition (Q-6).
+- Reason: R-034, R-064, R-069, R-077, R-306, R-314, R-341, R-357, R-358,
+  R-369 to R-373, R-403, R-441; ADR-0025, ADR-0028, ADR-0032, ADR-0038;
+  CONTEXT.md; manual §5.
+- Folded into: not yet
