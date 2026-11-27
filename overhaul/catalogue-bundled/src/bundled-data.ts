@@ -42,10 +42,35 @@ type DistributiveOmit<Type, Key extends PropertyKey> = Type extends unknown
   ? Omit<Type, Key>
   : never
 
+/*
+ * The four bundled EditionIds, each printing the 周易 經, 彖傳, 大象 and 小象
+ * (ADR-0028):
+ *
+ * - `wuyingdian-1739`: Traditional; `terms-unverified`; short name 武英殿本;
+ *   title 武英殿十三經注疏本《周易正義》 (1739); Witness "ctext.org's
+ *   transcription of the 武英殿十三經注疏本《周易正義》, from its Book of
+ *   Changes pages (ctext.org/book-of-changes); the 乾 and 坤 pages (用九,
+ *   用六) retrieved 2026-11-27".
+ * - `wuyingdian-1739-simplified`: Simplified; `terms-unverified`; short name
+ *   武英殿本（简体）; the same title; Witness "ctext.org's character
+ *   conversion of the 武英殿本 text into Simplified characters, from the same
+ *   pages' Simplified view; not an independent Edition; the 乾 and 坤 pages
+ *   (用九, 用六) retrieved 2026-11-27".
+ * - `legge-1882`: English; `public-domain`; short name Legge; title "Legge,
+ *   Sacred Books of the East vol. 16 (Oxford, 1882)"; Witness "a scanned
+ *   copy of Sacred Books of the East vol. 16 (1882); the 乾 and 坤 pages:
+ *   pp. 58, 61 (text) and 267, 269 (小象)".
+ * - `wilhelm-baynes-1967`: English; `in-copyright`; short name
+ *   Wilhelm–Baynes; title "Wilhelm, tr. Baynes, The I Ching or Book of
+ *   Changes (Princeton, 1967)"; Witness "a personal EPUB".
+ *
+ * None is unidentified.
+ */
+
 /**
  * One EditionId's data: what its Edition records share for every Work it
- * prints (script or language, licence, whether it is unidentified, and its
- * Witness), its names, and its texts. The Catalogue makes one Edition record
+ * prints (names, script or language, licence, whether it is unidentified,
+ * and its Witness), its names for Hexagrams and Trigrams, and its texts. The Catalogue makes one Edition record
  * per Work in `texts`, all with this id. Text is held as its Witness gives
  * it, never converted from another script.
  */
@@ -58,14 +83,10 @@ export type BundledEdition = DistributiveOmit<
   /**
    * The Witness the text was transcribed from. Its description carries any
    * conversion label, such as a Witness's own conversion of its source
-   * Edition into another script (see Edition). Its retrieval date, when
-   * known, is a `YYYY-MM-DD` Day, admitted by `isDay` when the Catalogue
-   * makes its records.
+   * Edition into another script (see Edition), and any retrieval date, in
+   * words.
    */
-  readonly witness: {
-    readonly description: string
-    readonly retrievedOn?: string
-  }
+  readonly witness: { readonly description: string }
   /** The name this Edition gives each of the 64 Hexagrams. */
   readonly hexagramNames: Readonly<Record<FigureKey, string>>
   /** The name and imagery this Edition gives each of the eight Trigrams. */
