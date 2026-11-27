@@ -27,9 +27,11 @@ import { notBuiltLine } from '#src/commands/not-built.js'
 // applies the terminal table of the CLI manual (section 2), and ends in a
 // refusal, a usage line or a not-built line. Every ending writes exactly one
 // line to stderr, nothing to stdout, exits 1, and touches no port, save the
-// built Journal bundle runs: `--export-journal` reads the Store, whose
-// throwing ports make it the Journal that cannot be read, and
-// `--merge-journal` of a missing file ends before any port.
+// built maintenance runs: `--export-journal` reads the Store, whose
+// throwing ports make it the Journal that cannot be read;
+// `--merge-journal` of a missing file ends before any port; and
+// `--import-legacy` of paths that do not exist, or of the missing Journal
+// folder, skips each path, prints its summary and exits 0, touching no port.
 
 interface Recorded {
   readonly stdout: string[]
@@ -167,6 +169,33 @@ async function expectMergeJournalEnding(terminal: Terminal): Promise<void> {
     terminal,
     line(`hexagram-history: ${missingBundle} cannot be read`),
   )
+}
+
+/** `--import-legacy`'s summary when nothing is kept, over `files` files. */
+const importSummary = (files: number, skipped: number): string =>
+  line(
+    `Imported 0 of ${String(files)} file${files === 1 ? '' : 's'} (0 cast, 0 recorded); ${String(skipped)} skipped. Originals moved to legacy/ in the Journal folder.`,
+  )
+
+/** `--import-legacy`'s line for a named path that does not exist. */
+const cannotBeRead = (file: string): string =>
+  line(`Skipped ${file}: it cannot be read`)
+
+/**
+ * `--import-legacy` over the throwing ports, of paths that do not exist or
+ * of the Journal folder, which does not exist either: every path is
+ * skipped, the summary printed, exit 0, and no port touched.
+ */
+async function expectImportEnding(
+  argv: readonly string[],
+  terminal: Terminal,
+  expectedStdout: string,
+): Promise<void> {
+  const result = await runCommand(historyCommand.run, argv, terminal)
+  expect(result.stdout.join('')).toBe(expectedStdout)
+  expect(result.stderr.join('')).toBe('')
+  expect(result.exitCode).toBe(0)
+  expect(result.portsTouched).toEqual([])
 }
 
 const tty = (env: CommandIo['env'] = {}, rows = 40): Terminal => ({
@@ -343,10 +372,6 @@ describe('the terminal table: each command with no options, in each column', () 
 describe('the terminal table: hexagram-history maintenance runs in every column', () => {
   const maintenance = [
     {
-      argv: ['--import-legacy', '--division-method', 'physical'],
-      expected: line(notBuiltLine('hexagram-history', '--import-legacy')),
-    },
-    {
       argv: ['--rerender-bodies'],
       expected: line(notBuiltLine('hexagram-history', '--rerender-bodies')),
     },
@@ -367,6 +392,17 @@ describe('the terminal table: hexagram-history maintenance runs in every column'
   it.each(rows)('$shown, $column', async ({ argv, terminal, expected }) => {
     await expectEnding(historyCommand.run, argv, terminal, expected)
   })
+
+  it.each(columnNames)(
+    '--import-legacy --division-method physical, %s: the missing Journal folder imports nothing',
+    async (column) => {
+      await expectImportEnding(
+        ['--import-legacy', '--division-method', 'physical'],
+        columns[column],
+        importSummary(0, 0),
+      )
+    },
+  )
 
   it.each(columnNames)(
     '--export-journal bundle.json, %s: the Journal cannot be read',
@@ -895,58 +931,6 @@ describe('a bad value, a repeat, an unknown option or a positional is a usage re
 
 describe('hexagram-history: the maintenance options and what applies to them', () => {
   const accepted = [
-    {
-      argv: ['--import-legacy', '--division-method', 'physical'],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--import-legacy', '--division-method', 'virtual'],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--import-legacy', '--division-method', 'automatic'],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--import-legacy', 'a.txt', '--division-method', 'virtual'],
-      option: '--import-legacy',
-    },
-    {
-      argv: [
-        '--import-legacy',
-        'old/a.txt',
-        'old-folder',
-        '--division-method',
-        'automatic',
-      ],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--division-method', 'physical', '--import-legacy'],
-      option: '--import-legacy',
-    },
-    {
-      argv: [
-        '--import-legacy',
-        'a.txt',
-        'b.txt',
-        '--division-method',
-        'physical',
-      ],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--division-method', 'physical', '--import-legacy', 'a.txt'],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--import-legacy', './-old.txt', '--division-method', 'physical'],
-      option: '--import-legacy',
-    },
-    {
-      argv: ['--', '--import-legacy', '--division-method', 'physical', '--'],
-      option: '--import-legacy',
-    },
     { argv: ['--rerender-bodies'], option: '--rerender-bodies' },
     { argv: ['--export', 'out.pdf'], option: '--export' },
     { argv: ['--export=-out.typ'], option: '--export' },
@@ -979,6 +963,72 @@ describe('hexagram-history: the maintenance options and what applies to them', (
         tty(),
         line(notBuiltLine('hexagram-history', option)),
       )
+    },
+  )
+
+  const imports = [
+    {
+      argv: ['--import-legacy', '--division-method', 'physical'],
+      expected: importSummary(0, 0),
+    },
+    {
+      argv: ['--import-legacy', '--division-method', 'virtual'],
+      expected: importSummary(0, 0),
+    },
+    {
+      argv: ['--import-legacy', '--division-method', 'automatic'],
+      expected: importSummary(0, 0),
+    },
+    {
+      argv: ['--import-legacy', 'a.txt', '--division-method', 'virtual'],
+      expected: cannotBeRead('a.txt') + importSummary(1, 1),
+    },
+    {
+      argv: [
+        '--import-legacy',
+        'old/a.txt',
+        'old-folder',
+        '--division-method',
+        'automatic',
+      ],
+      expected:
+        cannotBeRead('old/a.txt') +
+        cannotBeRead('old-folder') +
+        importSummary(2, 2),
+    },
+    {
+      argv: ['--division-method', 'physical', '--import-legacy'],
+      expected: importSummary(0, 0),
+    },
+    {
+      argv: [
+        '--import-legacy',
+        'a.txt',
+        'b.txt',
+        '--division-method',
+        'physical',
+      ],
+      expected:
+        cannotBeRead('a.txt') + cannotBeRead('b.txt') + importSummary(2, 2),
+    },
+    {
+      argv: ['--division-method', 'physical', '--import-legacy', 'a.txt'],
+      expected: cannotBeRead('a.txt') + importSummary(1, 1),
+    },
+    {
+      argv: ['--import-legacy', './-old.txt', '--division-method', 'physical'],
+      expected: cannotBeRead('./-old.txt') + importSummary(1, 1),
+    },
+    {
+      argv: ['--', '--import-legacy', '--division-method', 'physical', '--'],
+      expected: importSummary(0, 0),
+    },
+  ] as const
+
+  it.each(imports.map((row) => ({ ...row, shown: row.argv.join(' ') })))(
+    'runs $shown to its import report',
+    async ({ argv, expected }) => {
+      await expectImportEnding(argv, tty(), expected)
     },
   )
 
