@@ -1,0 +1,39 @@
+{
+  "name": "@hexagram/presentation",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "Presentation (generic): the medium-neutral Readout of a Consultation or a Transformation, combining the Oracle's Resolution with the Catalogue's text and deciding nothing (R-105, R-374)",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./build-readout": {
+      "source": "./src/build-readout.ts",
+      "types": "./dist/build-readout.d.mts",
+      "import": "./dist/build-readout.mjs"
+    },
+    "./readout": {
+      "source": "./src/readout.ts",
+      "types": "./dist/readout.d.mts",
+      "import": "./dist/readout.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/consultation-journal": "workspace:*",
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}
