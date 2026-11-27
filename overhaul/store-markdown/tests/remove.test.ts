@@ -1,5 +1,15 @@
-import { mkdir, readdir, readFile, writeFile } from 'node:fs/promises'
+import { Buffer } from 'node:buffer'
+import {
+  lstat,
+  mkdir,
+  readdir,
+  readFile,
+  readlink,
+  symlink,
+  writeFile,
+} from 'node:fs/promises'
 import path from 'node:path'
+import process from 'node:process'
 
 import {
   isConsultationId,
@@ -537,4 +547,97 @@ describe('deletionRecords', () => {
 
     await expect(storeOver(folder).deletionRecords()).rejects.toThrow()
   })
+})
+
+/** Every regular file directly in `folder`, by name, with its raw bytes. */
+async function byteSnapshot(folder: string): Promise<Record<string, string>> {
+  const files: Record<string, string> = {}
+  for (const name of await regularFiles(folder)) {
+    const bytes = await readFile(path.join(folder, name))
+    files[name] = bytes.toString('hex')
+  }
+  return files
+}
+
+describe('a record file is strict UTF-8', () => {
+  const recordText = `{\n  "consultationId": "${cast.id}",\n  "deletedAt": "${deletedAtText}",\n  "note": "`
+  const strictlyRefused = [
+    {
+      kind: 'a byte that is not UTF-8 in a field it does not name',
+      bytes: Buffer.concat([
+        Buffer.from(recordText, 'utf8'),
+        Buffer.from([0xff]),
+        Buffer.from('"\n}\n', 'utf8'),
+      ]),
+    },
+    {
+      kind: 'a byte order mark',
+      bytes: Buffer.concat([
+        Buffer.from([0xef, 0xbb, 0xbf]),
+        Buffer.from(recordBytes(cast.id, deletedAtText), 'utf8'),
+      ]),
+    },
+  ] as const
+
+  async function journalWithRecordBytes(bytes: Buffer): Promise<string> {
+    const folder = await journalOfThree()
+    await mkdir(deletedFolder(folder), { recursive: true })
+    await writeFile(path.join(deletedFolder(folder), castRecordFile), bytes)
+    return folder
+  }
+
+  it.each(strictlyRefused)(
+    'deletionRecords rejects a record file holding $kind',
+    async ({ bytes }) => {
+      const folder = await journalWithRecordBytes(bytes)
+
+      await expect(storeOver(folder).deletionRecords()).rejects.toThrow()
+    },
+  )
+
+  it.each(strictlyRefused)(
+    'remove rejects and touches nothing when its record name holds $kind',
+    async ({ bytes }) => {
+      const folder = await journalWithRecordBytes(bytes)
+      const journalBefore = await byteSnapshot(folder)
+      const deletedBefore = await byteSnapshot(deletedFolder(folder))
+
+      await expect(
+        storeOver(folder).remove(deletionRecord(cast.id, deletedAt)),
+      ).rejects.toThrow()
+
+      expect(await byteSnapshot(folder)).toEqual(journalBefore)
+      expect(await byteSnapshot(deletedFolder(folder))).toEqual(deletedBefore)
+    },
+  )
+})
+
+describe("an entry at the record's name that is not a regular file", () => {
+  // Creating a symbolic link on Windows needs a privilege or Developer Mode.
+  it.skipIf(process.platform === 'win32')(
+    'rejects and touches nothing when the name is a symbolic link to a valid record',
+    async () => {
+      const folder = await journalOfThree()
+      const elsewhere = await temporaryFolder()
+      const target = path.join(elsewhere, 'valid-record.json')
+      await writeFile(target, recordBytes(cast.id, deletedAtText), 'utf8')
+      await mkdir(deletedFolder(folder))
+      const link = path.join(deletedFolder(folder), castRecordFile)
+      await symlink(target, link)
+      const journalBefore = await byteSnapshot(folder)
+
+      await expect(
+        storeOver(folder).remove(deletionRecord(cast.id, deletedLater)),
+      ).rejects.toThrow()
+
+      expect(await byteSnapshot(folder)).toEqual(journalBefore)
+      expect(await readdir(deletedFolder(folder))).toEqual([castRecordFile])
+      const entry = await lstat(link)
+      expect(entry.isSymbolicLink()).toBe(true)
+      expect(await readlink(link)).toBe(target)
+      expect(await readFile(target, 'utf8')).toBe(
+        recordBytes(cast.id, deletedAtText),
+      )
+    },
+  )
 })
