@@ -6138,3 +6138,20 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   before parsing a legacy `.txt` or a version-1 `.md`; R-504's two CRLF test
   rows change to expect the file imported as its LF copy would be. Version-2
   frontmatter strictness (R-460) is untouched.
+
+### R-507: R-506's test rows
+
+- Date: 2026-11-27
+- Raised in: R-506's follow-up (tester's 881fa57 on `m/crlf`)
+- Ruled by: delegate (R-423)
+- Ruling: approve with two amendments: (1) a parser row — a CRLF copy of a
+  version-2 file is `not-legacy` (after normalising it reads as version 2, so
+  the import passes over it silently, as for any version-2 file; the Store
+  still reports it Unreadable under R-460); (2) add the three other parsing
+  `.txt` fixtures (`legacy-heap-other-transformation.txt`,
+  `legacy-heap-multi-moving.txt`, `legacy-split-stalks-disagree.txt`) to the
+  CRLF `it.each`.
+- Reason: the rows follow R-506 exactly; the version-2 case is where R-506
+  and R-460 meet, and the parser's existing rule (a version-2 file is
+  `not-legacy`, never imported or moved) settles it.
+- Folded into: not yet
