@@ -704,6 +704,35 @@ describe('transformationReadout: the closing list of Editions', () => {
       yilinSource.id,
     ])
   })
+
+  it('gives each EditionId as the first record in which it appears, a Commentary’s or the Yilin Verse’s where that comes first', () => {
+    // translationB gives only the 大象 on the Standing Hexagram Statement,
+    // so its first record is the 大象 one.
+    const shown: Shown = {
+      sources: [traditional, translationA, translationB],
+      commentaries: ['daxiang', 'xiaoxiang'],
+      yilin: yilinSource,
+      gives: (source, citation) =>
+        source !== translationB ||
+        (citation.work === 'daxiang' &&
+          sameFigure(
+            citation.hexagram,
+            resolve(threeMoving).standing.hexagram,
+          )),
+    }
+    const resolved = resolvedFor(threeMoving, shown)
+    const readout = transformationReadout(
+      threeMoving,
+      resolved,
+      namesFor(resolved.resolution, [traditional, translationA]),
+    )
+    expect(readout.editions).toEqual([
+      editionOf(traditional, 'zhouyi'),
+      editionOf(translationA, 'zhouyi'),
+      editionOf(translationB, 'daxiang'),
+      editionOf(yilinSource, 'yilin'),
+    ])
+  })
 })
 
 // --- transformationReadout: the caller's errors -------------------------------
@@ -730,6 +759,110 @@ describe('transformationReadout: the caller’s errors', () => {
     expect(() => transformationReadout(unmoving, resolved, names)).toThrow(
       RangeError,
     )
+  })
+
+  it('throws a RangeError when a passage text names a Citation the Readout does not show', () => {
+    const resolved = resolvedFor(threeMoving)
+    // Line 2 of this Transformation is a Static Line, so its Line Statement
+    // is not applicable.
+    const stray = textsOf(allShown, {
+      work: 'zhouyi',
+      hexagram: resolved.resolution.standing.hexagram,
+      line: 2,
+    })
+    expect(() =>
+      transformationReadout(
+        threeMoving,
+        { ...resolved, passageTexts: [...resolved.passageTexts, ...stray] },
+        namesFor(resolved.resolution),
+      ),
+    ).toThrow(RangeError)
+  })
+
+  it('throws a RangeError when two NamedHexagrams name one Hexagram', () => {
+    const resolved = resolvedFor(threeMoving)
+    const names = namesFor(resolved.resolution)
+    const twice: ReadoutNames = {
+      ...names,
+      hexagrams: [
+        ...names.hexagrams,
+        namedHexagram(resolved.resolution.standing.hexagram, [translationA]),
+      ],
+    }
+    expect(() => transformationReadout(threeMoving, resolved, twice)).toThrow(
+      RangeError,
+    )
+  })
+})
+
+// --- transformationReadout: names beyond those needed -------------------------
+
+const youngLine = (bits: number, bit: number): 7 | 8 =>
+  ((bits >> bit) & 1) === 1 ? 7 : 8
+
+/** Every Hexagram's structure, from the 64 Transformations of Young Lines. */
+const everyStructure = Array.from(
+  { length: 64 },
+  (_, bits) =>
+    resolve([
+      youngLine(bits, 0),
+      youngLine(bits, 1),
+      youngLine(bits, 2),
+      youngLine(bits, 3),
+      youngLine(bits, 4),
+      youngLine(bits, 5),
+    ]).standing,
+)
+
+describe('transformationReadout: names missing or to spare', () => {
+  it('a shown Trigram with no names gives that Figure no Trigram names, and nothing is thrown', () => {
+    const resolved = resolvedFor(threeMoving)
+    const names = namesFor(resolved.resolution)
+    const upper = resolved.resolution.standing.upperTrigram
+    const readout = transformationReadout(threeMoving, resolved, {
+      ...names,
+      trigrams: names.trigrams.filter(
+        (each) => !sameFigure(each.trigram, upper),
+      ),
+    })
+    expect(readout.transformation.standing.upperTrigram).toEqual([])
+    expect(readout.transformation.standing.lowerTrigram).toEqual(
+      trigramNamesOf(
+        resolved.resolution.standing.lowerTrigram,
+        allShown.sources,
+      ),
+    )
+  })
+
+  it('NamedHexagrams and TrigramNames the Readout does not show are ignored', () => {
+    const resolved = resolvedFor(threeMoving)
+    const names = namesFor(resolved.resolution)
+    const shownHexagrams = hexagramsShown(resolved.resolution)
+    const shownTrigrams = trigramsShown(resolved.resolution)
+    const extraHexagram = everyStructure
+      .map((each) => each.hexagram)
+      .find(
+        (hexagram) =>
+          !shownHexagrams.some((each) => sameFigure(each, hexagram)),
+      )
+    const extraTrigram = everyStructure
+      .map((each) => each.lowerTrigram)
+      .find(
+        (trigram) => !shownTrigrams.some((each) => sameFigure(each, trigram)),
+      )
+    if (extraHexagram === undefined || extraTrigram === undefined)
+      throw new Error('every Figure is shown')
+    const readout = transformationReadout(threeMoving, resolved, {
+      hexagrams: [
+        namedHexagram(extraHexagram, allShown.sources),
+        ...names.hexagrams,
+      ],
+      trigrams: [
+        ...trigramNamesOf(extraTrigram, allShown.sources),
+        ...names.trigrams,
+      ],
+    })
+    expect(readout).toEqual(transformationReadout(threeMoving, resolved, names))
   })
 })
 
@@ -898,6 +1031,16 @@ describe('divinedAtText', () => {
     'writes a Moment at %s as the date and time its own offset reads',
     (offset, instant, expected) => {
       expect(divinedAtText(moment(instant, offset))).toBe(expected)
+    },
+  )
+
+  it.each([
+    [Date.UTC(2026, 10, 2, 13, 14, 59, 999), '2026-11-02 21:14'],
+    [Date.UTC(2026, 10, 2, 15, 59, 59), '2026-11-02 23:59'],
+  ])(
+    'cuts off a Moment’s seconds, never rounding into the next minute or date (instant %s at +08:00 reads %s)',
+    (instant, expected) => {
+      expect(divinedAtText(moment(instant, '+08:00'))).toBe(expected)
     },
   )
 
