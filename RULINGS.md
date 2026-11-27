@@ -5868,3 +5868,22 @@ query` (Q-17, flagged: the owner's data); legacy Divined At forms as the old
 - Folded into: not yet. For the manual's next fold: §6.8 gains the export
   refusal and the report wording; ADR-0037's example and R-106's return are
   tidied at their next passes.
+
+### R-495: M-015 slice 1's holes and test list
+
+- Date: 2026-11-27
+- Raised in: M-015 slice 1 (tester's c6fc71a, a3e5287), questions Q-M-015-27
+  to -29
+- Ruled by: delegate (R-423)
+- Ruling: (Q-27) A — two removes of one Id at once both resolve, one record,
+  files gone; ENOENT on unlink and EEXIST on the record link with a same-Id
+  re-read count as success; add a `Promise.all` test. (Q-28) A — use case 6
+  with an Id the Store doesn't hold calls `remove` once and resolves, no `get`
+  first; add a test. (Q-29) A — an `.md` that cannot be deleted makes
+  `remove` reject as a Store failure; the record is already written and a
+  rerun finishes. Derived behaviours confirmed (a missing folder still gets
+  the record; reading creates nothing; `deletionRecords` compared as a set).
+  The 35 tests are approved with the two added (36, 37); a3e5287 matches
+  R-494 Q-14, its extra B7 plant accepted.
+- Reason: R-074, R-367, R-456, R-457, R-462, R-472; manual §6.7.
+- Folded into: not yet
