@@ -567,3 +567,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Note — the Windows listing race, observed — 2026-11-27
 
 - PR #62's first Windows run timed out (30 s) on the listing race row R-477 put back on Windows. Under R-481 it ran 2 × 50 with 120 s; on the re-run it resolved, in 6.8 s and 9.6 s across its two passes, with no EPERM. So Windows file operations were slow, not hung, and R-477's EPERM gap did not show in CI. Every leg of PR #62 passed at b34bbbb.
+
+### Landing — M-012 slices 1 and 2 on main — 2026-11-27
+
+- PR #62 (the record codec, the Markdown Store, ADR-0045, R-443 to R-481) passed every leg at b34bbbb after R-481's smaller Windows run; the owner fast-forwarded `main` to b34bbbb (R-302).
