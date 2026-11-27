@@ -1,4 +1,13 @@
+import type { ConsultationId } from '#src/consultation-id.js'
+import type { Consultation } from '#src/consultation.js'
+import type { DeletionRecord } from '#src/deletion-record.js'
 import type { Journal } from '#src/journal.js'
+import {
+  decodeDeletionRecord,
+  decodeRecord,
+  encodeDeletionRecord,
+  encodeRecord,
+} from '#src/record-codec.js'
 import type { UnreadableReason } from '#src/unreadable-file.js'
 
 /**
@@ -68,7 +77,21 @@ export type JournalBundleDecodeResult =
  * Moment.
  */
 export function encodeJournalBundle(journal: Journal): string {
-  throw new Error('not built', { cause: journal })
+  const consultations = journal.consultations
+    .map(encodeRecord)
+    .toSorted((left, right) => compareCodePoints(left.id, right.id))
+  const deletionRecords = earliestDeletionRecords(journal.deletionRecords)
+    .map(encodeDeletionRecord)
+    .toSorted((left, right) =>
+      compareCodePoints(left.consultationId, right.consultationId),
+    )
+  const bundle = {
+    format: journalBundleFormat,
+    version: journalBundleVersion,
+    consultations,
+    deletionRecords,
+  }
+  return `${JSON.stringify(bundle, null, 2)}\n`
 }
 
 /**
@@ -82,5 +105,116 @@ export function encodeJournalBundle(journal: Journal): string {
  * ignores fields it does not name. It never throws.
  */
 export function decodeJournalBundle(text: string): JournalBundleDecodeResult {
-  throw new Error('not built', { cause: text })
+  let parsed: unknown
+  try {
+    parsed = JSON.parse(text)
+  } catch {
+    return { outcome: 'unreadable', reason: { kind: 'not-json' } }
+  }
+  if (!isBundle(parsed)) {
+    return { outcome: 'unreadable', reason: { kind: 'not-a-bundle' } }
+  }
+  const deletionRecords: DeletionRecord[] = []
+  for (const [index, data] of parsed.deletionRecords.entries()) {
+    const decoded = decodeDeletionRecord(data)
+    if (decoded.outcome !== 'decoded') {
+      return {
+        outcome: 'unreadable',
+        reason: { kind: 'invalid-deletion-record', index },
+      }
+    }
+    deletionRecords.push(decoded.deletionRecord)
+  }
+  const consultations: Consultation[] = []
+  const leftOut: LeftOutRecord[] = []
+  const firstIndexOf = new Map<ConsultationId, number>()
+  for (const [index, record] of parsed.consultations.entries()) {
+    const decoded = decodeRecord(record)
+    if (decoded.outcome !== 'decoded') {
+      leftOut.push({ index, reason: decoded.reason })
+      continue
+    }
+    const { consultation } = decoded
+    const firstIndex = firstIndexOf.get(consultation.id)
+    if (firstIndex !== undefined) {
+      leftOut.push({
+        index,
+        reason: {
+          kind: 'duplicate-id',
+          firstLocation: `consultations[${String(firstIndex)}]`,
+        },
+      })
+      continue
+    }
+    firstIndexOf.set(consultation.id, index)
+    consultations.push(consultation)
+  }
+  return {
+    outcome: 'decoded',
+    journal: { consultations, deletionRecords },
+    leftOut,
+  }
+}
+
+/** A parsed bundle whose header and arrays are checked, its records not. */
+interface ParsedBundle {
+  readonly consultations: readonly unknown[]
+  readonly deletionRecords: readonly unknown[]
+}
+
+function isBundle(value: unknown): value is ParsedBundle {
+  return (
+    typeof value === 'object' &&
+    value !== null &&
+    'format' in value &&
+    value.format === journalBundleFormat &&
+    'version' in value &&
+    value.version === journalBundleVersion &&
+    'consultations' in value &&
+    Array.isArray(value.consultations) &&
+    'deletionRecords' in value &&
+    Array.isArray(value.deletionRecords)
+  )
+}
+
+/** Of the Deletion Records naming each Id, the one the bundle writes. */
+function earliestDeletionRecords(
+  deletionRecords: readonly DeletionRecord[],
+): readonly DeletionRecord[] {
+  const earliest = new Map<ConsultationId, DeletionRecord>()
+  for (const candidate of deletionRecords) {
+    const kept = earliest.get(candidate.consultationId)
+    if (kept === undefined || isEarlier(candidate, kept)) {
+      earliest.set(candidate.consultationId, candidate)
+    }
+  }
+  return [...earliest.values()]
+}
+
+function isEarlier(candidate: DeletionRecord, kept: DeletionRecord): boolean {
+  const difference =
+    candidate.deletedAt.epochMilliseconds - kept.deletedAt.epochMilliseconds
+  if (difference !== 0) return difference < 0
+  // Both name one Id, so their encoded texts differ only in `deletedAt`.
+  return (
+    compareCodePoints(
+      encodeDeletionRecord(candidate).deletedAt,
+      encodeDeletionRecord(kept).deletedAt,
+    ) < 0
+  )
+}
+
+/**
+ * Code-point order. The default string order compares UTF-16 code units,
+ * which differs from it beyond the Basic Multilingual Plane.
+ */
+function compareCodePoints(left: string, right: string): number {
+  const leftPoints = Array.from(left, (point) => point.codePointAt(0) ?? 0)
+  const rightPoints = Array.from(right, (point) => point.codePointAt(0) ?? 0)
+  const length = Math.min(leftPoints.length, rightPoints.length)
+  for (let index = 0; index < length; index += 1) {
+    const difference = (leftPoints[index] ?? 0) - (rightPoints[index] ?? 0)
+    if (difference !== 0) return difference
+  }
+  return leftPoints.length - rightPoints.length
 }
