@@ -5525,7 +5525,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruled by: delegate (R-423)
 - Ruling: A — Keep "temporary file, then hard link" for a new file and "temporary file, then rename" for a re-rendered body; a Journal on a filesystem without hard links is unsupported and its writes reject. ADR-0030 is amended: the bullet's parenthetical becomes "(a temporary file, then a hard link for a new file, since a link refuses to replace one, or a rename for a re-rendered body)", and a consequence is added: "The Journal's folder must be on a filesystem with hard links; on one without (FAT, exFAT, some network shares) writes fail." The delegate ratifies the amendment in that wording unless the drafter finds the ADR's other text contradicts it.
 - Reason: Only a link meets both atomic writes and never-overwrite; (B) and (C) each break one; ADR-0020 puts the Journal on a local disk; a fallback can be added later.
-- Folded into: ADR-0045 (R-475)
+- Folded into: ADR-0045 (R-475), consolidated into ADR-0046 (R-489)
 
 ### R-472: A file deleted mid-read is skipped
 
@@ -5569,7 +5569,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   consolidation); the in-place sections date from before R-004; R-297 and
   R-384 kept ADR-0043 and ADR-0044 separate the same way. Only the form of
   the delegate's own R-471 changes.
-- Folded into: ADR-0045
+- Folded into: ADR-0045, consolidated into ADR-0046 (R-489)
 
 ### R-476: A rerender skips a file deleted mid-run
 
@@ -5750,3 +5750,22 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   for one piece of knowledge (AGENTS.md §5); R-430 keeps the codec total;
   R-484 makes the swap Tier B.
 - Folded into: not yet
+
+### R-489: ADR-0046 consolidates ADR-0030 and ADR-0045
+
+- Date: 2026-11-27
+- Raised in: R-475 and R-487 (drafted consolidation 03c74a7), questions
+  Q-CONS-1 and Q-CONS-2
+- Ruled by: delegate (R-423)
+- Ruling: (1) A — ADR-0046 is ratified as committed, with ADR-0030 and
+  ADR-0045 marked "Superseded by ADR-0046" and the README rows; (2) A — one
+  follow-up commit moves every live citation of ADR-0030 to ADR-0046 (overhaul
+  source comments and tests, `store-markdown`'s package description,
+  `docs/manual/cli.md`, `docs/design/activity.md` and `dfd.md`, pending
+  Matters' entries); landed Matters' lines and history stay as written.
+- Reason: diffed against both: ADR-0030's text is kept word for word, the
+  atomic-writes bullet is R-471's, ADR-0045's parts are all there, nothing is
+  added or lost; the form follows R-004, R-013 and the 0040+0041 → 0042
+  precedent; a2a485c moved live citations the same way, and the manual's
+  passages state only rules ADR-0046 keeps.
+- Folded into: ADR-0046
