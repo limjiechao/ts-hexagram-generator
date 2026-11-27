@@ -11,6 +11,8 @@ import {
   lookUpEditions,
   lookUpHexagramNames,
   lookUpPassageTexts,
+  lookUpReceivedSequenceNumber,
+  lookUpTrigramNames,
 } from '@hexagram/application/look-up-catalogue'
 import {
   exportJournal,
@@ -49,6 +51,10 @@ export function composeCli(ports: {
 }): {
   readonly lookUpPassageTexts: PortsSupplied<typeof lookUpPassageTexts>
   readonly lookUpHexagramNames: PortsSupplied<typeof lookUpHexagramNames>
+  readonly lookUpReceivedSequenceNumber: PortsSupplied<
+    typeof lookUpReceivedSequenceNumber
+  >
+  readonly lookUpTrigramNames: PortsSupplied<typeof lookUpTrigramNames>
   readonly lookUpEditions: PortsSupplied<typeof lookUpEditions>
   readonly beginCasting: typeof beginCasting
   readonly nextRound: typeof nextRound
@@ -70,6 +76,10 @@ export function composeCli(ports: {
       lookUpPassageTexts(ports, citation, preference),
     lookUpHexagramNames: (hexagram, preference) =>
       lookUpHexagramNames(ports, hexagram, preference),
+    lookUpReceivedSequenceNumber: (hexagram) =>
+      lookUpReceivedSequenceNumber(ports, hexagram),
+    lookUpTrigramNames: (trigram, preference) =>
+      lookUpTrigramNames(ports, trigram, preference),
     lookUpEditions: (work) => lookUpEditions(ports, work),
     beginCasting,
     nextRound,
