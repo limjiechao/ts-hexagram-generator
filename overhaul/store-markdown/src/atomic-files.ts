@@ -66,36 +66,49 @@ export async function replaceAtomically(
 }
 
 /**
- * Moves the file `from` to `to` unless a file holds `to`, resolving to
- * whether it moved.
+ * Moves the file `from` into `folder` under the first name `nameFor` gives,
+ * counting attempts from 1, that no file holds. It never replaces a file.
  */
 export async function moveExclusively(
   from: string,
-  to: string,
-): Promise<boolean> {
-  try {
-    await link(from, to)
-  } catch (error) {
-    if (hasCode(error, 'EEXIST')) {
-      return false
-    }
-    // A hard link cannot cross devices, so the file is copied instead.
-    if (!hasCode(error, 'EXDEV')) {
-      throw error
-    }
+  folder: string,
+  nameFor: (attempt: number) => string,
+): Promise<void> {
+  if (!(await linkUnderFreeName(from, folder, nameFor))) {
+    // A hard link cannot cross devices, so a copy is made in `folder` and
+    // linked instead; a partial copy then never holds a free name.
+    const temporary = temporaryPath(folder, nameFor(1))
     try {
-      await copyFile(from, to, constants.COPYFILE_EXCL)
-    } catch (copyError) {
-      if (hasCode(copyError, 'EEXIST')) {
-        return false
+      await copyFile(from, temporary, constants.COPYFILE_EXCL)
+      if (!(await linkUnderFreeName(temporary, folder, nameFor))) {
+        throw new Error(`${temporary} cannot be linked within ${folder}`)
       }
-      // The exclusive copy created `to`, so a partial copy is ours to remove.
-      await rm(to, { force: true })
-      throw copyError
+    } finally {
+      await removeTemporary(temporary)
     }
   }
   await unlink(from)
-  return true
+}
+
+/** Links `file` under the first free name; false when it is on another device. */
+async function linkUnderFreeName(
+  file: string,
+  folder: string,
+  nameFor: (attempt: number) => string,
+): Promise<boolean> {
+  for (let attempt = 1; ; attempt += 1) {
+    try {
+      await link(file, path.join(folder, nameFor(attempt)))
+      return true
+    } catch (error) {
+      if (hasCode(error, 'EXDEV')) {
+        return false
+      }
+      if (!hasCode(error, 'EEXIST')) {
+        throw error
+      }
+    }
+  }
 }
 
 // A dotfile not ending in `.md`, so the Store never reads it as a

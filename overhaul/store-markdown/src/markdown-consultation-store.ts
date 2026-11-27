@@ -144,12 +144,9 @@ export function markdownConsultationStore(options: {
       const legacyFolder = path.join(journalFolder, 'legacy')
       await mkdir(legacyFolder, { recursive: true })
       const { name, ext } = path.parse(file)
-      for (let copy = 1; ; copy += 1) {
-        const free = copy === 1 ? `${name}${ext}` : `${name}-${copy}${ext}`
-        if (await moveExclusively(file, path.join(legacyFolder, free))) {
-          return
-        }
-      }
+      await moveExclusively(file, legacyFolder, (attempt) =>
+        attempt === 1 ? `${name}${ext}` : `${name}-${attempt}${ext}`,
+      )
     },
   }
 }
