@@ -1,6 +1,6 @@
 # New Journal files are hard-linked
 
-Status: Accepted
+Status: Superseded by ADR-0046
 Date: 2026-11-27
 Amends: [ADR-0030](0030-consultation-record-v2-and-markdown-store.md) ("Writes are atomic")
 

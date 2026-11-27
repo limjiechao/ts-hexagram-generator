@@ -1,6 +1,6 @@
 # Consultation record version 2, Consultation Id, and the Markdown Store's rules
 
-Status: Accepted
+Status: Superseded by ADR-0046
 Date: 2026-11-05
 Supersedes: the record shape of [ADR-0008](0008-consultation-file-format.md)
 
