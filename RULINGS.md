@@ -5824,3 +5824,47 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
 - Folded into: ADR-0047 (Accepted); `docs/agents/delegate.md` (budgets and
   caps referred) and `docs/agents/clerk.md` §0 and §3 (landing waits for the
   owner's word)
+
+### R-494: M-015's drafted surface (Q-M-015-1 to -26, less Q-24)
+
+- Date: 2026-11-27
+- Raised in: M-015 (drafts ea8e1a1, 877a2ab, 83ba2d1, 5df0b96, 7afbad2)
+- Ruled by: delegate (R-423)
+- Ruling: (A) on Q-1, Q-2, Q-4 to Q-23, Q-25 and Q-26; Q-24 referred to the
+  owner; Q-3 new. In short: a Deletion Record is `deleted/<Id>.json`, 2-space
+  JSON with a final newline, contents over name (Q-1, flagged: a stored
+  format), encoded in `record-codec` with keys `consultationId` and
+  `deletedAt`, no version (Q-2); `remove` keeps an earlier record for the same
+  Id and still deletes the `.md` files, but rejects and touches nothing when
+  that name holds a file that does not decode or names another Id (Q-3, new);
+  it deletes every `.md` decoding to the Id, `duplicate-id` included, and
+  `list`/`get` ignore records (Q-4); an undecodable record rejects
+  `deletionRecords` (Q-5); the rerender race stays a documented gap (Q-6);
+  the bundle is `consultation-journal/journal-bundle` on text, `"format":
+"hexagram-journal"`, `"version": 1`, 2-space JSON (Q-7 to Q-9); a bad or
+  duplicate Consultation is left out and reported, a bad Deletion Record
+  refuses the bundle (Q-10); `--export-journal` refuses an existing path
+  (Q-11); `mergeJournal` resolves to `MergeCounts { added, removed }` (Q-12,
+  flagged: a ratified signature widened); the parser returns application's
+  `LegacyRecord` (Q-13); `legacy-import`'s row B7/B8, pure, `application`
+  'types', `consultation-journal` and `oracle` 'any', with twins and a B1
+  plant (Q-14); js-yaml 3.14 for it at first use, JSON/Core schema only
+  (Q-15); a closed result `parsed | not-legacy | unreadable` with a
+  `LegacyCasting` tag, a version-1 file without `casting` being `none` (Q-16,
+  doc fix); a blank or placeholder Query skips the file as `invalid-field:
+query` (Q-17, flagged: the owner's data); legacy Divined At forms as the old
+  app accepted them (Q-18); regular `.txt`/`.md` files directly in a folder,
+  no recursion, non-regular named paths skipped (Q-19); parse all, then per
+  file keep, move and report (Q-20); a disagreeing stalk count is
+  `does-not-replay` (Q-21); `legacy-import` replays through `divide` itself,
+  a flagged duplicate (Q-22); `moveToLegacy` is a flat `CommandPorts` field
+  (Q-23); the report wording as drafted (Q-25); `unreadableReasonText` is the
+  one wording, shared with the browse footer (Q-26, doc fix). The drafter's
+  edit to `frame.test.ts` is redone by a tester (R-306).
+- Reason: R-106/R-123, R-349, R-350, R-357 to R-359, R-363, R-366 to R-368,
+  R-428, R-431, R-432, R-440, R-441, R-445, R-455, R-463, R-473, R-474,
+  R-476; ADR-0026, ADR-0037, ADR-0046; manual §5, §6.7, §6.8, §9; CONTEXT.md
+  (Query, Deletion Record).
+- Folded into: not yet. For the manual's next fold: §6.8 gains the export
+  refusal and the report wording; ADR-0037's example and R-106's return are
+  tidied at their next passes.
