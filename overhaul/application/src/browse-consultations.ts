@@ -1,5 +1,5 @@
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
-import { encodeRecord } from '@hexagram/consultation-journal/record-codec'
+import { localDate, type Day } from '@hexagram/consultation-journal/divined-at'
 import type { UnreadableFile } from '@hexagram/consultation-journal/unreadable-file'
 
 import type { ConsultationStore } from '#src/consultation-store.js'
@@ -38,10 +38,7 @@ function newestFirst(
 ): readonly Consultation[] {
   const keyed = consultations.map((consultation) => ({
     consultation,
-    // The record writes a Day as `YYYY-MM-DD` and a Moment as its date-time
-    // in its own offset, so its first ten characters are the row's local
-    // date, and they compare as text in date order.
-    date: encodeRecord(consultation).divinedAt.slice(0, 10),
+    date: localDate(consultation.divinedAt),
   }))
   return keyed
     .toSorted(ascending)
@@ -50,13 +47,25 @@ function newestFirst(
 }
 
 function ascending(
-  left: { readonly consultation: Consultation; readonly date: string },
-  right: { readonly consultation: Consultation; readonly date: string },
+  left: { readonly consultation: Consultation; readonly date: Day },
+  right: { readonly consultation: Consultation; readonly date: Day },
 ): number {
   return (
-    compare(left.date, right.date) ||
+    compareDays(left.date, right.date) ||
     compare(withinDate(left.consultation), withinDate(right.consultation)) ||
     compare(left.consultation.id, right.consultation.id)
+  )
+}
+
+/**
+ * Calendar order: year, then month, then day. A Moment's date is the one its
+ * wall clock reads in its own offset, so rows compare by local date.
+ */
+function compareDays(left: Day, right: Day): number {
+  return (
+    compare(left.year, right.year) ||
+    compare(left.month, right.month) ||
+    compare(left.day, right.day)
   )
 }
 
@@ -70,7 +79,7 @@ function withinDate(consultation: Consultation): number {
 
 /**
  * Numeric order for numbers; for text, UTF-16 code-unit order, which is
- * code-point order for the ASCII of a date or a Consultation Id.
+ * code-point order for the ASCII of a Consultation Id.
  */
 function compare<Value extends string | number>(
   left: Value,
