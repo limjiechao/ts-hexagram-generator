@@ -6077,3 +6077,33 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   folder imports nothing with a zero summary); R-498's guaranteed-missing
   intent kept by checking the missing state.
 - Folded into: not yet
+
+### R-504: M-015 slice 3's review items
+
+- Date: 2026-11-27
+- Raised in: the review of M-015 slice 3 (CHANGES), item C1 and questions
+  Q-M-015-51 to -53
+- Ruled by: delegate (R-423)
+- Ruling: (C1) A — a file's identity comes from `stat` (bigint dev:ino)
+  before it is read; duplicates dropped by identity; then strict-UTF-8 read;
+  an unreadable or non-UTF-8 file is skipped once under its first path; a
+  named path that cannot be stat'ed (or a folder whose stat or readdir fails)
+  has no identity and is reported and counted once per mention; tester rows
+  (1)–(5). (Q-51) A — when the bigint `ino` is 0 the identity is
+  `fs.realpath`; if realpath fails, skipped "it cannot be read" per mention;
+  identity selection becomes a small pure helper with its own rows. (Q-52) A
+  — the redraw loop stays; `newId`'s doc says a constant Random Source breaks
+  the port's "each equally likely" contract and the redraw cannot end. (Q-53)
+  A — a CRLF legacy `.txt` stays skipped and in place, a CRLF version-1 `.md`
+  stays `no-frontmatter` (flagged for the owner's eye: a Windows-edited file
+  is skipped with a misleading query reason; normalising `\r\n` is a one-line
+  additive change if the owner prefers); tester rows for both. (Digest)
+  ratified whole: move the shared strict-UTF-8 and Store-failure helpers into
+  a neutral `cli-adapter/src/commands/` module in its own commit;
+  `skippedLine`'s doc points at `legacyUnreadableReasonText`; only an exact
+  `CASTING:` line counts as a table (flagged with Q-53); a version-1
+  `casting: null` is `does-not-replay`, kept Recorded; the implementer's
+  choices accepted.
+- Reason: R-494 Q-18, Q-20; R-350; R-460; R-502 Q-41, Q-42, Q-46, Q-48,
+  Q-49; the legacy writer never wrote `casting: null`.
+- Folded into: not yet
