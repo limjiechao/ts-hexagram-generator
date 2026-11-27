@@ -1,4 +1,5 @@
 import { beginCasting } from '@hexagram/application/begin-casting'
+import { browseConsultations } from '@hexagram/application/browse-consultations'
 import type { Clock } from '@hexagram/application/clock'
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import { divide } from '@hexagram/application/divide'
@@ -10,6 +11,7 @@ import {
   lookUpPassageTexts,
 } from '@hexagram/application/look-up-catalogue'
 import { nextRound } from '@hexagram/application/next-round'
+import { openConsultation } from '@hexagram/application/open-consultation'
 import type { RandomSource } from '@hexagram/application/random-source'
 import { recordConsultation } from '@hexagram/application/record-consultation'
 import { resolveTransformation } from '@hexagram/application/resolve-transformation'
@@ -27,8 +29,8 @@ type PortsSupplied<UseCase> = UseCase extends (
 /**
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
  * use case 8's lookups, use case 1's Automatic Division step and last step,
- * keep, use case 2, record, and use case 3, resolve, with those ports
- * supplied, and use case 1's steps for a Division by Pick and a Physical
+ * keep, use case 2, record, use case 3, resolve, use case 4, browse, and
+ * use case 5, open, with those ports supplied, and use case 1's steps for a Division by Pick and a Physical
  * Division, which take no ports and so pass through unchanged.
  */
 export function composeCli(ports: {
@@ -48,6 +50,8 @@ export function composeCli(ports: {
   readonly keepCastConsultation: PortsSupplied<typeof keepCastConsultation>
   readonly recordConsultation: PortsSupplied<typeof recordConsultation>
   readonly resolveTransformation: PortsSupplied<typeof resolveTransformation>
+  readonly browseConsultations: PortsSupplied<typeof browseConsultations>
+  readonly openConsultation: PortsSupplied<typeof openConsultation>
 } {
   return {
     lookUpPassageTexts: (citation, preference) =>
@@ -67,5 +71,7 @@ export function composeCli(ports: {
       recordConsultation(ports, query, divinedAt, transformation),
     resolveTransformation: (transformation, preference) =>
       resolveTransformation(ports, transformation, preference),
+    browseConsultations: (filter) => browseConsultations(ports, filter),
+    openConsultation: (id) => openConsultation(ports, id),
   }
 }
