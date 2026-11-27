@@ -149,7 +149,7 @@ function temporaryPath(folder: string, name: string): string {
 // failure that stopped it, stands, and a leftover dotfile `.tmp` is never
 // read as a Consultation.
 async function removeTemporary(file: string): Promise<void> {
-  await rm(file, { force: true, maxRetries: 3 }).catch(() => undefined)
+  await rm(file, { force: true, maxRetries: 3 }).catch(() => {})
 }
 
 async function writeDurably(file: string, text: string): Promise<void> {
