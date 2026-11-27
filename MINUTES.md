@@ -614,3 +614,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0; delegate rulings: 4 (R-497 to R-500)
 - Landed: 4241621 to 712cdbf (17 commits)
 - Notes for a bisect: `frame.test.ts` fails from cf2baeb to 65de4ec's parent until 209f1ef rewrites its rows; `lint:check` fails from fc19262 to ed59a4f until 712cdbf.
+
+### Iteration 40 — M-015 — 2026-11-27
+
+- Attempt: 1/2 (slice 3 of 3; R-058) · Outcome: landed; M-015 complete
+- Tests: the tester's audit raised nine holes (R-502), and two follow-ups (R-503); 118 slice tests, 14 rewritten frame rows, later 7 rows and 14 `fileIdentity` rows (R-504).
+- Review: `CHANGES` — an unreadable file named twice was counted twice; ruled R-504 with the ino-0 fallback, the redraw-loop note and CRLF kept skipped (flagged for the owner); re-review `APPROVE`. The reviewer matched the parser against the legacy converter over 22 fixtures and fuzzed 200,000 inputs.
+- Verify: M-015's whole Acceptance · type:check · lint:check · format · drift:check · drift:prove · build and test forced 21/21 and 42/42, on matters
+- Owner touches: 1 (R-501); delegate rulings: 3 (R-502 to R-504)
+- Landed: 7ede742 to 658d50b (19 commits)
+- Notes: M-015 used 3 owner touches in all (R-492, R-493, R-501) and 11 delegate rulings (R-494 to R-504). The bins still use a stub Store; nothing can touch the real Journal until the owner rules Q-M-015-24.

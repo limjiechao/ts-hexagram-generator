@@ -40,7 +40,7 @@ from its actual figures when it lands (R-006).
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 2 (M-012)                                  | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 2 (M-012), 3 (M-015)                       | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending (R-419)             |
@@ -434,7 +434,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-015: Deleting, Merging Journals and importing legacy files
 
-- Status: in-progress
+- Status: landed
 - Phase: 4
 - Licensed by: ADR-0015, ADR-0026, ADR-0027, ADR-0046, ADR-0037; manual
   sections 4, 5, 6.7, 6.8; R-334, R-348, R-349, R-350
@@ -453,12 +453,14 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   `legacy-real-*.txt` corpus.
 - Open questions: none open; ruled in R-365, R-367, R-368, R-380. Likely from the tester: a
   bundle that is not JSON; a Shape B `.txt` with no timestamp.
-- Commits: 652c9ab, 1ccd13a, dd437b4, a8685a9, f60c5b2, 7264ff1, 0d6ba16 (drafted surface, R-494); for slice 1, a9f670e, b4a0250, 9113d9e (acceptance), 44ce96d (legacy-import's row and twins), c2e7d2e (Deletion Record codec), b2246f8 (`remove`, `deletionRecords`), 565775e (use case 6), be53b4b, e7abc01 (review fixes); for slice 2, 4241621, d4dfb54, 1c02365, 209f1ef, 998fa92 (acceptance and fixtures), 06f63ee, ed59a4f (docs), 88ed777 (bundle codec), a3e8a5d (use case 10), 5bc3eb3, cf2baeb, 65de4ec (the bundle runs), fc19262, 110f9aa, 4148112, 712cdbf (review fixes)
+- Commits: 652c9ab, 1ccd13a, dd437b4, a8685a9, f60c5b2, 7264ff1, 0d6ba16 (drafted surface, R-494); for slice 1, a9f670e, b4a0250, 9113d9e (acceptance), 44ce96d (legacy-import's row and twins), c2e7d2e (Deletion Record codec), b2246f8 (`remove`, `deletionRecords`), 565775e (use case 6), be53b4b, e7abc01 (review fixes); for slice 2, 4241621, d4dfb54, 1c02365, 209f1ef, 998fa92 (acceptance and fixtures), 06f63ee, ed59a4f (docs), 88ed777 (bundle codec), a3e8a5d (use case 10), 5bc3eb3, cf2baeb, 65de4ec (the bundle runs), fc19262, 110f9aa, 4148112, 712cdbf (review fixes); for slice 3, 7ede742, 21a66d5, fbfe86b, fa9b500, e024b1f, c8d9677, 658d50b (acceptance, fixtures, frame rows), 75133ec, 59e6c06, d60a676, 3c7f9fd (docs), 3221ae1 (use case 7), 6963fe8 (js-yaml), 64476ae (the parser), 1b5a84e, ed27103 (the import run), 6ecf762 (shared helpers moved), f8d7cf3, 9e67ee1 (identity fixes)
 - Notes: about 2,000 lines, three slices: delete; merge; import. Merged under
   R-356 (A) to absorb the Viewer's split.
   Raise when slices 2 and 3 are drafted (R-496): import and merge check each
   Id against `deletionRecords` before `keep`; how duplicate Deletion Records
   are deduplicated and which `deletedAt` wins.
+  Landed with the bins still on a stub Store: Q-M-015-24 (the real Store in
+  the bins, and so migrating the real Journal) is with the owner.
 
 ### M-016: Exporting to Typst and PDF
 
