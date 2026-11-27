@@ -537,3 +537,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 24 more (R-397 to R-418, R-420, R-421), 33 of M-010's 60
 - Landed: 1209045, 516f137, d1074ee, d081007, 6942249, 1d605eb, 0d3e634, 53536ee, 498f563, 4b54dbf, da6292d
 - Notes: R-421's doc-comment phrase was set into the list in a second commit (da6292d) to drop a doubled "or"; the words are R-421's. `journal-folder.ts` has no test and `journalFolder()` runs on refusal paths; noted for M-021.
+
+### Landing — M-010, the delegate and clerk landings on main — 2026-11-27
+
+- PR #61 (M-010; R-419 to R-442) first failed CI on Windows only: POSIX `TZ` strings are ignored there, so four clock rows read `+00:00`. The delegate ruled the POSIX rows skip on Windows (R-442); with that fix every leg passed, and the owner fast-forwarded `main` to 559944f (R-302), the clerk's own push being refused by Claude Code's permissions.
+- First landing to list delegate rulings for review (R-426 to R-442).
