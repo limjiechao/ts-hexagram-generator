@@ -160,73 +160,72 @@ async function namedCandidates(given: string): Promise<readonly Candidate[]> {
 }
 
 /**
- * Reads and parses each candidate once, by the file's identity, under the
- * first path that names it; a file holding nothing to import is dropped.
+ * Reads and parses each candidate once, by the file's identity, taken
+ * before it is read, under the first path that names it, so a file that
+ * cannot be read is skipped once too; a path with no identity is skipped
+ * at each mention. A file holding nothing to import is dropped.
  */
 async function readCandidates(
   candidates: readonly Candidate[],
 ): Promise<readonly ReadFile[]> {
   const seen = new Set<string>()
   const files: ReadFile[] = []
+  const skip = (file: string, reason: string) => {
+    files.push({ path: file, outcome: 'skipped', reason })
+  }
   for (const candidate of candidates) {
     if (candidate.skipped !== undefined) {
-      files.push({
-        path: candidate.path,
-        outcome: 'skipped',
-        reason: candidate.skipped,
-      })
+      skip(candidate.path, candidate.skipped)
       continue
     }
-    const read = await readText(candidate.path)
-    if (read === undefined) {
-      files.push({
-        path: candidate.path,
-        outcome: 'skipped',
-        reason: cannotBeRead,
-      })
+    const identity = await identityOf(candidate.path)
+    if (identity === undefined) {
+      skip(candidate.path, cannotBeRead)
       continue
     }
-    if (seen.has(read.identity)) continue
-    seen.add(read.identity)
+    if (seen.has(identity)) continue
+    seen.add(identity)
+    const text = await readText(candidate.path)
+    if (text === undefined) {
+      skip(candidate.path, cannotBeRead)
+      continue
+    }
     const parsed = parseLegacyFile({
       name: path.basename(candidate.path),
-      text: read.text,
+      text,
     })
     if (parsed.outcome === 'not-legacy') continue
-    files.push(
-      parsed.outcome === 'parsed'
-        ? {
-            path: candidate.path,
-            outcome: 'parsed',
-            record: parsed.record,
-            casting: parsed.casting,
-          }
-        : {
-            path: candidate.path,
-            outcome: 'skipped',
-            reason: legacyUnreadableReasonText(parsed.reason),
-          },
-    )
+    if (parsed.outcome === 'unreadable') {
+      skip(candidate.path, legacyUnreadableReasonText(parsed.reason))
+      continue
+    }
+    files.push({
+      path: candidate.path,
+      outcome: 'parsed',
+      record: parsed.record,
+      casting: parsed.casting,
+    })
   }
   return files
 }
 
-/**
- * The file's text as strict UTF-8, a byte-order mark kept for the parser,
- * and its identity, its device and inode; undefined when it cannot be read
- * or is not UTF-8.
- */
-async function readText(
-  file: string,
-): Promise<{ readonly text: string; readonly identity: string } | undefined> {
+/** The file's device and inode, or undefined when it cannot be stat'ed. */
+async function identityOf(file: string): Promise<string | undefined> {
   try {
-    const [entry, bytes] = await Promise.all([
-      stat(file, { bigint: true }),
-      readFile(file),
-    ])
-    const text = strictUtf8(bytes)
-    if (text === undefined) return undefined
-    return { text, identity: `${String(entry.dev)}:${String(entry.ino)}` }
+    const entry = await stat(file, { bigint: true })
+    return `${String(entry.dev)}:${String(entry.ino)}`
+  } catch {
+    return undefined
+  }
+}
+
+/**
+ * The file's text as strict UTF-8, a byte-order mark kept for the parser;
+ * undefined when it cannot be read or is not UTF-8.
+ */
+async function readText(file: string): Promise<string | undefined> {
+  try {
+    return strictUtf8(await readFile(file))
   } catch {
     return undefined
   }
