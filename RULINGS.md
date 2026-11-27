@@ -5553,3 +5553,20 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: ratify with changes — N1: `rerenderBodies` gives the new file the old file's mode (chmod the temporary file before the rename), with a POSIX-only test skipped on Windows. N2: on EXDEV, `moveToLegacy` copies to a temporary file in `legacy/`, links it to `to` (next suffix on EEXIST), removes the temporary file, then unlinks the original; it never deletes `to`. N8 in part: temporary-file cleanup after a successful link uses `rm(..., { force: true, maxRetries: <small> })`; renaming over a file another process holds open stays an untested Windows gap. N3–N7 ratified (the deleting Matter notes that a rerender's rename can resurrect a file deleted after it read the folder; M-015's importer decides symlinked paths and watches the N²/2 read cost). The implementer's choices are ratified: `.<target>.<randomUUID>.tmp` (wx, fsync, removed in finally); exclusive create by link, no locks; rerender temp then rename, one file at a time; `<stem>-2<ext>`, `-3`, … suffixes; `Buffer.compare` order; one file read at a time; a frontmatter closed at EOF gets a newline written back (R-463); move = link then unlink.
 - Reason: Least surprise for a private Journal (ADR-0015); one temporary-file scheme (AGENTS.md §5); `keep` should not reject a file it kept.
 - Folded into: not yet
+
+### R-475: R-471's amendment is a separate ADR-0045
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2, question Q-M-012-38 (the drafter edited ADR-0030
+  in place, ca539f2, and flagged R-004's convention)
+- Ruled by: delegate (R-423)
+- Ruling: A — revert ca539f2; ADR-0045 "New Journal files are hard-linked"
+  amends ADR-0030 with R-471's exact wording; the README marks 0030 "Amended
+  by 0045" and lists 0045 Accepted; consolidate 0030 and 0045 before M-015
+  starts, or at an earlier consolidation pass. ADR-0045 is ratified in
+  R-471's wording.
+- Reason: R-004 and R-013 fix the convention (an amending ADR, then
+  consolidation); the in-place sections date from before R-004; R-297 and
+  R-384 kept ADR-0043 and ADR-0044 separate the same way. Only the form of
+  the delegate's own R-471 changes.
+- Folded into: not yet (ADR-0045 once drafted)
