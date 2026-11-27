@@ -70,9 +70,11 @@ type DistributiveOmit<Type, Key extends PropertyKey> = Type extends unknown
 /**
  * One EditionId's data: what its Edition records share for every Work it
  * prints (names, script or language, licence, whether it is unidentified,
- * and its Witness), its names for Hexagrams and Trigrams, and its texts. The Catalogue makes one Edition record
- * per Work in `texts`, all with this id. Text is held as its Witness gives
- * it, never converted from another script.
+ * and its Witness), its names for Hexagrams and Trigrams, and its texts.
+ * The Catalogue makes one Edition record per Work in `texts`, all with this
+ * id; the Hexagram and Trigram names are labelled with its `zhouyi` Edition
+ * record. Text is held as its Witness gives it, never converted from
+ * another script.
  */
 export type BundledEdition = DistributiveOmit<
   Edition,
