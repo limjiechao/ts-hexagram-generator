@@ -1,5 +1,7 @@
 import type { Buffer } from 'node:buffer'
 
+import type { MarkdownConsultationStore } from '@hexagram/store-markdown/markdown-consultation-store'
+
 import type { composeCli } from '#src/composition-root.js'
 
 /** What a command may end with: 0 on a normal ending, 1 on a refusal or an error. */
@@ -64,11 +66,13 @@ export interface CommandIo {
 
 /**
  * The adapters a command works through: the four driven ports, as the
- * composition root takes them (ADR-0037), and the Journal's folder
- * (ADR-0020).
+ * composition root takes them (ADR-0037), the Journal's folder (ADR-0020),
+ * and the Markdown Store's move of an imported original into `legacy/`,
+ * which no port offers since only that Store has the folder.
  */
 export type CommandPorts = Parameters<typeof composeCli>[0] & {
   readonly journalFolder: string
+  readonly moveToLegacy: MarkdownConsultationStore['moveToLegacy']
 }
 
 /**

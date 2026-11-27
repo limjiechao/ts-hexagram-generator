@@ -48,6 +48,7 @@ const consultationStore: ConsultationStore = {
  * The real adapters a bin passes: the system Clock and the Random Source on
  * `node:crypto`, throwing stubs for the Scripture Catalogue and the Consultation
  * Store until their adapters land, and the Journal's folder (ADR-0020).
+ * `moveToLegacy` is a throwing stub until the bin builds the Markdown Store.
  */
 // The Journal's folder is found from the module, never from the process's
 // working folder (ADR-0020), so the process goes unread for now.
@@ -59,5 +60,6 @@ export function processPorts(process: NodeJS.Process): CommandPorts {
     scriptureCatalogue,
     consultationStore,
     journalFolder: journalFolder(),
+    moveToLegacy: notBuilt('Markdown Consultation Store'),
   }
 }
