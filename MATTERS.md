@@ -384,6 +384,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   suffix (R-437), and a missing folder read as an empty Journal (R-438).
   The Matter that builds §6.8's Record form refuses a Moment outside years
   0000–9999 inline (R-448).
+  Follow-up (R-484): a drafted public `localDate(divinedAt)` in
+  `consultation-journal/divined-at`, used by `encodeDivinedAt` and browse.
 
 ### M-013: The Readout: plain text, Ink sections and the Markdown file
 

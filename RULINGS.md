@@ -5673,3 +5673,43 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   "once" call counts (browse's `list`, open's `get`) are accepted as cheap to
   relax.
 - Folded into: not yet
+
+### R-484: Browse lands reading the local date from the record text
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3 review, question Q-M-012-44
+- Ruled by: delegate (R-423)
+- Ruling: A — land as is: browse reads a Moment's local date as
+  `encodeRecord(consultation).divinedAt.slice(0, 10)`. A follow-up drafts a
+  public `localDate(divinedAt)` in `consultation-journal/divined-at`, used by
+  both `encodeDivinedAt` and browse; its name and signature come back as a
+  drafted Tier-A surface before code depends on them.
+- Reason: correct for every Moment that can reach browse (decoding admits
+  only years 0000–9999, R-448's limit); swapping later is Tier B and
+  invisible to tests; (B) blocks a correct slice; (C) duplicates knowledge.
+- Folded into: not yet
+
+### R-485: `lint:check` runs ESLint without its cache
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3 review, question Q-M-012-45 (Tier C tooling)
+- Ruled by: delegate (R-423)
+- Ruling: A, the `package.json` variant — `lint:check` becomes
+  `oxlint && eslint .`; `lint:fix` and the clerk's Step 6 line stay.
+- Reason: typed rules (B12) depend on other files' types, which ESLint's
+  per-file cache cannot see, so a cached gate can pass falsely; one flag,
+  easy to undo; CI already runs uncached.
+- Folded into: not yet
+
+### R-486: M-012 slice 3's Tier-B digest
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3 review (4e3c821, 90eb245)
+- Ruled by: delegate (R-423)
+- Ruling: ratified whole — rewrap `composeCli`'s 108-character doc line;
+  encoding the whole record for a date stays until R-484's follow-up;
+  `openConsultation` not being `async` stays; `toLowerCase` on both sides,
+  keys computed once with `toSorted(...).toReversed()`, a Day keyed
+  `+Infinity`, and `<`/`>` text comparison are accepted.
+- Reason: R-479, R-480, R-482; the port returns Promises.
+- Folded into: not yet
