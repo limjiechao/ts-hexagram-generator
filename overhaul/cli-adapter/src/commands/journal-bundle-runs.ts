@@ -2,7 +2,6 @@ import { randomUUID } from 'node:crypto'
 import { link, open, readFile, rm } from 'node:fs/promises'
 import path from 'node:path'
 
-import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import {
   decodeJournalBundle,
   encodeJournalBundle,
@@ -20,11 +19,14 @@ import {
   bundleUnwritableLine,
   exportedLine,
   exportTargetExistsLine,
-  journalFailureLine,
   leftOutLine,
   mergedLine,
 } from '#src/commands/maintenance-reports.js'
-import { composeCli } from '#src/composition-root.js'
+import {
+  reportingJournalFailure,
+  strictUtf8,
+  useCases,
+} from '#src/commands/maintenance-runs.js'
 
 /*
  * `hexagram-history --export-journal <file>` and `--merge-journal <file>`
@@ -89,82 +91,6 @@ export async function mergeJournalRun(
     )
     return 0
   })
-}
-
-/** The use cases over the ports, their Store's failures told apart. */
-export function useCases(ports: CommandPorts): ReturnType<typeof composeCli> {
-  return composeCli({
-    ...ports,
-    consultationStore: tellingFailures(ports.consultationStore),
-  })
-}
-
-/** A Store failure, named by whether the Journal was being read or written. */
-export class JournalFailureError extends Error {
-  override readonly name = 'JournalFailureError'
-  readonly failure: 'read' | 'written'
-
-  constructor(failure: 'read' | 'written', cause: unknown) {
-    super(`the Journal cannot be ${failure}`, { cause })
-    this.failure = failure
-  }
-}
-
-/**
- * The Store with each failure wrapped as a `JournalFailureError`, since a use
- * case rejects with the Store's failure unchanged and so cannot say which
- * call failed.
- */
-function tellingFailures(store: ConsultationStore): ConsultationStore {
-  return {
-    keep: (consultation) => named('written', () => store.keep(consultation)),
-    list: () => named('read', () => store.list()),
-    get: (id) => named('read', () => store.get(id)),
-    remove: (record) => named('written', () => store.remove(record)),
-    deletionRecords: () => named('read', () => store.deletionRecords()),
-  }
-}
-
-async function named<Value>(
-  failure: 'read' | 'written',
-  call: () => Promise<Value>,
-): Promise<Value> {
-  try {
-    return await call()
-  } catch (error) {
-    throw new JournalFailureError(failure, error)
-  }
-}
-
-/** Runs `body`, ending a Store failure with its one stderr line. */
-export async function reportingJournalFailure(
-  io: CommandIo,
-  body: () => Promise<ExitCode>,
-): Promise<ExitCode> {
-  try {
-    return await body()
-  } catch (error) {
-    if (error instanceof JournalFailureError) {
-      return endWith(io, journalFailureLine(error.failure))
-    }
-    throw error
-  }
-}
-
-// `ignoreBOM` keeps a byte order mark in the text, so the bundle refuses it
-// rather than the reading dropping it.
-const strictUtf8Decoder = new TextDecoder('utf-8', {
-  fatal: true,
-  ignoreBOM: true,
-})
-
-/** The bytes as UTF-8, or undefined when they are not UTF-8. */
-export function strictUtf8(bytes: Uint8Array): string | undefined {
-  try {
-    return strictUtf8Decoder.decode(bytes)
-  } catch {
-    return undefined
-  }
 }
 
 /**

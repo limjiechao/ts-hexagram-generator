@@ -15,17 +15,17 @@ import type {
   ExitCode,
 } from '#src/commands/entry-point.js'
 import {
-  JournalFailureError,
-  reportingJournalFailure,
-  strictUtf8,
-  useCases,
-} from '#src/commands/journal-bundle-runs.js'
-import {
   importedLine,
   keptLine,
   legacyUnreadableReasonText,
   skippedLine,
 } from '#src/commands/maintenance-reports.js'
+import {
+  JournalFailureError,
+  reportingJournalFailure,
+  strictUtf8,
+  useCases,
+} from '#src/commands/maintenance-runs.js'
 
 /*
  * `hexagram-history --import-legacy [<path>…] --division-method <m>` (use
