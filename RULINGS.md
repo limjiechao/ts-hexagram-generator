@@ -6019,3 +6019,43 @@ the Journal cannot be read`, exit 1, no file written; merge of a path
   kept but not yet moved".
 - Ruling: "fix §6.7"
 - Folded into: `docs/manual/cli.md` §6.7
+
+### R-502: M-015 slice 3's holes and test list
+
+- Date: 2026-11-27
+- Raised in: M-015 slice 3 (tester's 7e6a8f0, b491c19), questions Q-M-015-41
+  to -49
+- Ruled by: delegate (R-423)
+- Ruling: (Q-41) A — use case 7 reads `deletionRecords` once per call before
+  its first `keep`; a drawn Id a record names is redrawn (same Clock time, 16
+  fresh draws); every record still kept and returned in order; a failed read
+  rejects unchanged and the CLI prints "the Journal cannot be read", exit 1.
+  (Q-42) A — a named path missing or unreadable, or a file not valid UTF-8,
+  prints `Skipped <path>: it cannot be read`, counted skipped, left in place,
+  exit 0; strict UTF-8 with a BOM passed to the parser (a BOM `.md` is
+  `no-frontmatter`); a missing default Journal folder imports nothing, zero
+  summary, creates nothing (flagged for the owner's eye). (Q-43) A — a tester
+  rewrites the 14 `frame.test.ts` import rows to the built outcome, back for
+  approval. (Q-44) A — argv order, each folder's files in code-point order.
+  (Q-45) A — `path.join(journalFolder, name)`. (Q-46) A — a move failing
+  after its keep prints the kept line, then "the Journal cannot be written",
+  exit 1, no summary. (Q-47) A — a file inside `legacy/` is kept and moved to
+  a suffixed name. (Q-48) A with amendments — strip ANSI SGR sequences only;
+  remove only a multi-line `.txt` Query's exact two-space indent; a
+  disagreeing Right Heap or a table of fewer than six rows is
+  `does-not-replay`; version-1 "(Query not provided)" is `invalid-field:
+query`; several bad fields report the first in ADR-0046's order; a `.txt`
+  name only `consultation-YYYY-MM-DDTHH-mm-ss±HHMM.txt`; a version-1
+  `timestamp` `YYYY-MM-DDTHH:mm:ss`, an optional fraction truncated to the
+  millisecond, then `Z` (as `+00:00`), `±HH:MM` or `±HHMM`; anything else
+  `invalid-field: divinedAt`; an empty frontmatter is `not-version-1`
+  (flagged for the owner's eye). (Q-49) A — each file read, kept and reported
+  once by identity, under the first path that names it. Derived points
+  confirmed. The 93 tests approved with three tightenings and 25 rows added
+  (118); fixtures approved.
+- Reason: R-123, R-350, R-357, R-360, R-368, R-437, R-445, R-494 Q-17, Q-18,
+  Q-20, Q-21, R-496 Q-30, R-497, R-498, R-499, R-501; ADR-0046; manual §6.7.
+  Every choice leaves skipped originals in place and kept ones in `legacy/`,
+  so nothing is lost; the real Journal is untouched until Q-M-015-24.
+- Folded into: not yet (doc fixes to `import-legacy-files.ts`,
+  `parse-legacy.ts` and `maintenance-reports.ts`)
