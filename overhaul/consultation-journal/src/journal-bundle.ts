@@ -98,11 +98,11 @@ export function encodeJournalBundle(journal: Journal): string {
  * Reads a bundle's text. Each Consultation is loaded by `decodeRecord`, so
  * each Cast Consultation's Casting is replayed to its Transformation
  * (ADR-0026); one that does not load is left out with its reason, and so is
- * a later record holding an Id already loaded. Every Deletion Record must
- * decode, or the whole bundle is refused. Deletion Records naming one Id
- * more than once are accepted and all kept in the Journal. It accepts
- * records and Deletion Records in any order and any JSON layout, and
- * ignores fields it does not name. It never throws.
+ * a later record holding an Id already loaded; `leftOut` is in bundle
+ * order. Every Deletion Record must decode, or the whole bundle is refused.
+ * Deletion Records naming one Id more than once are accepted and all kept
+ * in the Journal. It accepts records and Deletion Records in any order and
+ * any JSON layout, and ignores fields it does not name. It never throws.
  */
 export function decodeJournalBundle(text: string): JournalBundleDecodeResult {
   let parsed: unknown
