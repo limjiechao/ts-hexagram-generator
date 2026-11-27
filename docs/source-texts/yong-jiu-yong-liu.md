@@ -71,7 +71,7 @@ ADR-0028 records this Edition as ctext's own conversion, not an independent
 - 小象 (Legge's "symbolism" for it): 
 
 ```
-‘The same undivided line is used’ (in all the places of this hexagram), but the attribute of heaven (thereby denoted) should not (always) take the foremost place.
+'The same undivided line is used' (in all the places of this hexagram), but the attribute of heaven (thereby denoted) should not (always) take the foremost place.
 ```
 
 ### 坤 · 用六
@@ -85,7 +85,7 @@ ADR-0028 records this Edition as ctext's own conversion, not an independent
 - 小象: 
 
 ```
-‘(The lines are all weak and divided, as appears from) the use of the number six:’—but (those who are thus represented) becoming perpetually correct and firm, there will thereby be a great consummation.
+'(The lines are all weak and divided, as appears from) the use of the number six:'--but (those who are thus represented) becoming perpetually correct and firm, there will thereby be a great consummation.
 ```
 
 ---
@@ -102,8 +102,8 @@ location if your reader shows one):
 - Line text: 
 
 ```
-When all the lines are nines, it means: 
-There appears a flight of dragons without heads. 
+When all the lines are nines, it means:
+There appears a flight of dragons without heads.
 Good fortune.
 ```
 

@@ -6220,3 +6220,21 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   R-369 to R-373, R-403, R-441; ADR-0025, ADR-0028, ADR-0032, ADR-0038;
   CONTEXT.md; manual §5.
 - Folded into: not yet
+
+### R-511: The 用九/用六 texts follow their Editions' typography; the EPUB is 1967
+
+- Date: 2026-11-27
+- Raised in: R-510's referrals Q-M-011-6 (the EPUB's edition) and Q-M-011-17
+  (scripture: trailing spaces in the Wilhelm–Baynes 乾 用九; the owner's
+  Legge text in curly quotes and an em dash where the legacy Legge data writes
+  straight quotes and `--`)
+- Question: (Q-6) is the Wilhelm–Baynes EPUB the 1967 third edition? (Q-17)
+  how to treat the details in the passages file.
+- Ruling: "Yes" (the id `wilhelm-baynes-1967`); "Fix by making them
+  consistent."
+- Folded into: `docs/source-texts/yong-jiu-yong-liu.md` (the clerk, on the
+  owner's instruction, dropped the two trailing spaces in the Wilhelm–Baynes
+  乾 用九 and set the Legge 乾 and 坤 小象 in straight quotes and `--`, as the
+  legacy Legge data writes them; no word was changed, no "7." was added, and
+  lowercase "nine"/"six" stand, since the legacy data capitalises NINE/SIX
+  only as line labels); R-510 Q-6 resolves to `wilhelm-baynes-1967`
