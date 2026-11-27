@@ -410,6 +410,9 @@ importers:
       '@hexagram/oracle':
         specifier: workspace:*
         version: link:../oracle
+      '@hexagram/presentation':
+        specifier: workspace:*
+        version: link:../presentation
       '@hexagram/scripture-catalogue':
         specifier: workspace:*
         version: link:../scripture-catalogue
