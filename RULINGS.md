@@ -5645,3 +5645,18 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   building win32 code first is unasked generality (AGENTS.md §6, §7); a
   parameter change is undone in one line.
 - Folded into: not yet
+
+### R-482: The Journal sorts by local date first
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3, question Q-M-012-41 (referred by the delegate:
+  R-378's rules form a cycle when offsets differ, and every answer changes the
+  owner's R-337 and R-378 and the manual's §4)
+- Question: (A) sort by each row's local date, newest first; within one date,
+  date-only rows above moments, moments by instant, newest first; remaining
+  ties by Id (R-479); manual §4's "moments sort by instant" becomes "moments
+  of one date sort by instant". (B) moments strictly by instant, a date-only
+  row just above the newest moment of its date (or at the end of its UTC date
+  when none shares it). (C) leave the cross-offset case unspecified.
+- Ruling: "Q-M-012-41: A"
+- Folded into: `docs/manual/cli.md` §4; refines R-337 and R-378
