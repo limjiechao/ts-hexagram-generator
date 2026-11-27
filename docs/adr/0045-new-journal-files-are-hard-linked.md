@@ -30,11 +30,16 @@ A re-rendered body is meant to replace the old one, so it keeps the rename.
   Both of ADR-0030's rules hold.
 - **A rename for every write.** Rejected. A new file could overwrite one
   already at its name.
-- **Create the target in place, exclusively, with no temporary file.**
-  Rejected. A crash mid-write would leave a partial file in the Journal.
-- **A fallback for filesystems without hard links.** Not taken now. ADR-0020
-  puts the Journal in the repository's `consultations` folder, and a fallback
-  can be added later (R-471).
+- **Where a link is unsupported, fall back to check, then rename.**
+  Rejected. Between the check and the rename lies a small window in which a
+  file could be overwritten, which breaks never-overwrite.
+- **Where a link is unsupported, fall back to writing the final name
+  directly with `wx`.** Rejected. A reader could see a partial file, which
+  breaks atomic writes.
+
+Either fallback breaks one of ADR-0030's two rules, so a Journal without hard
+links is unsupported instead. ADR-0020 puts the Journal in the repository's
+`consultations` folder, and a fallback can be added later (R-471).
 
 ## Consequences
 
