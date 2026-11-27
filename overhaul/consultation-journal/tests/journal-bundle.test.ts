@@ -219,6 +219,71 @@ describe('encodeJournalBundle', () => {
     expect(text).toContain('"deletedAt": "2026-11-20T08:30:00.000-05:00"')
     expect(text).toContain('"deletedAt": "2026-11-27T09:15:00.000+08:00"')
   })
+
+  describe('writes one Deletion Record for an Id that has two', () => {
+    const id = laterDeletion.consultationId
+
+    it('keeps the earliest by instant, even when its text sorts later', () => {
+      // 13:30Z, though its text sorts first.
+      const laterInstant = deletionRecordOf({
+        consultationId: id,
+        deletedAt: '2026-11-20T08:30:00.000-05:00',
+      })
+      // 12:00Z.
+      const earlierInstant = deletionRecordOf({
+        consultationId: id,
+        deletedAt: '2026-11-20T20:00:00.000+08:00',
+      })
+      const expected = textOf(
+        bundleOf({
+          consultations: [],
+          deletionRecords: [earlierIdDeletion, earlierInstant].map(
+            encodeDeletionRecord,
+          ),
+        }),
+      )
+
+      for (const deletionRecords of [
+        [laterInstant, earlierIdDeletion, earlierInstant],
+        [earlierInstant, laterInstant, earlierIdDeletion],
+      ]) {
+        expect(
+          encodeJournalBundle({ consultations: [], deletionRecords }),
+        ).toBe(expected)
+      }
+    })
+
+    it('keeps the smaller encoded text of one instant in two offsets, whatever the order', () => {
+      // Both 13:30Z.
+      const western = deletionRecordOf({
+        consultationId: id,
+        deletedAt: '2026-11-20T08:30:00.000-05:00',
+      })
+      const eastern = deletionRecordOf({
+        consultationId: id,
+        deletedAt: '2026-11-20T21:30:00.000+08:00',
+      })
+      const expected = textOf(
+        bundleOf({
+          consultations: [],
+          deletionRecords: [encodeDeletionRecord(western)],
+        }),
+      )
+
+      expect(
+        encodeJournalBundle({
+          consultations: [],
+          deletionRecords: [western, eastern],
+        }),
+      ).toBe(expected)
+      expect(
+        encodeJournalBundle({
+          consultations: [],
+          deletionRecords: [eastern, western],
+        }),
+      ).toBe(expected)
+    })
+  })
 })
 
 describe('decodeJournalBundle', () => {
@@ -366,6 +431,54 @@ describe('decodeJournalBundle', () => {
         })
       },
     )
+
+    it('naming the first Deletion Record that cannot be read', () => {
+      const text = textOf(
+        bundleOf({
+          consultations: [],
+          deletionRecords: [
+            encodeDeletionRecord(laterDeletion),
+            { consultationId: 'not-a-ulid', deletedAt: '2026-11-20' },
+            'deleted',
+          ],
+        }),
+      )
+
+      expect(decodeJournalBundle(text)).toEqual({
+        outcome: 'unreadable',
+        reason: { kind: 'invalid-deletion-record', index: 1 },
+      })
+    })
+
+    it('as not JSON when the text opens with a byte order mark', async () => {
+      const text = `﻿${await readFixture('journal-bundle.json')}`
+
+      expect(decodeJournalBundle(text)).toEqual({
+        outcome: 'unreadable',
+        reason: { kind: 'not-json' },
+      })
+    })
+  })
+
+  it('keeps both Deletion Records for one Id, refusing and leaving out nothing', () => {
+    const sameIdLater = deletionRecordOf({
+      consultationId: laterDeletion.consultationId,
+      deletedAt: '2026-11-21T10:00:00.000+08:00',
+    })
+    const text = textOf(
+      bundleOf({
+        consultations: [recordedDayRecord],
+        deletionRecords: [laterDeletion, sameIdLater].map(encodeDeletionRecord),
+      }),
+    )
+
+    const result = decodeJournalBundle(text)
+
+    expectDecodedJournal(result, {
+      consultations: [recordedDay],
+      deletionRecords: [laterDeletion, sameIdLater],
+    })
+    expect(result).toMatchObject({ leftOut: [] })
   })
 
   describe('leaves out a Consultation that does not load, and reads the rest', () => {

@@ -167,6 +167,26 @@ describe('exportJournal (use case 10)', () => {
     })
   })
 
+  it('passes both of the Store’s Deletion Records for one Id through', async () => {
+    const first = deletionRecordOf(firstOther.id, deletedAt)
+    const second = deletionRecordOf(
+      firstOther.id,
+      '2026-11-20T20:00:00.000+08:00',
+    )
+    const store = memoryStore({ consultations: [shared] })
+    const ports = {
+      consultationStore: {
+        ...store.ports.consultationStore,
+        deletionRecords: () => Promise.resolve([first, second]),
+      },
+    }
+
+    expectSameJournal(await exportJournal(ports), {
+      consultations: [shared],
+      deletionRecords: [first, second],
+    })
+  })
+
   it('writes nothing to the Store', async () => {
     const store = memoryStore({ consultations: [shared] })
 
@@ -425,6 +445,48 @@ describe('mergeJournal (use case 10)', () => {
     expect(order).toContain('keep')
     expect(order.indexOf('deletionRecords')).toBeGreaterThanOrEqual(0)
     expect(order.indexOf('deletionRecords')).toBeLessThan(order.indexOf('keep'))
+  })
+
+  it('removes by a duplicated Id’s records earliest first, so the Store keeps the earliest', async () => {
+    // 13:30Z, listed first.
+    const later = deletionRecordOf(firstOwn.id, '2026-11-20T08:30:00.000-05:00')
+    // 12:00Z.
+    const earlier = deletionRecordOf(
+      firstOwn.id,
+      '2026-11-20T20:00:00.000+08:00',
+    )
+    const store = memoryStore({ consultations: [shared, firstOwn] })
+
+    await expect(
+      mergeJournal(store.ports, {
+        consultations: [],
+        deletionRecords: [later, earlier],
+      }),
+    ).resolves.toEqual({ added: 0, removed: 1 })
+
+    const firstRemoved = store.remove.mock.calls
+      .map(([record]) => record)
+      .find((record) => record.consultationId === firstOwn.id)
+    expect(firstRemoved).toEqual(earlier)
+    expectSameJournal(store.held(), {
+      consultations: [shared],
+      deletionRecords: [earlier],
+    })
+  })
+
+  it('counts an Id the incoming Journal holds twice as one added', async () => {
+    const store = memoryStore({ consultations: [shared] })
+
+    await expect(
+      mergeJournal(store.ports, {
+        consultations: [firstOther, firstOther],
+        deletionRecords: [],
+      }),
+    ).resolves.toEqual({ added: 1, removed: 0 })
+    expectSameJournal(store.held(), {
+      consultations: [shared, firstOther],
+      deletionRecords: [],
+    })
   })
 
   describe('rejects with the Store failure unchanged', () => {

@@ -1,3 +1,4 @@
+import { Buffer } from 'node:buffer'
 import {
   mkdir,
   mkdtemp,
@@ -8,6 +9,7 @@ import {
 } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 
 import type { Clock } from '@hexagram/application/clock'
 import type { RandomSource } from '@hexagram/application/random-source'
@@ -187,6 +189,15 @@ function recordName(record: DeletionRecord): string {
   return `deleted/${record.consultationId}.json`
 }
 
+/** A snapshot's Consultation files, without its Deletion Records. */
+function consultationFiles(
+  files: Record<string, string>,
+): Record<string, string> {
+  return Object.fromEntries(
+    Object.entries(files).filter(([name]) => !name.startsWith('deleted/')),
+  )
+}
+
 const unused = (): never => {
   throw new Error('a Journal bundle run used a port it needs not')
 }
@@ -339,6 +350,65 @@ describe('hexagram-history --export-journal', () => {
       stderr: `hexagram-history: ${file} already exists\n`,
     })
     expect(await readFile(file, 'utf8')).toBe('not to be written over\n')
+  })
+
+  it('writes one Deletion Record, the earliest, for an Id the Journal holds two of', async () => {
+    const journalFolder = path.join(await temporaryFolder(), 'journal')
+    await seed(journalFolder, [ownFirst], [])
+    const id = goneFromOwn[0].id
+    const later = deletionRecordOf(id, '2026-11-27T09:15:00.000+08:00')
+    const earlier = deletionRecordOf(id, '2026-11-20T08:30:00.000-05:00')
+    const recordText = (record: DeletionRecord) =>
+      `${JSON.stringify(encodeDeletionRecord(record), null, 2)}\n`
+    await mkdir(path.join(journalFolder, 'deleted'))
+    await writeFile(
+      path.join(journalFolder, 'deleted', `${id}.json`),
+      recordText(later),
+    )
+    await writeFile(
+      path.join(journalFolder, 'deleted', 'copy.json'),
+      recordText(earlier),
+    )
+    const file = path.join(await temporaryFolder(), 'journal.json')
+
+    const result = await history(['--export-journal', file], journalFolder)
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `Exported 1 consultation and 1 deletion record to ${file}.\n`,
+      stderr: '',
+    })
+    expect(await readFile(file, 'utf8')).toBe(
+      encodeJournalBundle({
+        consultations: [ownFirst],
+        deletionRecords: [earlier],
+      }),
+    )
+  })
+
+  it('writes a relative path in the working folder and reports it as given', async () => {
+    const { own } = await seedBoth()
+    const working = await temporaryFolder()
+    const before = process.cwd()
+    process.chdir(working)
+    try {
+      const result = await history(['--export-journal', 'journal.json'], own)
+
+      expect(result).toEqual({
+        exitCode: 0,
+        stdout:
+          'Exported 5 consultations and 2 deletion records to journal.json.\n',
+        stderr: '',
+      })
+    } finally {
+      process.chdir(before)
+    }
+    expect(await readFile(path.join(working, 'journal.json'), 'utf8')).toBe(
+      encodeJournalBundle({
+        consultations: [shared, ownFirst, ownSecond, ...goneFromOther],
+        deletionRecords: deletedInOwn,
+      }),
+    )
   })
 
   it('stops with exit 1 when the Journal cannot be read', async () => {
@@ -548,17 +618,119 @@ describe('hexagram-history --merge-journal', () => {
     ])
   })
 
-  it('ends with one line on stderr and exit 1 when the bundle cannot be read at all', async () => {
-    const { own } = await seedBoth()
-    const before = await snapshot(own)
-    const file = path.join(await temporaryFolder(), 'missing.json')
+  it.each([
+    ['a file that does not exist', (file: string) => Promise.resolve(file)],
+    [
+      'a directory',
+      async (file: string) => {
+        await mkdir(file)
+        return file
+      },
+    ],
+  ])(
+    'refuses %s as a file that cannot be read, merging nothing',
+    async (_case, place) => {
+      const { own } = await seedBoth()
+      const before = await snapshot(own)
+      const file = await place(
+        path.join(await temporaryFolder(), 'journal.json'),
+      )
 
-    const result = await history(['--merge-journal', file], own)
+      const result = await history(['--merge-journal', file], own)
 
-    expect(result.exitCode).toBe(1)
-    expect(result.stdout).toBe('')
-    expect(result.stderr).toMatch(/^hexagram-history: [^\n]+\n$/)
-    expect(await snapshot(own)).toEqual(before)
+      expect(result).toEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: `hexagram-history: ${file} cannot be read\n`,
+      })
+      expect(await snapshot(own)).toEqual(before)
+    },
+  )
+
+  describe('refuses as not a Journal bundle, changing nothing', () => {
+    const query = 'Will the mill at Westmill grind again?'
+    const text = bundleText({
+      consultations: [{ ...encodeRecord(otherFirst), query }],
+      deletionRecords: [],
+    })
+
+    it.each([
+      ['one opening with a byte order mark', Buffer.from(`﻿${text}`)],
+      [
+        'one with a byte that is not UTF-8 inside a Query',
+        Buffer.concat(
+          text
+            .split('Westmill')
+            .flatMap((part, at) =>
+              at === 0
+                ? [Buffer.from(part)]
+                : [Buffer.from([0xff]), Buffer.from(part)],
+            ),
+        ),
+      ],
+    ])('%s', async (_case, bytes) => {
+      const { own } = await seedBoth()
+      const before = await snapshot(own)
+      const file = path.join(await temporaryFolder(), 'journal.json')
+      await writeFile(file, bytes)
+
+      const result = await history(['--merge-journal', file], own)
+
+      expect(result).toEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: `hexagram-history: ${file} is not a Journal bundle\n`,
+      })
+      expect(await snapshot(own)).toEqual(before)
+    })
+  })
+
+  it('after a double deletion, each side keeps its own Deletion Record and the Consultations agree', async () => {
+    const root = await temporaryFolder()
+    const own = path.join(root, 'own')
+    const other = path.join(root, 'other')
+    const [both] = goneFromOwn
+    await seed(
+      own,
+      [shared, ownFirst, both],
+      [deletionRecordOf(both.id, '2026-11-20T08:30:00.000-05:00')],
+    )
+    await seed(
+      other,
+      [shared, otherFirst, both],
+      [deletionRecordOf(both.id, '2026-11-27T09:15:00.000+08:00')],
+    )
+    const ownBefore = await snapshot(own)
+    const otherBefore = await snapshot(other)
+    const ownRecordBytes = ownBefore[recordName(deletedInOwn[0])]
+    const otherRecordBytes = otherBefore[recordName(deletedInOwn[0])]
+    expect(ownRecordBytes).not.toBe(otherRecordBytes)
+    const bundles = await temporaryFolder()
+    const file = (name: string) => path.join(bundles, name)
+
+    expect(await mergeInto(own, other, file('own-1.json'))).toMatchObject({
+      stdout: `Merged ${file('own-1.json')}: 1 added, 0 removed by Deletion Records, 0 left out.\n`,
+    })
+    expect(await mergeInto(other, own, file('other-1.json'))).toMatchObject({
+      stdout: `Merged ${file('other-1.json')}: 1 added, 0 removed by Deletion Records, 0 left out.\n`,
+    })
+    expect(await mergeInto(own, other, file('own-2.json'))).toMatchObject({
+      stdout: `Merged ${file('own-2.json')}: 0 added, 0 removed by Deletion Records, 0 left out.\n`,
+    })
+    expect(await mergeInto(other, own, file('other-2.json'))).toMatchObject({
+      stdout: `Merged ${file('other-2.json')}: 0 added, 0 removed by Deletion Records, 0 left out.\n`,
+    })
+
+    const ownFiles = await snapshot(own)
+    const otherFiles = await snapshot(other)
+    expect(consultationFiles(ownFiles)).toEqual(consultationFiles(otherFiles))
+    expect(Object.keys(consultationFiles(ownFiles)).toSorted()).toEqual([
+      fileName(shared, '2026-09-01'),
+      fileName(ownFirst, '2026-09-02'),
+      fileName(otherFirst, '2026-09-04'),
+    ])
+    expect(ownFiles[recordName(deletedInOwn[0])]).toBe(ownRecordBytes)
+    expect(otherFiles[recordName(deletedInOwn[0])]).toBe(otherRecordBytes)
   })
 
   it('reads a bundle in any JSON layout and key order', async () => {
