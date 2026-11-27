@@ -1,6 +1,7 @@
 import { Buffer } from 'node:buffer'
 import { randomInt } from 'node:crypto'
 import {
+  chmod,
   copyFile,
   mkdir,
   mkdtemp,
@@ -1106,5 +1107,190 @@ describe('hexagram-history --import-legacy: files that cannot be read, failures 
       stderr: '',
     })
     expect(await held(journal)).toHaveLength(2)
+  })
+})
+
+describe('hexagram-history --import-legacy: each file once, by its identity, before it is read', () => {
+  const heapName = 'consultation-2026-05-19T11-08-42+0800.txt'
+  const badName = 'consultation-2026-03-16T13-28-33+0800.txt'
+
+  /** Writes the Shape B fixture with a byte that is not UTF-8 into it. */
+  async function placeNotUtf8(folder: string): Promise<string> {
+    const text = await fixtureText('legacy-shape-b.txt')
+    const file = path.join(folder, badName)
+    await writeFile(
+      file,
+      Buffer.concat([
+        Buffer.from(text.slice(0, 20), 'utf8'),
+        Buffer.from([0xff]),
+        Buffer.from(text.slice(20), 'utf8'),
+      ]),
+    )
+    return file
+  }
+
+  const oneSkipped = (file: string) =>
+    `${skipped(file, 'it cannot be read')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`
+
+  it('skips a file that is not UTF-8, named twice, once', async () => {
+    const { journal, old } = await workspace()
+    const file = await placeNotUtf8(old)
+
+    const result = await history(
+      ['--import-legacy', file, file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: oneSkipped(file),
+      stderr: '',
+    })
+    expect(await fileNames(old)).toEqual([badName])
+  })
+
+  it('skips a file that is not UTF-8, found in its folder and then named, once', async () => {
+    const { journal, old } = await workspace()
+    const file = await placeNotUtf8(old)
+
+    const result = await history(
+      ['--import-legacy', old, file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: oneSkipped(path.join(old, badName)),
+      stderr: '',
+    })
+  })
+
+  it.skipIf(process.platform === 'win32' || process.getuid?.() === 0)(
+    'skips a file that can be stat’ed but not read, named twice, once',
+    async () => {
+      const { journal, old } = await workspace()
+      const file = await place('legacy-real-heap-casting.txt', old, heapName)
+      await chmod(file, 0o000)
+      try {
+        const result = await history(
+          ['--import-legacy', file, file, '--division-method', 'physical'],
+          portsOver(journal),
+        )
+
+        expect(result).toEqual({
+          exitCode: 0,
+          stdout: oneSkipped(file),
+          stderr: '',
+        })
+      } finally {
+        await chmod(file, 0o644)
+      }
+      expect(await fileNames(old)).toEqual([heapName])
+    },
+  )
+
+  it('reports a missing path named twice once per mention, and creates nothing', async () => {
+    const { root, journal } = await workspace()
+    const missing = path.join(root, 'd', 'missing.txt')
+
+    const result = await history(
+      ['--import-legacy', missing, missing, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: [
+        skipped(missing, 'it cannot be read'),
+        skipped(missing, 'it cannot be read'),
+        summary({ files: '2 files', cast: 0, recorded: 0, skipped: 2 }),
+        '',
+      ].join('\n'),
+      stderr: '',
+    })
+    await expect(readdir(path.join(root, 'd'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    })
+    await expect(readdir(path.join(journal, 'legacy'))).rejects.toMatchObject({
+      code: 'ENOENT',
+    })
+    expect(await held(journal)).toEqual([])
+  })
+
+  it('keeps a good file named twice once, and skips a file that is not UTF-8 named twice once', async () => {
+    const { journal, old } = await workspace()
+    const good = await place('legacy-real-heap-casting.txt', old, heapName)
+    const bad = await placeNotUtf8(old)
+
+    const result = await history(
+      [
+        '--import-legacy',
+        good,
+        good,
+        bad,
+        bad,
+        '--division-method',
+        'physical',
+      ],
+      portsOver(journal),
+    )
+
+    const kept = await heldOf(journal, heapQuery)
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: [
+        castLine(good, kept.id),
+        skipped(bad, 'it cannot be read'),
+        summary({ files: '2 files', cast: 1, recorded: 0, skipped: 1 }),
+        '',
+      ].join('\n'),
+      stderr: '',
+    })
+    expect(await held(journal)).toHaveLength(1)
+  })
+})
+
+describe('hexagram-history --import-legacy of files with CRLF line endings', () => {
+  it('skips a CRLF copy of a legacy .txt file as giving no Query, and leaves it in place', async () => {
+    const { journal, old } = await workspace()
+    const plain = await fixtureText('legacy-real-heap-casting.txt')
+    const text = plain.replaceAll('\n', '\r\n')
+    const file = path.join(old, 'consultation-2026-05-19T11-08-42+0800.txt')
+    await writeFile(file, text)
+
+    const result = await history(
+      ['--import-legacy', file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${skipped(file, 'it gives no Query')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stderr: '',
+    })
+    expect(await readFile(file, 'utf8')).toBe(text)
+  })
+
+  it('skips a CRLF copy of a version-1 .md file as having no frontmatter, and leaves it in place', async () => {
+    const { journal, old } = await workspace()
+    const text = version1Text({
+      timestamp: '2026-05-19T14:23:11+0800',
+      query: 'Will the bridge at Greyfen Hold stand through the thaw?',
+      withCasting: true,
+    }).replaceAll('\n', '\r\n')
+    const file = path.join(old, 'consultation-2026-05-19T14-23-11+0800.md')
+    await writeFile(file, text)
+
+    const result = await history(
+      ['--import-legacy', file, '--division-method', 'physical'],
+      portsOver(journal),
+    )
+
+    expect(result).toEqual({
+      exitCode: 0,
+      stdout: `${skipped(file, 'it has no frontmatter')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stderr: '',
+    })
+    expect(await readFile(file, 'utf8')).toBe(text)
   })
 })
