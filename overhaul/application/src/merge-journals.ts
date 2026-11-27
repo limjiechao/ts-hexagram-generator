@@ -11,8 +11,10 @@ import { notImplemented } from '#src/not-implemented.js'
  */
 
 /**
- * The Journal of this Store: its Consultations and Deletion Records. An
- * Unreadable file is not a Consultation, so it is not exported.
+ * The Journal of this Store: its Consultations and Deletion Records, the
+ * records passed through as the Store gives them, several for one Id
+ * included. An Unreadable file is not a Consultation, so it is not
+ * exported.
  */
 export function exportJournal(ports: {
   readonly consultationStore: ConsultationStore
@@ -22,7 +24,7 @@ export function exportJournal(ports: {
 
 /**
  * What a merge changed in this Store, for its report. `added` counts the
- * incoming Consultations it kept that the Store did not hold; `removed`
+ * distinct Consultation Ids it kept that the Store did not hold; `removed`
  * counts the Consultations the Store held that an incoming Deletion Record
  * removed. Merging the same Journal again gives zero for both.
  */
@@ -33,13 +35,14 @@ export interface MergeCounts {
 
 /**
  * Merges another Journal into this Store: it removes each incoming Deletion
- * Record's Consultation, then keeps each incoming Consultation that neither
- * Journal's Deletion Records name. Both steps are idempotent (ADR-0037), so
- * merging the same Journal twice is the same as merging it once. The caller
- * has already replayed each incoming Cast Consultation's Casting to its
- * Transformation (ADR-0026) and left out any that did not replay, so every
- * Consultation in the Journal is kept as it is. It resolves to what it
- * changed.
+ * Record's Consultation, an Id named by several records removed by its
+ * earliest `deletedAt` first, then keeps each incoming Consultation that
+ * neither Journal's Deletion Records name. Both steps are idempotent
+ * (ADR-0037), so merging the same Journal twice is the same as merging it
+ * once. The caller has already replayed each incoming Cast Consultation's
+ * Casting to its Transformation (ADR-0026) and left out any that did not
+ * replay, so every Consultation in the Journal is kept as it is. It
+ * resolves to what it changed.
  */
 export function mergeJournal(
   ports: { readonly consultationStore: ConsultationStore },

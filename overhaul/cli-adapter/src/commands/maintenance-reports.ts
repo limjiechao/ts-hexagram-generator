@@ -42,7 +42,9 @@ export function journalFailureLine(failure: 'read' | 'written'): string {
 
 /**
  * `--export-journal`'s one line, for example `Exported 40 consultations and
- * 2 deletion records to journal.json.`, the file as the user gave it.
+ * 2 deletion records to journal.json.`, the file as the user gave it. It
+ * counts what the bundle holds: one Deletion Record per Consultation Id,
+ * however many the Store keeps for it.
  */
 export function exportedLine(
   file: string,
@@ -61,8 +63,19 @@ export function exportTargetExistsLine(file: string): string {
 }
 
 /**
+ * `--merge-journal`'s refusal, on stderr before exit 1, when the file
+ * cannot be read at all and nothing is merged:
+ * `hexagram-history: journal.json cannot be read`.
+ */
+export function bundleUnreadableLine(file: string): string {
+  throw new Error('not built', { cause: file })
+}
+
+/**
  * `--merge-journal`'s refusal, on stderr before exit 1, when the bundle is
- * refused whole and nothing is merged:
+ * refused whole and nothing is merged. The CLI reads the file as strict
+ * UTF-8, so a byte that is not UTF-8, or a byte-order mark, makes it not
+ * a Journal bundle:
  * `hexagram-history: journal.json is not a Journal bundle` when it is not
  * JSON or not a bundle, and `hexagram-history: journal.json has a Deletion
  * Record that cannot be read, deletionRecords[2]` when one does not decode.

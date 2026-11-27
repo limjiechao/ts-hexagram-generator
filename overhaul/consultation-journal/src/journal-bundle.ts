@@ -60,9 +60,12 @@ export type JournalBundleDecodeResult =
  * as `encodeDeletionRecord` gives it). Consultations are sorted by `id`
  * and Deletion Records by `consultationId`, both in code-point order, so
  * one Journal always gives the same bytes whatever order its Store listed
- * them in. It is indented by two spaces, as `JSON.stringify` indents, with
- * a final newline. It never fails, within the limit `encodeRecord` states
- * for a Moment.
+ * them in. It writes at most one Deletion Record per Consultation Id: of
+ * several naming one Id, the earliest `deletedAt` by instant, a tie going
+ * to the record whose encoded text is smaller in code-point order. It is
+ * indented by two spaces, as `JSON.stringify` indents, with a final
+ * newline. It never fails, within the limit `encodeRecord` states for a
+ * Moment.
  */
 export function encodeJournalBundle(journal: Journal): string {
   throw new Error('not built', { cause: journal })
@@ -73,9 +76,10 @@ export function encodeJournalBundle(journal: Journal): string {
  * each Cast Consultation's Casting is replayed to its Transformation
  * (ADR-0026); one that does not load is left out with its reason, and so is
  * a later record holding an Id already loaded. Every Deletion Record must
- * decode, or the whole bundle is refused. It accepts records and Deletion
- * Records in any order and any JSON layout, and ignores fields it does not
- * name. It never throws.
+ * decode, or the whole bundle is refused. Deletion Records naming one Id
+ * more than once are accepted and all kept in the Journal. It accepts
+ * records and Deletion Records in any order and any JSON layout, and
+ * ignores fields it does not name. It never throws.
  */
 export function decodeJournalBundle(text: string): JournalBundleDecodeResult {
   throw new Error('not built', { cause: text })
