@@ -144,9 +144,12 @@ function temporaryPath(folder: string, name: string): string {
 }
 
 // Retried, since on Windows a scanner or indexer briefly holding the
-// freshly linked file makes the first removal fail with EBUSY or EPERM.
+// freshly linked file makes the first removal fail with EBUSY or EPERM. A
+// removal that still fails is ignored: the write's own outcome, or the
+// failure that stopped it, stands, and a leftover dotfile `.tmp` is never
+// read as a Consultation.
 async function removeTemporary(file: string): Promise<void> {
-  await rm(file, { force: true, maxRetries: 3 })
+  await rm(file, { force: true, maxRetries: 3 }).catch(() => undefined)
 }
 
 async function writeDurably(file: string, text: string): Promise<void> {
