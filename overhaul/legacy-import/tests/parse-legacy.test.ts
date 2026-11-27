@@ -867,12 +867,37 @@ describe('parseLegacyFile: a file with Windows line endings', () => {
     'legacy-real-oldest-no-casting.txt',
     'legacy-shape-b.txt',
     'legacy-chinese-query.txt',
+    'legacy-heap-other-transformation.txt',
+    'legacy-heap-multi-moving.txt',
+    'legacy-split-stalks-disagree.txt',
   ])('reads a CRLF copy of %s as its LF original', (fixtureName) => {
     const lf = legacyFile(fixtureName)
     const lfResult = parseLegacyFile(lf)
     expect(lfResult.outcome).toBe('parsed')
 
     expect(parseLegacyFile({ ...lf, text: crlf(lf.text) })).toEqual(lfResult)
+  })
+
+  it('calls a CRLF copy of a version-2 file not-legacy, as its LF original', () => {
+    const text = [
+      '---',
+      'schemaVersion: 2',
+      'id: 01JC0000000000000000000001',
+      "divinedAt: '2026-09-01T21:14:05.250+08:00'",
+      'query: Will the mill at Westmill grind again?',
+      "transformation: '787878'",
+      '---',
+      '',
+      'A stub body.',
+      '',
+    ].join('\n')
+
+    expect(
+      parseLegacyFile({
+        name: '2026-09-01--01JC0000000000000000000001.md',
+        text: crlf(text),
+      }),
+    ).toEqual({ outcome: 'not-legacy' })
   })
 
   it('reads a CRLF copy of a version-1 file as its LF original', () => {
