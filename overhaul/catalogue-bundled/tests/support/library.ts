@@ -13,9 +13,9 @@ import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-pr
 // What the bundled Catalogue must hold, read at run time from the library and
 // never typed here: the pre-overhaul models' JSON (the same records as their
 // TypeScript sources), the owner's file of the All-Moving Statements of Qian
-// and Kun (docs/source-texts/yong-jiu-yong-liu.md), and the glossary. No
-// scripture and no Chinese is written in these tests; a mistranscription
-// could only come from the data under test.
+// and Kun (docs/source-texts/yong-jiu-yong-liu.md). No scripture is written
+// in these tests; a mistranscription could only come from the data under
+// test.
 
 function readRepositoryFile(relative: string): string {
   return readFileSync(
@@ -357,52 +357,6 @@ export function ownerPassagesFor(id: BundledEditionId): ExpectedPassage[] {
       text: commentary.text,
     },
   ])
-}
-
-function onlyMatch(pattern: RegExp, text: string, what: string): string {
-  const found = pattern.exec(text)?.[1]
-  if (found === undefined) throw new Error(`no ${what} found`)
-  return found
-}
-
-/**
- * Wording the Edition records use, read from the library: the Traditional
- * Edition's title from the owner's section heading, the word for Simplified
- * from the owner's note on that Edition, the Traditional Edition's short name
- * from the glossary's Edition, and the xiaoxiang's name from the owner's
- * bullet label.
- */
-/** Wording the ruled Edition records share with the library. */
-export interface LibraryWording {
-  readonly chineseTitle: string
-  readonly simplifiedWord: string
-  readonly chineseShortName: string
-  readonly xiaoxiangName: string
-}
-
-function xiaoxiangLabel(): string {
-  const [qianPassages] = ownerAllMoving('wuyingdian-1739')
-  if (qianPassages === undefined) throw new Error('no owner passages')
-  return qianPassages.commentary.label
-}
-
-export const libraryWording: LibraryWording = {
-  chineseTitle: onlyMatch(
-    /^Traditional Chinese: (.+), via /,
-    editionSection('wuyingdian-1739').heading,
-    "the Traditional Edition's title",
-  ),
-  simplifiedWord: onlyMatch(
-    /independent\s+(\S+)\s+Edition/,
-    editionSection('wuyingdian-1739-simplified').lines.join('\n'),
-    'the word for Simplified',
-  ),
-  chineseShortName: onlyMatch(
-    /character conversion of the (\S+) text/,
-    readRepositoryFile('CONTEXT.md'),
-    "the Traditional Edition's short name",
-  ),
-  xiaoxiangName: xiaoxiangLabel(),
 }
 
 /** A Citation's string form, to key a map; any injective form will do. */

@@ -6,38 +6,12 @@ import { bundledScriptureCatalogue } from '#src/bundled-scripture-catalogue.js'
 
 import {
   bundledEditionIds,
-  kun,
-  legacyHexagrams,
-  libraryWording,
-  ownerAllMoving,
   printedWorks,
-  qian,
   type BundledEditionId,
 } from './support/library.js'
 
-// The four Edition records as ruled. Their Chinese wording is put together at
-// run time from the library (see ./support/library.ts), never typed here: the
-// Traditional title from the owner's file, the short name from the glossary,
-// the Hexagram names from the legacy data, the All-Moving Statements' terms and
-// the xiaoxiang's name from the owner's file. Only the full-width parentheses
-// around the Simplified short name's qualifier are written, as escapes.
-
-function legacyName(hexagram: typeof qian): string {
-  const found = legacyHexagrams.find(
-    (each) => each.hexagram.join(',') === hexagram.join(','),
-  )
-  if (found === undefined) throw new Error('no legacy Hexagram')
-  return found.name('wuyingdian-1739')
-}
-
-const qianName = legacyName(qian)
-const kunName = legacyName(kun)
-const [qianTerm, kunTerm] = ownerAllMoving('wuyingdian-1739').map(
-  ({ term }) => term,
-)
-const { chineseTitle, chineseShortName, simplifiedWord, xiaoxiangName } =
-  libraryWording
-const ctextPages = `the ${qianName} and ${kunName} pages (${qianTerm}, ${kunTerm}) retrieved 2026-11-27`
+// The four Edition records in the ruled wording, as the doc comment of
+// src/bundled-data.ts records it: names, titles and Witnesses, not scripture.
 
 /** What each Edition record holds, whatever its Work, less `language`. */
 interface ExpectedRecord {
@@ -51,20 +25,22 @@ interface ExpectedRecord {
 
 const expectedRecords: Readonly<Record<BundledEditionId, ExpectedRecord>> = {
   'wuyingdian-1739': {
-    shortName: chineseShortName,
-    title: `${chineseTitle} (1739)`,
+    shortName: '武英殿本',
+    title: '武英殿十三經注疏本《周易正義》 (1739)',
     witness: {
-      description: `ctext.org's transcription of the ${chineseTitle}, from its Book of Changes pages (ctext.org/book-of-changes); ${ctextPages}`,
+      description:
+        "ctext.org's transcription of the 武英殿十三經注疏本《周易正義》, from its Book of Changes pages (ctext.org/book-of-changes); the 乾 and 坤 pages (用九, 用六) retrieved 2026-11-27",
     },
     unidentified: false,
     licence: 'terms-unverified',
     script: 'traditional',
   },
   'wuyingdian-1739-simplified': {
-    shortName: `${chineseShortName}（${simplifiedWord}）`,
-    title: `${chineseTitle} (1739)`,
+    shortName: '武英殿本（简体）',
+    title: '武英殿十三經注疏本《周易正義》 (1739)',
     witness: {
-      description: `ctext.org's character conversion of the ${chineseShortName} text into Simplified characters, from the same pages' Simplified view; not an independent Edition; ${ctextPages}`,
+      description:
+        "ctext.org's character conversion of the 武英殿本 text into Simplified characters, from the same pages' Simplified view; not an independent Edition; the 乾 and 坤 pages (用九, 用六) retrieved 2026-11-27",
     },
     unidentified: false,
     licence: 'terms-unverified',
@@ -74,7 +50,8 @@ const expectedRecords: Readonly<Record<BundledEditionId, ExpectedRecord>> = {
     shortName: 'Legge',
     title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
     witness: {
-      description: `a scanned copy of Sacred Books of the East vol. 16 (1882); the ${qianName} and ${kunName} pages: pp. 58, 61 (text) and 267, 269 (${xiaoxiangName})`,
+      description:
+        'a scanned copy of Sacred Books of the East vol. 16 (1882); the 乾 and 坤 pages: pp. 58, 61 (text) and 267, 269 (小象)',
     },
     unidentified: false,
     licence: 'public-domain',
@@ -120,8 +97,7 @@ describe.each(printedWorks)('the editions of %s', (work) => {
       const { language, ...record } = edition
       expect(record).toStrictEqual({ id, work, ...expectedRecords[id] })
       if (expectedRecords[id].script === undefined) {
-        expect(typeof language).toBe('string')
-        expect(language).not.toBe('')
+        expect(language).toBe('en')
       } else expect('language' in edition).toBe(false)
     },
   )
