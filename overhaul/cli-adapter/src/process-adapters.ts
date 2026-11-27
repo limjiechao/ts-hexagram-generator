@@ -1,5 +1,5 @@
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
-import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
+import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import { cryptoRandomSource } from '@hexagram/node-effects/crypto-random-source'
 import { systemClock } from '@hexagram/node-effects/system-clock'
 
@@ -28,15 +28,6 @@ export function processIo(process: NodeJS.Process): CommandIo {
 const notBuilt = (adapter: string) => (): Promise<never> =>
   Promise.reject(new Error(`the ${adapter} adapter is not built yet`))
 
-/** Stands in for the Scripture Catalogue until its adapter lands. */
-const scriptureCatalogue: ScriptureCatalogue = {
-  passageTexts: notBuilt('Scripture Catalogue'),
-  hexagramNames: notBuilt('Scripture Catalogue'),
-  receivedSequenceNumber: notBuilt('Scripture Catalogue'),
-  trigramNames: notBuilt('Scripture Catalogue'),
-  editions: notBuilt('Scripture Catalogue'),
-}
-
 /** Stands in for the Consultation Store until its adapter lands. */
 const consultationStore: ConsultationStore = {
   keep: notBuilt('Consultation Store'),
@@ -47,9 +38,10 @@ const consultationStore: ConsultationStore = {
 }
 
 /**
- * The real adapters a bin passes: the system Clock and the Random Source on
- * `node:crypto`, throwing stubs for the Scripture Catalogue and the Consultation
- * Store until their adapters land, and the Journal's folder (ADR-0020).
+ * The real adapters a bin passes: the system Clock, the Random Source on
+ * `node:crypto`, the bundled Scripture Catalogue, a throwing stub for the
+ * Consultation Store until its adapter lands, and the Journal's folder
+ * (ADR-0020).
  * `moveToLegacy` is a throwing stub until the bin builds the Markdown Store.
  */
 // The Journal's folder is found from the module, never from the process's
@@ -59,7 +51,7 @@ export function processPorts(process: NodeJS.Process): CommandPorts {
   return {
     clock: systemClock,
     randomSource: cryptoRandomSource,
-    scriptureCatalogue,
+    scriptureCatalogue: bundledScriptureCatalogue,
     consultationStore,
     journalFolder: journalFolder(),
     moveToLegacy: notBuilt('Markdown Consultation Store'),
