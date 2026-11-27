@@ -624,3 +624,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 1 (R-501); delegate rulings: 3 (R-502 to R-504)
 - Landed: 7ede742 to 658d50b (19 commits)
 - Notes: M-015 used 3 owner touches in all (R-492, R-493, R-501) and 11 delegate rulings (R-494 to R-504). The bins still use a stub Store; nothing can touch the real Journal until the owner rules Q-M-015-24.
+
+### Landing — ADR-0046, localDate, ADR-0047 and M-015 slice 1 on main — 2026-11-27
+
+- PR #64 passed every leg at 627dbec. On the owner's "land" (ADR-0047), the clerk fast-forwarded `main` to 627dbec, its first landing by the clerk's own push (R-425).
