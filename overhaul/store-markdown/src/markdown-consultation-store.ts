@@ -130,15 +130,19 @@ export function markdownConsultationStore(options: {
     consultationStore,
     rerenderBodies: async () => {
       const journal = await readJournal(journalFolder)
+      let rewritten = 0
       for (const file of journal.loaded) {
-        const body = await renderBody(file.consultation)
-        await replaceAtomically(
+        const replaced = await replaceAtomically(
           journalFolder,
           file.name,
-          composeFile(file.frontmatter, body),
+          async () =>
+            composeFile(file.frontmatter, await renderBody(file.consultation)),
         )
+        if (replaced) {
+          rewritten += 1
+        }
       }
-      return { rewritten: journal.loaded.length }
+      return { rewritten }
     },
     moveToLegacy: async (file) => {
       const legacyFolder = path.join(journalFolder, 'legacy')

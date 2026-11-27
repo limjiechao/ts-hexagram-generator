@@ -44,23 +44,36 @@ export async function createExclusively(
 }
 
 /**
- * Replaces the file `name` in `folder` with `text` in one step, keeping the
- * file's mode (ADR-0030).
+ * Replaces the file `name` in `folder` with the text `write` makes, in one
+ * step, keeping the file's mode (ADR-0030). It resolves to false, without
+ * calling `write`, when the file is gone: a deleted file has left the
+ * Journal.
  */
 export async function replaceAtomically(
   folder: string,
   name: string,
-  text: string,
-): Promise<void> {
+  write: () => Promise<string>,
+): Promise<boolean> {
   const target = path.join(folder, name)
-  const { mode } = await stat(target)
+  const mode = await modeOf(target)
+  if (mode === undefined) {
+    return false
+  }
   const temporary = temporaryPath(folder, name)
+  let renaming = false
   try {
-    await writeDurably(temporary, text)
+    await writeDurably(temporary, await write())
     await chmod(temporary, mode)
+    renaming = true
     await rename(temporary, target)
+    return true
   } catch (error) {
     await rm(temporary, { force: true })
+    // Only the rename's ENOENT means the folder went with the file; one
+    // from `write` is that function's own failure.
+    if (renaming && hasCode(error, 'ENOENT')) {
+      return false
+    }
     throw error
   }
 }
@@ -108,6 +121,19 @@ async function linkUnderFreeName(
         throw error
       }
     }
+  }
+}
+
+/** The file's mode, or undefined when the file is gone. */
+async function modeOf(file: string): Promise<number | undefined> {
+  try {
+    const stats = await stat(file)
+    return stats.mode
+  } catch (error) {
+    if (hasCode(error, 'ENOENT')) {
+      return undefined
+    }
+    throw error
   }
 }
 
