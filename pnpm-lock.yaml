@@ -428,6 +428,15 @@ importers:
         specifier: workspace:*
         version: link:../oracle
 
+  overhaul/store-markdown:
+    dependencies:
+      '@hexagram/application':
+        specifier: workspace:*
+        version: link:../application
+      '@hexagram/consultation-journal':
+        specifier: workspace:*
+        version: link:../consultation-journal
+
 packages:
 
   '@alcalzone/ansi-tokenize@0.3.0':

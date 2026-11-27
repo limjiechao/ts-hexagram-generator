@@ -1,0 +1,33 @@
+{
+  "name": "@hexagram/store-markdown",
+  "type": "module",
+  "version": "0.0.0",
+  "description": "The Markdown Consultation Store: the Journal as a folder of Markdown files, each a version-2 record in YAML frontmatter over a rendered body (ADR-0030)",
+  "license": "MIT",
+  "imports": {
+    "#src/*": "./src/*"
+  },
+  "exports": {
+    "./markdown-consultation-store": {
+      "source": "./src/markdown-consultation-store.ts",
+      "types": "./dist/markdown-consultation-store.d.mts",
+      "import": "./dist/markdown-consultation-store.mjs"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "scripts": {
+    "build": "tsdown",
+    "test": "cross-env FORCE_COLOR=1 vitest run --passWithNoTests",
+    "type:check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@hexagram/application": "workspace:*",
+    "@hexagram/consultation-journal": "workspace:*"
+  }
+}
