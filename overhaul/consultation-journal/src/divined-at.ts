@@ -95,7 +95,7 @@ function isLeapYear(year: number): boolean {
 /**
  * The calendar date Divined At falls on in its own offset. A Day is returned
  * as it is; a Moment gives the date its wall clock read in its offset, not
- * its UTC date, the date its record text begins with (ADR-0030). The
+ * its UTC date, the date its record text begins with (ADR-0046). The
  * Journal's order and the record's date both read it. For a Moment this holds
  * only when `epochMilliseconds` is an integer and the date lies in the years
  * 0000 to 9999; for any other Moment the result is unspecified.
