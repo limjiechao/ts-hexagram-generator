@@ -26,9 +26,8 @@ export type FileFrontmatter =
 const opener = '---\n'
 const closer = '\n---'
 
-// Fatal, so a corrupted Query is refused rather than loaded with U+FFFD in
-// it; a kept BOM keeps the decoded text's bytes the file's own.
-const strictUtf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
+// Fatal, so a corrupted Query is refused rather than loaded with U+FFFD in it.
+const strictUtf8 = new TextDecoder('utf-8', { fatal: true })
 
 /**
  * Frontmatter is strict: the file starts with `---\n` and a later line is
