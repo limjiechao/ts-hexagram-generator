@@ -5628,3 +5628,20 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 Clerk's note: Q-M-012-41 (the order is not total across offsets) was referred
 to the owner by the delegate; until the owner rules, slice 3's tests cover
 only the cases its options (A) and (B) agree on, as the delegate suggested.
+
+### R-481: The Windows listing race runs smaller, to give an answer
+
+- Date: 2026-11-27
+- Raised in: M-012, question Q-M-012-43 (PR #62's Windows leg timed out at
+  30 s on the listing race row R-477 put back on Windows; no assertion or
+  EPERM was seen)
+- Ruled by: delegate (R-423)
+- Ruling: A — on win32 only, the row runs 2 rounds of 50 files with a 120 s
+  timeout and the same assertions (one platform-keyed constant, one-line
+  reason); macOS and Ubuntu keep 10 × 200; re-run CI on PR #62 and record the
+  outcome. An EPERM rejection reopens R-477's option (B); a second timeout
+  points to a hang. Both come back as new questions.
+- Reason: a timeout gives no evidence; skipping gives up what R-477 asked for;
+  building win32 code first is unasked generality (AGENTS.md §6, §7); a
+  parameter change is undone in one line.
+- Folded into: not yet
