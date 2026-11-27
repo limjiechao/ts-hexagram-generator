@@ -46,7 +46,7 @@ from its actual figures when it lands (R-006).
 | 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending (R-419)             |
 | 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/pwa.md` ratified  | not yet broken into Matters |
 
-**Phase 4 broken into Matters 2026-11-26**: M-010 to M-021 (R-354 to R-385), from `docs/reviews/2026-11-26-phase-4-cli.md`. M-011 waits for the owner's 用九 and 用六 text (R-370); ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384).
+**Phase 4 broken into Matters 2026-11-26**: M-010 to M-021 (R-354 to R-385), from `docs/reviews/2026-11-26-phase-4-cli.md`. M-011 waits for the owner's 用九 and 用六 text (R-370), so M-012 runs first (R-422); ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384).
 
 **Phase 3 landed on matters 2026-11-26**: the Oracle core runs use cases 1 to 3 end to end against stub ports (M-005 to M-009).
 
@@ -358,7 +358,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-012: The Markdown Consultation Store, and browsing and opening
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0015, ADR-0020, ADR-0026, ADR-0030, ADR-0037; manual
   sections 4, 5; R-037, R-337

@@ -5032,3 +5032,14 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   stay as extra coverage.
 - Ruling: "Q-M-010-27: A; digest ratified"
 - Folded into: not yet
+
+### R-422: M-012 runs before M-011 while 用九 / 用六 is pending
+
+- Date: 2026-11-27
+- Raised in: question Q-ORD-1 (M-010 landed; M-011 is blocked on the owner's
+  passages, R-370; the ratified order allows only M-015/M-016 and
+  M-019/M-020 to swap)
+- Question: (A) Start M-012 now and run M-011 as soon as the passages arrive;
+  M-013 still needs both. (B) Wait for the passages and keep the order.
+- Ruling: "Q-ORD-1: A"
+- Folded into: `MATTERS.md` (M-012 in progress before M-011)
