@@ -1,11 +1,13 @@
 import { randomUUID } from 'node:crypto'
 import {
+  chmod,
   constants,
   copyFile,
   link,
   open,
   rename,
   rm,
+  stat,
   unlink,
 } from 'node:fs/promises'
 import path from 'node:path'
@@ -41,16 +43,22 @@ export async function createExclusively(
   }
 }
 
-/** Replaces the file `name` in `folder` with `text` in one step (ADR-0030). */
+/**
+ * Replaces the file `name` in `folder` with `text` in one step, keeping the
+ * file's mode (ADR-0030).
+ */
 export async function replaceAtomically(
   folder: string,
   name: string,
   text: string,
 ): Promise<void> {
+  const target = path.join(folder, name)
+  const { mode } = await stat(target)
   const temporary = temporaryPath(folder, name)
   try {
     await writeDurably(temporary, text)
-    await rename(temporary, path.join(folder, name))
+    await chmod(temporary, mode)
+    await rename(temporary, target)
   } catch (error) {
     await rm(temporary, { force: true })
     throw error
