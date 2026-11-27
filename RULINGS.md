@@ -5499,3 +5499,57 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: approve with amendments — The 82 tests are approved; (a) add: a Recorded Moment `2026-11-26T07:30:00.000+08:00` is kept as `2026-11-26--<Id>.md`; (b) test 64 asserts `keep` rejects and the folder's regular files are exactly as before; (c) test 65 asserts both keeps resolve; (d) add: an Unreadable file with id X sorting first, then a valid file with id X: `list` returns the valid Consultation, no `duplicate-id`, the Unreadable file keeps its reason, `get(X)` returns the Consultation; (e) test 76 asserts exact bytes `${frontmatter}\n${body}`; (f) optional: `rerenderBodies` on a missing folder gives `{ rewritten: 0 }` and creates nothing.
 - Reason: The rows fit ADR-0030, the port, R-428, R-431 to R-433, R-437, R-438; the amendments assert R-454 to R-463.
 - Folded into: not yet
+
+### R-469: A non-UTF-8 frontmatter is refused, not repaired
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item C1 (reviewer's required change)
+- Ruled by: delegate (R-423)
+- Ruling: accept — Decode only the frontmatter bytes strictly (`TextDecoder('utf-8', { fatal: true })`), on every read including `keep`'s re-read; `rerenderBodies` writes the original frontmatter bytes back (Buffer slice or re-encoding the strict text, Tier B); a body with bad bytes still loads; add a test: bytes 0xFF 0xFE inside the Query make the file Unreadable `not-yaml` and `rerenderBodies` leaves its bytes unchanged.
+- Reason: Lax decoding loads a corrupted Query as verbatim (ADR-0030) and changes frontmatter bytes on rerender (R-463, manual §6.7).
+- Folded into: not yet
+
+### R-470: Non-UTF-8 frontmatter is `not-yaml`
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item Q-M-012-34
+- Ruled by: delegate (R-423)
+- Ruling: A — Frontmatter that does not decode as UTF-8 is `not-yaml`.
+- Reason: A YAML stream is Unicode text; this applies R-366's closed list without widening it.
+- Folded into: not yet
+
+### R-471: New files are linked, rerendered bodies renamed; hard links are required
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item Q-M-012-35
+- Ruled by: delegate (R-423)
+- Ruling: A — Keep "temporary file, then hard link" for a new file and "temporary file, then rename" for a re-rendered body; a Journal on a filesystem without hard links is unsupported and its writes reject. ADR-0030 is amended: the bullet's parenthetical becomes "(a temporary file, then a hard link for a new file, since a link refuses to replace one, or a rename for a re-rendered body)", and a consequence is added: "The Journal's folder must be on a filesystem with hard links; on one without (FAT, exFAT, some network shares) writes fail." The delegate ratifies the amendment in that wording unless the drafter finds the ADR's other text contradicts it.
+- Reason: Only a link meets both atomic writes and never-overwrite; (B) and (C) each break one; ADR-0020 puts the Journal on a local disk; a fallback can be added later.
+- Folded into: not yet
+
+### R-472: A file deleted mid-read is skipped
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item Q-M-012-36
+- Ruled by: delegate (R-423)
+- Ruling: A — A `.md` file missing (ENOENT) on the per-file read after `readdir` listed it is skipped; every other error still rejects; `keep`'s re-read meeting ENOENT after a lost race may reject (Tier B); add a test.
+- Reason: A deleted file has left the Journal and is not an Unreadable file (CONTEXT.md); use case 6's `remove` during a browse must not fail `list`.
+- Folded into: not yet
+
+### R-473: An unreadable file rejects the Journal
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item Q-M-012-37
+- Ruled by: delegate (R-423)
+- Ruling: A — A file the Store may not read (EACCES) rejects `list` and `keep` as "the Journal cannot be read" (exit 1).
+- Reason: Manual §6.7 and R-350; a new reason would widen R-366's closed list; rare and reversible.
+- Folded into: not yet
+
+### R-474: M-012 slice 2's Tier-B digest, with three changes
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 review of beba19f (CHANGES), item the digest (N1–N8 and the implementer's choices)
+- Ruled by: delegate (R-423)
+- Ruling: ratify with changes — N1: `rerenderBodies` gives the new file the old file's mode (chmod the temporary file before the rename), with a POSIX-only test skipped on Windows. N2: on EXDEV, `moveToLegacy` copies to a temporary file in `legacy/`, links it to `to` (next suffix on EEXIST), removes the temporary file, then unlinks the original; it never deletes `to`. N8 in part: temporary-file cleanup after a successful link uses `rm(..., { force: true, maxRetries: <small> })`; renaming over a file another process holds open stays an untested Windows gap. N3–N7 ratified (the deleting Matter notes that a rerender's rename can resurrect a file deleted after it read the folder; M-015's importer decides symlinked paths and watches the N²/2 read cost). The implementer's choices are ratified: `.<target>.<randomUUID>.tmp` (wx, fsync, removed in finally); exclusive create by link, no locks; rerender temp then rename, one file at a time; `<stem>-2<ext>`, `-3`, … suffixes; `Buffer.compare` order; one file read at a time; a frontmatter closed at EOF gets a newline written back (R-463); move = link then unlink.
+- Reason: Least surprise for a private Journal (ADR-0015); one temporary-file scheme (AGENTS.md §5); `keep` should not reject a file it kept.
+- Folded into: not yet
