@@ -5713,3 +5713,19 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   `+Infinity`, and `<`/`>` text comparison are accepted.
 - Reason: R-479, R-480, R-482; the port returns Promises.
 - Folded into: not yet
+
+### R-487: The follow-ups start while Q-ORD-2 waits
+
+- Date: 2026-11-27
+- Raised in: question Q-ORD-2 (what runs while M-011 waits); the delegate
+  referred the reorder itself to the owner (it goes past R-385's swaps) and
+  ruled this part
+- Ruled by: delegate (R-423)
+- Ruling: new — start now: (1) draft the consolidation of ADR-0030 and
+  ADR-0045, which the delegate ratifies; (2) draft R-484's public
+  `localDate(divinedAt)` in `consultation-journal/divined-at` as a
+  stand-alone change, its surface ratified before code uses it; (3) the clerk
+  drafts the ADR-0042 amendment recording the delegate, which only the owner
+  ratifies.
+- Reason: all three are due and none depends on the reorder.
+- Folded into: not yet
