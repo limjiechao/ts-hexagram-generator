@@ -1,7 +1,7 @@
+import type { ConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import type { Journal } from '@hexagram/consultation-journal/journal'
 
 import type { ConsultationStore } from '#src/consultation-store.js'
-import { notImplemented } from '#src/not-implemented.js'
 
 /*
  * Use case 10, Merging Journals: one Journal is exported and merged into
@@ -16,10 +16,12 @@ import { notImplemented } from '#src/not-implemented.js'
  * included. An Unreadable file is not a Consultation, so it is not
  * exported.
  */
-export function exportJournal(ports: {
+export async function exportJournal(ports: {
   readonly consultationStore: ConsultationStore
 }): Promise<Journal> {
-  return notImplemented(ports)
+  const { consultations } = await ports.consultationStore.list()
+  const deletionRecords = await ports.consultationStore.deletionRecords()
+  return { consultations, deletionRecords }
 }
 
 /**
@@ -44,9 +46,38 @@ export interface MergeCounts {
  * replay, so every Consultation in the Journal is kept as it is. It
  * resolves to what it changed.
  */
-export function mergeJournal(
+export async function mergeJournal(
   ports: { readonly consultationStore: ConsultationStore },
   journal: Journal,
 ): Promise<MergeCounts> {
-  return notImplemented(ports, journal)
+  const store = ports.consultationStore
+  const ownDeletionRecords = await store.deletionRecords()
+  const { consultations } = await store.list()
+  const held = new Set<ConsultationId>(
+    consultations.map((consultation) => consultation.id),
+  )
+
+  let removed = 0
+  const earliestFirst = journal.deletionRecords.toSorted(
+    (left, right) =>
+      left.deletedAt.epochMilliseconds - right.deletedAt.epochMilliseconds,
+  )
+  for (const record of earliestFirst) {
+    await store.remove(record)
+    if (held.delete(record.consultationId)) removed += 1
+  }
+
+  const deleted = new Set<ConsultationId>(
+    [...ownDeletionRecords, ...journal.deletionRecords].map(
+      (record) => record.consultationId,
+    ),
+  )
+  let added = 0
+  for (const consultation of journal.consultations) {
+    if (deleted.has(consultation.id) || held.has(consultation.id)) continue
+    await store.keep(consultation)
+    held.add(consultation.id)
+    added += 1
+  }
+  return { added, removed }
 }
