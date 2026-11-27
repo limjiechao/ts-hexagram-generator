@@ -42,7 +42,7 @@ export function lookUpReceivedSequenceNumber(
   ports: { readonly scriptureCatalogue: ScriptureCatalogue },
   hexagram: Hexagram,
 ): Promise<ReceivedSequenceNumber> {
-  throw new Error('not built', { cause: { ports, hexagram } })
+  return ports.scriptureCatalogue.receivedSequenceNumber(hexagram)
 }
 
 /** A Trigram's name and imagery in each Edition the preference shows. */
@@ -51,7 +51,7 @@ export function lookUpTrigramNames(
   trigram: Trigram,
   preference: ReadingPreference,
 ): Promise<readonly TrigramName[]> {
-  throw new Error('not built', { cause: { ports, trigram, preference } })
+  return ports.scriptureCatalogue.trigramNames(trigram, preference)
 }
 
 /** Every Edition of a Work. */
