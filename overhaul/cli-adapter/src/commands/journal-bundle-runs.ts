@@ -81,14 +81,11 @@ export async function mergeJournalRun(
   }
   return reportingJournalFailure(io, async () => {
     const counts = await useCases(ports).mergeJournal(decoded.journal)
-    const leftOut = decoded.leftOut.toSorted(
-      (left, right) => left.index - right.index,
-    )
-    for (const { index, reason } of leftOut) {
+    for (const { index, reason } of decoded.leftOut) {
       io.stdout.write(`${leftOutLine(index, reason)}\n`)
     }
     io.stdout.write(
-      `${mergedLine(file, { ...counts, leftOut: leftOut.length })}\n`,
+      `${mergedLine(file, { ...counts, leftOut: decoded.leftOut.length })}\n`,
     )
     return 0
   })
