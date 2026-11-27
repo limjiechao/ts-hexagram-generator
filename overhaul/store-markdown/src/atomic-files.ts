@@ -39,7 +39,7 @@ export async function createExclusively(
     }
     throw error
   } finally {
-    await rm(temporary, { force: true })
+    await removeTemporary(temporary)
   }
 }
 
@@ -102,6 +102,12 @@ export async function moveExclusively(
 // Consultation, and unique, so writes running at once never share one.
 function temporaryPath(folder: string, name: string): string {
   return path.join(folder, `.${name}.${randomUUID()}.tmp`)
+}
+
+// Retried, since on Windows a scanner or indexer briefly holding the
+// freshly linked file makes the first removal fail with EBUSY or EPERM.
+async function removeTemporary(file: string): Promise<void> {
+  await rm(file, { force: true, maxRetries: 3 })
 }
 
 async function writeDurably(file: string, text: string): Promise<void> {
