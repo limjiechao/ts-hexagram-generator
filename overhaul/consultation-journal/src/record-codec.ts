@@ -171,7 +171,10 @@ export type DeletionRecordDecodeResult =
 export function encodeDeletionRecord(
   deletionRecord: DeletionRecord,
 ): DeletionRecordData {
-  throw new Error('not built', { cause: deletionRecord })
+  return {
+    consultationId: deletionRecord.consultationId,
+    deletedAt: encodeDivinedAt(deletionRecord.deletedAt),
+  }
 }
 
 /**
@@ -185,7 +188,17 @@ export function encodeDeletionRecord(
 export function decodeDeletionRecord(
   data: unknown,
 ): DeletionRecordDecodeResult {
-  throw new Error('not built', { cause: data })
+  if (!isPlainObject(data)) return { outcome: 'unreadable' }
+  const consultationId = data.consultationId
+  const deletedAt = decodeDivinedAt(data.deletedAt)
+  if (
+    typeof consultationId !== 'string' ||
+    !isConsultationId(consultationId) ||
+    deletedAt?.precision !== 'moment'
+  ) {
+    return { outcome: 'unreadable' }
+  }
+  return { outcome: 'decoded', deletionRecord: { consultationId, deletedAt } }
 }
 
 /** The 18 Picks a Cast Consultation's record holds. */
