@@ -5552,7 +5552,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruled by: delegate (R-423)
 - Ruling: ratify with changes — N1: `rerenderBodies` gives the new file the old file's mode (chmod the temporary file before the rename), with a POSIX-only test skipped on Windows. N2: on EXDEV, `moveToLegacy` copies to a temporary file in `legacy/`, links it to `to` (next suffix on EEXIST), removes the temporary file, then unlinks the original; it never deletes `to`. N8 in part: temporary-file cleanup after a successful link uses `rm(..., { force: true, maxRetries: <small> })`; renaming over a file another process holds open stays an untested Windows gap. N3–N7 ratified (the deleting Matter notes that a rerender's rename can resurrect a file deleted after it read the folder; M-015's importer decides symlinked paths and watches the N²/2 read cost). The implementer's choices are ratified: `.<target>.<randomUUID>.tmp` (wx, fsync, removed in finally); exclusive create by link, no locks; rerender temp then rename, one file at a time; `<stem>-2<ext>`, `-3`, … suffixes; `Buffer.compare` order; one file read at a time; a frontmatter closed at EOF gets a newline written back (R-463); move = link then unlink.
 - Reason: Least surprise for a private Journal (ADR-0015); one temporary-file scheme (AGENTS.md §5); `keep` should not reject a file it kept.
-- Folded into: not yet
+- Folded into: not yet (N8 amended by R-500: a failed cleanup is ignored)
 
 ### R-475: R-471's amendment is a separate ADR-0045
 
@@ -5981,4 +5981,30 @@ the Journal cannot be read`, exit 1, no file written; merge of a path
   unwritable-export row stand; only the not-built expectation was dropped.
 - Reason: they meet R-498, R-497 Q-32, R-350 and R-408; the frame rulings
   R-397 to R-418 still hold.
+- Folded into: not yet
+
+### R-500: A failed temporary-file cleanup never changes a write's outcome
+
+- Date: 2026-11-27
+- Raised in: the review of M-015 slice 2 (APPROVE), question Q-M-015-40 and
+  the reviewer's notes
+- Ruled by: delegate (R-423)
+- Ruling: new — removing a temporary file never changes a write's outcome:
+  after a successful link the write succeeded; after a failure, `exists` or
+  `unwritable` stands; a removal that still fails after its retries is
+  swallowed, leaving the dotfile `.tmp`. In `cli-adapter`'s export
+  `createExclusively`, with one comment and a test row (mocked `rm` rejecting
+  after a successful link: bundle present byte for byte, exported line, exit
+  0, empty stderr). The same rule in `store-markdown` (`removeTemporary`,
+  `replaceAtomically`'s catch path, `moveExclusively`), as a separate
+  single-intent commit with a test row (mocked `rm` rejecting after the link:
+  `keep` resolves, the file is present); this amends R-474 N8 (cleanup after a
+  successful link uses `rm(..., { force: true, maxRetries: <small> })` and its
+  failure is ignored). The two copies stay separate (R-498). Tier B: the merge
+  tie-break on equal instants stands; `mergeJournalRun` drops its redundant
+  `toSorted` of `leftOut`, and `decodeJournalBundle`'s doc says `leftOut` is in
+  bundle order; the bisect gap from 4c54c51 to 45f02e9 is recorded in the
+  Minutes; 76748fb's subject stays.
+- Reason: (b) would misreport a written bundle (R-498 Q-39); (c) breaks
+  R-350's one line; a dotfile `.tmp` is harmless and the Store never reads it.
 - Folded into: not yet
