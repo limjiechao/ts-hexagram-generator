@@ -5597,3 +5597,34 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: ratify with changes — T1: drop `ignoreBOM: true` and its comment clause (R-460 keeps a BOM from the decoder). T2: `chmod(temporary, mode & 0o7777)`. T3: `replaceAtomically`'s error path uses `removeTemporary`. T4: add an EXDEV row in its own test file with `vi.mock('node:fs/promises')` so only the first `link` from the original raises EXDEV; assert identical bytes, an existing `legacy/<name>` untouched and the move at `<stem>-2<ext>`, the original gone, no `.tmp` left in `legacy/`. T5 ratified. The implementer's re-encoding of the strictly decoded frontmatter is ratified.
 - Reason: Dead config misleads; say what is meant; one temporary-file scheme (AGENTS.md §5); R-474 N2's never-delete-`to` is user-data safety and needs a test without a production seam.
 - Folded into: not yet
+
+### R-479: Ties in the Journal's order go by descending Consultation Id
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3, question Q-M-012-42
+- Ruled by: delegate (R-423)
+- Ruling: A — ties go by Consultation Id in descending code-point order (the
+  larger Id above), so the list is the exact reverse of one ascending sort on
+  (key, Id); the same direction applies whatever Q-M-012-41's answer.
+- Reason: R-378 gives no direction; descending keeps "newest first" (manual
+  §4) the reverse of one sort; display-only and reversible; the Id still
+  carries no meaning (CONTEXT.md).
+- Folded into: not yet
+
+### R-480: Slice 3's smaller browse holes
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3, the tester's audit (S1 to S3)
+- Ruled by: delegate (R-423)
+- Ruling: (S1) case-insensitive matching is tested with ASCII and É/é only;
+  full case folding, Unicode normalisation and a whitespace-only filter (read
+  literally) stay untested; (S2) tests compare `unreadable` as a set, its
+  order not part of use case 4's contract; (S3) a filter crossing a line break
+  in a multi-line Query is read literally as "contains".
+- Reason: manual §6.7 says only "contains the text, ignoring case"; R-457;
+  CONTEXT.md keeps a Query exactly as written.
+- Folded into: not yet
+
+Clerk's note: Q-M-012-41 (the order is not total across offsets) was referred
+to the owner by the delegate; until the owner rules, slice 3's tests cover
+only the cases its options (A) and (B) agree on, as the delegate suggested.
