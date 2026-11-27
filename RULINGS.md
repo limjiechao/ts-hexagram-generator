@@ -5006,3 +5006,29 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: "Q-M-010-24 to -26: A; digest ratified; Q-PH6-1: A"
 - Folded into: not yet (`MATTERS.md`'s 6-pre row added; ADR-0042's gates to be
   amended by a draft for the owner's ratification)
+
+### R-420: An import path starting with `-` is refused; write `./-name`
+
+- Date: 2026-11-27
+- Raised in: M-010 (slice 2 re-review of ae06255)
+- Question: `--import-legacy -old.txt` gets the usage refusal, and no form
+  reaches such a path (`--import-legacy` takes no `=` form and a lone `--` is
+  dropped, R-414). (A) ratify the refusal; the user writes `./-old.txt`; a
+  tester adds a row for both; (B) let `--` right after `--import-legacy` mark
+  paths, an exception to R-414; (C) accept `--import-legacy=<path>` for one
+  path.
+- Ruling: "Q-M-010-27: A; digest ratified"
+- Folded into: not yet (`docs/manual/cli.md` §2 at the manual's next revision)
+
+### R-421: M-010 slice 2's R-415 digest
+
+- Date: 2026-11-27
+- Raised in: M-010 (slice 2, 63a22e2, ae06255)
+- Question: Ratify: (1) a lone `-` is refused as a separate value, since it
+  starts with `-`; nothing reads stdin through an option value; (2)
+  `parseOptions`'s doc comment names the case: "a bad or missing value, or a
+  separate value starting with `-`"; (3) three new rows that another rule
+  already refuses (`--wrap-width -5`, and two ending in a stray positional)
+  stay as extra coverage.
+- Ruling: "Q-M-010-27: A; digest ratified"
+- Folded into: not yet
