@@ -6388,3 +6388,33 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   R-436, R-441, R-494, R-510, R-512, R-514; ADR-0022, ADR-0024, ADR-0044;
   manual §4, §5, §6, §9.
 - Folded into: not yet
+
+### R-520: The Readout shows the Divined At under the Query
+
+- Date: 2026-11-28
+- Raised in: M-013, question Q-M-013-4 (referred by the delegate)
+- Ruled by: owner
+- Ruling: A — every Readout (plain, Ink and the Markdown body) shows the
+  Divined At on the line below the Query, written by `divinedAtText`
+  (`2026-11-02 21:14`, or `2026-10-28` alone for a date-only Divined At);
+  manual §5 gains this sentence. R-519 Q-5 holds: `divinedAtText` lives in
+  `presentation`.
+- Reason: R-375's date-only case would otherwise test nothing the Markdown
+  file's frontmatter doesn't already; the browse list and the export will
+  need the same wording.
+- Folded into: `docs/manual/cli.md` §5
+
+### R-521: No spawned test reaches a Journal
+
+- Date: 2026-11-28
+- Raised in: M-013, question Q-M-013-18 (referred by the delegate)
+- Ruled by: owner
+- Ruling: A — no test that spawns a bin ever reaches a keep or a maintenance
+  run, since a spawned bin uses the Journal of the checkout it runs from. The
+  `hexagram-history --rerender-bodies` spawn row is replaced by one that
+  touches no Journal, and `--rerender-bodies` is tested end to end in process
+  over a temporary Journal. No environment override for the Journal folder
+  (ADR-0020 unchanged). The `processPorts` wiring lands only with this in
+  place.
+- Reason: protects the owner's real Journal; adds no knob to the shipped CLI.
+- Folded into: not yet

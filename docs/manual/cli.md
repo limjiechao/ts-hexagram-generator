@@ -193,7 +193,9 @@ Merging Journals never brings it back.
    (absent for X之X).
 
 Read across the two Hexagram tabs, the passages are in R-283's order
-(R-342). The Query is shown above the tabs. Each block of text is headed by
+(R-342). The Query is shown above the tabs, with its Divined At on the line
+below it, such as `2026-11-02 21:14`, or `2026-10-28` alone when only the date
+was recorded (R-520). Each block of text is headed by
 its Edition's short name; a closing section lists each Edition shown with its
 Witness, any conversion label (such as the Simplified text's), and
 "unidentified" where it applies (R-344). _Today's app_ records no Division

@@ -671,3 +671,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0; delegate rulings: 1 (R-518)
 - Landed: the slice's 5 commits ending 4823bab
 - Notes: M-011 used 5 owner touches in all (the passages, R-509, R-511, R-512, R-515) and 7 delegate rulings (R-510, R-513, R-514, R-516 to R-518, and the Q-20 referral). M-013 (the Readout) is next; it connects the real Store (R-505).
+
+### Landing — PR #66 — 2026-11-28
+
+- The owner said "land"; `main` fast-forwarded 2dcb7ae..cf7e63d (M-011, the R-506 follow-up, the owner's passages). No delegate ruling overturned.
+- Owner touches: 2 (R-520, R-521, both on M-013's referrals).
