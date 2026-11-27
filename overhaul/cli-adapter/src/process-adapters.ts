@@ -43,6 +43,14 @@ const consultationStore: ConsultationStore = {
  * Consultation Store until its adapter lands, and the Journal's folder
  * (ADR-0020).
  * `moveToLegacy` is a throwing stub until the bin builds the Markdown Store.
+ *
+ * Drafted for ratification, not yet built: the bin builds the Markdown
+ * Consultation Store over the Journal's folder with
+ * `markdownBodyRenderer({ scriptureCatalogue: bundledScriptureCatalogue })`
+ * as its body renderer, and passes its `consultationStore`, its
+ * `moveToLegacy`, and its `rerenderBodies` for `--rerender-bodies`, both
+ * stubs going. From then on every command writes to and reads the real
+ * Journal, and only a test's own ports keep it untouched.
  */
 // The Journal's folder is found from the module, never from the process's
 // working folder (ADR-0020), so the process goes unread for now.
