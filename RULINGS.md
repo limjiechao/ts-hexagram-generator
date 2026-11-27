@@ -6418,3 +6418,25 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   place.
 - Reason: protects the owner's real Journal; adds no knob to the shipped CLI.
 - Folded into: not yet
+
+### R-522: M-013 slice 1's tests; Q-M-013-22 to -28
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 1 (tester's 53c9a9a, b15b9be)
+- Ruled by: delegate (R-423)
+- Ruling: (tests) approve 53c9a9a; approve b15b9be with five rows added, one
+  each for Q-24 to Q-28. All questions (A): `rightHeap` is stalks − Pick
+  with the Hung Stalk still in it (Q-22); names may come in any order, but
+  one Trigram's names keep the Editions' order and the Readout never
+  re-sorts (Q-23); a shown Trigram with no names gives `[]`, nothing thrown
+  (Q-24); each EditionId in `editions` is the first record in which it
+  appears, compared as whole records (Q-25); a `passageTexts` entry whose
+  Citation the Readout doesn't show is a `RangeError` (Q-26); `divinedAtText`
+  truncates seconds, so 23:59:59 never rolls the date over (Q-27); extra
+  NamedHexagrams are ignored, a duplicate is a `RangeError`, extra
+  TrigramNames are ignored (Q-28). The drafted doc comments in
+  `build-readout.ts` and `readout.ts` gain the matching wording (Tier B).
+- Reason: the glossary's Division and Hung Stalk; R-375 (today's ledger
+  bytes); R-519 Q-1 and Q-8; manual §5 and R-337 (the date matches the file
+  name and the browse list).
+- Folded into: not yet
