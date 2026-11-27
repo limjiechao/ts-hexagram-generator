@@ -176,6 +176,8 @@ export function keptLine(
  * - `invalid-field` `query`: `it gives no Query`
  * - `invalid-field` `transformation`: `it gives no valid Transformation`
  * - a file that is not a regular file: `it is not a regular file`
+ * - a named path that is missing or cannot be read, or a file that is not
+ *   valid UTF-8: `it cannot be read`
  */
 export function skippedLine(file: string, reasonText: string): string {
   throw new Error('not built', { cause: [file, reasonText] })

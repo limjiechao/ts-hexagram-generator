@@ -44,6 +44,12 @@ export type LegacyRecord =
  * (ADR-0027). Each kept Consultation gets a new Consultation Id, a ULID built
  * from the Clock and the Random Source (ADR-0046).
  *
+ * It reads the Store's Deletion Records once per call, before its first
+ * keep. A drawn Id that a Deletion Record names is drawn again, with the
+ * same Clock time and 16 fresh draws from the Random Source, so a new
+ * Consultation is never born deleted; every record is still kept and
+ * returned in order. A failed read rejects the Promise unchanged.
+ *
  * The import is a migration, run once: importing the same files twice
  * keeps each of their Consultations twice, under new Ids.
  *

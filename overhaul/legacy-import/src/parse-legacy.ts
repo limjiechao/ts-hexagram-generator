@@ -26,8 +26,9 @@ export interface LegacyFile {
  *   version-1 file with no `casting` key, whose writer wrote
  *   `castingAbsence` instead), so it is a Recorded Consultation's.
  * - `does-not-replay`: the file holds a Casting that does not replay to its
- *   Transformation, or a stored stalk count that disagrees with the replay,
- *   or one that cannot be read, so it is a Recorded Consultation's.
+ *   Transformation, or a stored stalk count or Right Heap that disagrees
+ *   with the replay, or a table of fewer than six rows, or one that cannot
+ *   be read, so it is a Recorded Consultation's.
  */
 export type LegacyCasting = 'replays' | 'none' | 'does-not-replay'
 
@@ -38,11 +39,15 @@ export type LegacyCasting = 'replays' | 'none' | 'does-not-replay'
  * - `no-frontmatter`: a `.md` file with no frontmatter to hold a record.
  * - `not-yaml`: a `.md` file whose frontmatter is not YAML.
  * - `not-version-1`: a `.md` file whose record is not a mapping with
- *   `schemaVersion` `1`, other than a version-2 one.
+ *   `schemaVersion` `1`, other than a version-2 one; an empty frontmatter
+ *   among them.
  * - `invalid-field`: the file gives no valid value for the named field of a
  *   Consultation: `divinedAt` from a legacy file's name or a version-1
- *   `timestamp`; `query`, which must not be blank; `transformation` from a
- *   legacy file's Line Values or a version-1 `hexagram`.
+ *   `timestamp`; `query`, which must not be blank nor the old app's
+ *   `(Query not provided)`; `transformation` from a legacy file's Line
+ *   Values or a version-1 `hexagram`. When several fields are bad, the
+ *   first in ADR-0046's order is named: `divinedAt`, `query`, then
+ *   `transformation`.
  */
 export type LegacyUnreadableReason =
   | { readonly kind: 'no-frontmatter' }
@@ -70,10 +75,14 @@ export type LegacyParseResult =
  * Reads one file the importer was given (ADR-0026, ADR-0037):
  *
  * - a name ending `.txt` is a legacy file: its Query, its six Line Values
- *   and, when it has one, its Casting table, in either of its two layouts;
- *   its Divined At is the Moment its name holds, with no milliseconds;
+ *   and, when it has one, its Casting table, in either of its two layouts,
+ *   read after ANSI SGR sequences, and only those, are stripped; its
+ *   Divined At is the Moment its name holds, with no milliseconds, and the
+ *   name must be exactly `consultation-YYYY-MM-DDTHH-mm-ss±HHMM.txt`;
  * - a name ending `.md` is a version-1 file when its frontmatter's
- *   `schemaVersion` is `1`: its `timestamp` is the Divined At, its
+ *   `schemaVersion` is `1`: its `timestamp` is the Divined At, a string
+ *   `YYYY-MM-DDTHH:mm:ss`, then an optional fraction truncated to the
+ *   millisecond, then `Z` (read as `+00:00`), `±HH:MM` or `±HHMM`; its
  *   `hexagram` mapping, keyed `L6` to `L1`, the Transformation, and its
  *   `casting`, when the key is present, the Picks, each Line's stalk counts
  *   checked against the replay; a version-2 file is `not-legacy`, so the
@@ -91,8 +100,10 @@ export type LegacyParseResult =
  * to the file's Transformation makes a Cast Consultation's record; any
  * other file that parses makes a Recorded Consultation's, from the file's
  * Transformation alone. No Casting is ever invented (ADR-0026). The Query
- * is the text the file holds, less only the spaces its layout puts around
- * it. It never throws.
+ * is the text the file holds; a legacy file's multi-line Query loses only
+ * the layout's exact two-space indent on each line. A Divined At in any
+ * other form, or naming a date or time that does not exist, is
+ * `invalid-field` `divinedAt`, never normalised. It never throws.
  */
 export function parseLegacyFile(file: LegacyFile): LegacyParseResult {
   throw new Error('not built', { cause: file })
