@@ -6274,3 +6274,21 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   one-string change at the owner's word if 簡體 is preferred.
 - Reason: R-306, R-314, R-357, R-372, R-510, R-512.
 - Folded into: not yet
+
+### R-514: M-011 slice 2's tests; Translations' language is `en`
+
+- Date: 2026-11-27
+- Raised in: M-011 slice 2 (tester's 4f6876e), question Q-M-011-19
+- Ruled by: delegate (R-423)
+- Ruling: (Q-19) A — `Edition.language` is `'en'` for `legge-1882` and
+  `wilhelm-baynes-1967`. (Tests) approve with two amendments: the editions
+  test asserts `language` is `'en'`; and the expected Edition records are
+  written as literal strings exactly as `bundled-data.ts`'s doc comment
+  records R-512's wording, not rebuilt by regex from the owner's file headings
+  or `CONTEXT.md` (the support helpers for that are removed; scripture stays
+  read at run time). `Witness.retrievedOn` in `Edition` is owner-ratified
+  (R-068) and stays; R-512 dropped only the bundled draft's field.
+- Reason: R-082 leaves `language` free and the approved fixtures use `en`;
+  one authoritative representation of the ratified wording (AGENTS.md §5);
+  Edition names are bibliographic metadata, not scripture.
+- Folded into: not yet
