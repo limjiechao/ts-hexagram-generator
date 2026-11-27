@@ -1,6 +1,7 @@
 import type { ConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import type { BundleUnreadableReason } from '@hexagram/consultation-journal/journal-bundle'
 import type { UnreadableReason } from '@hexagram/consultation-journal/unreadable-file'
+import type { LegacyUnreadableReason } from '@hexagram/legacy-import/parse-legacy'
 
 /*
  * The words `hexagram-history`'s maintenance runs print. A report's lines go
@@ -159,7 +160,14 @@ export function keptLine(
   id: ConsultationId,
   casting: 'replays' | 'none' | 'does-not-replay',
 ): string {
-  throw new Error('not built', { cause: [file, id, casting] })
+  switch (casting) {
+    case 'replays':
+      return `Kept ${file} as a Cast Consultation, ${id}`
+    case 'none':
+      return `Kept ${file} as a Recorded Consultation, ${id}: the file holds no Casting`
+    case 'does-not-replay':
+      return `Kept ${file} as a Recorded Consultation, ${id}: its Casting does not replay to its Transformation`
+  }
 }
 
 /**
@@ -180,7 +188,30 @@ export function keptLine(
  *   valid UTF-8: `it cannot be read`
  */
 export function skippedLine(file: string, reasonText: string): string {
-  throw new Error('not built', { cause: [file, reasonText] })
+  return `Skipped ${file}: ${reasonText}`
+}
+
+/** A legacy reason in `skippedLine`'s words, as listed there. */
+export function legacyUnreadableReasonText(
+  reason: LegacyUnreadableReason,
+): string {
+  switch (reason.kind) {
+    case 'no-frontmatter':
+      return 'it has no frontmatter'
+    case 'not-yaml':
+      return 'its frontmatter is not YAML'
+    case 'not-version-1':
+      return 'it is not a version-1 record'
+    case 'invalid-field':
+      switch (reason.field) {
+        case 'divinedAt':
+          return 'it gives no valid Divined At'
+        case 'query':
+          return 'it gives no Query'
+        case 'transformation':
+          return 'it gives no valid Transformation'
+      }
+  }
 }
 
 /**
@@ -195,5 +226,6 @@ export function importedLine(counts: {
   readonly recorded: number
   readonly skipped: number
 }): string {
-  throw new Error('not built', { cause: counts })
+  const { cast, recorded, skipped } = counts
+  return `Imported ${String(cast + recorded)} of ${counted(cast + recorded + skipped, 'file')} (${String(cast)} cast, ${String(recorded)} recorded); ${String(skipped)} skipped. Originals moved to legacy/ in the Journal folder.`
 }
