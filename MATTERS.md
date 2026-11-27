@@ -409,6 +409,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Open questions: none open; ruled in R-374, R-375. Likely from the tester: the Witness
   section with no Translation chosen; a Query of several lines in the ledger.
 - Commits: –
+- Note (R-505): M-013 builds `markdownConsultationStore` into the bins'
+  `processPorts` with the real body renderer; only then can the owner migrate
+  the real Journal.
 - Notes: about 2,000 lines, three slices: the Readout; plain and Ink
   sections; the Markdown file and `--rerender-bodies`.
 
@@ -459,8 +462,8 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   Raise when slices 2 and 3 are drafted (R-496): import and merge check each
   Id against `deletionRecords` before `keep`; how duplicate Deletion Records
   are deduplicated and which `deletedAt` wins.
-  Landed with the bins still on a stub Store: Q-M-015-24 (the real Store in
-  the bins, and so migrating the real Journal) is with the owner.
+  Landed with the bins still on a stub Store; they stay stubbed until M-013
+  builds the body renderer (R-505).
 
 ### M-016: Exporting to Typst and PDF
 

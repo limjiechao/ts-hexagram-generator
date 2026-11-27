@@ -6107,3 +6107,19 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
 - Reason: R-494 Q-18, Q-20; R-350; R-460; R-502 Q-41, Q-42, Q-46, Q-48,
   Q-49; the legacy writer never wrote `casting: null`.
 - Folded into: not yet
+
+### R-505: The bins stay on a stub Store until M-013
+
+- Date: 2026-11-27
+- Raised in: question Q-M-015-24 (referred by the delegate: building the real
+  Store into the bins would let every command write to, and `--import-legacy`
+  migrate, the owner's real Journal with empty bodies before M-013; R-492's
+  "the stub body" assumed a stub renderer the code does not have)
+- Question: (B) the bins stay stubbed until M-013 builds the body renderer;
+  M-015's acceptance runs in-process; nothing touches the real Journal. (A)
+  build the real Store now with a renderer returning `''`, so the owner may
+  migrate early and run `--rerender-bodies` after M-013. (C) as (A) with the
+  stub renderer in `store-markdown`.
+- Ruling: "Q-M-015-24: B"
+- Folded into: `MATTERS.md` (M-013 connects the real Store to the bins);
+  R-492's "the stub body" reads as the tests' stub renderer
