@@ -43,14 +43,21 @@ const offsetPattern = /^(?<sign>[+-])(?<hours>\d{2}):(?<minutes>\d{2})$/
  * local offset.
  */
 export function isUtcOffset(value: string): value is UtcOffset {
+  const minutesEast = offsetMinutes(value)
+  if (minutesEast === undefined) return false
+  return minutesEast < 0
+    ? minutesEast >= -12 * 60
+    : minutesEast <= 14 * 60 && !value.startsWith('-')
+}
+
+/** The offset east of UTC in minutes, or undefined when the text is not `±HH:MM` with minutes 00 to 59. */
+function offsetMinutes(value: string): number | undefined {
   const groups = offsetPattern.exec(value)?.groups
-  if (groups === undefined) return false
+  if (groups === undefined) return undefined
   const { sign, hours, minutes } = groups
-  if (Number(minutes) > 59) return false
-  const totalMinutes = Number(hours) * 60 + Number(minutes)
-  return sign === '-'
-    ? totalMinutes > 0 && totalMinutes <= 12 * 60
-    : totalMinutes <= 14 * 60
+  if (Number(minutes) > 59) return undefined
+  const magnitude = Number(hours) * 60 + Number(minutes)
+  return sign === '-' ? -magnitude : magnitude
 }
 
 /**
@@ -93,5 +100,19 @@ function isLeapYear(year: number): boolean {
  * 0000 to 9999; for any other Moment the result is unspecified.
  */
 export function localDate(divinedAt: DivinedAt): Day {
-  throw new Error('not built', { cause: divinedAt })
+  if (divinedAt.precision === 'day') return divinedAt
+  // Shifted by its offset, the instant's UTC fields read as the Moment's own
+  // wall clock.
+  const wallClock = new Date(
+    divinedAt.epochMilliseconds +
+      (offsetMinutes(divinedAt.offset) ?? 0) * 60_000,
+  )
+  // Not checked with isDay: the result outside the stated limit is
+  // unspecified, and the function stays total.
+  return {
+    precision: 'day',
+    year: wallClock.getUTCFullYear(),
+    month: wallClock.getUTCMonth() + 1,
+    day: wallClock.getUTCDate(),
+  } as Day
 }
