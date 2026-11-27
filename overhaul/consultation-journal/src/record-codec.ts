@@ -9,6 +9,7 @@ import type { Consultation } from '#src/consultation.js'
 import {
   isDay,
   isUtcOffset,
+  localDate,
   type Day,
   type DivinedAt,
   type Moment,
@@ -174,24 +175,18 @@ function linePicks([first, second, third]: readonly [
 }
 
 function encodeDivinedAt(divinedAt: DivinedAt): string {
-  if (divinedAt.precision === 'day') {
-    return isoDate(divinedAt.year, divinedAt.month, divinedAt.day)
-  }
+  const date = isoDate(localDate(divinedAt))
+  if (divinedAt.precision === 'day') return date
   // Shifted by its offset, the instant's UTC fields read as the Moment's own
   // wall-clock time.
   const local = new Date(
     divinedAt.epochMilliseconds + offsetMinutes(divinedAt.offset) * 60_000,
   )
-  const date = isoDate(
-    local.getUTCFullYear(),
-    local.getUTCMonth() + 1,
-    local.getUTCDate(),
-  )
   const time = `${pad(local.getUTCHours(), 2)}:${pad(local.getUTCMinutes(), 2)}:${pad(local.getUTCSeconds(), 2)}.${pad(local.getUTCMilliseconds(), 3)}`
   return `${date}T${time}${divinedAt.offset}`
 }
 
-function isoDate(year: number, month: number, dayOfMonth: number): string {
+function isoDate({ year, month, day: dayOfMonth }: Day): string {
   return `${pad(year, 4)}-${pad(month, 2)}-${pad(dayOfMonth, 2)}`
 }
 
