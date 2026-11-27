@@ -5660,3 +5660,16 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   when none shares it). (C) leave the cross-offset case unspecified.
 - Ruling: "Q-M-012-41: A"
 - Folded into: `docs/manual/cli.md` §4; refines R-337 and R-378
+
+### R-483: M-012 slice 3's test list
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 3 (tester's d8eca87)
+- Ruled by: delegate (R-423)
+- Ruling: approve, no amendments — the 46 tests stand.
+- Reason: every ordering row matches R-482 and R-479 when worked out from its
+  ISO text; the filter rows follow manual §6.7 and R-480; the rest trace to
+  the use cases' and port's doc comments and R-441, R-457, R-462. The
+  "once" call counts (browse's `list`, open's `get`) are accepted as cheap to
+  relax.
+- Folded into: not yet
