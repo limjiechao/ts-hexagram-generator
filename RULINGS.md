@@ -5729,3 +5729,24 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   ratifies.
 - Reason: all three are due and none depends on the reorder.
 - Folded into: not yet
+
+### R-488: `localDate`'s surface
+
+- Date: 2026-11-27
+- Raised in: R-484's follow-up (drafted surface 6bb928a on `m/local-date`),
+  questions Q-LD-1 to Q-LD-8
+- Ruled by: delegate (R-423)
+- Ruling: all A, and the drafted surface ratified as drafted —
+  `export function localDate(divinedAt: DivinedAt): Day` in
+  `consultation-journal/divined-at`: it returns the existing `Day` (a Day
+  input as the same object); outside R-448's limit (integer ms, local years
+  0000–9999) the result is unspecified and the function stays total;
+  `encodeRecord`'s doc keeps its own limit sentence; one later Tier-B change
+  builds the body, has `encodeDivinedAt` use it, and replaces browse's
+  `encodeRecord(...).divinedAt.slice(0, 10)` with a `Day` comparison; the
+  tester writes direct rows (dates moved across midnight both ways, a Day
+  returned as the same object, years 0000 and 9999).
+- Reason: R-037 keeps ISO text in the record only; one shape and one limit
+  for one piece of knowledge (AGENTS.md §5); R-430 keeps the codec total;
+  R-484 makes the swap Tier B.
+- Folded into: not yet
