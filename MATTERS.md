@@ -456,6 +456,9 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Commits: –
 - Notes: about 2,000 lines, three slices: delete; merge; import. Merged under
   R-356 (A) to absorb the Viewer's split.
+  Raise when slices 2 and 3 are drafted (R-496): import and merge check each
+  Id against `deletionRecords` before `keep`; how duplicate Deletion Records
+  are deduplicated and which `deletedAt` wins.
 
 ### M-016: Exporting to Typst and PDF
 

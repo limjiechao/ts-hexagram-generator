@@ -5887,3 +5887,29 @@ query` (Q-17, flagged: the owner's data); legacy Divined At forms as the old
   R-494 Q-14, its extra B7 plant accepted.
 - Reason: R-074, R-367, R-456, R-457, R-462, R-472; manual §6.7.
 - Folded into: not yet
+
+### R-496: M-015 slice 1's review items
+
+- Date: 2026-11-27
+- Raised in: the review of M-015 slice 1 (APPROVE; 1183131, cdbecb0,
+  3ef8f3c), questions Q-M-015-30 and -31 and the digest
+- Ruled by: delegate (R-423)
+- Ruling: (Q-30) A — `keep` stays as it is; use cases 7 (import) and 10
+  (merge) check each Id against `deletionRecords` before calling `keep`, to be
+  raised when those slices are drafted; the remove-versus-keep race stays a
+  documented gap. (Q-31) A — `deletionRecords` may return two records for one
+  Id; the bundle codec or merge slice decides how to deduplicate and which
+  `deletedAt` wins. (Digest) ratified with three changes: a record file is
+  decoded with strict UTF-8 (a bad byte or a BOM makes it not a Deletion
+  Record), documented on `loadDeletionRecord`, with a test; `remove` accepts an
+  existing entry at its record name only if it is a regular file (`lstat`),
+  anything else rejects and touches nothing, with a test; a tester adds direct
+  unit tests for `encodeDeletionRecord`/`decodeDeletionRecord` (round trip,
+  non-object, bad or missing `consultationId`, date-only `deletedAt` refused,
+  extra keys ignored).
+- Reason: R-074 and the port define `keep` by held Ids only, and CONTEXT.md's
+  Merging Journals puts the subtraction in the merge; R-494 Q-1 makes a record
+  at any name legitimate and R-368's sort needs a tie-break; R-460 and R-469
+  refuse rather than repair; the Store's readers and writer must agree on what
+  a record is.
+- Folded into: not yet
