@@ -61,9 +61,9 @@ const isPositional = (token: string): boolean => !token.startsWith('-')
 
 /**
  * Reads `argv` against a command's rules, or gives undefined when the line is
- * a usage refusal: an unknown option, a bad or missing value, a repeat, or a
- * positional anywhere but directly after `--import-legacy`. A lone `--` is
- * dropped wherever it appears.
+ * a usage refusal: an unknown option, a bad or missing value, or a separate
+ * value starting with `-`, a repeat, or a positional anywhere but directly
+ * after `--import-legacy`. A lone `--` is dropped wherever it appears.
  */
 export function parseOptions<Rules extends OptionRules>(
   argv: readonly string[],
