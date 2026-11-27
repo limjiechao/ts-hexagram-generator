@@ -5078,3 +5078,14 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   opening its PR to `main`. Fast-forwarding `main` stays with the owner
   until they say otherwise, since R-423 puts their review of the delegate's
   rulings at that step.
+
+### R-425: The clerk fast-forwards `main` too
+
+- Date: 2026-11-27
+- Raised in: the clerk's reading of R-424 (fast-forwarding `main` left with
+  the owner)
+- Question: (A) The hook admits a plain push of `matters`; the owner keeps
+  fast-forwarding `main`. Or the clerk fast-forwards `main` too.
+- Ruling: "edit the hook; you can fast-forward main too"
+- Folded into: `docs/agents/clerk.md` §0 (git constraints); the owner's
+  `~/.claude/hooks/git-guard.sh` admits exactly the two pushes

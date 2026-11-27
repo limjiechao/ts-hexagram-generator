@@ -82,12 +82,16 @@ in Tier A**.
     with `git worktree add <path> <branch>`.
   - Land with `git cherry-pick`.
   - The integration branch is `matters`, in the worktree `../hexagram-wt-matters`.
-  - Never push and never touch `main`. To land `matters` on `main`, the clerk
-    opens a pull request from `matters` to `main` once the owner has pushed
-    `matters`; the owner merges it after CI's `check` passes (R-272), by
-    fast-forwarding `main` to the tested tip, which keeps every SHA and the
-    branch (R-302):
-    `git push origin origin/matters:main`.
+  - To land `matters` on `main` (R-272, R-302, R-424), the clerk pushes
+    `matters` plainly, never forced, opens a pull request from `matters` to
+    `main` whose body lists the delegate's rulings (§3), and after CI's
+    `check` passes fast-forwards `main` to the tested tip, which keeps every
+    SHA and the branch. The git-guard hook admits exactly these two pushes:
+    `git -C <abs path to hexagram-wt-matters> push [-u] origin matters` and
+    `git -C <abs path to hexagram-wt-matters> push origin origin/matters:main`
+    (after a `fetch`). Never force, never merge a PR on GitHub, never create
+    a merge commit. If the owner overturns a delegate ruling in the PR,
+    do not fast-forward until the overturn is handled.
   - Never gate on `pnpm check:all`, which flakes. Use a sequential
     `pnpm build && pnpm test`.
 - **Commit messages** state WHY and name the Matter. They end with:
