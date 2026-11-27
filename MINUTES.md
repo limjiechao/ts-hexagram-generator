@@ -571,3 +571,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — M-012 slices 1 and 2 on main — 2026-11-27
 
 - PR #62 (the record codec, the Markdown Store, ADR-0045, R-443 to R-481) passed every leg at b34bbbb after R-481's smaller Windows run; the owner fast-forwarded `main` to b34bbbb (R-302).
+
+### Iteration 37 — M-012 — 2026-11-27
+
+- Attempt: 1/2 (slice 3 of 3; R-058) · Outcome: landed; M-012 complete
+- Tests: the tester's audit found R-378's order cyclic across offsets; the delegate referred it and the owner ruled local date first (R-482, manual §4 amended); ties and filter holes ruled (R-479, R-480); 46 tests approved (R-483).
+- Review: `APPROVE` (20,000 random Journals against an independent R-482 oracle); follow-ups ruled: a public `localDate` later (R-484), `lint:check` without ESLint's cache (R-485), digest (R-486).
+- Verify: M-012's whole Acceptance · type:check · lint:check (uncached) · format · drift:check · drift:prove · build and test forced 20/20 and 40/40, on matters
+- Owner touches: 1 (R-482); delegate rulings: 8 (R-479 to R-481, R-483 to R-486)
+- Landed: e2dd152, 460fab7, a498b3a, 2053072, 3173c59
+- Notes: M-012 used 2 owner touches in all (R-422, R-482) against 60, and 61 delegate rulings (R-426 to R-486, less R-482).

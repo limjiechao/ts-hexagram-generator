@@ -40,7 +40,7 @@ from its actual figures when it lands (R-006).
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010)                                             | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 2 (M-012)                                  | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending (R-419)             |
@@ -358,7 +358,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-012: The Markdown Consultation Store, and browsing and opening
 
-- Status: in-progress
+- Status: landed
 - Phase: 4
 - Licensed by: ADR-0015, ADR-0020, ADR-0026, ADR-0030, ADR-0037; manual
   sections 4, 5; R-037, R-337
@@ -377,7 +377,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   The Unreadable test produces each ratified reason from a planted file.
 - Open questions: none open; ruled in R-362 to R-366, R-378. Likely from the tester: a Query
   with trailing newlines; two keeps of one Id at once.
-- Commits: af096d7, bb3b305, dda6b7c (drafted surface), 09f5cd0, 2f16b92, 6c44e03 (acceptance), f0d3dfd (boundary row and twins), bd3442e (doc limits), 4b12642 (codec) for slice 1; for slice 2, ea4ffd6, eab3f07, 0aff923, 6618fbc (acceptance and fixtures), 4bc4d6f (js-yaml 3), d77b6fa (the Store), 9d06007, c65beb1 (ADR-0045), 6e6392c, 7590574, a1bf595, 2d08250, 22c9138, b645b94, c3657ca, 508fb8d, b7b89c9 (review fixes)
+- Commits: af096d7, bb3b305, dda6b7c (drafted surface), 09f5cd0, 2f16b92, 6c44e03 (acceptance), f0d3dfd (boundary row and twins), bd3442e (doc limits), 4b12642 (codec) for slice 1; for slice 2, ea4ffd6, eab3f07, 0aff923, 6618fbc (acceptance and fixtures), 4bc4d6f (js-yaml 3), d77b6fa (the Store), 9d06007, c65beb1 (ADR-0045), 6e6392c, 7590574, a1bf595, 2d08250, 22c9138, b645b94, c3657ca, 508fb8d, b7b89c9 (review fixes); for slice 3, e2dd152 (acceptance), 460fab7 (use cases 4 and 5), a498b3a (`composeCli`), 2053072, 3173c59 (`lint:check` uncached)
 - Notes: about 1,300 lines, three slices: codec; Store; use cases 4 and 5.
   Surface ruled by the delegate as R-426 to R-441. For the manual's next
   revision (§6.7): R-366's duplicate-Id reason, `legacy/` names that take a
