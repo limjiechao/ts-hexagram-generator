@@ -6,6 +6,7 @@ import type { Transformation } from '@hexagram/oracle/transformation'
 
 import { isConsultationId, type ConsultationId } from '#src/consultation-id.js'
 import type { Consultation } from '#src/consultation.js'
+import type { DeletionRecord } from '#src/deletion-record.js'
 import {
   isDay,
   isUtcOffset,
@@ -134,6 +135,57 @@ export function decodeRecord(record: unknown): DecodeResult {
   if (picks === undefined) return decodeRecorded(record, id, divinedAt)
   if (divinedAt.precision === 'day') return invalid('divinedAt')
   return decodeCast(record, id, divinedAt, picks)
+}
+
+/**
+ * A Deletion Record as plain data, in the one form every Store's file and
+ * every Journal bundle hold, so a deletion leaves the CLI's Journal and
+ * comes back from the PWA's unchanged (ADR-0037). `deletedAt` is written as
+ * a version-2 record writes a Moment's `divinedAt`: `YYYY-MM-DDTHH:mm:ss.sss`
+ * and the Moment's own `±HH:MM` offset. Its keys come in this order.
+ *
+ * For example, invented:
+ *
+ * ```json
+ * {
+ *   "consultationId": "01M6E6AHA84T7V2M5N6P0R1S2K",
+ *   "deletedAt": "2026-11-27T09:15:00.000+08:00"
+ * }
+ * ```
+ */
+export interface DeletionRecordData {
+  readonly consultationId: string
+  readonly deletedAt: string
+}
+
+/** A loaded Deletion Record, or that the data is not one. */
+export type DeletionRecordDecodeResult =
+  | { readonly outcome: 'decoded'; readonly deletionRecord: DeletionRecord }
+  | { readonly outcome: 'unreadable' }
+
+/**
+ * The Deletion Record's plain data. It never fails, and decoding the data
+ * gives back an equal Deletion Record, within the limit `encodeRecord`
+ * states for a Moment.
+ */
+export function encodeDeletionRecord(
+  deletionRecord: DeletionRecord,
+): DeletionRecordData {
+  throw new Error('not built', { cause: deletionRecord })
+}
+
+/**
+ * Loads a Deletion Record's data, parsed but unchecked, from the JSON data
+ * model. It is unreadable unless it is a mapping whose `consultationId`
+ * `isConsultationId` admits and whose `deletedAt` is a date-time
+ * `decodeRecord` would accept as a Moment's `divinedAt`; a date alone is
+ * refused, since a deletion is a moment. Fields it does not name are
+ * ignored. It never throws.
+ */
+export function decodeDeletionRecord(
+  data: unknown,
+): DeletionRecordDecodeResult {
+  throw new Error('not built', { cause: data })
 }
 
 /** The 18 Picks a Cast Consultation's record holds. */

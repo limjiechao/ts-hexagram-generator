@@ -47,6 +47,27 @@ export interface MarkdownConsultationStore {
    * Frontmatter is parsed with js-yaml's JSON or Core schema, never its
    * default schema. A missing folder reads as an empty Journal, and `keep`
    * creates it.
+   *
+   * Each Deletion Record is one file in the folder's `deleted/` folder,
+   * named `<Consultation Id>.json`, holding the record's data as
+   * `encodeDeletionRecord` gives it, written as JSON indented by two spaces
+   * with a final newline: the form a Journal bundle holds it in. Its
+   * contents, never its name, say which Consultation it names (ADR-0046).
+   *
+   * `remove` writes the Deletion Record's file first, atomically, then
+   * deletes every `.md` file directly in the folder whose frontmatter
+   * decodes to a Consultation with that Id, a `duplicate-id` file among
+   * them. A Deletion Record's file is never overwritten: when one already
+   * holds the name, the earlier deletion stands and `remove` goes on to
+   * delete the files, so a `remove` cut short is finished by running it
+   * again. It creates `deleted/` when missing.
+   *
+   * `deletionRecords` reads every `.json` file directly in `deleted/`, in
+   * the code-point order of their names; a missing `deleted/` holds none.
+   * A file that does not decode as a Deletion Record rejects the Promise,
+   * as the Journal that cannot be read, since leaving it out could let
+   * Merging Journals bring a deleted Consultation back. `list` and `get` do
+   * not read `deleted/`.
    */
   readonly consultationStore: ConsultationStore
   /**
@@ -120,7 +141,10 @@ export function markdownConsultationStore(options: {
       return journal.loaded.find((file) => file.consultation.id === id)
         ?.consultation
     },
-    // Deleting a Consultation is built with its own use case.
+    // Deleting a Consultation is built with its own use case. A re-render
+    // that read the folder before a `remove` can put the deleted file back
+    // by its rename; both run only by the owner's hand, so it stays a known
+    // gap.
     remove: (record) =>
       Promise.reject(new Error('not built', { cause: record })),
     deletionRecords: () => Promise.reject(new Error('not built')),
