@@ -29,6 +29,10 @@
   "dependencies": {
     "@hexagram/application": "workspace:*",
     "@hexagram/consultation-journal": "workspace:*",
-    "@hexagram/oracle": "workspace:*"
+    "@hexagram/oracle": "workspace:*",
+    "js-yaml": "^3.14.1"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^3.12.10"
   }
 }
