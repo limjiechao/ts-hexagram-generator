@@ -171,7 +171,11 @@ async function readJournal(folder: string): Promise<{
   const firstLocations = new Map<ConsultationId, string>()
   // One file at a time, so a large Journal never exhausts file handles.
   for (const name of await markdownFileNames(folder)) {
-    const file = loadFile(await readFile(path.join(folder, name)))
+    const bytes = await readListedFile(path.join(folder, name))
+    if (bytes === undefined) {
+      continue
+    }
+    const file = loadFile(bytes)
     if (file.consultation === undefined) {
       unreadable.push({ location: name, reason: file.reason })
       continue
@@ -188,6 +192,21 @@ async function readJournal(folder: string): Promise<{
     loaded.push({ name, ...file })
   }
   return { loaded, unreadable }
+}
+
+/**
+ * A listed file's bytes, or undefined when it was deleted after the folder
+ * was read: it has left the Journal, so it is no Unreadable file either.
+ */
+async function readListedFile(file: string): Promise<Buffer | undefined> {
+  try {
+    return await readFile(file)
+  } catch (error) {
+    if (hasCode(error, 'ENOENT')) {
+      return undefined
+    }
+    throw error
+  }
 }
 
 function loadFile(bytes: Buffer):
