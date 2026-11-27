@@ -100,7 +100,11 @@ export async function importLegacyFiles(
   return kept
 }
 
-/** A Consultation Id no Deletion Record names, drawn at one Clock time. */
+/**
+ * A Consultation Id no Deletion Record names, drawn at one Clock time. A
+ * constant Random Source breaks the port's "each equally likely" contract,
+ * and then the redraw cannot end.
+ */
 function newId(
   ports: { readonly clock: Clock; readonly randomSource: RandomSource },
   deleted: ReadonlySet<ConsultationId>,
