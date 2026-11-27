@@ -5251,3 +5251,75 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   which makes the Windows leg load-bearing. In CI only Ubuntu proves the
   throw (there is no macOS leg); macOS proves it locally.
 - Folded into: not yet
+
+### R-443: A lone `divisionMethod` names `divisionMethod`
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-17
+- Ruled by: delegate (R-423)
+- Ruling: A — A record with `divisionMethod` but no `casting`, or `casting` but no `divisionMethod`, is `invalid-field: divisionMethod`.
+- Reason: Already settled by R-433's ratified map; ADR-0030 puts "present if and only if casting is" on the `divisionMethod` row.
+- Folded into: not yet
+
+### R-444: An explicit null is invalid, not absent
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-18
+- Ruled by: delegate (R-423)
+- Ruling: A, with a clarification — Only a missing key means absent; `casting: null` is `invalid-field: casting` and `divisionMethod: null` is `invalid-field: divisionMethod`; a key whose value is `undefined` counts as missing.
+- Reason: ADR-0030 dropped version 1's `casting: null` convention; R-431 reads data-model values and null is one; strict now is the reversible choice.
+- Folded into: not yet
+
+### R-445: Impossible dates and times are refused, never normalised
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-19
+- Ruled by: delegate (R-423)
+- Ruling: A — A date-time whose date fails `isDay`'s calendar rule, or whose hours, minutes or seconds fall outside 00–23, 00–59, 00–59 (no `24:00:00`, no `:60`), is `invalid-field: divinedAt`.
+- Reason: R-432 fixes the forms; normalising like JS `Date` would turn a typo into another moment and break ADR-0030's round trip.
+- Folded into: not yet
+
+### R-446: Non-integer Picks are a shape fault; refused integers do not replay
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-20
+- Ruled by: delegate (R-423)
+- Ruling: new (R-433 applied) — A Pick that is not an integer (2.5, NaN, a string) is `invalid-field: casting`; integer Picks `divide` refuses (0, -1, -0, and 1e3 as 1000) are `casting-does-not-replay`.
+- Reason: R-433's map draws this line; after parsing, 1e3 is 1000; the Oracle refuses with `valid-pick`.
+- Folded into: not yet
+
+### R-447: Cast-ness is the `casting` key's presence; `divinedAt` is checked first
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-21
+- Ruled by: delegate (R-423)
+- Ruling: A — `divinedAt` is reported before `casting`, by table order; a record is Cast when it has the `casting` key, whatever its value (even null); so a record with `divisionMethod` and no `casting` is Recorded, may have a Day, and fails on `divisionMethod`.
+- Reason: R-433's deterministic order and ADR-0030's table order.
+- Folded into: not yet
+
+### R-448: `encodeRecord` states its limit
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-22
+- Ruled by: delegate (R-423)
+- Ruling: A, with a correction — The type stays; `encodeRecord`'s doc comment states it writes faithfully, and round-trips, only a Moment with integer `epochMilliseconds` whose local date in its own offset lies in years 0000–9999; other text is unspecified. Manual §6.8's Record form also makes Moments, so the Matter building it refuses such values inline under its existing rule.
+- Reason: R-430 keeps `encodeRecord` total; (C) would change R-037's type; (B) adds unasked generality and would not decode under R-432.
+- Folded into: not yet
+
+### R-449: Smaller codec points are already settled
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, the tester's audit, smaller points
+- Ruled by: delegate (R-423)
+- Ruling: new — Lowercase `t`, a space separator and lowercase `z` are `invalid-field: divinedAt`; a lowercase ULID is `invalid-field: id`; a Date or other non-plain object is `not-version-2` as the root and `invalid-field` in a field; throwing getters and proxies are outside the contract and get no test.
+- Reason: R-431, R-432 and the ratified `isConsultationId`.
+- Folded into: not yet
+
+### R-450: M-012 slice 1's test list, with amendments
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, the tester's list (ce8fee3)
+- Ruled by: delegate (R-423)
+- Ruling: approve with amendments — The 45 rows (101 tests) are approved; add (a) a Recorded record carrying `divisionMethod` names `divisionMethod`; (b) `casting: null` names `casting`, `divisionMethod: null` names `divisionMethod`; (c) `divinedAt` `2026-02-30T08:00:00.123+08:00`, `…T24:00:00.000+08:00`, `…T08:60:00.000+08:00`, `…T08:00:60.000+08:00` each name `divinedAt`; (d) a Pick of 2.5 names `casting`, Picks of 0 and -1 give `casting-does-not-replay`; (e) a Cast record with a Day `divinedAt` and a malformed `casting` names `divinedAt`; (f) optional: a lowercase-`t` or space-separated `divinedAt`, a lowercase ULID. Q-22 gets no test.
+- Reason: Consistent with R-427, R-430 to R-433, ADR-0030 and the ratified guards; the amendments assert R-443 to R-449.
+- Folded into: not yet
