@@ -57,10 +57,13 @@ export interface MarkdownConsultationStore {
    * `remove` writes the Deletion Record's file first, atomically, then
    * deletes every `.md` file directly in the folder whose frontmatter
    * decodes to a Consultation with that Id, a `duplicate-id` file among
-   * them. A Deletion Record's file is never overwritten: when one already
-   * holds the name, the earlier deletion stands and `remove` goes on to
-   * delete the files, so a `remove` cut short is finished by running it
-   * again. It creates `deleted/` when missing.
+   * them. A Deletion Record's file is never overwritten. When the name
+   * already holds a file that decodes to a Deletion Record for the same Id,
+   * the earlier deletion stands and `remove` goes on to delete the files,
+   * so a `remove` cut short is finished by running it again. When the name
+   * holds a file that does not decode, or that names another Id, `remove`
+   * rejects as a Store failure and touches nothing. It creates `deleted/`
+   * when missing.
    *
    * `deletionRecords` reads every `.json` file directly in `deleted/`, in
    * the code-point order of their names; a missing `deleted/` holds none.

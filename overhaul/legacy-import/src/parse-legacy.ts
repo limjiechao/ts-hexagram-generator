@@ -23,8 +23,8 @@ export interface LegacyFile {
  * - `replays`: the file's Picks replay from the Empty Casting to its
  *   Transformation, so it is a Cast Consultation's.
  * - `none`: the file holds no Casting (a legacy file with no table, or a
- *   version-1 file with `casting: null`), so it is a Recorded
- *   Consultation's.
+ *   version-1 file with no `casting` key, whose writer wrote
+ *   `castingAbsence` instead), so it is a Recorded Consultation's.
  * - `does-not-replay`: the file holds a Casting that does not replay to its
  *   Transformation, or a stored stalk count that disagrees with the replay,
  *   or one that cannot be read, so it is a Recorded Consultation's.
@@ -75,10 +75,17 @@ export type LegacyParseResult =
  * - a name ending `.md` is a version-1 file when its frontmatter's
  *   `schemaVersion` is `1`: its `timestamp` is the Divined At, its
  *   `hexagram` mapping, keyed `L6` to `L1`, the Transformation, and its
- *   `casting`, when not null, the Picks, each Line's stalk counts checked
- *   against the replay; a version-2 file is `not-legacy`, so the Journal's
- *   own files are never imported or moved;
+ *   `casting`, when the key is present, the Picks, each Line's stalk counts
+ *   checked against the replay; a version-2 file is `not-legacy`, so the
+ *   Journal's own files are never imported or moved;
  * - any other name is `not-legacy`.
+ *
+ * The importer's adapter chooses which files to pass: the regular files
+ * directly in a folder given whose names end `.txt` or `.md`, matched
+ * case-sensitively, with no recursion, so `legacy/` and `deleted/` are
+ * never read; non-regular entries in a folder are ignored, and a path
+ * named explicitly that is not a regular file is skipped as not a regular
+ * file without reaching the parser.
  *
  * A Casting that replays from the Empty Casting, by the Oracle's Divisions,
  * to the file's Transformation makes a Cast Consultation's record; any

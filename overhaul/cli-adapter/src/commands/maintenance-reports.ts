@@ -13,8 +13,8 @@ import type { UnreadableReason } from '@hexagram/consultation-journal/unreadable
 /**
  * Why a stored record failed to load, as a report words it, after a
  * colon: for example `Left out consultations[3]: its Casting does not
- * replay to its Transformation`. The browse footer may word it its own
- * way.
+ * replay to its Transformation`. It is the one wording of these
+ * reasons, shared with the browse footer's `Cannot open — <reason>`.
  *
  * - `no-frontmatter`: `it has no frontmatter`
  * - `not-yaml`: `its frontmatter is not YAML`
