@@ -6310,3 +6310,20 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Folded into: not yet (`scripts/drift/signal-2.ts`, the contract comment in
   `scripts/drift/glossary-finding.ts`, and a `signal-2` prover fixture);
   narrows R-200 and R-246 for that folder only
+
+### R-516: M-011 slice 2's review items
+
+- Date: 2026-11-27
+- Raised in: the review of M-011 slice 2 (APPROVE), questions Q-M-011-21
+  and -22
+- Ruled by: delegate (R-423)
+- Ruling: (Q-21) A — the Catalogue shows each Translation id as given, so a
+  repeated id shows twice; removing or refusing duplicates would be the CLI
+  parser's, raised as its own question. (Q-22) A — a tester adds six rows
+  for preferences with several Editions (Translations in order; an unknown id
+  shows nothing; a Chinese id among Translations shows nothing; Simplified
+  never gives the Traditional text; no Translations gives the Chinese only; a
+  repeated id shows twice), back for approval. (Digest) ratified whole.
+- Reason: the port's "each Translation in order"; R-064; R-403; R-510 Q-14,
+  Q-15.
+- Folded into: not yet
