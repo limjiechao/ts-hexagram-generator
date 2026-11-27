@@ -1,0 +1,12 @@
+{
+  "//": "Linted as overhaul/legacy-import/package.json. Twin for B9: its three arrows.",
+  "name": "@hexagram/legacy-import",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/application": "workspace:*",
+    "@hexagram/consultation-journal": "workspace:*",
+    "@hexagram/oracle": "workspace:*"
+  }
+}

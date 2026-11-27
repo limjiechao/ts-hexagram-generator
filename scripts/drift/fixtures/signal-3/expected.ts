@@ -32,6 +32,7 @@ export type BoundaryRule =
 
 export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b1-dynamic-node-fs.ts': 'B1',
+  'plants/b1-legacy-import-node-fs.ts': 'B1',
   'plants/b1-static-node-fs.ts': 'B1',
   'plants/b1-type-only-node-fs.ts': 'B1',
   'plants/b1-type-position-node-fs.ts': 'B1',
@@ -69,6 +70,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b6-legacy-package.ts': 'B6',
   'plants/b7-dynamic-import-policy.ts': 'B7',
   'plants/b7-imports-policy.ts': 'B7',
+  'plants/b7-legacy-import-loads-application.ts': 'B7',
   'plants/b8-test-imports-policy.test.ts': 'B8',
   'plants/b9-dev-arrow-in-dependencies.package.json': 'B9',
   'plants/b9-extra-dependency.package.json': 'B9',
@@ -93,6 +95,8 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'twins/catalogue-imports-divined-at.ts': null,
   'twins/cli-adapter.package.json': null,
   'twins/journal-value-imports-oracle.ts': null,
+  'twins/legacy-import-replays.ts': null,
+  'twins/legacy-import.package.json': null,
   'twins/node-effects.package.json': null,
   'twins/oracle-imports-own-guard.test.ts': null,
   'twins/policy-type-imports-oracle.ts': null,

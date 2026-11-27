@@ -386,6 +386,9 @@ importers:
       '@hexagram/consultation-journal':
         specifier: workspace:*
         version: link:../consultation-journal
+      '@hexagram/legacy-import':
+        specifier: workspace:*
+        version: link:../legacy-import
       '@hexagram/node-effects':
         specifier: workspace:*
         version: link:../node-effects

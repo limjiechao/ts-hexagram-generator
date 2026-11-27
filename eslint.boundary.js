@@ -104,6 +104,18 @@ const overhaulPackages = {
     pure: false,
     dependencies: { application: 'any', 'consultation-journal': 'any' },
   },
+  // The legacy import reads application's types only and replays a legacy
+  // Casting through the Oracle itself, so it stays pure.
+  'legacy-import': {
+    rule: 'B7',
+    testsRule: 'B8',
+    pure: true,
+    dependencies: {
+      application: 'types',
+      'consultation-journal': 'any',
+      oracle: 'any',
+    },
+  },
   // R-358: the composition root, where every package but the policy meets.
   'cli-adapter': {
     rule: 'B7',
@@ -112,6 +124,7 @@ const overhaulPackages = {
     dependencies: {
       application: 'any',
       'consultation-journal': 'any',
+      'legacy-import': 'any',
       'node-effects': 'any',
       oracle: 'any',
       'scripture-catalogue': 'any',
