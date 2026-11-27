@@ -239,10 +239,19 @@ async function keepDeletionRecord(
   }
 }
 
+const strictUtf8 = new TextDecoder('utf-8', { fatal: true, ignoreBOM: true })
+
+/**
+ * The Deletion Record a file's bytes hold, or undefined when they hold
+ * none. The bytes are read as strict UTF-8, as the Store writes them: a
+ * byte that is not UTF-8 anywhere in the file, or a byte order mark, makes
+ * it no Deletion Record, rather than a record repaired on reading.
+ */
 function loadDeletionRecord(bytes: Buffer): DeletionRecord | undefined {
   let data: unknown
   try {
-    data = JSON.parse(bytes.toString('utf8'))
+    // `ignoreBOM` keeps a byte order mark in the text, where JSON refuses it.
+    data = JSON.parse(strictUtf8.decode(bytes))
   } catch {
     return undefined
   }
