@@ -6337,3 +6337,19 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: each of R-516's six rows is covered and matches the port's doc
   comments, R-510 Q-14 and R-516 Q-21; expected texts are read at run time.
 - Folded into: not yet
+
+### R-518: M-011 slice 3's tests; the bins get the real Catalogue
+
+- Date: 2026-11-27
+- Raised in: M-011 slice 3 (tester's e887299, a0111a2), question Q-M-011-23
+- Ruled by: delegate (R-423)
+- Ruling: (tests) approve, no amendments. (Q-23) A — wire the real
+  `bundledScriptureCatalogue` into `processPorts` in this slice, in its own
+  commit, changing only `processPorts` and its doc comment; the Consultation
+  Store and `moveToLegacy` stay stubbed (R-505); add one test that
+  `processPorts(process).scriptureCatalogue` is `bundledScriptureCatalogue`.
+- Reason: R-358 (the composition root wires adapters); the stub stood in
+  "until its adapter lands"; R-505 keeps only the Store stubbed; the adapter
+  is pure and read-only; no user-visible output changes, since every command
+  reaching use case 3 or 8 still ends with its not-built line.
+- Folded into: not yet
