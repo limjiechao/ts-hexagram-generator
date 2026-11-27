@@ -5769,3 +5769,14 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   precedent; a2a485c moved live citations the same way, and the manual's
   passages state only rules ADR-0046 keeps.
 - Folded into: ADR-0046
+
+### R-490: `localDate`'s direct rows
+
+- Date: 2026-11-27
+- Raised in: R-488's tests (b889138 on `m/local-date`)
+- Ruled by: delegate (R-423)
+- Ruling: approve as written — the 27 rows stand.
+- Reason: every expected date checked against instant plus offset; all rows
+  inside R-448's limit; none asserts the unspecified range; the rows R-488
+  asks for are all there.
+- Folded into: not yet
