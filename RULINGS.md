@@ -6059,3 +6059,21 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   so nothing is lost; the real Journal is untouched until Q-M-015-24.
 - Folded into: not yet (doc fixes to `import-legacy-files.ts`,
   `parse-legacy.ts` and `maintenance-reports.ts`)
+
+### R-503: The rewritten import frame rows; an empty import touches nothing
+
+- Date: 2026-11-27
+- Raised in: R-502's follow-up (tester's aa8ef14), question Q-M-015-50
+- Ruled by: delegate (R-423)
+- Ruling: (rows) approve with one amendment — the 14 rows stand;
+  `expectImportEnding` asserts before the run that each named path and the
+  Journal folder do not exist, and after it that the Journal folder still
+  does not exist. (Q-50) A — a run with zero files to import never calls use
+  case 7 and touches no port; use case 7 called with no records reads nothing
+  and resolves `[]`; a tester tightens the application row "keeps nothing …
+  for no records" with a rejecting `deletionRecords` that is never called;
+  `importLegacyFiles`'s doc gains "with no records it reads nothing".
+- Reason: R-494 Q-20, R-496 Q-30, R-502 Q-41 and Q-42 (a missing Journal
+  folder imports nothing with a zero summary); R-498's guaranteed-missing
+  intent kept by checking the missing state.
+- Folded into: not yet
