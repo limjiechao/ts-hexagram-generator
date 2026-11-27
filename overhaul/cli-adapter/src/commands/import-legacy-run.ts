@@ -1,5 +1,5 @@
 import type { Stats } from 'node:fs'
-import { readdir, readFile, stat } from 'node:fs/promises'
+import { readdir, readFile, realpath, stat } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { LegacyRecord } from '@hexagram/application/import-legacy-files'
@@ -14,6 +14,10 @@ import type {
   CommandPorts,
   ExitCode,
 } from '#src/commands/entry-point.js'
+import {
+  fileIdentity,
+  type IdentityCalls,
+} from '#src/commands/file-identity.js'
 import {
   importedLine,
   keptLine,
@@ -178,7 +182,7 @@ async function readCandidates(
       skip(candidate.path, candidate.skipped)
       continue
     }
-    const identity = await identityOf(candidate.path)
+    const identity = await fileIdentity(candidate.path, identityCalls)
     if (identity === undefined) {
       skip(candidate.path, cannotBeRead)
       continue
@@ -209,14 +213,10 @@ async function readCandidates(
   return files
 }
 
-/** The file's device and inode, or undefined when it cannot be stat'ed. */
-async function identityOf(file: string): Promise<string | undefined> {
-  try {
-    const entry = await stat(file, { bigint: true })
-    return `${String(entry.dev)}:${String(entry.ino)}`
-  } catch {
-    return undefined
-  }
+/** The real filesystem's calls, for `fileIdentity`. */
+const identityCalls: IdentityCalls = {
+  stat: (file) => stat(file, { bigint: true }),
+  realpath: (file) => realpath(file),
 }
 
 /**
