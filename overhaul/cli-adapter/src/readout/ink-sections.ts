@@ -18,8 +18,8 @@ export interface InkSections {
 /**
  * The Ink section strings of a Consultation's Readout, each block of text
  * headed by its Edition's short name. With `colour` false, as under
- * `NO_COLOR`, they hold no escape codes, and every Moving and Changed Line
- * is still marked by text (ADR-0044).
+ * `NO_COLOR`, they hold no escape codes, and every Moving Line is still
+ * marked by text (ADR-0044).
  */
 export function inkSections(
   readout: ConsultationReadout,

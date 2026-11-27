@@ -43,7 +43,10 @@ export interface ResolvedTransformation {
  * The names a Readout shows, looked up through use case 8 with the same
  * Reading Preference as use case 3: one `NamedHexagram` for each Hexagram
  * `hexagramsNamed` lists, and the `TrigramName`s of each Trigram
- * `trigramsNamed` lists, in any order.
+ * `trigramsNamed` lists. Either list may come in any order, except that one
+ * Trigram's names keep the Editions' order, which the Readout shows as
+ * given and never re-sorts. Names for a Hexagram or Trigram the Readout
+ * does not show are ignored.
  */
 export interface ReadoutNames {
   readonly hexagrams: readonly NamedHexagram[]
@@ -83,10 +86,12 @@ export function trigramsNamed(resolution: Resolution): readonly Trigram[] {
  * The Readout of a Transformation, from use case 3's result for it and the
  * names `hexagramsNamed` and `trigramsNamed` asked for. The passages split
  * across the Hexagram tabs as `HexagramTab` says; each Commentary joins the
- * passage its Citation names, and one no Edition gives is left out. Throws a
- * `RangeError` when `names` lacks a Hexagram the Readout shows, or when
- * `resolved` is not the Resolution of `transformation`: the caller's error,
- * not a condition to show.
+ * passage its Citation names, and one no Edition gives is left out. A
+ * Trigram with no names shows none. Throws a `RangeError` when `names`
+ * lacks a Hexagram the Readout shows or names one Hexagram twice, when
+ * `resolved` is not the Resolution of `transformation`, or when a passage
+ * text names a Citation the Readout does not show: the caller's error, not
+ * a condition to show.
  */
 export function transformationReadout(
   transformation: Transformation,
@@ -185,7 +190,9 @@ export function consultationReadout(
 /**
  * Divined At as every Readout and the browse list write it: a Moment as
  * `YYYY-MM-DD HH:mm`, the date and time its own offset reads, the offset
- * not written; a Day as `YYYY-MM-DD` alone (ADR-0046).
+ * not written and the seconds dropped, never rounded, so a Moment never
+ * rolls over into the next minute or date; a Day as `YYYY-MM-DD` alone
+ * (ADR-0046).
  */
 export function divinedAtText(divinedAt: DivinedAt): string {
   const date = isoDate(localDate(divinedAt))

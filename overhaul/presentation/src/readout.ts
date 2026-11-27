@@ -173,9 +173,12 @@ export interface TransformationReadout {
   readonly yilinVerse: readonly PassageText[]
   /**
    * Each Edition whose text or names the Readout shows, once per EditionId,
-   * in the order it first appears; a renderer lists each with its title,
-   * its Witness's description, which carries any conversion label, and
-   * "unidentified" where it applies.
+   * in the order it first appears (the names, then the passages with their
+   * Commentaries, then the Yilin Verse), each given as the record in which
+   * its EditionId first appears, a Commentary's or the Yilin Verse's where
+   * that comes first. A renderer lists each with its title, its Witness's
+   * description, which carries any conversion label, and "unidentified"
+   * where it applies.
    */
   readonly editions: readonly Edition[]
 }
