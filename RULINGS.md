@@ -5570,3 +5570,30 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   R-384 kept ADR-0043 and ADR-0044 separate the same way. Only the form of
   the delegate's own R-471 changes.
 - Folded into: not yet (ADR-0045 once drafted)
+
+### R-476: A rerender skips a file deleted mid-run
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 re-review (APPROVE), item Q-M-012-39
+- Ruled by: delegate (R-423)
+- Ruling: B — When `rerenderBodies` reaches a listed file that is now gone (ENOENT from the `stat` or the rename), it skips it and does not count it in `rewritten`; any other error rejects; N3's note stands (the narrow stat-to-rename window can still resurrect a file; the deleting Matter owns it). Add a timing-free test: the injected `renderBody` deletes a later file while rendering the first; the run resolves, `rewritten` counts only files rewritten, the deleted file stays gone.
+- Reason: R-472's rule for deletions; manual §6.7's maintenance run finishes with exit 0 even with files skipped; one rule for `list` and rerender (AGENTS.md §5).
+- Folded into: not yet
+
+### R-477: Windows EPERM on a pending delete is a recorded gap; the test runs on Windows
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 re-review (APPROVE), item Q-M-012-40
+- Ruled by: delegate (R-423)
+- Ruling: A — Record the Windows pending-delete EPERM case as a known, untested gap next to N8 in the comment by `readListedFile`; remove the race test's `skipIf(win32)` and rewrite its comment so it no longer states the EPERM behaviour as fact. A Windows CI failure comes back to the delegate as a new question; (B) is not built by default.
+- Reason: ADR-0013 makes the Windows leg load-bearing; evidence before win32-only code (AGENTS.md §6, §7); (C) would break R-473.
+- Folded into: not yet
+
+### R-478: M-012 slice 2's re-review digest, with four changes
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 re-review (APPROVE), item the re-review digest
+- Ruled by: delegate (R-423)
+- Ruling: ratify with changes — T1: drop `ignoreBOM: true` and its comment clause (R-460 keeps a BOM from the decoder). T2: `chmod(temporary, mode & 0o7777)`. T3: `replaceAtomically`'s error path uses `removeTemporary`. T4: add an EXDEV row in its own test file with `vi.mock('node:fs/promises')` so only the first `link` from the original raises EXDEV; assert identical bytes, an existing `legacy/<name>` untouched and the move at `<stem>-2<ext>`, the original gone, no `.tmp` left in `legacy/`. T5 ratified. The implementer's re-encoding of the strictly decoded frontmatter is ratified.
+- Reason: Dead config misleads; say what is meant; one temporary-file scheme (AGENTS.md §5); R-474 N2's never-delete-`to` is user-data safety and needs a test without a production seam.
+- Folded into: not yet
