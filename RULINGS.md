@@ -5780,3 +5780,19 @@ only the cases its options (A) and (B) agree on, as the delegate suggested.
   inside R-448's limit; none asserts the unspecified range; the rows R-488
   asks for are all there.
 - Folded into: not yet
+
+### R-491: `localDate`'s review items
+
+- Date: 2026-11-27
+- Raised in: the review of `localDate` (fbcaa2d to 6b491f6; APPROVE)
+- Ruled by: delegate (R-423)
+- Ruling: (Q-LD-9) A — accept that a Moment outside R-448's limit may now
+  encode to a 1970-01-01 date that decodes quietly; it is unspecified under
+  R-448 and R-488 and unreachable today. (Digest) ratified with one change:
+  a one-line comment in `isUtcOffset` on why `-00:00` (−0) is refused; the
+  fixed fallback Day, the codec's private offset reading, the unreachable
+  `?? 0`, and landing fbcaa2d with its fix 6b491f6 are accepted.
+- Reason: R-430, R-448 (an in-codec guard is unasked generality); B11 bans
+  assertions; history is never rewritten. A non-integer instant is truncated
+  by `Date`, so only a year outside 0000–9999 or NaN reaches the fallback.
+- Folded into: not yet
