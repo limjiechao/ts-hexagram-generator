@@ -32,6 +32,8 @@ const notBuilt = (adapter: string) => (): Promise<never> =>
 const scriptureCatalogue: ScriptureCatalogue = {
   passageTexts: notBuilt('Scripture Catalogue'),
   hexagramNames: notBuilt('Scripture Catalogue'),
+  receivedSequenceNumber: notBuilt('Scripture Catalogue'),
+  trigramNames: notBuilt('Scripture Catalogue'),
   editions: notBuilt('Scripture Catalogue'),
 }
 
