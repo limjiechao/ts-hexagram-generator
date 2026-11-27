@@ -1,0 +1,12 @@
+{
+  "//": "Linted as overhaul/catalogue-bundled/package.json. Twin for B9: its three arrows.",
+  "name": "@hexagram/catalogue-bundled",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/application": "workspace:*",
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}

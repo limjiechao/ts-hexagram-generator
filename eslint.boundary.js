@@ -116,6 +116,18 @@ const overhaulPackages = {
       oracle: 'any',
     },
   },
+  // The bundled Catalogue implements application's port, so it reads only
+  // its types, and holds its texts as literal data, so it stays pure.
+  'catalogue-bundled': {
+    rule: 'B7',
+    testsRule: 'B8',
+    pure: true,
+    dependencies: {
+      application: 'types',
+      oracle: 'any',
+      'scripture-catalogue': 'any',
+    },
+  },
   // R-358: the composition root, where every package but the policy meets.
   'cli-adapter': {
     rule: 'B7',

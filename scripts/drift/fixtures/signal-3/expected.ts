@@ -31,6 +31,7 @@ export type BoundaryRule =
   | 'B12'
 
 export const expected: Readonly<Record<string, BoundaryRule | null>> = {
+  'plants/b1-catalogue-bundled-node-fs.ts': 'B1',
   'plants/b1-dynamic-node-fs.ts': 'B1',
   'plants/b1-legacy-import-node-fs.ts': 'B1',
   'plants/b1-static-node-fs.ts': 'B1',
@@ -68,6 +69,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'plants/b5-journal-beyond-divined-at.ts': 'B5',
   'plants/b6-imports-adapter.ts': 'B6',
   'plants/b6-legacy-package.ts': 'B6',
+  'plants/b7-catalogue-bundled-loads-application.ts': 'B7',
   'plants/b7-dynamic-import-policy.ts': 'B7',
   'plants/b7-imports-policy.ts': 'B7',
   'plants/b7-legacy-import-loads-application.ts': 'B7',
@@ -92,6 +94,8 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'twins/adapter-tests-import-catalogue.test.ts': null,
   'twins/application-imports-domain.ts': null,
   'twins/as-const-satisfies-expect-error.ts': null,
+  'twins/catalogue-bundled-holds-data.ts': null,
+  'twins/catalogue-bundled.package.json': null,
   'twins/catalogue-imports-divined-at.ts': null,
   'twins/cli-adapter.package.json': null,
   'twins/journal-value-imports-oracle.ts': null,
