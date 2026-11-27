@@ -113,11 +113,15 @@ export type LegacyParseResult =
  * is the text the file holds; a legacy file's multi-line Query loses only
  * the layout's exact two-space indent on each line. A Divined At in any
  * other form, or naming a date or time that does not exist, is
- * `invalid-field` `divinedAt`, never normalised. It never throws.
+ * `invalid-field` `divinedAt`, never normalised. A file saved with Windows
+ * line endings is read as its LF copy: each `\r\n` is read as `\n` before
+ * either layout is parsed, and a lone `\r` is kept as it is. It never
+ * throws.
  */
 export function parseLegacyFile(file: LegacyFile): LegacyParseResult {
-  if (file.name.endsWith('.txt')) return parseLegacyText(file)
-  if (file.name.endsWith('.md')) return parseVersion1(file.text)
+  const text = file.text.replaceAll('\r\n', '\n')
+  if (file.name.endsWith('.txt')) return parseLegacyText(file.name, text)
+  if (file.name.endsWith('.md')) return parseVersion1(text)
   return { outcome: 'not-legacy' }
 }
 
@@ -294,10 +298,10 @@ const sgrSequence = /\u001B\[[0-9;]*m/gu
 const legacyNamePattern =
   /^consultation-(?<year>\d{4})-(?<month>\d{2})-(?<day>\d{2})T(?<hours>\d{2})-(?<minutes>\d{2})-(?<seconds>\d{2})(?<sign>[+-])(?<offsetHours>\d{2})(?<offsetMinutes>\d{2})\.txt$/u
 
-function parseLegacyText(file: LegacyFile): LegacyParseResult {
-  const divinedAt = legacyDivinedAt(file.name)
+function parseLegacyText(name: string, text: string): LegacyParseResult {
+  const divinedAt = legacyDivinedAt(name)
   if (divinedAt === undefined) return invalidField('divinedAt')
-  const lines = file.text.replaceAll(sgrSequence, '').split('\n')
+  const lines = text.replaceAll(sgrSequence, '').split('\n')
   const query = validQuery(legacyQuery(lines))
   if (query === undefined) return invalidField('query')
   const transformation = legacyTransformation(lines)
