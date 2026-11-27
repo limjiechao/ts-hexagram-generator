@@ -604,3 +604,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: type:check · lint:check · format · drift:check · drift:prove · slice 1's tests · build and test forced 21/21 and 42/42, on matters
 - Owner touches: 2 (R-492, R-493); delegate rulings: 3 (R-494 to R-496)
 - Landed: 652c9ab to e7abc01 (17 commits)
+
+### Iteration 39 — M-015 — 2026-11-27
+
+- Attempt: 1/2 (slice 2 of 3; R-058) · Outcome: slice 2 landed
+- Tests: the tester derived the bundle's byte fixtures and wrote 83 tests; the delegate ratified the fixtures, ruled six holes (duplicate Deletion Records: one per Id in the bundle, the earliest) and added 14 rows (R-497, 97 tests). Building the options broke ten approved frame rows, which a tester rewrote (R-498, R-499).
+- Review: `APPROVE` by reading (its fuzz script was refused permission to run); the cleanup question ruled R-500 (a failed temporary-file cleanup never changes a write's outcome, in export and in the Store); re-review of the fixes `APPROVE`.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 21/21 and 42/42, on matters
+- Owner touches: 0; delegate rulings: 4 (R-497 to R-500)
+- Landed: 4241621 to 712cdbf (17 commits)
+- Notes for a bisect: `frame.test.ts` fails from cf2baeb to 65de4ec's parent until 209f1ef rewrites its rows; `lint:check` fails from fc19262 to ed59a4f until 712cdbf.
