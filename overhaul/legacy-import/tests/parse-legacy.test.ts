@@ -852,3 +852,85 @@ describe('parseLegacyFile: corners of the legacy and version-1 layouts', () => {
     )
   })
 })
+
+describe('parseLegacyFile: a file with Windows line endings', () => {
+  /** A text with each `\n` written as `\r\n`, as a Windows editor saves it. */
+  function crlf(text: string): string {
+    if (text.includes('\r'))
+      throw new Error(String.raw`the text already holds a \r`)
+    return text.replaceAll('\n', '\r\n')
+  }
+
+  it.each([
+    'legacy-real-heap-casting.txt',
+    'legacy-real-split-casting.txt',
+    'legacy-real-oldest-no-casting.txt',
+    'legacy-shape-b.txt',
+    'legacy-chinese-query.txt',
+  ])('reads a CRLF copy of %s as its LF original', (fixtureName) => {
+    const lf = legacyFile(fixtureName)
+    const lfResult = parseLegacyFile(lf)
+    expect(lfResult.outcome).toBe('parsed')
+
+    expect(parseLegacyFile({ ...lf, text: crlf(lf.text) })).toEqual(lfResult)
+  })
+
+  it('reads a CRLF copy of a version-1 file as its LF original', () => {
+    const lf = version1Text(castVersion1)
+    const lfResult = parseLegacyFile(version1File(lf))
+    expect(lfResult.outcome).toBe('parsed')
+
+    expect(parseLegacyFile(version1File(crlf(lf)))).toEqual(lfResult)
+  })
+
+  it(
+    String.raw`keeps a CRLF .txt Query of several lines as LF text, its line breaks \n`,
+    () => {
+      const text = [
+        'QUERY:',
+        '',
+        '  Will the granary at Greyfen Hold be full?',
+        '    Asked again after the storm.',
+        '  And by which moon?',
+        '',
+        'HEXAGRAM:',
+        '',
+        '(First is line at bottom)',
+        '',
+        '  8, 7, 8, 9, 9, 9',
+        '',
+      ].join('\r\n')
+      const result = parseLegacyFile({
+        name: legacyName('2026-05-19T11-08-42+0800'),
+        text,
+      })
+
+      expect(result.outcome === 'parsed' && result.record.query).toBe(
+        'Will the granary at Greyfen Hold be full?\n  Asked again after the storm.\nAnd by which moon?',
+      )
+    },
+  )
+
+  it(
+    String.raw`keeps a lone \r, one not followed by \n, inside a CRLF .txt Query as it is`,
+    () => {
+      const heapQuery =
+        'Will I find a worthy post once my studies at Greyfen Hold are complete?'
+      const lf = fixture('legacy-real-heap-casting.txt')
+      if (!lf.includes(`  ${heapQuery}\n`))
+        throw new Error('no heap Query in the fixture')
+      const text = crlf(lf).replace(
+        'Will I find a worthy post once',
+        'Will I find a worthy post\ronce',
+      )
+      const result = parseLegacyFile({
+        name: legacyName('2026-05-19T11-08-42+0800'),
+        text,
+      })
+
+      expect(result.outcome === 'parsed' && result.record.query).toBe(
+        'Will I find a worthy post\ronce my studies at Greyfen Hold are complete?',
+      )
+    },
+  )
+})

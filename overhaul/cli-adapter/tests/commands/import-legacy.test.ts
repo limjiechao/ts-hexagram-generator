@@ -1251,11 +1251,12 @@ describe('hexagram-history --import-legacy: each file once, by its identity, bef
 })
 
 describe('hexagram-history --import-legacy of files with CRLF line endings', () => {
-  it('skips a CRLF copy of a legacy .txt file as giving no Query, and leaves it in place', async () => {
+  it('imports a CRLF copy of a legacy .txt file as its LF copy, moving the CRLF original into legacy/ byte for byte', async () => {
     const { journal, old } = await workspace()
     const plain = await fixtureText('legacy-real-heap-casting.txt')
     const text = plain.replaceAll('\n', '\r\n')
-    const file = path.join(old, 'consultation-2026-05-19T11-08-42+0800.txt')
+    const name = 'consultation-2026-05-19T11-08-42+0800.txt'
+    const file = path.join(old, name)
     await writeFile(file, text)
 
     const result = await history(
@@ -1263,22 +1264,36 @@ describe('hexagram-history --import-legacy of files with CRLF line endings', () 
       portsOver(journal),
     )
 
+    const kept = await heldOf(journal, heapQuery)
     expect(result).toEqual({
       exitCode: 0,
-      stdout: `${skipped(file, 'it gives no Query')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stdout: `${castLine(file, kept.id)}\n${summary({ files: '1 file', cast: 1, recorded: 0, skipped: 0 })}\n`,
       stderr: '',
     })
-    expect(await readFile(file, 'utf8')).toBe(text)
+    expect(withoutId(kept)).toEqual({
+      origin: 'cast',
+      query: heapQuery,
+      divinedAt: moment('2026-05-19T11:08:42+08:00'),
+      transformation: heapCasting.transformation,
+      casting: heapCasting,
+      divisionMethod: 'physical',
+    })
+    expect(await fileNames(old)).toEqual([])
+    expect(await readFile(path.join(journal, 'legacy', name), 'utf8')).toBe(
+      text,
+    )
   })
 
-  it('skips a CRLF copy of a version-1 .md file as having no frontmatter, and leaves it in place', async () => {
+  it('imports a CRLF copy of a version-1 .md file as its LF copy, moving the CRLF original into legacy/ byte for byte', async () => {
     const { journal, old } = await workspace()
+    const query = 'Will the bridge at Greyfen Hold stand through the thaw?'
     const text = version1Text({
       timestamp: '2026-05-19T14:23:11+0800',
-      query: 'Will the bridge at Greyfen Hold stand through the thaw?',
+      query,
       withCasting: true,
     }).replaceAll('\n', '\r\n')
-    const file = path.join(old, 'consultation-2026-05-19T14-23-11+0800.md')
+    const name = 'consultation-2026-05-19T14-23-11+0800.md'
+    const file = path.join(old, name)
     await writeFile(file, text)
 
     const result = await history(
@@ -1286,11 +1301,23 @@ describe('hexagram-history --import-legacy of files with CRLF line endings', () 
       portsOver(journal),
     )
 
+    const kept = await heldOf(journal, query)
     expect(result).toEqual({
       exitCode: 0,
-      stdout: `${skipped(file, 'it has no frontmatter')}\n${summary({ files: '1 file', cast: 0, recorded: 0, skipped: 1 })}\n`,
+      stdout: `${castLine(file, kept.id)}\n${summary({ files: '1 file', cast: 1, recorded: 0, skipped: 0 })}\n`,
       stderr: '',
     })
-    expect(await readFile(file, 'utf8')).toBe(text)
+    expect(withoutId(kept)).toEqual({
+      origin: 'cast',
+      query,
+      divinedAt: moment('2026-05-19T14:23:11+08:00'),
+      transformation: heapCasting.transformation,
+      casting: heapCasting,
+      divisionMethod: 'physical',
+    })
+    expect(await fileNames(old)).toEqual([])
+    expect(await readFile(path.join(journal, 'legacy', name), 'utf8')).toBe(
+      text,
+    )
   })
 })
