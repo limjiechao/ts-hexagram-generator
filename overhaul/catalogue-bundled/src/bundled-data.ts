@@ -58,9 +58,14 @@ export type BundledEdition = DistributiveOmit<
   /**
    * The Witness the text was transcribed from. Its description carries any
    * conversion label, such as a Witness's own conversion of its source
-   * Edition into another script (see Edition).
+   * Edition into another script (see Edition). Its retrieval date, when
+   * known, is a `YYYY-MM-DD` Day, admitted by `isDay` when the Catalogue
+   * makes its records.
    */
-  readonly witness: { readonly description: string }
+  readonly witness: {
+    readonly description: string
+    readonly retrievedOn?: string
+  }
   /** The name this Edition gives each of the 64 Hexagrams. */
   readonly hexagramNames: Readonly<Record<FigureKey, string>>
   /** The name and imagery this Edition gives each of the eight Trigrams. */
