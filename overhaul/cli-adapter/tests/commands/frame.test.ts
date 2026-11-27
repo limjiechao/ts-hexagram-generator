@@ -72,6 +72,9 @@ function fakeIo(recorded: Recorded, terminal: Terminal): CommandIo {
   }
 }
 
+/** The throwing ports' Journal folder, which never exists. */
+const neverReadJournalFolder = 'journal-folder-never-read'
+
 /** Every port throws and is recorded: no frame ending may touch one. */
 function untouchablePorts(touched: string[]): CommandPorts {
   const untouched = (port: string) => (): never => {
@@ -99,7 +102,7 @@ function untouchablePorts(touched: string[]): CommandPorts {
     consultationStore,
     randomSource,
     clock,
-    journalFolder: 'journal-folder-never-read',
+    journalFolder: neverReadJournalFolder,
     moveToLegacy: untouched('Markdown Consultation Store'),
   }
 }
@@ -191,11 +194,19 @@ async function expectImportEnding(
   terminal: Terminal,
   expectedStdout: string,
 ): Promise<void> {
+  const start = argv.indexOf('--import-legacy') + 1
+  const after = argv.slice(start)
+  const end = after.findIndex((arg) => arg.startsWith('-'))
+  const named = end === -1 ? after : after.slice(0, end)
+  for (const file of [...named, neverReadJournalFolder]) {
+    expect(existsSync(path.resolve(file)), file).toBe(false)
+  }
   const result = await runCommand(historyCommand.run, argv, terminal)
   expect(result.stdout.join('')).toBe(expectedStdout)
   expect(result.stderr.join('')).toBe('')
   expect(result.exitCode).toBe(0)
   expect(result.portsTouched).toEqual([])
+  expect(existsSync(path.resolve(neverReadJournalFolder))).toBe(false)
 }
 
 const tty = (env: CommandIo['env'] = {}, rows = 40): Terminal => ({

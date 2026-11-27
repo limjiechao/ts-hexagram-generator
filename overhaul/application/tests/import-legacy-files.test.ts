@@ -311,11 +311,15 @@ describe('importLegacyFiles (use case 7)', () => {
     expect(kept?.query).toBe(several)
   })
 
-  it('keeps nothing and resolves to nothing for no records', async () => {
-    const { ports, keep } = stubPorts()
+  it('keeps nothing, reads no Deletion Record, and resolves to nothing for no records', async () => {
+    const deletionRecords = vi.fn<ConsultationStore['deletionRecords']>(
+      rejecting('deletionRecords'),
+    )
+    const { ports, keep } = stubPorts({ deletionRecords })
 
     expect(await importLegacyFiles(ports, [], 'physical')).toEqual([])
     expect(keep).not.toHaveBeenCalled()
+    expect(deletionRecords).not.toHaveBeenCalled()
   })
 
   it('never removes a Consultation', async () => {
