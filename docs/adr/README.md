@@ -42,7 +42,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0027 | A Cast Consultation records its Division Method               | Accepted                 |
 | 0028 | A Licence Gate per Edition decides which channels show text   | Amended by 0032          |
 | 0029 | The application layer: nine use cases and four driven ports   | Superseded by 0037       |
-| 0030 | Consultation record v2, Consultation Id, Markdown Store rules | Accepted                 |
+| 0030 | Consultation record v2, Consultation Id, Markdown Store rules | Amended by 0045          |
 | 0031 | The REST engine: resources, Casting URLs, HAL + HAL-FORMS     | Superseded by 0038       |
 | 0032 | Every channel is owner-only, behind Google Sign-in            | Accepted                 |
 | 0033 | Journals merge by union with Deletion Records                 | Superseded by 0037       |
@@ -57,6 +57,7 @@ plan is pruned (git history preserves the blow-by-blow).
 | 0042 | How the overhaul is built (consolidates 0040 and 0041)        | Accepted                 |
 | 0043 | The Transcription checks run complete, Remainders, Set-aside  | Accepted                 |
 | 0044 | With NO_COLOR on a TTY, the Ink-only commands run             | Accepted                 |
+| 0045 | New Journal files are hard-linked                             | Accepted                 |
 
 ## Template
 
