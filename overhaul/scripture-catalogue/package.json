@@ -43,6 +43,16 @@
       "types": "./dist/reading-preference.d.mts",
       "import": "./dist/reading-preference.mjs"
     },
+    "./received-sequence-number": {
+      "source": "./src/received-sequence-number.ts",
+      "types": "./dist/received-sequence-number.d.mts",
+      "import": "./dist/received-sequence-number.mjs"
+    },
+    "./trigram-name": {
+      "source": "./src/trigram-name.ts",
+      "types": "./dist/trigram-name.d.mts",
+      "import": "./dist/trigram-name.mjs"
+    },
     "./work": {
       "source": "./src/work.ts",
       "types": "./dist/work.d.mts",

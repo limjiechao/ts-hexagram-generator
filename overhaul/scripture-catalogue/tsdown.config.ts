@@ -9,6 +9,8 @@ export default defineConfig({
     './src/hexagram-name.ts',
     './src/passage-text.ts',
     './src/reading-preference.ts',
+    './src/received-sequence-number.ts',
+    './src/trigram-name.ts',
     './src/work.ts',
   ],
   platform: 'node',
