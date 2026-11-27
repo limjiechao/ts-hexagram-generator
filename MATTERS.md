@@ -40,7 +40,7 @@ from its actual figures when it lands (R-006).
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010)                                             | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending (R-419)             |
@@ -296,7 +296,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-010: The command frame and the Node effects
 
-- Status: in-progress
+- Status: landed
 - Phase: 4
 - Licensed by: ADR-0010 as R-332 amends it, ADR-0020, ADR-0037; manual
   sections 2, 6.1, 7; R-331, R-332, R-350, R-351
@@ -321,9 +321,12 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   columns.
 - Open questions: none open; ruled in R-355, R-357, R-358, R-359, R-361. Likely from the tester:
   `--wrap-width 0`; an option given twice; `CI=false`.
-- Commits: a51a550, 10b8315 (ratified surface), 4f912ed (acceptance and fixtures), e01b8c2 (boundary rows), 5bdad2c (Clock), 9ca03c5 (Random Source) for slice 1
+- Commits: a51a550, 10b8315 (ratified surface), 4f912ed (acceptance and fixtures), e01b8c2 (boundary rows), 5bdad2c (Clock), 9ca03c5 (Random Source) for slice 1; for slice 2, 1209045 (drafted usage and not-built lines, bins), 516f137, d1074ee (acceptance), d081007 (shared parser and terminal table), 6942249 (the six frames), 1d605eb (bins and real adapters), 0d3e634 (R-415, R-416 rows), 53536ee (R-415 fix), 498f563, da6292d (doc comment, R-421), 4b54dbf (R-420 rows)
 - Notes: about 800 lines, two slices. R-332 is folded into ADR-0044 (R-384);
   ADR-0010 is consolidated before M-019, not before this Matter.
+  `journal-folder.ts` has no test of its own and `journalFolder()` runs even on
+  refusal paths; M-021 should look at both. An import path starting with `-`
+  is refused; `./-name` reaches it (R-420).
 
 ### M-011: The bundled Scripture Catalogue
 

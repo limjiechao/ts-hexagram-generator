@@ -526,3 +526,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 9 of M-010's 60 (R-388 to R-396)
 - Landed: a51a550, 10b8315, 4f912ed, e01b8c2, 5bdad2c, 9ca03c5
 - Notes: commits a51a550 to 4f912ed fail eslint's B9 on their own, until e01b8c2 adds the boundary row. Each later package's Matter adds its own arrow to `cli-adapter`'s row and twin, under R-314 and R-358.
+
+### Iteration 34 — M-010 — 2026-11-27
+
+- Attempt: 1/2 (slice 2 of 2; R-058) · Outcome: landed; M-010 complete
+- Surface: the five usage lines, the not-built lines and the bins drafted for ratification; twelve frame questions ruled (R-397 to R-412).
+- Tests: the tester's list approved (R-413, R-414); after review, rows for R-415 and R-416 (six red), then rows for R-420.
+- Review: `APPROVE` (about 95 argv lists fuzzed; B10 still holds); it raised dashed separate values (R-415). Re-review of the fix: `APPROVE` (31 argv lists compared before and after; behaviour changes only where R-415 asks); it raised an import path starting with `-` (R-420).
+- Verify: M-010's Acceptance on matters · type:check · lint:check · format · drift:check · drift:prove · build and test forced 19/19 and 38/38 · test:stress:once
+- Owner touches: 24 more (R-397 to R-418, R-420, R-421), 33 of M-010's 60
+- Landed: 1209045, 516f137, d1074ee, d081007, 6942249, 1d605eb, 0d3e634, 53536ee, 498f563, 4b54dbf, da6292d
+- Notes: R-421's doc-comment phrase was set into the list in a second commit (da6292d) to drop a doubled "or"; the words are R-421's. `journal-folder.ts` has no test and `journalFolder()` runs on refusal paths; noted for M-021.
