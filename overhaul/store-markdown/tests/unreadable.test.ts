@@ -1,4 +1,5 @@
-import { readFile } from 'node:fs/promises'
+import { Buffer } from 'node:buffer'
+import { readFile, writeFile } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { UnreadableReason } from '@hexagram/consultation-journal/unreadable-file'
@@ -77,6 +78,56 @@ describe('not-yaml', () => {
       expect(Reflect.get(globalThis, 'yamlRan')).toBeUndefined()
     },
   )
+})
+
+describe('frontmatter that is not UTF-8', () => {
+  /** A Cast Consultation's file whose Query holds the bytes 0xFF 0xFE. */
+  function corruptedQuery(): Buffer {
+    const [before, after] = fileText(
+      castFrontmatter({ query: 'Should the Greyfen @@ granary open early?' }),
+    ).split('@@')
+    return Buffer.concat([
+      Buffer.from(before ?? '', 'utf8'),
+      Buffer.from([0xff, 0xfe]),
+      Buffer.from(after ?? '', 'utf8'),
+    ])
+  }
+
+  it('makes a file whose frontmatter is not UTF-8 Unreadable as not YAML', async () => {
+    const folder = await temporaryFolder()
+    await writeFile(path.join(folder, plantedName), corruptedQuery())
+
+    expect(await storeOver(folder).consultationStore.list()).toEqual({
+      consultations: [],
+      unreadable: [{ location: plantedName, reason: { kind: 'not-yaml' } }],
+    })
+  })
+
+  it('leaves the bytes of such a file unchanged when it rerenders bodies', async () => {
+    const folder = await temporaryFolder()
+    const bytes = corruptedQuery()
+    await writeFile(path.join(folder, plantedName), bytes)
+
+    expect(await storeOver(folder).rerenderBodies()).toEqual({ rewritten: 0 })
+
+    expect(await readFile(path.join(folder, plantedName))).toEqual(bytes)
+  })
+
+  it('still loads a file whose body alone is not UTF-8', async () => {
+    const folder = await temporaryFolder()
+    await writeFile(
+      path.join(folder, plantedName),
+      Buffer.concat([
+        Buffer.from(fileText(castFrontmatter(), 'A body with '), 'utf8'),
+        Buffer.from([0xff, 0xfe, 0x0a]),
+      ]),
+    )
+
+    expect(await storeOver(folder).consultationStore.list()).toEqual({
+      consultations: [cast],
+      unreadable: [],
+    })
+  })
 })
 
 describe('not-version-2', () => {

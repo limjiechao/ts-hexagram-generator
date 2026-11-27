@@ -1,5 +1,14 @@
-import { mkdir, readdir, readFile, stat, writeFile } from 'node:fs/promises'
+import {
+  chmod,
+  mkdir,
+  readdir,
+  readFile,
+  stat,
+  unlink,
+  writeFile,
+} from 'node:fs/promises'
 import path from 'node:path'
+import process from 'node:process'
 
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
 import { afterEach, describe, expect, it } from 'vitest'
@@ -397,6 +406,38 @@ describe("the Journal's folder", () => {
     ).rejects.toThrow()
   })
 
+  // On Windows a deleted file that is still open lingers, and opening it
+  // fails with EPERM rather than ENOENT, so the race is POSIX's only.
+  it.skipIf(process.platform === 'win32')(
+    'skips a file deleted while it lists the folder',
+    async () => {
+      const folder = await temporaryFolder()
+      const names = Array.from(
+        { length: 200 },
+        (_, n) => `${String(n).padStart(3, '0')}.md`,
+      )
+      // The race is not forced, so each round deletes every file, last name
+      // first, while a list runs; a list that meets a vanished file must
+      // still resolve.
+      for (let round = 0; round < 10; round += 1) {
+        for (const name of names) {
+          await plant(folder, name, fileText(castFrontmatter()))
+        }
+        const listing = storeOver(folder).consultationStore.list()
+        const deleting = (async () => {
+          for (const name of names.toReversed()) {
+            await unlink(path.join(folder, name))
+          }
+        })()
+        const [listed] = await Promise.all([listing, deleting])
+        expect(listed.consultations.length).toBeLessThanOrEqual(1)
+        for (const unreadable of listed.unreadable) {
+          expect(unreadable.reason.kind).toBe('duplicate-id')
+        }
+      }
+    },
+  )
+
   it('reads only .md files directly in the folder', async () => {
     const folder = await temporaryFolder()
     const record = fileText(castFrontmatter())
@@ -500,6 +541,20 @@ describe('rerenderBodies', () => {
     expect(await storeOver(missing).rerenderBodies()).toEqual({ rewritten: 0 })
     await expect(stat(missing)).rejects.toThrow()
   })
+
+  it.skipIf(process.platform === 'win32')(
+    "keeps a file's mode when it rewrites its body",
+    async () => {
+      const folder = await temporaryFolder()
+      await storeOver(folder).consultationStore.keep(cast)
+      await chmod(path.join(folder, castFile), 0o600)
+
+      await storeOver(folder, fakeRenderBody('second')).rerenderBodies()
+
+      const { mode } = await stat(path.join(folder, castFile))
+      expect(mode & 0o777).toBe(0o600)
+    },
+  )
 
   it('rewrites nothing in an empty Journal', async () => {
     const folder = await temporaryFolder()
