@@ -49,7 +49,8 @@ export type LegacyRecord =
  * keep. A drawn Id that a Deletion Record names is drawn again, with the
  * same Clock time and 16 fresh draws from the Random Source, so a new
  * Consultation is never born deleted; every record is still kept and
- * returned in order. A failed read rejects the Promise unchanged.
+ * returned in order. A failed read rejects the Promise unchanged. With no
+ * records it reads nothing.
  *
  * The import is a migration, run once: importing the same files twice
  * keeps each of their Consultations twice, under new Ids.
@@ -68,10 +69,9 @@ export async function importLegacyFiles(
   divisionMethod: DivisionMethod,
 ): Promise<readonly Consultation[]> {
   if (records.length === 0) return []
+  const deletionRecords = await ports.consultationStore.deletionRecords()
   const deleted = new Set(
-    (await ports.consultationStore.deletionRecords()).map(
-      (record) => record.consultationId,
-    ),
+    deletionRecords.map((record) => record.consultationId),
   )
   const kept: Consultation[] = []
   for (const record of records) {
