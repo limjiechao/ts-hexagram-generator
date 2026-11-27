@@ -1,3 +1,5 @@
+import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
+
 import type { Command } from '#src/commands/entry-point.js'
 import {
   endWith,
@@ -8,6 +10,7 @@ import {
   type GivenOptions,
   type OptionRules,
 } from '#src/commands/frame.js'
+import { importLegacyRun } from '#src/commands/import-legacy-run.js'
 import {
   exportJournalRun,
   mergeJournalRun,
@@ -17,10 +20,20 @@ import {
   type MaintenanceOption,
 } from '#src/commands/not-built.js'
 
+const divisionMethods = [
+  'physical',
+  'virtual',
+  'automatic',
+] as const satisfies readonly DivisionMethod[]
+
+function isDivisionMethod(value: string | undefined): value is DivisionMethod {
+  return divisionMethods.some((method) => method === value)
+}
+
 const rules = {
   ...readingPreferenceRules,
   '--import-legacy': { value: 'paths' },
-  '--division-method': { value: ['physical', 'virtual', 'automatic'] },
+  '--division-method': { value: divisionMethods },
   '--rerender-bodies': { value: 'flag' },
   '--export': { value: 'text' },
   '--filter': { value: 'text' },
@@ -76,6 +89,11 @@ export const run: Command = (argv, io, ports) => {
   if (exportFile !== undefined) return exportJournalRun(exportFile, io, ports)
   const [mergeFile] = given.get('--merge-journal') ?? []
   if (mergeFile !== undefined) return mergeJournalRun(mergeFile, io, ports)
+  const importPaths = given.get('--import-legacy')
+  const [divisionMethod] = given.get('--division-method') ?? []
+  if (importPaths !== undefined && isDivisionMethod(divisionMethod)) {
+    return importLegacyRun(importPaths, divisionMethod, io, ports)
+  }
   if (maintenance !== undefined) {
     return endWith(io, notBuiltLine('hexagram-history', maintenance))
   }

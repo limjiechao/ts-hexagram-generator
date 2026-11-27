@@ -92,7 +92,7 @@ export async function mergeJournalRun(
 }
 
 /** The use cases over the ports, their Store's failures told apart. */
-function useCases(ports: CommandPorts): ReturnType<typeof composeCli> {
+export function useCases(ports: CommandPorts): ReturnType<typeof composeCli> {
   return composeCli({
     ...ports,
     consultationStore: tellingFailures(ports.consultationStore),
@@ -100,7 +100,7 @@ function useCases(ports: CommandPorts): ReturnType<typeof composeCli> {
 }
 
 /** A Store failure, named by whether the Journal was being read or written. */
-class JournalFailureError extends Error {
+export class JournalFailureError extends Error {
   override readonly name = 'JournalFailureError'
   readonly failure: 'read' | 'written'
 
@@ -137,7 +137,7 @@ async function named<Value>(
 }
 
 /** Runs `body`, ending a Store failure with its one stderr line. */
-async function reportingJournalFailure(
+export async function reportingJournalFailure(
   io: CommandIo,
   body: () => Promise<ExitCode>,
 ): Promise<ExitCode> {
@@ -159,7 +159,7 @@ const strictUtf8Decoder = new TextDecoder('utf-8', {
 })
 
 /** The bytes as UTF-8, or undefined when they are not UTF-8. */
-function strictUtf8(bytes: Uint8Array): string | undefined {
+export function strictUtf8(bytes: Uint8Array): string | undefined {
   try {
     return strictUtf8Decoder.decode(bytes)
   } catch {
