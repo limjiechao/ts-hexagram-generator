@@ -66,9 +66,12 @@ export type DecodeResult =
     }
 
 /**
- * The Consultation's version-2 record (ADR-0030). Every Consultation has
- * one, so it never fails, and decoding the record gives back an equal
- * Consultation: a Moment keeps its milliseconds and its own offset.
+ * The Consultation's version-2 record (ADR-0030). It never fails, and
+ * decoding the record gives back an equal Consultation: a Moment keeps its
+ * milliseconds and its own offset. That holds only for a Moment whose
+ * `epochMilliseconds` is an integer and whose date in its own offset lies
+ * in the years 0000 to 9999; for any other Moment the `divinedAt` text is
+ * unspecified.
  */
 export function encodeRecord(consultation: Consultation): ConsultationRecord {
   throw new Error('not built', { cause: consultation })
@@ -79,9 +82,13 @@ export function encodeRecord(consultation: Consultation): ConsultationRecord {
  * reads only the JSON data model (strings, numbers, booleans, null, arrays
  * and plain objects), so a Store parses its text into that model first; a
  * value of the wrong type, such as a `transformation` that parsed as a
- * number, is an invalid field. A date-time `divinedAt` is accepted with
- * three fraction digits or none, and only with an offset `isUtcOffset`
- * admits, so `Z` is refused. It checks, in this order, and reports the
+ * number, is an invalid field. Only a missing key is absent: an explicit
+ * `null`, `casting: null` among them, is an invalid field. A date-time
+ * `divinedAt` is accepted with three fraction digits or none, and only with
+ * an offset `isUtcOffset` admits, so `Z` is refused; a date that does not
+ * exist, or a time outside 00:00:00 to 23:59:59, is refused, never
+ * normalised. A record is a Cast Consultation's when it has the `casting`
+ * key, whatever its value. It checks, in this order, and reports the
  * first failure: that the record is a mapping with `schemaVersion` `2`;
  * each field in ADR-0030's table order; then, for a Cast Consultation, that
  * its Casting replays through the Oracle's Divisions from the Empty Casting
