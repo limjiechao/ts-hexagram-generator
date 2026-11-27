@@ -553,3 +553,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 1 (Q-ORD-1, R-422); delegate rulings: 27 (R-426 to R-452, with R-442 for M-010)
 - Landed: af096d7, bb3b305, dda6b7c, 09f5cd0, f0d3dfd, bd3442e, 2f16b92, 4b12642, 6c44e03
 - Notes: lint fails on bb3b305 to 09f5cd0 alone until f0d3dfd adds the boundary row, as with M-010's slice 1.
+
+### Iteration 36 — M-012 — 2026-11-27
+
+- Attempt: 1/2 (slice 2 of 3; R-058) · Outcome: slice 2 landed
+- Tests: the tester derived the version-2 frontmatter fixtures from the legacy writer's bytes and wrote 82 tests, checked against a throwaway reference Store and five deliberate breaks; the delegate ratified the fixtures and ruled ten holes (R-453 to R-468); 93 tests by the end.
+- Review: `CHANGES` (non-UTF-8 frontmatter silently repaired and rewritten), ruled R-469 to R-474 with ADR-0030's wording amended; the drafter's in-place edit was redone as ADR-0045 under the owner's R-004 convention (R-475). Re-review `APPROVE` with two questions (R-476, R-477) and a digest (R-478); a brief re-review of the last fixes `APPROVE`.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · slice 2's Acceptance · build and test forced 20/20 and 40/40 · test:stress:once, on the slice branch, whose tree matches matters
+- Owner touches: 0; delegate rulings: 26 (R-453 to R-478)
+- Landed: ea4ffd6 to b7b89c9 (18 commits; the in-place ADR-0030 edit and its revert were not carried)
+- Notes: a known, untested Windows gap: a file another process holds open when deleted may read as EPERM, so `list` rejects until it is released (R-477); the race test now runs on windows-latest and the next landing's CI will show it. ADR-0030 and ADR-0045 are consolidated before M-015.
