@@ -888,6 +888,10 @@ describe('hexagram-history: the maintenance options and what applies to them', (
       option: '--import-legacy',
     },
     {
+      argv: ['--import-legacy', './-old.txt', '--division-method', 'physical'],
+      option: '--import-legacy',
+    },
+    {
       argv: ['--', '--import-legacy', '--division-method', 'physical', '--'],
       option: '--import-legacy',
     },
@@ -934,6 +938,7 @@ describe('hexagram-history: the maintenance options and what applies to them', (
     ['a.txt', '--import-legacy', '--division-method', 'physical'],
     ['--import-legacy', 'a.txt', '--division-method', 'physical', 'b.txt'],
     ['--import-legacy', '--division-method', 'physical', 'a.txt'],
+    ['--import-legacy', '-old.txt', '--division-method', 'physical'],
     ['--import-legacy', '--division-method', 'manual'],
     ['--import-legacy', '--division-method', 'Physical'],
     ['--import-legacy', '--division-method'],
