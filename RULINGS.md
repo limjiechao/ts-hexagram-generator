@@ -5355,3 +5355,147 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   convention; item 7 reads the record's wire format (R-432, ADR-0030), so no
   follow-up export from `divined-at` unless a second caller needs it.
 - Folded into: not yet
+
+### R-453: The version-2 frontmatter byte fixtures
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item A (the fixtures)
+- Ruled by: delegate (R-423)
+- Ruling: ratify — `cast-moment.frontmatter.md`, `recorded-moment.frontmatter.md` and `recorded-day.frontmatter.md` (9620033) are ratified, and the file's makeup: `---\n<yaml>---\n`, then `\n`, then the body exactly as rendered.
+- Reason: ADR-0030 already fixes the meaning (fields, order, bottom-up, Picks only); R-431 and R-432 fix the quoted texts; the fixtures choose only among YAML forms of one meaning, every reader goes through the codec, and no version-2 file exists in the real Journal before M-015. Checked by hand against the legacy bytes. Flagged by the delegate as the ruling most worth the owner's eye.
+- Folded into: not yet
+
+### R-454: The file name's date is the date in the Moment's own offset
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-24
+- Ruled by: delegate (R-423)
+- Ruling: A — The file-name date is the first 10 characters of the encoded `divinedAt`.
+- Reason: R-378's "day of a moment"; manual §5; ADR-0030's browsable order.
+- Folded into: not yet
+
+### R-455: `keep` rejects when a foreign file holds its name
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-25
+- Ruled by: delegate (R-423)
+- Ruling: A — When the target name is taken by a file not holding the Id (foreign or Unreadable), `keep` rejects, the file is untouched, nothing is written.
+- Reason: ADR-0030's never-overwrite; the port's "does nothing" covers only a held Id; silent loss and suffixed names are ruled out.
+- Folded into: not yet
+
+### R-456: Two keeps of one Id at once both resolve
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-26
+- Ruled by: delegate (R-423)
+- Ruling: A — Exactly one file; both Promises resolve; the loser does nothing.
+- Reason: The port's "keeping an Id the Store already holds does nothing"; Merging stays idempotent (ADR-0037).
+- Folded into: not yet
+
+### R-457: `list`'s order is not part of the contract
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-27
+- Ruled by: delegate (R-423)
+- Ruling: A — Tests compare `list` as sets.
+- Reason: The port promises no order; R-337 and R-378 put ordering in use case 4.
+- Folded into: not yet
+
+### R-458: A failing renderer leaves no file
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-28
+- Ruled by: delegate (R-423)
+- Ruling: A — When `renderBody` rejects, `keep` rejects and leaves no `.md` file.
+- Reason: ADR-0030's atomic writes.
+- Folded into: not yet
+
+### R-459: The body is written verbatim
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-29
+- Ruled by: delegate (R-423)
+- Ruling: A — The Store adds no final newline.
+- Reason: The body is the renderer's view (ADR-0030, R-435); `rerenderBodies` keeps it cheap to change.
+- Folded into: not yet
+
+### R-460: Frontmatter is strict
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-30
+- Ruled by: delegate (R-423)
+- Ruling: A — Frontmatter exists only when the file starts with `---\n` and a later line is exactly `---`; an unclosed opener, a BOM, CRLF delimiters or a leading blank line is `no-frontmatter`; an empty block is `not-version-2`.
+- Reason: The strict reading; accepting more later is additive.
+- Folded into: not yet
+
+### R-461: The YAML emission rule
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-31
+- Ruled by: delegate (R-423)
+- Ruling: A — js-yaml 3's `safeDump(record, { flowLevel: 2 })` with its other defaults; no multi-line Query fixture.
+- Reason: It names the emitter exactly and matches the fixtures and the legacy writer (R-360, R-440); its 80-column folding of long Queries round-trips and is reversible.
+- Folded into: not yet
+
+### R-462: An Unreadable file never holds an Id
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-32
+- Ruled by: delegate (R-423)
+- Ruling: A — Only loaded Consultations count, for `keep`'s "does nothing" and for `duplicate-id`; a valid file after an Unreadable one with the same `id` loads normally.
+- Reason: The port reports Unreadable files only by `list`; R-428 assumes the earlier file loaded.
+- Folded into: not yet
+
+### R-463: One composition rule for every write
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item Q-M-012-33
+- Ruled by: delegate (R-423)
+- Ruling: new — `rerenderBodies` writes the original frontmatter bytes through the closing `---` line, one blank line, then the new body (adding the blank line if missing, never doubling it); on a missing folder it gives `{ rewritten: 0 }` and creates nothing; `.md` matches case-sensitively, only regular files, dotfiles ending `.md` are read; the `moveToLegacy` suffix is Tier B.
+- Reason: One piece of knowledge for the file format (AGENTS.md §5); manual §6.7; R-438; R-437.
+- Folded into: not yet
+
+### R-464: `list` rejects when a file stands in the folder's place
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item C1
+- Ruled by: delegate (R-423)
+- Ruling: confirm — As the tests assert.
+- Reason: R-438; manual §6.7's exit 1.
+- Folded into: not yet
+
+### R-465: The temporary-file constraints
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item C2
+- Ruled by: delegate (R-423)
+- Ruling: confirm — A temporary name never ends in `.md`; no regular temporary file remains after success; a temporary subfolder is allowed.
+- Reason: Only `.md` files directly in the folder are read; the scheme is free within ADR-0030.
+- Folded into: not yet
+
+### R-466: Reading never creates the folder
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item C3
+- Ruled by: delegate (R-423)
+- Ruling: confirm — `list` and `get` never create a missing folder.
+- Reason: R-438; ADR-0030's "reading never writes".
+- Folded into: not yet
+
+### R-467: Deleting is a later Matter's
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item C4
+- Ruled by: delegate (R-423)
+- Ruling: confirm — `remove` and `deletionRecords` are not tested here.
+- Reason: M-012's scope (R-441); deleting is use case 6.
+- Folded into: not yet
+
+### R-468: M-012 slice 2's test list, with amendments
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 2 (tester's 9620033), item D (the list)
+- Ruled by: delegate (R-423)
+- Ruling: approve with amendments — The 82 tests are approved; (a) add: a Recorded Moment `2026-11-26T07:30:00.000+08:00` is kept as `2026-11-26--<Id>.md`; (b) test 64 asserts `keep` rejects and the folder's regular files are exactly as before; (c) test 65 asserts both keeps resolve; (d) add: an Unreadable file with id X sorting first, then a valid file with id X: `list` returns the valid Consultation, no `duplicate-id`, the Unreadable file keeps its reason, `get(X)` returns the Consultation; (e) test 76 asserts exact bytes `${frontmatter}\n${body}`; (f) optional: `rerenderBodies` on a missing folder gives `{ rewritten: 0 }` and creates nothing.
+- Reason: The rows fit ADR-0030, the port, R-428, R-431 to R-433, R-437, R-438; the amendments assert R-454 to R-463.
+- Folded into: not yet
