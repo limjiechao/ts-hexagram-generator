@@ -36,8 +36,8 @@ export interface ScriptureCatalogue {
   ) => Promise<readonly HexagramName[]>
   /**
    * The Hexagram's place in the received text's order. It names no Edition
-   * and no Licence Gate applies: it is the one order every bundled Edition
-   * follows, not text.
+   * and no Licence Gate applies: it is not text, and it is the same in every
+   * Edition the Catalogue holds.
    */
   readonly receivedSequenceNumber: (
     hexagram: Hexagram,
