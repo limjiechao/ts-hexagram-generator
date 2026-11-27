@@ -405,6 +405,18 @@ importers:
         specifier: workspace:*
         version: link:../oracle
 
+  overhaul/legacy-import:
+    dependencies:
+      '@hexagram/application':
+        specifier: workspace:*
+        version: link:../application
+      '@hexagram/consultation-journal':
+        specifier: workspace:*
+        version: link:../consultation-journal
+      '@hexagram/oracle':
+        specifier: workspace:*
+        version: link:../oracle
+
   overhaul/node-effects:
     dependencies:
       '@hexagram/application':
