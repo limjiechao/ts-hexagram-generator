@@ -30,6 +30,8 @@ const kun: Hexagram = ['yin', 'yin', 'yin', 'yin', 'yin', 'yin']
 const chineseEdition: Edition = {
   id: editionId('invented-chinese'),
   work: 'zhouyi',
+  shortName: 'Invented Chinese',
+  title: 'An invented Chinese text (nowhere, 2026)',
   script: 'traditional',
   witness: { description: 'an invented set of pages' },
   unidentified: false,
@@ -38,6 +40,8 @@ const chineseEdition: Edition = {
 const translationEdition: Edition = {
   id: editionId('invented-translation'),
   work: 'zhouyi',
+  shortName: 'Invented',
+  title: 'An invented translation (nowhere, 2026)',
   language: 'en',
   witness: { description: 'an invented scanned copy' },
   unidentified: false,
@@ -46,6 +50,8 @@ const translationEdition: Edition = {
 const unidentifiedEdition: Edition = {
   id: editionId('invented-unidentified'),
   work: 'zhouyi',
+  shortName: 'Unidentified',
+  title: 'An invented file of unknown origin',
   script: 'simplified',
   witness: { description: 'an invented file of unknown origin' },
   unidentified: true,

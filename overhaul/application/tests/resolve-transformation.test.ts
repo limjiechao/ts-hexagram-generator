@@ -29,6 +29,8 @@ function editionsOf(work: Work): readonly [Edition, Edition] {
     {
       id: editionId(`invented-${work}-chinese`),
       work,
+      shortName: `Invented ${work}`,
+      title: `An invented copy of the ${work} Work (nowhere, 2026)`,
       script: 'traditional',
       witness: { description: `an invented copy of the ${work} Work` },
       unidentified: false,
@@ -37,6 +39,8 @@ function editionsOf(work: Work): readonly [Edition, Edition] {
     {
       id: editionId(`invented-${work}-translation`),
       work,
+      shortName: `Invented ${work} translation`,
+      title: `An invented translation of the ${work} Work (nowhere, 2026)`,
       language: 'en',
       witness: { description: `an invented translation of the ${work} Work` },
       unidentified: false,

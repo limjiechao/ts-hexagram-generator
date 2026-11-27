@@ -28,6 +28,8 @@ function inventedEdition(work: Citation['work']): Edition {
   return {
     id: editionId(`invented-${work}`),
     work,
+    shortName: `Invented ${work}`,
+    title: `An invented copy of the ${work} Work (nowhere, 2026)`,
     script: 'traditional',
     witness: { description: `an invented copy of the ${work} Work` },
     unidentified: false,

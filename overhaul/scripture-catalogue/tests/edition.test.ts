@@ -19,6 +19,8 @@ describe('Edition', () => {
     const chinese: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'traditional',
       witness: { description: 'ctext.org pages' },
       unidentified: false,
@@ -27,6 +29,8 @@ describe('Edition', () => {
     const translation: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       language: 'en',
       witness: { description: 'a scanned copy', retrievedOn },
       unidentified: false,
@@ -36,6 +40,8 @@ describe('Edition', () => {
     const both: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'traditional',
       language: 'en',
       witness: { description: 'ctext.org pages' },
@@ -46,6 +52,8 @@ describe('Edition', () => {
     const neither: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       witness: { description: 'ctext.org pages' },
       unidentified: false,
       licence: 'public-domain',
@@ -59,6 +67,8 @@ describe('Edition', () => {
     const unwitnessed: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'simplified',
       unidentified: true,
       licence: 'in-copyright',
@@ -66,6 +76,8 @@ describe('Edition', () => {
     const unidentifiedWitness: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'simplified',
       // @ts-expect-error: it is the Edition that may be unidentified
       witness: 'unidentified',
@@ -81,6 +93,8 @@ describe('Edition', () => {
     const unlabelled: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'simplified',
       witness: { description: 'ctext.org pages', retrievedOn },
       licence: 'in-copyright',
@@ -88,6 +102,8 @@ describe('Edition', () => {
     const unidentified = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'simplified',
       witness: { description: 'ctext.org pages', retrievedOn },
       unidentified: true,
@@ -103,6 +119,8 @@ describe('Edition', () => {
     const edition: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       // @ts-expect-error: the app knows only Traditional and Simplified
       script: 'jiaguwen',
       witness: { description: 'ctext.org pages' },
@@ -117,6 +135,8 @@ describe('Edition', () => {
     const edition: Edition = {
       id,
       work: 'zhouyi',
+      shortName: 'Legge',
+      title: 'Legge, Sacred Books of the East vol. 16 (Oxford, 1882)',
       script: 'traditional',
       witness: {
         description: 'ctext.org pages',
