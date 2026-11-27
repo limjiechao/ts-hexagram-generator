@@ -1,3 +1,4 @@
+import { isConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import {
   isUtcOffset,
   type Moment,
@@ -93,5 +94,19 @@ describe('deleteConsultation (use case 6)', () => {
     const { ports } = stubPorts({ remove: () => Promise.reject(failure) })
 
     await expect(deleteConsultation(ports, held.id)).rejects.toBe(failure)
+  })
+
+  it('still has the Store remove an Id it does not hold', async () => {
+    const notHeld = '01M8AJDS3VQ4X7M2N5P9T0W1YC'
+    if (!isConsultationId(notHeld)) throw new Error('no Consultation Id')
+    const { ports, remove } = stubPorts()
+
+    await expect(deleteConsultation(ports, notHeld)).resolves.toBeUndefined()
+
+    expect(remove).toHaveBeenCalledTimes(1)
+    expect(remove).toHaveBeenCalledWith({
+      consultationId: notHeld,
+      deletedAt: clockMoment,
+    })
   })
 })

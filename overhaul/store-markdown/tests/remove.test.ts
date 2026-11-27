@@ -295,6 +295,28 @@ describe("deleting the Consultation's files", () => {
 })
 
 describe('removing again', () => {
+  it('leaves one record and deletes the file when the same Id is removed twice at once', async () => {
+    const folder = await journalOfThree()
+    const first = deletionRecord(cast.id, deletedAt)
+    const second = deletionRecord(cast.id, deletedLater)
+
+    await expect(
+      Promise.all([
+        storeOver(folder).remove(first),
+        storeOver(folder).remove(second),
+      ]),
+    ).resolves.toEqual([undefined, undefined])
+
+    expect(await regularFiles(deletedFolder(folder))).toEqual([castRecordFile])
+    const records = await storeOver(folder).deletionRecords()
+    expect(records).toHaveLength(1)
+    expect([first, second]).toContainEqual(records[0])
+    expect(await markdownFiles(folder)).toEqual([
+      recordedMomentFile,
+      recordedDayFile,
+    ])
+  })
+
   it('keeps the first record when the same Id is removed twice', async () => {
     const folder = await journalOfThree()
     const store = storeOver(folder)
