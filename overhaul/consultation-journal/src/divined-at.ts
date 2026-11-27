@@ -83,3 +83,15 @@ function daysInMonth(year: number, month: number): number {
 function isLeapYear(year: number): boolean {
   return (year % 4 === 0 && year % 100 !== 0) || year % 400 === 0
 }
+
+/**
+ * The calendar date Divined At falls on in its own offset. A Day is returned
+ * as it is; a Moment gives the date its wall clock read in its offset, not
+ * its UTC date, the date its record text begins with (ADR-0030). The
+ * Journal's order and the record's date both read it. For a Moment this holds
+ * only when `epochMilliseconds` is an integer and the date lies in the years
+ * 0000 to 9999; for any other Moment the result is unspecified.
+ */
+export function localDate(divinedAt: DivinedAt): Day {
+  throw new Error('not built', { cause: divinedAt })
+}
