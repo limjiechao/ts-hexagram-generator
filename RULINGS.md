@@ -6123,3 +6123,18 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
 - Ruling: "Q-M-015-24: B"
 - Folded into: `MATTERS.md` (M-013 connects the real Store to the bins);
   R-492's "the stub body" reads as the tests' stub renderer
+
+### R-506: Legacy files with Windows line endings are accepted
+
+- Date: 2026-11-27
+- Raised in: R-504 Q-53, flagged for the owner's eye (a CRLF legacy `.txt`
+  was skipped with a misleading query reason, a CRLF version-1 `.md` as
+  `no-frontmatter`)
+- Question: accept legacy files with Windows line endings (normalise `\r\n`
+  to `\n` before parsing), or leave them skipped.
+- Ruling: "Accept CRLF"
+- Folded into: not yet. Overturns R-504's Q-53 (a delegate ruling); the clerk
+  reopens what depended on it: `legacy-import` normalises `\r\n` to `\n`
+  before parsing a legacy `.txt` or a version-1 `.md`; R-504's two CRLF test
+  rows change to expect the file imported as its LF copy would be. Version-2
+  frontmatter strictness (R-460) is untouched.

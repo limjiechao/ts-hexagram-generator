@@ -628,3 +628,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — ADR-0046, localDate, ADR-0047 and M-015 slice 1 on main — 2026-11-27
 
 - PR #64 passed every leg at 627dbec. On the owner's "land" (ADR-0047), the clerk fast-forwarded `main` to 627dbec, its first landing by the clerk's own push (R-425).
+
+### Landing — M-015 complete on main — 2026-11-27
+
+- PR #65 (M-015 slices 2 and 3, R-497 to R-504) passed every leg at 2dcb7ae; on the owner's "land" the clerk fast-forwarded `main` to 2dcb7ae.
