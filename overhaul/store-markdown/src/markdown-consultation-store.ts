@@ -1,12 +1,15 @@
 import { Buffer } from 'node:buffer'
-import { mkdir, readdir, readFile } from 'node:fs/promises'
+import { mkdir, readdir, readFile, unlink } from 'node:fs/promises'
 import path from 'node:path'
 
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
 import type { ConsultationId } from '@hexagram/consultation-journal/consultation-id'
+import type { DeletionRecord } from '@hexagram/consultation-journal/deletion-record'
 import {
+  decodeDeletionRecord,
   decodeRecord,
+  encodeDeletionRecord,
   encodeRecord,
 } from '@hexagram/consultation-journal/record-codec'
 import type { UnreadableFile } from '@hexagram/consultation-journal/unreadable-file'
@@ -100,6 +103,7 @@ export function markdownConsultationStore(options: {
   readonly renderBody: RenderBody
 }): MarkdownConsultationStore {
   const { journalFolder, renderBody } = options
+  const deletedFolder = path.join(journalFolder, 'deleted')
 
   async function holdsAt(name: string, id: ConsultationId): Promise<boolean> {
     const bytes = await readFile(path.join(journalFolder, name))
@@ -144,13 +148,35 @@ export function markdownConsultationStore(options: {
       return journal.loaded.find((file) => file.consultation.id === id)
         ?.consultation
     },
-    // Deleting a Consultation is built with its own use case. A re-render
-    // that read the folder before a `remove` can put the deleted file back
-    // by its rename; both run only by the owner's hand, so it stays a known
-    // gap.
-    remove: (record) =>
-      Promise.reject(new Error('not built', { cause: record })),
-    deletionRecords: () => Promise.reject(new Error('not built')),
+    // A re-render that read the folder before a `remove` can put the
+    // deleted file back by its rename; both run only by the owner's hand, so
+    // it stays a known gap.
+    remove: async (record) => {
+      // The record comes first: a `remove` cut short then leaves files a
+      // rerun deletes, never a deletion that Merging Journals could undo.
+      await keepDeletionRecord(deletedFolder, record)
+      for (const name of await namesHolding(
+        journalFolder,
+        record.consultationId,
+      )) {
+        await deleteListedFile(path.join(journalFolder, name))
+      }
+    },
+    deletionRecords: async () => {
+      const records: DeletionRecord[] = []
+      for (const name of await fileNames(deletedFolder, '.json')) {
+        const bytes = await readListedFile(path.join(deletedFolder, name))
+        if (bytes === undefined) {
+          continue
+        }
+        const deletionRecord = loadDeletionRecord(bytes)
+        if (deletionRecord === undefined) {
+          throw new Error(`deleted/${name} is not a Deletion Record`)
+        }
+        records.push(deletionRecord)
+      }
+      return records
+    },
   }
 
   return {
@@ -189,6 +215,77 @@ interface LoadedFile {
   readonly consultation: Consultation
 }
 
+/**
+ * Writes the Deletion Record's file unless its name holds one: an earlier
+ * record for the same Id stands, and any other file there is a failure.
+ */
+async function keepDeletionRecord(
+  deletedFolder: string,
+  record: DeletionRecord,
+): Promise<void> {
+  const name = `${record.consultationId}.json`
+  const text = `${JSON.stringify(encodeDeletionRecord(record), undefined, 2)}\n`
+  await mkdir(deletedFolder, { recursive: true })
+  if (await createExclusively(deletedFolder, name, text)) {
+    return
+  }
+  const earlier = loadDeletionRecord(
+    await readFile(path.join(deletedFolder, name)),
+  )
+  if (earlier?.consultationId !== record.consultationId) {
+    throw new Error(
+      `deleted/${name} is taken by a file that is not a Deletion Record for ${record.consultationId}`,
+    )
+  }
+}
+
+function loadDeletionRecord(bytes: Buffer): DeletionRecord | undefined {
+  let data: unknown
+  try {
+    data = JSON.parse(bytes.toString('utf8'))
+  } catch {
+    return undefined
+  }
+  const decoded = decodeDeletionRecord(data)
+  return decoded.outcome === 'decoded' ? decoded.deletionRecord : undefined
+}
+
+/**
+ * The names of every `.md` file directly in the folder that loads as the
+ * Consultation with this Id: the first, and each `duplicate-id` file that
+ * names it as its first location.
+ */
+async function namesHolding(
+  folder: string,
+  id: ConsultationId,
+): Promise<string[]> {
+  const journal = await readJournal(folder)
+  const first = journal.loaded.find((file) => file.consultation.id === id)
+  if (first === undefined) {
+    return []
+  }
+  return [
+    first.name,
+    ...journal.unreadable
+      .filter(
+        ({ reason }) =>
+          reason.kind === 'duplicate-id' && reason.firstLocation === first.name,
+      )
+      .map((file) => file.location),
+  ]
+}
+
+/** Deletes a listed file; one already gone has left the Journal. */
+async function deleteListedFile(file: string): Promise<void> {
+  try {
+    await unlink(file)
+  } catch (error) {
+    if (!hasCode(error, 'ENOENT')) {
+      throw error
+    }
+  }
+}
+
 /** Reads every `.md` file directly in the folder, in file-name order. */
 async function readJournal(folder: string): Promise<{
   readonly loaded: readonly LoadedFile[]
@@ -198,7 +295,7 @@ async function readJournal(folder: string): Promise<{
   const unreadable: UnreadableFile[] = []
   const firstLocations = new Map<ConsultationId, string>()
   // One file at a time, so a large Journal never exhausts file handles.
-  for (const name of await markdownFileNames(folder)) {
+  for (const name of await fileNames(folder, '.md')) {
     const bytes = await readListedFile(path.join(folder, name))
     if (bytes === undefined) {
       continue
@@ -259,12 +356,16 @@ function loadFile(bytes: Buffer):
   return { consultation: decoded.consultation, frontmatter: read.frontmatter }
 }
 
-async function markdownFileNames(folder: string): Promise<string[]> {
+/**
+ * The names of the regular files directly in the folder that end in
+ * `extension`, in code-point order; none when the folder is missing.
+ */
+async function fileNames(folder: string, extension: string): Promise<string[]> {
   try {
     const entries = await readdir(folder, { withFileTypes: true })
     return (
       entries
-        .filter((entry) => entry.isFile() && entry.name.endsWith('.md'))
+        .filter((entry) => entry.isFile() && entry.name.endsWith(extension))
         .map((entry) => entry.name)
         // UTF-8 bytes sort in code-point order; UTF-16 code units do not.
         .toSorted((a, b) => Buffer.compare(Buffer.from(a), Buffer.from(b)))
