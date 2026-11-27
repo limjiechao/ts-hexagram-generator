@@ -5971,3 +5971,14 @@ the Journal cannot be read`, exit 1, no file written; merge of a path
   refusal or not-built path touches a port — these rows are neither); R-497
   Q-32.
 - Folded into: not yet (manual §6.8 gains the line at its next fold)
+
+### R-499: The rewritten frame rows
+
+- Date: 2026-11-27
+- Raised in: R-498's follow-up (tester's 45f02e9)
+- Ruled by: delegate (R-423)
+- Ruling: approve — the ten rewritten `frame.test.ts` rows and the
+  unwritable-export row stand; only the not-built expectation was dropped.
+- Reason: they meet R-498, R-497 Q-32, R-350 and R-408; the frame rulings
+  R-397 to R-418 still hold.
+- Folded into: not yet
