@@ -5098,6 +5098,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `UnreadableFile.reason` becomes the closed union `UnreadableReason`, as drafted, and each channel words it; that wording is ratified with the Ink and report text.
 - Reason: R-366 (A) ordered a closed list drafted with the codec; a list in data lets the footer, the import report and the merge report share it. The old doc line "written for people" falls away.
 - Folded into: not yet
+
 ### R-427: Missing and invalid fields share one reason
 
 - Date: 2026-11-27
@@ -5106,6 +5107,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — One kind, `invalid-field`, names the field and does not tell missing from invalid.
 - Reason: R-366 words it "a field missing or invalid, named"; two kinds add unasked generality.
 - Folded into: not yet
+
 ### R-428: A duplicate Id names the first file; order is by file name
 
 - Date: 2026-11-27
@@ -5114,6 +5116,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `duplicate-id` carries `firstLocation`; "second" means later in the code-point order of file names, and `get` returns the first file's Consultation; the Store's doc comment states the order.
 - Reason: R-366 needs some file to be second; only a fixed order keeps the footer and tests stable; file names start with the divined date (ADR-0030).
 - Folded into: not yet
+
 ### R-429: The codec's names and place
 
 - Date: 2026-11-27
@@ -5122,6 +5125,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — Subpath `record-codec`; `encodeRecord`, `decodeRecord`, `ConsultationRecord`, `DecodeResult`; the `outcome` discriminant; `RecordField` and `UnreadableReason` in `unreadable-file.ts`.
 - Reason: "Record" and "version-2 record" are already the library's words (ADR-0030; CONTEXT.md); `outcome` follows oracle's `DivisionResult`; the subpath matches the Acceptance's test file.
 - Folded into: not yet
+
 ### R-430: Decoding returns a result and never throws
 
 - Date: 2026-11-27
@@ -5130,6 +5134,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `decodeRecord` returns a result union and never throws; `encodeRecord` is total.
 - Reason: An Unreadable file is an expected, counted outcome (ADR-0030, manual §6.7); result unions are the codebase's convention (oracle's `divide`).
 - Folded into: not yet
+
 ### R-431: The codec reads the JSON data model; never plain `load`
 
 - Date: 2026-11-27
@@ -5138,6 +5143,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A, with a correction — The codec reads the JSON data model only; `store-markdown` parses with js-yaml 3's `JSON_SCHEMA` or `CORE_SCHEMA`, never plain `load` or the default schema. An unquoted `789876` still parses as a number under those schemas and stays `invalid-field: transformation`; the writer always quotes it.
 - Reason: R-363 means one codec for YAML and the JSON bundle; js-yaml 3's default `load` admits `!!js/*` tags, so the ban is also a safety rule.
 - Folded into: not yet
+
 ### R-432: `divinedAt` keeps milliseconds and its own offset
 
 - Date: 2026-11-27
@@ -5146,6 +5152,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `encodeRecord` writes `YYYY-MM-DDTHH:mm:ss.sss±HH:MM` (exactly three fraction digits) in the Moment's own offset; decoding accepts that and the form without a fraction, refuses `Z`, and requires an offset `isUtcOffset` admits; `decode(encode(c))` equals `c`. The R-375 frontmatter fixture shows this text.
 - Reason: R-037 ratified a Moment with epoch milliseconds, so seconds would break ADR-0030's round trip; accepting more forms later is additive.
 - Folded into: not yet
+
 ### R-433: Which failure is which
 
 - Date: 2026-11-27
@@ -5154,6 +5161,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — The failure map as drafted; unknown extra fields are ignored.
 - Reason: It fits R-366's list without a seventh reason; ADR-0030 keeps strictness in `schemaVersion` (ADR-0008), not in extra keys; the decode order makes the first failure deterministic.
 - Folded into: not yet
+
 ### R-434: The Store builder's shape
 
 - Date: 2026-11-27
@@ -5162,6 +5170,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `markdownConsultationStore({ journalFolder, renderBody })` returns `{ consultationStore, rerenderBodies, moveToLegacy }`.
 - Reason: R-362 (A) almost word for word; maintenance stays off the use cases' object; `journalFolder` matches `CommandPorts`.
 - Folded into: not yet
+
 ### R-435: The body renderer is async and built in the bin
 
 - Date: 2026-11-27
@@ -5170,6 +5179,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `RenderBody = (c: Consultation) => Promise<string>`; the bin builds it from `resolveTransformation` and `cli-adapter`'s Markdown renderer with the default Reading Preference.
 - Reason: R-364 (A) and R-374 (A); use case 3 is async; building it through `composeCli` would be circular.
 - Folded into: not yet
+
 ### R-436: `rerenderBodies` returns a count
 
 - Date: 2026-11-27
@@ -5178,6 +5188,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `rerenderBodies` resolves to `{ rewritten: number }`.
 - Reason: Manual §6.7 prints only the count; widening later is additive.
 - Folded into: not yet
+
 ### R-437: `moveToLegacy` never overwrites; it takes a free suffixed name
 
 - Date: 2026-11-27
@@ -5186,6 +5197,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: new (B) — `moveToLegacy` takes any path and never overwrites; when `legacy/<name>` exists it moves the file under the first free suffixed name keeping the original name and extension, and the import carries on. The suffix form is Tier B (the implementer's); EXDEV copy-and-unlink is the implementer's.
 - Reason: Manual §6.7: "importing the same files twice keeps them twice" and every original moves into `legacy/`; (A) would stop a re-import with exit 1, contradicting the manual, and (C) also refuses paths outside the folder. Cheap to reverse before M-015 builds it.
 - Folded into: not yet
+
 ### R-438: A missing Journal folder is an empty Journal
 
 - Date: 2026-11-27
@@ -5194,6 +5206,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — `list` and `get` read a missing folder as an empty Journal; `keep` creates it; the Store's doc comment says so.
 - Reason: A fresh checkout has no git-ignored Journal folder (ADR-0015, ADR-0020) and reading never writes (ADR-0030); "the Journal cannot be read" still covers permissions or a file in its place.
 - Folded into: not yet
+
 ### R-439: `store-markdown`'s boundary row and twins
 
 - Date: 2026-11-27
@@ -5202,6 +5215,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — Row `'store-markdown': { rule: 'B7', testsRule: 'B8', pure: false, dependencies: { application: 'any', 'consultation-journal': 'any' } }`; `'store-markdown': 'any'` in `cli-adapter`'s row; twins: `twins/store-markdown.package.json`, the store arrow in `twins/cli-adapter.package.json`, a source twin of `store-markdown/src` using `node:fs` and importing `application`, and `expected.ts` entries. No `oracle` arrow; if the tester needs one it comes back as a question.
 - Reason: R-358 and R-314; the Store uses several journal subpaths, so 'any' is simpler than narrowing.
 - Folded into: not yet
+
 ### R-440: js-yaml arrives with the Store slice
 
 - Date: 2026-11-27
@@ -5210,6 +5224,7 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: A — Add `js-yaml ^3.14.1` and `@types/js-yaml ^3.12.10` (the legacy versions) to `store-markdown` when slice 2 starts; R-431's parsing rule applies.
 - Reason: R-359 and R-360 ratified the package and version; adding it at first use keeps the codec slice free of it.
 - Folded into: not yet
+
 ### R-441: `composeCli` widens in slice 3 only
 
 - Date: 2026-11-27
