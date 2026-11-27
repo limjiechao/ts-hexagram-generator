@@ -1,5 +1,5 @@
 /**
- * A field of the version-2 record (ADR-0030) other than `schemaVersion`,
+ * A field of the version-2 record (ADR-0046) other than `schemaVersion`,
  * which a wrong or missing value makes `not-version-2` instead.
  */
 export type RecordField =
@@ -17,12 +17,12 @@ export type RecordField =
  * - `no-frontmatter`: the file has no frontmatter to hold a record.
  * - `not-yaml`: the frontmatter is not YAML.
  * - `not-version-2`: the record is not a mapping whose `schemaVersion` is
- *   `2`, a version-1 file among them (ADR-0030).
+ *   `2`, a version-1 file among them (ADR-0046).
  * - `invalid-field`: the named field is missing, or holds a value the
  *   record does not allow, including `casting` without `divisionMethod` or
  *   the reverse, and a Day as a Cast Consultation's Divined At.
  * - `casting-does-not-replay`: the Casting's Picks do not replay from the
- *   Empty Casting to its Transformation (ADR-0026, ADR-0030).
+ *   Empty Casting to its Transformation (ADR-0026, ADR-0046).
  * - `duplicate-id`: a second stored record holding a Consultation Id the
  *   Store has already read; `firstLocation` is where the first one is.
  *

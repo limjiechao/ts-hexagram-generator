@@ -3,7 +3,7 @@ declare const day: unique symbol
 
 /**
  * A UTC offset in ISO 8601's form, exactly `+HH:MM` or `-HH:MM`, so it
- * copies straight into the record (ADR-0030). Only `isUtcOffset` admits one.
+ * copies straight into the record (ADR-0046). Only `isUtcOffset` admits one.
  */
 export type UtcOffset = string & { readonly [utcOffset]: true }
 
@@ -16,7 +16,7 @@ export interface Moment {
 
 /**
  * A calendar day: Divined At's form for a Recorded Consultation entered to the
- * day only (ADR-0030). Only `isDay` admits one.
+ * day only (ADR-0046). Only `isDay` admits one.
  */
 export interface Day {
   readonly [day]: true
@@ -30,7 +30,7 @@ export interface Day {
 
 /**
  * When the divination took place, never when it was saved: a Moment, or a
- * Day only for a Recorded Consultation (ADR-0030). Its ISO 8601 text exists
+ * Day only for a Recorded Consultation (ADR-0046). Its ISO 8601 text exists
  * only in the stored record.
  */
 export type DivinedAt = Moment | Day
@@ -56,7 +56,7 @@ export function isUtcOffset(value: string): value is UtcOffset {
 /**
  * Admits a date that exists in the Gregorian calendar, leap years included,
  * in the years 0000 to 9999, so every Day writes as ISO 8601's `YYYY-MM-DD`
- * (ADR-0030).
+ * (ADR-0046).
  */
 export function isDay(value: {
   readonly precision: 'day'

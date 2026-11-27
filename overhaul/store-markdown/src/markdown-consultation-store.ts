@@ -26,7 +26,7 @@ import {
 /**
  * Renders the body of a Consultation's file: a Readout in Markdown, in the
  * default Reading Preference, so every file and every re-render has one
- * answer. The Store never reads a body back (ADR-0030).
+ * answer. The Store never reads a body back (ADR-0046).
  */
 export type RenderBody = (consultation: Consultation) => Promise<string>
 
@@ -39,7 +39,7 @@ export interface MarkdownConsultationStore {
    * The port. Each Consultation is one file in the Journal's folder, named
    * `<divined date>--<Consultation Id>.md`, its YAML frontmatter the
    * version-2 record and its body rendered when the file is written. A write
-   * is atomic and never overwrites a file; reading never writes (ADR-0030).
+   * is atomic and never overwrites a file; reading never writes (ADR-0046).
    * Only `.md` files directly in the folder are read, in the code-point
    * order of their file names: of two files holding one Consultation Id,
    * the later is the Unreadable `duplicate-id` and `get` returns the

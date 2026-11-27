@@ -2,7 +2,7 @@
   "name": "@hexagram/store-markdown",
   "type": "module",
   "version": "0.0.0",
-  "description": "The Markdown Consultation Store: the Journal as a folder of Markdown files, each a version-2 record in YAML frontmatter over a rendered body (ADR-0030)",
+  "description": "The Markdown Consultation Store: the Journal as a folder of Markdown files, each a version-2 record in YAML frontmatter over a rendered body (ADR-0046)",
   "license": "MIT",
   "imports": {
     "#src/*": "./src/*"

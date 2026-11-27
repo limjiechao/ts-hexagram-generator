@@ -164,7 +164,7 @@ describe('keep, get and list round trip', () => {
   })
 })
 
-describe("a Consultation's file (ADR-0030)", () => {
+describe("a Consultation's file (ADR-0046)", () => {
   it.each(kinds)(
     'names the file of $kind by its divined date and Consultation Id',
     async ({ consultation, file }) => {
@@ -234,7 +234,7 @@ describe("a Consultation's file (ADR-0030)", () => {
   })
 })
 
-describe('keeping never overwrites (ADR-0030)', () => {
+describe('keeping never overwrites (ADR-0046)', () => {
   it('does nothing when the Journal already holds the Id', async () => {
     const folder = await temporaryFolder()
     const { consultationStore } = storeOver(folder)
@@ -307,7 +307,7 @@ describe('keeping never overwrites (ADR-0030)', () => {
   })
 })
 
-describe('writes are atomic (ADR-0030)', () => {
+describe('writes are atomic (ADR-0046)', () => {
   it('leaves no file in the folder but the kept Consultations', async () => {
     const folder = await temporaryFolder()
     const { consultationStore } = storeOver(folder)

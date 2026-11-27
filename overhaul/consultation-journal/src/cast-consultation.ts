@@ -7,7 +7,7 @@ import type { DivisionMethod } from '#src/division-method.js'
 import type { Query } from '#src/query.js'
 
 /**
- * Divined in the app, so its Divined At is always a Moment (ADR-0030). Its
+ * Divined in the app, so its Divined At is always a Moment (ADR-0046). Its
  * Transformation is the one its Casting yields (ADR-0026).
  */
 export interface CastConsultation {

@@ -21,7 +21,7 @@ interface LegacyFields {
 /**
  * A legacy file as the legacy importer parsed it: a complete Casting, which
  * the caller has already replayed, or a Transformation alone (ADR-0026). A
- * Cast Consultation's Divined At is always a Moment (ADR-0030).
+ * Cast Consultation's Divined At is always a Moment (ADR-0046).
  */
 export type LegacyRecord =
   | (LegacyFields & {
@@ -39,10 +39,10 @@ export type LegacyRecord =
  * Cast Consultation whose Transformation is copied from the Casting, one
  * without as a Recorded Consultation (ADR-0026), and returns them in the
  * records' order. The one Division Method, which the person importing
- * knows, applies to every Cast Consultation (ADR-0030); it is trusted, as
+ * knows, applies to every Cast Consultation (ADR-0046); it is trusted, as
  * keep trusts it, because a Casting does not record who divided it
  * (ADR-0027). Each kept Consultation gets a new Consultation Id, a ULID built
- * from the Clock and the Random Source (ADR-0030).
+ * from the Clock and the Random Source (ADR-0046).
  *
  * The import is a migration, run once: importing the same files twice
  * keeps each of their Consultations twice, under new Ids.

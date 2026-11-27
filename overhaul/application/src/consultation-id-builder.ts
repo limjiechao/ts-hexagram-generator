@@ -13,7 +13,7 @@ const randomCharacters = 16
 const timeLimit = 2 ** 48
 
 /**
- * A new Consultation Id, a ULID (ADR-0030): the 48-bit millisecond time in
+ * A new Consultation Id, a ULID (ADR-0046): the 48-bit millisecond time in
  * ten characters, then sixteen characters drawn from the Random Source in
  * turn. A ULID cannot hold a time before the Unix epoch, from 2^48 on, or
  * between two milliseconds, so such a time throws and draws nothing.

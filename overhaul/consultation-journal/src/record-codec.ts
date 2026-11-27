@@ -42,12 +42,12 @@ interface RecordFields {
 }
 
 /**
- * The canonical version-2 record every Consultation Store keeps (ADR-0030),
+ * The canonical version-2 record every Consultation Store keeps (ADR-0046),
  * as plain data: strings, numbers, arrays and objects only, so a Store
  * writes it as YAML frontmatter and a bundle as JSON. A Cast Consultation's
  * record adds its Casting's 18 Picks, six Lines of three, bottom-up, and its
  * Division Method; a Recorded Consultation's has neither. Its keys come in
- * ADR-0030's table order.
+ * ADR-0046's table order.
  */
 export type ConsultationRecord =
   | RecordFields
@@ -80,7 +80,7 @@ export type DecodeResult =
     }
 
 /**
- * The Consultation's version-2 record (ADR-0030). It never fails, and
+ * The Consultation's version-2 record (ADR-0046). It never fails, and
  * decoding the record gives back an equal Consultation: a Moment keeps its
  * milliseconds and its own offset. That holds only for a Moment whose
  * `epochMilliseconds` is an integer and whose date in its own offset lies
@@ -116,7 +116,7 @@ export function encodeRecord(consultation: Consultation): ConsultationRecord {
  * normalised. A record is a Cast Consultation's when it has the `casting`
  * key, whatever its value. It checks, in this order, and reports the
  * first failure: that the record is a mapping with `schemaVersion` `2`;
- * each field in ADR-0030's table order; then, for a Cast Consultation, that
+ * each field in ADR-0046's table order; then, for a Cast Consultation, that
  * its Casting replays through the Oracle's Divisions from the Empty Casting
  * to its Transformation (ADR-0026). Fields the record does not name are
  * ignored. It never throws.

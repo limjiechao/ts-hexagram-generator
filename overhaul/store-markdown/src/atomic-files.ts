@@ -20,7 +20,7 @@ export function hasCode(error: unknown, code: string): boolean {
 /**
  * Writes `text` as `name` in `folder` only if no file holds that name,
  * resolving to whether it did. A reader sees the whole file or none of it
- * (ADR-0030).
+ * (ADR-0046).
  */
 export async function createExclusively(
   folder: string,
@@ -45,7 +45,7 @@ export async function createExclusively(
 
 /**
  * Replaces the file `name` in `folder` with the text `write` makes, in one
- * step, keeping the file's mode (ADR-0030). It resolves to false, without
+ * step, keeping the file's mode (ADR-0046). It resolves to false, without
  * calling `write`, when the file is gone: a deleted file has left the
  * Journal.
  */

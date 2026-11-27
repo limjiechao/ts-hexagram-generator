@@ -10,7 +10,7 @@ import type { UnreadableFile } from '@hexagram/consultation-journal/unreadable-f
 export interface ConsultationStore {
   /**
    * Keeps a new Consultation. Keeping an Id the Store already holds does
-   * nothing, since the same Id always means the same content (ADR-0030);
+   * nothing, since the same Id always means the same content (ADR-0046);
    * with `remove`, this keeps Merging Journals symmetric and idempotent
    * (ADR-0037).
    */

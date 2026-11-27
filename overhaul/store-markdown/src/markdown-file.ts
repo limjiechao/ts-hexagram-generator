@@ -32,7 +32,7 @@ const strictUtf8 = new TextDecoder('utf-8', { fatal: true })
 /**
  * Frontmatter is strict: the file starts with `---\n` and a later line is
  * exactly `---`. Only the frontmatter's bytes are decoded and parsed; the
- * body is never read (ADR-0030). A YAML stream is Unicode text, so
+ * body is never read (ADR-0046). A YAML stream is Unicode text, so
  * frontmatter that is not UTF-8 is not YAML.
  */
 export function readFrontmatter(bytes: Buffer): FileFrontmatter {

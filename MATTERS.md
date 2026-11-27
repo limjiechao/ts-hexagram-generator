@@ -392,7 +392,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Status: pending
 - Phase: 4
 - Licensed by: ADR-0013, ADR-0014, ADR-0022, ADR-0024, ADR-0025, ADR-0027,
-  ADR-0030; manual sections 4, 5; R-105, R-283, R-284, R-340 to R-345
+  ADR-0046; manual sections 4, 5; R-105, R-283, R-284, R-340 to R-345
 - Scope: Build the medium-neutral Readout of a Consultation or a
   Transformation in `presentation`. Under R-374 (A), the plain renderer, the
   Ink section strings and the Markdown body renderer live in `cli-adapter`;
@@ -436,7 +436,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 - Status: pending
 - Phase: 4
-- Licensed by: ADR-0015, ADR-0026, ADR-0027, ADR-0030, ADR-0037; manual
+- Licensed by: ADR-0015, ADR-0026, ADR-0027, ADR-0046, ADR-0037; manual
   sections 4, 5, 6.7, 6.8; R-334, R-348, R-349, R-350
 - Scope: Build the Store's `remove` and `deletionRecords`; make use cases 6,
   7 and 10 real; build `legacy-import`, a parser of legacy `.txt` and
@@ -536,7 +536,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 - Status: pending
 - Phase: 4
-- Licensed by: ADR-0026, ADR-0030, ADR-0037; manual sections 5, 6.7, 6.8;
+- Licensed by: ADR-0026, ADR-0046, ADR-0037; manual sections 5, 6.7, 6.8;
   R-333, R-336, R-337
 - Scope: `hexagram-history`'s browse list (counts, rows, filter, Unreadable
   rows), opening a Readout, deleting with confirmation, and the Record a

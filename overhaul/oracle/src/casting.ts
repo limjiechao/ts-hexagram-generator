@@ -39,7 +39,7 @@ export interface PartialCasting {
  * A Casting of all eighteen Rounds, three per Line, bottom-up, and the one
  * Transformation they yield. The Oracle's last Division step makes one, so
  * keeping it needs no replay; a Casting loaded from a Markdown file is
- * replayed to its Transformation, as a file can be edited by hand (ADR-0030).
+ * replayed to its Transformation, as a file can be edited by hand (ADR-0046).
  * The PWA, which has no Oracle (ADR-0037), makes one from the engine's
  * complete Casting.
  */

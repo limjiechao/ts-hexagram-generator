@@ -77,7 +77,7 @@ hexagram-random` and its siblings run the same command from source; options
 | Pick (Virtual)     | a valid Pick of the Round: 1 to the Round's stalks − 2 (ADR-0023)                                                                 |
 | Transcription      | four whole counts: piles of four and Remainder, for the left and the right heap; Remainders 1 to 4 (ADR-0043)                     |
 | Transformation     | six Line Values, each 6, 7, 8 or 9, set bottom-up from Line Position 1                                                            |
-| Divined At         | for a Recorded Consultation, a date, or a date and time with UTC offset (ADR-0030, R-037); for a Cast one, the moment it was kept |
+| Divined At         | for a Recorded Consultation, a date, or a date and time with UTC offset (ADR-0046, R-037); for a Cast one, the moment it was kept |
 | Reading Preference | Chinese script, Translations in order, Commentaries, and the Yilin Verse on or off (`CONTEXT.md`; options in section 7)           |
 
 **What the CLI produces:**
@@ -125,7 +125,7 @@ Casting (`CONTEXT.md`).
 **Keeping.** A completed Casting is kept as a Cast Consultation: the Query,
 Divined At, the Transformation, the Casting and the Division Method. Divined
 At is the moment of keeping, read once from the Clock; the Consultation Id, a
-ULID, is built from that same moment (ADR-0030). A kept Consultation is never
+ULID, is built from that same moment (ADR-0046). A kept Consultation is never
 edited, only deleted.
 
 **Recording** (use case 2) keeps a Recorded Consultation: Query, Divined At as
@@ -209,7 +209,7 @@ are the fixtures' (ADR-0009, ADR-0013).
 2 November 2026 at 21:14 (+08:00). Its YAML frontmatter is the version-2
 record (`schemaVersion`, `id`, `divinedAt`, `query`, `transformation`, and
 for a Cast Consultation `casting` and `divisionMethod`); its body is a
-rendered Readout that the Store never reads (ADR-0030). Writes are atomic,
+rendered Readout that the Store never reads (ADR-0046). Writes are atomic,
 and a new file never overwrites another. _Today's app_ writes
 `consultation-<save time>.md`, version 1.
 
@@ -373,20 +373,20 @@ Full-screen, except for the maintenance options. Opens the browse list
   deletion is permanent and leaves a Deletion Record.
 - An Unreadable file is listed and counted apart. A file is unreadable when
   it fails to load as a version-2 record, or when its Casting does not replay
-  to its Transformation (ADR-0030). `Enter` on an Unreadable row opens
+  to its Transformation (ADR-0046). `Enter` on an Unreadable row opens
   nothing; the footer shows `Cannot open — <reason>`. `Ctrl+D` on it is
   refused, with a footer naming the file; the owner deals with the file by
   hand (R-336).
 - The Record a Consultation form is reached from here as from Home (6.8).
 
 _Today's app_ rewrites a drifted body when a file is opened, deletes a file
-without a record, and lets `Ctrl+D` delete an Unreadable file. ADR-0030,
+without a record, and lets `Ctrl+D` delete an Unreadable file. ADR-0046,
 ADR-0037 and R-336 replace all three.
 
 **Import** (use case 7; R-334). `hexagram-history --import-legacy [<path>…]
 --division-method physical|virtual|automatic`. Each path is a file or a
 folder, and defaults to the Journal folder. It takes legacy `.txt` files and
-version-1 `.md` files, so it is also ADR-0030's one-off migration. Each file
+version-1 `.md` files, so it is also ADR-0046's one-off migration. Each file
 is kept as a Cast Consultation when its Casting replays, with the run's
 Division Method, and as a Recorded Consultation otherwise (ADR-0026); files
 of different origins are imported in separate batches. Each gets a new
@@ -399,7 +399,7 @@ files to version 1 only.
 **Re-rendering bodies** (R-335). `hexagram-history --rerender-bodies`
 rewrites the body of every version-2 file atomically, leaves the frontmatter
 untouched, skips Unreadable files, and prints how many it rewrote. It is run
-deliberately after a renderer change (ADR-0030).
+deliberately after a renderer change (ADR-0046).
 
 Endings:
 
@@ -494,7 +494,7 @@ perceptible time. What a user waits for is pace, set on purpose:
   fire (ADR-0043).
 - **A kept Consultation is checked when read.** Its Casting must replay to its
   Transformation; one that does not is an Unreadable file, never shown as a
-  Consultation (ADR-0030). Reading never writes.
+  Consultation (ADR-0046). Reading never writes.
 - **Nothing is lost by accident.** Writes are atomic and never overwrite; a
   Consultation Id is unique; deletion asks first and leaves a Deletion Record.
 - **Text is shown as found.** The CLI never converts script and never puts

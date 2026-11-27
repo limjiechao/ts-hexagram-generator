@@ -12,7 +12,7 @@ import type { RandomSource } from '#src/random-source.js'
  * Use case 2, Record a Consultation: keeps a Recorded Consultation, divined
  * elsewhere, and returns it. Divined At is as entered, never the Clock's;
  * the Clock and the Random Source only build its Consultation Id, a ULID
- * (ADR-0030). A Store failure rejects the Promise unchanged. A Clock or
+ * (ADR-0046). A Store failure rejects the Promise unchanged. A Clock or
  * Random Source failure, or a Moment a ULID cannot hold, rejects it before
  * anything is kept.
  */

@@ -158,7 +158,7 @@ describe('encodeRecord', () => {
     expect('divisionMethod' in record).toBe(false)
   })
 
-  it("puts a Cast Consultation's keys in ADR-0030's table order", () => {
+  it("puts a Cast Consultation's keys in ADR-0046's table order", () => {
     expect(
       Object.keys(encodeRecord(cast(oldYangCasting, 'automatic'))),
     ).toEqual([
@@ -172,7 +172,7 @@ describe('encodeRecord', () => {
     ])
   })
 
-  it("puts a Recorded Consultation's keys in ADR-0030's table order", () => {
+  it("puts a Recorded Consultation's keys in ADR-0046's table order", () => {
     expect(Object.keys(encodeRecord(recorded(day(2019, 3, 7))))).toEqual([
       'schemaVersion',
       'id',
@@ -678,7 +678,7 @@ describe('decodeRecord never throws', () => {
     for (const key of Object.keys(castRecord())) {
       for (const value of junk) {
         // An undefined casting counts as missing, which leaves a Recorded
-        // record carrying divisionMethod (ADR-0030's table).
+        // record carrying divisionMethod (ADR-0046's table).
         let reason: unknown = { kind: 'invalid-field', field: key }
         if (key === 'schemaVersion') reason = { kind: 'not-version-2' }
         if (key === 'casting' && value === undefined) {
