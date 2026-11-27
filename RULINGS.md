@@ -5043,3 +5043,23 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   M-013 still needs both. (B) Wait for the passages and keep the order.
 - Ruling: "Q-ORD-1: A"
 - Folded into: `MATTERS.md` (M-012 in progress before M-011)
+
+### R-423: A delegate rules in the owner's stead
+
+- Date: 2026-11-27
+- Raised in: the owner's request: "I've been going along with all the
+  decisions so far. Create a decision making agent to take over"
+- Question: Handing decisions to an agent amends ADR-0042 (the owner is the
+  sole architect). (1) Scope: all but a reserved list; digests and tests
+  only; or everything. (2) Oversight: a digest at each landing; a phase-end
+  review; or no routine review.
+- Ruling: (1) "Option 3 BUT the delegate can exercise discretion and refer
+  issues deemed critical/contentious/pivotal to me." (2) "Digest at each
+  landing"
+- Folded into: `docs/agents/delegate.md` and `docs/agents/clerk.md` §3; an
+  ADR-0042 amendment is to be drafted for the owner (the delegate never rules
+  on its own charter)
+- Clerk's note: the delegate may not overturn the owner's own Rulings, and
+  refers scripture, `consultations/`, pushing and `main`; the charter files
+  these under "pivotal" and "critical" as the owner's discretion clause
+  allows.

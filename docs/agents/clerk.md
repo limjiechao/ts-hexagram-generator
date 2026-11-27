@@ -270,6 +270,23 @@ not its last line. If the diff touches an Ink component, also run
 
 ## 3. Questions and Rulings (the escalation path)
 
+**The delegate (R-423).** Wherever this section says "the owner", send the item
+to the **delegate** instead: a fresh `general-purpose` subagent briefed with
+`docs/agents/delegate.md`, the items exactly as you would show the owner, and
+the library that licenses them. The delegate rules or refers each item.
+
+- Record each delegate answer as the next `R-NNN` with `Ruled by: delegate
+(R-423)` and its `Reason:` line. Delegate rulings do not count as owner
+  touches; count them separately on the Minutes entry.
+- Items the delegate refers go to the owner as questions, in the usual batch
+  with (A) as the recommendation, together with the delegate's `Why:`.
+- Every landing PR body lists the delegate's rulings since the last landing,
+  one line each, under "Delegate rulings for review". The owner may overturn
+  any of them before fast-forwarding `main`; an overturn is an owner Ruling,
+  and the clerk reopens whatever depended on the overturned ruling.
+- Never send the delegate its own charter, and never reword an item to steer
+  it. If it refers an item you think it could rule on, the owner decides.
+
 - A question comes from the licence check, the implementer, the reviewer or the
   tester. Record it on the Matter as `Open questions: Q-<M-id>-<n>`, and set the
   Matter `awaiting-ruling`.
