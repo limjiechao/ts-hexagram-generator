@@ -11,6 +11,7 @@
     "@hexagram/legacy-import": "workspace:*",
     "@hexagram/node-effects": "workspace:*",
     "@hexagram/oracle": "workspace:*",
+    "@hexagram/presentation": "workspace:*",
     "@hexagram/scripture-catalogue": "workspace:*",
     "@hexagram/store-markdown": "workspace:*"
   }

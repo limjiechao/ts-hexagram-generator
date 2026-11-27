@@ -87,6 +87,19 @@ const overhaulPackages = {
       'remainder-group-policy': 'any',
     },
   },
+  // R-105: the medium-neutral Readout, which combines the Oracle's
+  // Resolution, the Journal's Consultation and the Catalogue's text. It
+  // takes use case 3's result as data, so it never reaches application, and
+  // it stays pure.
+  presentation: {
+    rule: 'B5',
+    pure: true,
+    dependencies: {
+      oracle: 'any',
+      'consultation-journal': 'any',
+      'scripture-catalogue': 'any',
+    },
+  },
   // R-393: the Clock admits its offset through `isUtcOffset`.
   'node-effects': {
     rule: 'B7',
@@ -140,6 +153,7 @@ const overhaulPackages = {
       'legacy-import': 'any',
       'node-effects': 'any',
       oracle: 'any',
+      presentation: 'any',
       'scripture-catalogue': 'any',
       'store-markdown': 'any',
     },

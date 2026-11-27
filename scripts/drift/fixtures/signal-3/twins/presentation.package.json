@@ -1,0 +1,12 @@
+{
+  "//": "Linted as overhaul/presentation/package.json. Twin for B9: its three arrows.",
+  "name": "@hexagram/presentation",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/consultation-journal": "workspace:*",
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}
