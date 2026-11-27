@@ -5336,3 +5336,22 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   (CONTEXT.md); `' '` fails every field, keeping the row's claim that each
   junk value gets its ruled reason (R-443, R-444, R-450).
 - Folded into: not yet
+
+### R-452: M-012 slice 1's Tier-B digest
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1 (665f044; review APPROVE)
+- Ruled by: delegate (R-423)
+- Question: Ratify ten items: (1) the record's Casting type derived by
+  `Extract`; (2) plain property reads, not `Object.hasOwn`; (3) one helper
+  for the shared `query` and `transformation` checks; (4) a plain object has
+  prototype Object.prototype or null; (5) `setUTCFullYear`/`setUTCHours`, not
+  `Date.UTC`; (6) a private `isTransformation` guard; (7) a private
+  `offsetMinutes` reading the `±HH:MM` layout; (8) a sparse `casting` array
+  gives `casting-does-not-replay`, outside the contract; (9) extra array
+  properties are ignored; (10) `// R-439:` in `eslint.boundary.js`.
+- Ruling: ratified whole.
+- Reason: each item fits R-431 to R-433, R-444, R-449 and the file's
+  convention; item 7 reads the record's wire format (R-432, ADR-0030), so no
+  follow-up export from `divined-at` unless a second caller needs it.
+- Folded into: not yet

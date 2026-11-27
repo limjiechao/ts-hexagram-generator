@@ -542,3 +542,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - PR #61 (M-010; R-419 to R-442) first failed CI on Windows only: POSIX `TZ` strings are ignored there, so four clock rows read `+00:00`. The delegate ruled the POSIX rows skip on Windows (R-442); with that fix every leg passed, and the owner fast-forwarded `main` to 559944f (R-302), the clerk's own push being refused by Claude Code's permissions.
 - First landing to list delegate rulings for review (R-426 to R-442).
+
+### Iteration 35 — M-012 — 2026-11-27
+
+- Attempt: 1/2 (slice 1 of 3; R-058) · Outcome: slice 1 landed
+- Surface: a drafter drafted the record codec, the Unreadable reasons and `store-markdown`'s builder; the delegate ruled its 16 questions (R-426 to R-441), the first batch under R-423.
+- Tests: the tester's audit found six holes, ruled with the list and amendments (R-443 to R-450); the implementer found one row contradicting the library (`query: 'junk'` is a valid Query), fixed by R-451.
+- Review: `APPROVE` (20,000 round trips over every offset and years 0000 to 9999; 100,000 junk inputs never threw)
+- Verify: type:check · lint:check · format · drift:check · drift:prove · slice 1's tests · build and test forced 20/20 and 40/40, on matters
+- Owner touches: 1 (Q-ORD-1, R-422); delegate rulings: 27 (R-426 to R-452, with R-442 for M-010)
+- Landed: af096d7, bb3b305, dda6b7c, 09f5cd0, f0d3dfd, bd3442e, 2f16b92, 4b12642, 6c44e03
+- Notes: lint fails on bb3b305 to 09f5cd0 alone until f0d3dfd adds the boundary row, as with M-010's slice 1.
