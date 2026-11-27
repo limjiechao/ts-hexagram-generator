@@ -581,3 +581,12 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 1 (R-482); delegate rulings: 8 (R-479 to R-481, R-483 to R-486)
 - Landed: e2dd152, 460fab7, a498b3a, 2053072, 3173c59
 - Notes: M-012 used 2 owner touches in all (R-422, R-482) against 60, and 61 delegate rulings (R-426 to R-486, less R-482).
+
+### Follow-ups — ADR-0046 and `localDate` — 2026-11-27
+
+- While Q-ORD-2 waits for the owner, the delegate started three follow-ups (R-487).
+- ADR-0030 and ADR-0045 are consolidated into ADR-0046 (3cc8ec8), ratified by the delegate (R-489); 48 live citations moved to ADR-0046 (9aab7a9, 04fc8f3); history kept as written.
+- `localDate(divinedAt): Day` in `consultation-journal/divined-at`: surface ratified (R-488), 27 direct rows approved (R-490), built and adopted by the record codec and browse with no behaviour change (fuzzed: 314,488 codec cases, 3,000 browse lists, 220,019 offset strings); review `APPROVE`, items ruled (R-491). Landed: the drafted surface, the tests, fbcaa2d's build with its B11 fix, the two switch-overs and a comment (7 commits ending c12776c).
+- ADR-0047 (the delegate, amending ADR-0042) drafted, challenged and revised; it waits for the owner with Q-0047-1 to -3.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 20/20 and 40/40, on matters.
+- Owner touches: 0; delegate rulings: 5 (R-487 to R-491).
