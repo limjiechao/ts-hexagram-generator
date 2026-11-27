@@ -6155,3 +6155,19 @@ query`; several bad fields report the first in ADR-0046's order; a `.txt`
   and R-460 meet, and the parser's existing rule (a version-2 file is
   `not-legacy`, never imported or moved) settles it.
 - Folded into: not yet
+
+### R-508: The formatter leaves the owner's source texts alone
+
+- Date: 2026-11-27
+- Raised in: question Q-TOOL-1 (Tier C; the owner's filled
+  `docs/source-texts/yong-jiu-yong-liu.md`, committed as left in d94ff35,
+  failed `format:check`)
+- Ruled by: delegate (R-423)
+- Ruling: A — add `"docs/source-texts/**"` to `.oxfmtrc.json`'s
+  `ignorePatterns`; the file stays exactly as committed. Any later change to
+  its contents is a scripture question for the owner.
+- Reason: R-370 (agents never transcribe scripture unsupervised); the file's
+  own promise to commit it as left; R-497's precedent of keeping owner-
+  ratified bytes out of the formatter; a directory glob for the owner's later
+  texts (R-371).
+- Folded into: `.oxfmtrc.json`
