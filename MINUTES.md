@@ -563,3 +563,7 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0; delegate rulings: 26 (R-453 to R-478)
 - Landed: ea4ffd6 to b7b89c9 (18 commits; the in-place ADR-0030 edit and its revert were not carried)
 - Notes: a known, untested Windows gap: a file another process holds open when deleted may read as EPERM, so `list` rejects until it is released (R-477); the race test now runs on windows-latest and the next landing's CI will show it. ADR-0030 and ADR-0045 are consolidated before M-015.
+
+### Note — the Windows listing race, observed — 2026-11-27
+
+- PR #62's first Windows run timed out (30 s) on the listing race row R-477 put back on Windows. Under R-481 it ran 2 × 50 with 120 s; on the re-run it resolved, in 6.8 s and 9.6 s across its two passes, with no EPERM. So Windows file operations were slow, not hung, and R-477's EPERM gap did not show in CI. Every leg of PR #62 passed at b34bbbb.
