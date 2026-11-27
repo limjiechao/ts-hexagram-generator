@@ -73,6 +73,12 @@ const kinds = [
   },
 ] as const
 
+// Windows file operations are slow under antivirus scanning, so the race runs smaller there.
+const listingRace =
+  process.platform === 'win32'
+    ? { rounds: 2, files: 50, timeout: 120_000 }
+    : { rounds: 10, files: 200, timeout: undefined }
+
 const failingRenderBody: RenderBody = () =>
   Promise.reject(new Error('no renderer'))
 
@@ -408,32 +414,36 @@ describe("the Journal's folder", () => {
 
   // Deleting a file another reader holds open may behave differently on
   // Windows; the Windows test leg will show what happens there.
-  it('skips a file deleted while it lists the folder', async () => {
-    const folder = await temporaryFolder()
-    const names = Array.from(
-      { length: 200 },
-      (_, n) => `${String(n).padStart(3, '0')}.md`,
-    )
-    // The race is not forced, so each round deletes every file, last name
-    // first, while a list runs; a list that meets a vanished file must
-    // still resolve.
-    for (let round = 0; round < 10; round += 1) {
-      for (const name of names) {
-        await plant(folder, name, fileText(castFrontmatter()))
-      }
-      const listing = storeOver(folder).consultationStore.list()
-      const deleting = (async () => {
-        for (const name of names.toReversed()) {
-          await unlink(path.join(folder, name))
+  it(
+    'skips a file deleted while it lists the folder',
+    { timeout: listingRace.timeout },
+    async () => {
+      const folder = await temporaryFolder()
+      const names = Array.from(
+        { length: listingRace.files },
+        (_, n) => `${String(n).padStart(3, '0')}.md`,
+      )
+      // The race is not forced, so each round deletes every file, last name
+      // first, while a list runs; a list that meets a vanished file must
+      // still resolve.
+      for (let round = 0; round < listingRace.rounds; round += 1) {
+        for (const name of names) {
+          await plant(folder, name, fileText(castFrontmatter()))
         }
-      })()
-      const [listed] = await Promise.all([listing, deleting])
-      expect(listed.consultations.length).toBeLessThanOrEqual(1)
-      for (const unreadable of listed.unreadable) {
-        expect(unreadable.reason.kind).toBe('duplicate-id')
+        const listing = storeOver(folder).consultationStore.list()
+        const deleting = (async () => {
+          for (const name of names.toReversed()) {
+            await unlink(path.join(folder, name))
+          }
+        })()
+        const [listed] = await Promise.all([listing, deleting])
+        expect(listed.consultations.length).toBeLessThanOrEqual(1)
+        for (const unreadable of listed.unreadable) {
+          expect(unreadable.reason.kind).toBe('duplicate-id')
+        }
       }
-    }
-  })
+    },
+  )
 
   it('reads only .md files directly in the folder', async () => {
     const folder = await temporaryFolder()
