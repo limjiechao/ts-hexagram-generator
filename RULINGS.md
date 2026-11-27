@@ -5323,3 +5323,16 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
 - Ruling: approve with amendments — The 45 rows (101 tests) are approved; add (a) a Recorded record carrying `divisionMethod` names `divisionMethod`; (b) `casting: null` names `casting`, `divisionMethod: null` names `divisionMethod`; (c) `divinedAt` `2026-02-30T08:00:00.123+08:00`, `…T24:00:00.000+08:00`, `…T08:60:00.000+08:00`, `…T08:00:60.000+08:00` each name `divinedAt`; (d) a Pick of 2.5 names `casting`, Picks of 0 and -1 give `casting-does-not-replay`; (e) a Cast record with a Day `divinedAt` and a malformed `casting` names `divinedAt`; (f) optional: a lowercase-`t` or space-separated `divinedAt`, a lowercase ULID. Q-22 gets no test.
 - Reason: Consistent with R-427, R-430 to R-433, ADR-0030 and the ratified guards; the amendments assert R-443 to R-449.
 - Folded into: not yet
+
+### R-451: The junk row uses a blank string, not `'junk'`
+
+- Date: 2026-11-27
+- Raised in: M-012 slice 1, question Q-M-012-23 (the implementer found that
+  `query: 'junk'` is a valid Query, so row 45 contradicted the library)
+- Ruled by: delegate (R-423)
+- Ruling: A — in row 45's junk list, replace `'junk'` with `' '`; the rest
+  of the row stays.
+- Reason: `isQuery` admits any text with a non-whitespace character
+  (CONTEXT.md); `' '` fails every field, keeping the row's claim that each
+  junk value gets its ruled reason (R-443, R-444, R-450).
+- Folded into: not yet
