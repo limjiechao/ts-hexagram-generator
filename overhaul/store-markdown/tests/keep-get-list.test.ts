@@ -406,37 +406,34 @@ describe("the Journal's folder", () => {
     ).rejects.toThrow()
   })
 
-  // On Windows a deleted file that is still open lingers, and opening it
-  // fails with EPERM rather than ENOENT, so the race is POSIX's only.
-  it.skipIf(process.platform === 'win32')(
-    'skips a file deleted while it lists the folder',
-    async () => {
-      const folder = await temporaryFolder()
-      const names = Array.from(
-        { length: 200 },
-        (_, n) => `${String(n).padStart(3, '0')}.md`,
-      )
-      // The race is not forced, so each round deletes every file, last name
-      // first, while a list runs; a list that meets a vanished file must
-      // still resolve.
-      for (let round = 0; round < 10; round += 1) {
-        for (const name of names) {
-          await plant(folder, name, fileText(castFrontmatter()))
-        }
-        const listing = storeOver(folder).consultationStore.list()
-        const deleting = (async () => {
-          for (const name of names.toReversed()) {
-            await unlink(path.join(folder, name))
-          }
-        })()
-        const [listed] = await Promise.all([listing, deleting])
-        expect(listed.consultations.length).toBeLessThanOrEqual(1)
-        for (const unreadable of listed.unreadable) {
-          expect(unreadable.reason.kind).toBe('duplicate-id')
-        }
+  // Deleting a file another reader holds open may behave differently on
+  // Windows; the Windows test leg will show what happens there.
+  it('skips a file deleted while it lists the folder', async () => {
+    const folder = await temporaryFolder()
+    const names = Array.from(
+      { length: 200 },
+      (_, n) => `${String(n).padStart(3, '0')}.md`,
+    )
+    // The race is not forced, so each round deletes every file, last name
+    // first, while a list runs; a list that meets a vanished file must
+    // still resolve.
+    for (let round = 0; round < 10; round += 1) {
+      for (const name of names) {
+        await plant(folder, name, fileText(castFrontmatter()))
       }
-    },
-  )
+      const listing = storeOver(folder).consultationStore.list()
+      const deleting = (async () => {
+        for (const name of names.toReversed()) {
+          await unlink(path.join(folder, name))
+        }
+      })()
+      const [listed] = await Promise.all([listing, deleting])
+      expect(listed.consultations.length).toBeLessThanOrEqual(1)
+      for (const unreadable of listed.unreadable) {
+        expect(unreadable.reason.kind).toBe('duplicate-id')
+      }
+    }
+  })
 
   it('reads only .md files directly in the folder', async () => {
     const folder = await temporaryFolder()
@@ -533,6 +530,37 @@ describe('rerenderBodies', () => {
     await storeOver(folder, renderBody).rerenderBodies()
 
     expect(byId(rendered)).toEqual(byId([cast, recordedDay]))
+  })
+
+  it('skips and does not count a file deleted while it rerenders', async () => {
+    const folder = await temporaryFolder()
+    for (const { consultation } of kinds) {
+      await storeOver(folder).consultationStore.keep(consultation)
+    }
+    const rendered: string[] = []
+    const renderBody: RenderBody = async (consultation) => {
+      if (rendered.length === 0) {
+        // While rendering the first file, delete every other one, so each
+        // is gone before the run reaches it.
+        for (const { consultation: other, file } of kinds) {
+          if (other.id !== consultation.id) {
+            await unlink(path.join(folder, file))
+          }
+        }
+      }
+      rendered.push(consultation.id)
+      return `# Rerendered ${consultation.id}\n`
+    }
+
+    expect(await storeOver(folder, renderBody).rerenderBodies()).toEqual({
+      rewritten: 1,
+    })
+
+    expect(rendered).toHaveLength(1)
+    const survivor = kinds.find(({ consultation }) =>
+      rendered.includes(consultation.id),
+    )
+    expect(await regularFiles(folder)).toEqual(survivor ? [survivor.file] : [])
   })
 
   it('rewrites nothing and creates nothing when the folder is missing', async () => {
