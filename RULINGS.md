@@ -6238,3 +6238,25 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   legacy Legge data writes them; no word was changed, no "7." was added, and
   lowercase "nine"/"six" stand, since the legacy data capitalises NINE/SIX
   only as line labels); R-510 Q-6 resolves to `wilhelm-baynes-1967`
+
+### R-512: Edition names, the ctext licence, the Witnesses' wording
+
+- Date: 2026-11-27
+- Raised in: R-510's referrals Q-M-011-8 to -11, and the Legge Witness pages
+- Question: (Q-8) `Edition` gains `shortName` and `title` (A), reading R-373's
+  "Edition unchanged" as only about where the conversion label goes; or a
+  name table in presentation (B); or names from the ids (C). (Q-9) the
+  `Edition.licence` union gains a value such as `terms-unverified`, treated by
+  the gate as Private Channels only (A); or record `in-copyright` (B). (Q-10)
+  one Witness per EditionId with the date in its description, "…; the 乾 and
+  坤 pages (用九, 用六) retrieved 2026-11-27", and no separate date field (A);
+  or date the whole Witness (B). (Q-11) the wording as drafted, with
+  Wilhelm–Baynes's Witness "a personal EPUB", its title "Wilhelm, tr. Baynes,
+  _The I Ching or Book of Changes_ (Princeton, 1967)", and the ctext dates
+  per Q-10 (A); and whether the legacy Legge text came from the scan. Are
+  Legge pp. 267 and 269 the 小象 pages?
+- Ruling: "Q-8 to -11: A; legacy Legge from scan"; pp. 267 and 269: "Yes"
+- Folded into: not yet. Amends R-373 (Edition gains `shortName` and `title`)
+  and the owner-ratified `Edition.licence` union; the drafted `retrievedOn`
+  field (c98d78f) and its `consultation-journal` arrow are dropped; the Legge
+  Witness is the scan, citing pp. 58, 61 (text) and 267, 269 (小象)
