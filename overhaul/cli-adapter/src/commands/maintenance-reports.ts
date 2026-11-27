@@ -27,7 +27,20 @@ import type { UnreadableReason } from '@hexagram/consultation-journal/unreadable
  *   <firstLocation>`
  */
 export function unreadableReasonText(reason: UnreadableReason): string {
-  throw new Error('not built', { cause: reason })
+  switch (reason.kind) {
+    case 'no-frontmatter':
+      return 'it has no frontmatter'
+    case 'not-yaml':
+      return 'its frontmatter is not YAML'
+    case 'not-version-2':
+      return 'it is not a version-2 record'
+    case 'invalid-field':
+      return `its ${reason.field} is missing or invalid`
+    case 'casting-does-not-replay':
+      return 'its Casting does not replay to its Transformation'
+    case 'duplicate-id':
+      return `its Consultation Id is already held by ${reason.firstLocation}`
+  }
 }
 
 /**
@@ -37,7 +50,7 @@ export function unreadableReasonText(reason: UnreadableReason): string {
  * be written` when keeping, removing or moving fails.
  */
 export function journalFailureLine(failure: 'read' | 'written'): string {
-  throw new Error('not built', { cause: failure })
+  return `hexagram-history: the Journal cannot be ${failure}`
 }
 
 /**
@@ -50,7 +63,12 @@ export function exportedLine(
   file: string,
   counts: { readonly consultations: number; readonly deletionRecords: number },
 ): string {
-  throw new Error('not built', { cause: [file, counts] })
+  return `Exported ${counted(counts.consultations, 'consultation')} and ${counted(counts.deletionRecords, 'deletion record')} to ${file}.`
+}
+
+/** A count and its noun, singular for a count of one. */
+function counted(count: number, noun: string): string {
+  return `${String(count)} ${noun}${count === 1 ? '' : 's'}`
 }
 
 /**
@@ -59,7 +77,7 @@ export function exportedLine(
  * A bundle is never written over a file.
  */
 export function exportTargetExistsLine(file: string): string {
-  throw new Error('not built', { cause: file })
+  return `hexagram-history: ${file} already exists`
 }
 
 /**
@@ -68,7 +86,7 @@ export function exportTargetExistsLine(file: string): string {
  * `hexagram-history: journal.json cannot be read`.
  */
 export function bundleUnreadableLine(file: string): string {
-  throw new Error('not built', { cause: file })
+  return `hexagram-history: ${file} cannot be read`
 }
 
 /**
@@ -84,7 +102,10 @@ export function bundleRefusedLine(
   file: string,
   reason: BundleUnreadableReason,
 ): string {
-  throw new Error('not built', { cause: [file, reason] })
+  if (reason.kind === 'invalid-deletion-record') {
+    return `hexagram-history: ${file} has a Deletion Record that cannot be read, deletionRecords[${String(reason.index)}]`
+  }
+  return `hexagram-history: ${file} is not a Journal bundle`
 }
 
 /**
@@ -93,7 +114,7 @@ export function bundleRefusedLine(
  * `unreadableReasonText`'s words.
  */
 export function leftOutLine(index: number, reason: UnreadableReason): string {
-  throw new Error('not built', { cause: [index, reason] })
+  return `Left out consultations[${String(index)}]: ${unreadableReasonText(reason)}`
 }
 
 /**
@@ -109,7 +130,7 @@ export function mergedLine(
     readonly leftOut: number
   },
 ): string {
-  throw new Error('not built', { cause: [file, counts] })
+  return `Merged ${file}: ${String(counts.added)} added, ${String(counts.removed)} removed by Deletion Records, ${String(counts.leftOut)} left out.`
 }
 
 /**
