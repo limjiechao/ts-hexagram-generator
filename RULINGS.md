@@ -5063,3 +5063,18 @@ not in the code; …`; the summary unchanged, N counting D3; (b) add "Y symbols
   refers scripture, `consultations/`, pushing and `main`; the charter files
   these under "pivotal" and "critical" as the owner's discretion clause
   allows.
+
+### R-424: The clerk pushes and opens pull requests
+
+- Date: 2026-11-27
+- Raised in: the owner's message
+- Question: (none asked; the owner's instruction)
+- Ruling: "What's stopping you from making pushes and PRs. I feel that does
+  not need my input as long as you do linear git history, no force pushes,
+  make PR, always rebase and no merge commit"
+- Folded into: not yet (`docs/agents/clerk.md`'s landing lines, once the
+  git-guard hook admits a push of `matters`)
+- Clerk's note: read as pushing `matters` (plain push, never forced) and
+  opening its PR to `main`. Fast-forwarding `main` stays with the owner
+  until they say otherwise, since R-423 puts their review of the delegate's
+  rulings at that step.
