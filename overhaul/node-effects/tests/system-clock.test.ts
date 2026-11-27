@@ -8,7 +8,8 @@ import { systemClock } from '#src/system-clock.js'
 // Node rereads the time zone whenever `process.env.TZ` is assigned, in the
 // forks pool vitest runs by default; worker threads would not see it. Every
 // zone below keeps one offset all year, so no assertion depends on the date.
-// A POSIX zone such as `XYZ+15` counts hours west of UTC, so it reads -15:00.
+// Where the platform honours POSIX zones, a zone such as `XYZ+15` counts hours
+// west of UTC, so it reads -15:00.
 
 let savedTimeZone: string | undefined
 
@@ -43,12 +44,23 @@ describe('systemClock', () => {
 
   it.each([
     ['UTC', '+00:00'],
-    ['XYZ+0', '+00:00'],
     ['Asia/Kolkata', '+05:30'],
     ['Pacific/Marquesas', '-09:30'],
     ['Etc/GMT+12', '-12:00'],
-    ['XYZ+12', '-12:00'],
     ['Pacific/Kiritimati', '+14:00'],
+  ])('reads the system offset in %s as %s', (timeZone, offset) => {
+    const moment = readIn(timeZone)
+
+    expect(isUtcOffset(moment.offset)).toBe(true)
+    expect(moment.offset).toBe(offset)
+  })
+
+  // Windows ignores POSIX `TZ` strings, and no IANA zone lies outside -12:00
+  // to +14:00, so there the range rule cannot be reached through `TZ`; the
+  // IANA rows above prove the edges on every platform (ADR-0013).
+  it.skipIf(process.platform === 'win32').each([
+    ['XYZ+0', '+00:00'],
+    ['XYZ+12', '-12:00'],
     ['XYZ-14', '+14:00'],
   ])('reads the system offset in %s as %s', (timeZone, offset) => {
     const moment = readIn(timeZone)
@@ -57,7 +69,7 @@ describe('systemClock', () => {
     expect(moment.offset).toBe(offset)
   })
 
-  it.each([
+  it.skipIf(process.platform === 'win32').each([
     ['XYZ+15', '-15:00'],
     ['XYZ-15', '+15:00'],
   ])(
