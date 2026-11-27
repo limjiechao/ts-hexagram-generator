@@ -18,8 +18,13 @@ export interface MarkdownConsultationStore {
    * `<divined date>--<Consultation Id>.md`, its YAML frontmatter the
    * version-2 record and its body rendered when the file is written. A write
    * is atomic and never overwrites a file; reading never writes (ADR-0030).
-   * Only `.md` files directly in the folder are read; an Unreadable file's
-   * location is its file name.
+   * Only `.md` files directly in the folder are read, in the code-point
+   * order of their file names: of two files holding one Consultation Id,
+   * the later is the Unreadable `duplicate-id` and `get` returns the
+   * earlier's Consultation. An Unreadable file's location is its file name.
+   * Frontmatter is parsed with js-yaml's JSON or Core schema, never its
+   * default schema. A missing folder reads as an empty Journal, and `keep`
+   * creates it.
    */
   readonly consultationStore: ConsultationStore
   /**
@@ -31,8 +36,10 @@ export interface MarkdownConsultationStore {
   readonly rerenderBodies: () => Promise<{ readonly rewritten: number }>
   /**
    * Moves an imported original, legacy or version 1, into the folder's
-   * `legacy/` folder under its own name, never overwriting a file there.
-   * `file` is a path the importer was given.
+   * `legacy/` folder under its own name. It never overwrites a file there:
+   * when the name is taken, it moves the file under the first free name
+   * that adds a suffix and keeps the original name and extension. `file` is
+   * any path the importer was given, inside the Journal's folder or not.
    */
   readonly moveToLegacy: (file: string) => Promise<void>
 }

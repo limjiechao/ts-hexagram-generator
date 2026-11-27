@@ -12,11 +12,18 @@ interface RecordFields {
   readonly schemaVersion: 2
   /** The Consultation Id, a ULID. */
   readonly id: string
-  /** ISO 8601: a date-time with its UTC offset, or a date only. */
+  /**
+   * ISO 8601: a date only, `YYYY-MM-DD`, or a date-time in the Moment's own
+   * UTC offset, written `YYYY-MM-DDTHH:mm:ss.sss±HH:MM` with exactly three
+   * fraction digits.
+   */
   readonly divinedAt: string
   /** The Query, verbatim. */
   readonly query: string
-  /** Six Line Values, Line Position 1 first, for example `"789876"`. */
+  /**
+   * Six Line Values, Line Position 1 first, for example `"789876"`; always
+   * a string, never a number.
+   */
   readonly transformation: string
 }
 
@@ -61,7 +68,7 @@ export type DecodeResult =
 /**
  * The Consultation's version-2 record (ADR-0030). Every Consultation has
  * one, so it never fails, and decoding the record gives back an equal
- * Consultation.
+ * Consultation: a Moment keeps its milliseconds and its own offset.
  */
 export function encodeRecord(consultation: Consultation): ConsultationRecord {
   throw new Error('not built', { cause: consultation })
@@ -69,8 +76,12 @@ export function encodeRecord(consultation: Consultation): ConsultationRecord {
 
 /**
  * Loads a version-2 record, parsed but unchecked, as a Consultation. It
- * reads only the plain data `ConsultationRecord` names, so a Store parses
- * its text into that model first. It checks, in this order, and reports the
+ * reads only the JSON data model (strings, numbers, booleans, null, arrays
+ * and plain objects), so a Store parses its text into that model first; a
+ * value of the wrong type, such as a `transformation` that parsed as a
+ * number, is an invalid field. A date-time `divinedAt` is accepted with
+ * three fraction digits or none, and only with an offset `isUtcOffset`
+ * admits, so `Z` is refused. It checks, in this order, and reports the
  * first failure: that the record is a mapping with `schemaVersion` `2`;
  * each field in ADR-0030's table order; then, for a Cast Consultation, that
  * its Casting replays through the Oracle's Divisions from the Empty Casting
