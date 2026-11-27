@@ -35,7 +35,19 @@ interface Witness {
 export type Edition = {
   readonly id: EditionId
   readonly work: Work
+  /** The name that heads each block of its text, e.g. `Legge`. */
+  readonly shortName: string
+  /**
+   * Its full bibliographic title, as a list of the Editions shown gives it,
+   * e.g. `Legge, Sacred Books of the East vol. 16 (Oxford, 1882)`.
+   */
+  readonly title: string
   readonly witness: Witness
   readonly unidentified: boolean
-  readonly licence: 'public-domain' | 'in-copyright'
+  /**
+   * `public-domain` text may be shown on every channel; `in-copyright` text,
+   * and `terms-unverified` text whose Witness's terms for redistribution are
+   * not yet checked, on Private Channels only (ADR-0028).
+   */
+  readonly licence: 'public-domain' | 'in-copyright' | 'terms-unverified'
 } & (ScriptEdition | LanguageEdition)
