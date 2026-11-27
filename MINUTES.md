@@ -639,3 +639,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: type:check · lint:check · format (after R-508) · drift:check · drift:prove · test forced 42/42, on matters.
 - Landed: 9694b1a, 31bee88, 10ba156.
 - The owner's 用九 and 用六 file landed as left (d94ff35); the formatter now ignores `docs/source-texts/` (R-508). Four points in it were raised with the owner before M-011's data slice.
+
+### Iteration 41 — M-011 — 2026-11-27
+
+- Attempt: 1/2 (slice 1 of 3; R-058) · Outcome: slice 1 landed
+- The owner supplied the 用九 and 用六 texts (d94ff35) and corrected them (R-509, R-511: the Wilhelm–Baynes 坤 小象 replaced; typography made consistent with each Edition; the ctext retrieval date 2026-11-27).
+- Surface: a drafter drafted the widened Catalogue port, use case 8, `catalogue-bundled` and its data format; the delegate ruled 13 questions (R-510) and referred five, which the owner ruled (R-511, R-512: `Edition` gains `shortName` and `title`, amending R-373; a `terms-unverified` licence; the Witness wording; the EPUB is 1967).
+- Tests: R-306 stubs and Edition literals, the boundary row and twins, nine use-case-8 tests and two type tests, approved (R-513).
+- Review: `APPROVE`.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 22/22 and 43/43, on matters
+- Owner touches: 4 (the passages, R-509, R-511, R-512); delegate rulings: 2 (R-510, R-513)
+- Landed: 94ce7f7 bdc0496 e5e2963 d409341 ea5ab93 8c24af0 06ad3f0 15e9879 c4e3954 ec7380e 6addfd2 65bbede

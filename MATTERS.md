@@ -352,7 +352,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
   Received Sequence Numbers.
 - Open questions: none open; ruled in R-369, R-370 (M-011 waits for the owner's 用九 and 用六 text), R-372, R-373. Likely from
   the tester: a Reading Preference naming an unknown Edition.
-- Commits: –
+- Commits: for slice 1, the drafted surface (R-510 to R-512), the R-306 stubs and Edition literals, `catalogue-bundled`'s row and twins, use case 8's tests and lookups — see Iteration 41
 - Notes: about 1,500 lines plus data, three slices: port and stubs; data and
   Editions; gate and lookups.
 
