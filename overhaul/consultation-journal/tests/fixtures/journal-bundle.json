@@ -1,0 +1,70 @@
+{
+  "format": "hexagram-journal",
+  "version": 1,
+  "consultations": [
+    {
+      "schemaVersion": 2,
+      "id": "01HZX4P0S2T6V8W0Y2Z4A6B8C0",
+      "divinedAt": "2026-03-16",
+      "query": "Should the ferry at Ashmere run this spring?\nOr wait for the thaw?",
+      "transformation": "999666"
+    },
+    {
+      "schemaVersion": 2,
+      "id": "01JDZ8Q6R4X3V7M2N5P9T0W1YC",
+      "divinedAt": "2026-11-02T21:14:05.250+08:00",
+      "query": "格林芬堡的糧倉應在入冬前重建嗎？",
+      "transformation": "678976",
+      "casting": [
+        [
+          4,
+          3,
+          4
+        ],
+        [
+          4,
+          3,
+          1
+        ],
+        [
+          22,
+          1,
+          3
+        ],
+        [
+          47,
+          42,
+          37
+        ],
+        [
+          4,
+          3,
+          1
+        ],
+        [
+          4,
+          3,
+          4
+        ]
+      ],
+      "divisionMethod": "physical"
+    },
+    {
+      "schemaVersion": 2,
+      "id": "01JE0A1B2C3D4E5F6G7H8J9K0M",
+      "divinedAt": "2026-10-28T19:45:30.000-05:00",
+      "query": "Will the \"Grey Lantern\" inn at Westmill reopen?",
+      "transformation": "787878"
+    }
+  ],
+  "deletionRecords": [
+    {
+      "consultationId": "01J9QRSTVWXYZ0123456789ABC",
+      "deletedAt": "2026-11-27T09:15:00.000+08:00"
+    },
+    {
+      "consultationId": "01JB7C9D1E3F5G7H9J1K3M5N7P",
+      "deletedAt": "2026-11-20T08:30:00.000-05:00"
+    }
+  ]
+}

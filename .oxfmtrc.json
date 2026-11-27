@@ -8,6 +8,7 @@
   "ignorePatterns": [
     "cli/text-grid/tests/fixtures/*.md",
     "domain/consultation-file/tests/fixtures/*.md",
+    "overhaul/consultation-journal/tests/fixtures/*.json",
     "docs/archive/**",
     "docs/reviews/*.md",
     "scripts/drift/fixtures/**"
