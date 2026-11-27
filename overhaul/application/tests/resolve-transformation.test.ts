@@ -92,6 +92,16 @@ function recordingCatalogue(
       unexpected.push('hexagramNames')
       return Promise.reject(new Error('use case 3 asked for Hexagram names'))
     },
+    receivedSequenceNumber: () => {
+      unexpected.push('receivedSequenceNumber')
+      return Promise.reject(
+        new Error('use case 3 asked for a Received Sequence Number'),
+      )
+    },
+    trigramNames: () => {
+      unexpected.push('trigramNames')
+      return Promise.reject(new Error('use case 3 asked for Trigram names'))
+    },
     editions: () => {
       unexpected.push('editions')
       return Promise.reject(new Error('use case 3 asked for Editions'))

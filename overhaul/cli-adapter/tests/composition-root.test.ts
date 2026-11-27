@@ -100,6 +100,8 @@ function stubCatalogue(
   return {
     passageTexts: members.passageTexts ?? unstubbed,
     hexagramNames: members.hexagramNames ?? unstubbed,
+    receivedSequenceNumber: members.receivedSequenceNumber ?? unstubbed,
+    trigramNames: members.trigramNames ?? unstubbed,
     editions: members.editions ?? unstubbed,
   }
 }

@@ -16,6 +16,8 @@ const stubCatalogue = () => {
   const scriptureCatalogue = {
     passageTexts: vi.fn(unused),
     hexagramNames: vi.fn(unused),
+    receivedSequenceNumber: vi.fn(unused),
+    trigramNames: vi.fn(unused),
     editions: vi.fn(unused),
   } satisfies ScriptureCatalogue
   return scriptureCatalogue

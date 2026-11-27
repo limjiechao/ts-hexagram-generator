@@ -65,6 +65,12 @@ function recordingCatalogue(
     },
     hexagramNames: () =>
       Promise.reject(new Error('the reading asked for Hexagram names')),
+    receivedSequenceNumber: () =>
+      Promise.reject(
+        new Error('the reading asked for a Received Sequence Number'),
+      ),
+    trigramNames: () =>
+      Promise.reject(new Error('the reading asked for Trigram names')),
     editions: () => Promise.reject(new Error('the reading asked for Editions')),
   }
   return { catalogue, citations: () => [...citations] }

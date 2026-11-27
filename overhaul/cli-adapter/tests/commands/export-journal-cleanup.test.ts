@@ -106,6 +106,8 @@ describe('hexagram-history --export-journal when its temporary file cannot be re
     const scriptureCatalogue: ScriptureCatalogue = {
       passageTexts: unused,
       hexagramNames: unused,
+      receivedSequenceNumber: unused,
+      trigramNames: unused,
       editions: unused,
     }
     const randomSource: RandomSource = { integerBelow: unused }

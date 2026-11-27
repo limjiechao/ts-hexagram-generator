@@ -82,6 +82,8 @@ describe('composeCli with the system Clock and the node:crypto Random Source', (
     const scriptureCatalogue = {
       passageTexts: unused,
       hexagramNames: unused,
+      receivedSequenceNumber: unused,
+      trigramNames: unused,
       editions: unused,
     } satisfies ScriptureCatalogue
     const { consultationStore, kept } = inMemoryStore()

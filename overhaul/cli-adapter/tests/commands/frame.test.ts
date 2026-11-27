@@ -84,6 +84,8 @@ function untouchablePorts(touched: string[]): CommandPorts {
   const scriptureCatalogue: ScriptureCatalogue = {
     passageTexts: untouched('Scripture Catalogue'),
     hexagramNames: untouched('Scripture Catalogue'),
+    receivedSequenceNumber: untouched('Scripture Catalogue'),
+    trigramNames: untouched('Scripture Catalogue'),
     editions: untouched('Scripture Catalogue'),
   }
   const consultationStore: ConsultationStore = {

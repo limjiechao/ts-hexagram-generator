@@ -239,6 +239,8 @@ function portsOver(
   const scriptureCatalogue: ScriptureCatalogue = {
     passageTexts: unused,
     hexagramNames: unused,
+    receivedSequenceNumber: unused,
+    trigramNames: unused,
     editions: unused,
   }
   const randomSource: RandomSource = {

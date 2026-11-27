@@ -96,6 +96,8 @@ function cliOver(journalFolder: string, clockMoments: readonly Moment[] = []) {
   const scriptureCatalogue: ScriptureCatalogue = {
     passageTexts: unused,
     hexagramNames: unused,
+    receivedSequenceNumber: unused,
+    trigramNames: unused,
     editions: unused,
   }
   let reads = 0
