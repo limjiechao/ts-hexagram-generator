@@ -68,7 +68,7 @@ export async function replaceAtomically(
     await rename(temporary, target)
     return true
   } catch (error) {
-    await rm(temporary, { force: true })
+    await removeTemporary(temporary)
     // Only the rename's ENOENT means the folder went with the file; one
     // from `write` is that function's own failure.
     if (renaming && hasCode(error, 'ENOENT')) {
