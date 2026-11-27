@@ -6327,3 +6327,13 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: the port's "each Translation in order"; R-064; R-403; R-510 Q-14,
   Q-15.
 - Folded into: not yet
+
+### R-517: The preference rows
+
+- Date: 2026-11-27
+- Raised in: R-516's follow-up (tester's ac99c56)
+- Ruled by: delegate (R-423)
+- Ruling: approve, no amendments — the eight preferences and 17 tests stand.
+- Reason: each of R-516's six rows is covered and matches the port's doc
+  comments, R-510 Q-14 and R-516 Q-21; expected texts are read at run time.
+- Folded into: not yet

@@ -650,3 +650,13 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 22/22 and 43/43, on matters
 - Owner touches: 4 (the passages, R-509, R-511, R-512); delegate rulings: 2 (R-510, R-513)
 - Landed: 94ce7f7 bdc0496 e5e2963 d409341 ea5ab93 8c24af0 06ad3f0 15e9879 c4e3954 ec7380e 6addfd2 65bbede
+
+### Iteration 42 — M-011 — 2026-11-27
+
+- Attempt: 1/2 (slice 2 of 3; R-058) · Outcome: slice 2 landed
+- Tests: 76 data tests (passages per Edition and Work, the owner's 用九/用六 byte for byte, the ruled Edition records, names, Received Sequence Numbers), amended (R-514: `language` `en`; the records as literals), then six preference rows (R-516, R-517).
+- Build: a throwaway script generated the four Editions' data (about 590 KB) from the legacy JSON and the owner's file; nothing typed by hand. Drift signal 2 flagged 19 glossary _Avoid_ words inside the Legge and Wilhelm–Baynes texts; the owner ruled it skips the bundled scripture folder only (R-515), with a prover fixture.
+- Review: `APPROVE` — the reviewer re-derived every text, name and number with its own script: zero differences.
+- Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 22/22 and 43/43, on matters
+- Owner touches: 1 (R-515); delegate rulings: 4 (R-514, R-516, R-517, and the referral of Q-20)
+- Landed: the slice's 8 commits ending 5b2dec5
