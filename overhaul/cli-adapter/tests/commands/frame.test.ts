@@ -90,6 +90,7 @@ function untouchablePorts(touched: string[]): CommandPorts {
     randomSource,
     clock,
     journalFolder: 'journal-folder-never-read',
+    moveToLegacy: untouched('Markdown Consultation Store'),
   }
 }
 
