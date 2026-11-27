@@ -10,6 +10,7 @@ export default defineConfig({
     './src/division-method.ts',
     './src/journal.ts',
     './src/query.ts',
+    './src/record-codec.ts',
     './src/recorded-consultation.ts',
     './src/unreadable-file.ts',
   ],

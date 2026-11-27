@@ -48,6 +48,11 @@
       "types": "./dist/query.d.mts",
       "import": "./dist/query.mjs"
     },
+    "./record-codec": {
+      "source": "./src/record-codec.ts",
+      "types": "./dist/record-codec.d.mts",
+      "import": "./dist/record-codec.mjs"
+    },
     "./recorded-consultation": {
       "source": "./src/recorded-consultation.ts",
       "types": "./dist/recorded-consultation.d.mts",
