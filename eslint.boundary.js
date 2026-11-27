@@ -97,6 +97,13 @@ const overhaulPackages = {
       'consultation-journal': ['divined-at'],
     },
   },
+  // R-439: the Store reaches several of the Journal's subpaths, so 'any'.
+  'store-markdown': {
+    rule: 'B7',
+    testsRule: 'B8',
+    pure: false,
+    dependencies: { application: 'any', 'consultation-journal': 'any' },
+  },
   // R-358: the composition root, where every package but the policy meets.
   'cli-adapter': {
     rule: 'B7',
@@ -108,6 +115,7 @@ const overhaulPackages = {
       'node-effects': 'any',
       oracle: 'any',
       'scripture-catalogue': 'any',
+      'store-markdown': 'any',
     },
   },
 }

@@ -99,5 +99,7 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'twins/pure-date-console-math.ts': null,
   'twins/pure-tests-node-and-random.test.ts': null,
   'twins/scripture-catalogue.package.json': null,
+  'twins/store-imports-application.ts': null,
+  'twins/store-markdown.package.json': null,
   'twins/unknown-json-parse.ts': null,
 }

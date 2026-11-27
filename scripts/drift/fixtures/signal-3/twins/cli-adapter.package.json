@@ -9,6 +9,7 @@
     "@hexagram/consultation-journal": "workspace:*",
     "@hexagram/node-effects": "workspace:*",
     "@hexagram/oracle": "workspace:*",
-    "@hexagram/scripture-catalogue": "workspace:*"
+    "@hexagram/scripture-catalogue": "workspace:*",
+    "@hexagram/store-markdown": "workspace:*"
   }
 }

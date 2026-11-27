@@ -1,0 +1,11 @@
+{
+  "//": "Linted as overhaul/store-markdown/package.json. Twin for B9: both of its arrows.",
+  "name": "@hexagram/store-markdown",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/application": "workspace:*",
+    "@hexagram/consultation-journal": "workspace:*"
+  }
+}

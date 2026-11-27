@@ -395,6 +395,9 @@ importers:
       '@hexagram/scripture-catalogue':
         specifier: workspace:*
         version: link:../scripture-catalogue
+      '@hexagram/store-markdown':
+        specifier: workspace:*
+        version: link:../store-markdown
 
   overhaul/consultation-journal:
     dependencies:
