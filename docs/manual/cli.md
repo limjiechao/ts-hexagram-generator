@@ -407,8 +407,8 @@ Endings:
   even with files skipped. Exit 0.
 - Abnormal endings, exit 1: stdout is not a TTY, or `CI` is set, when browsing (6.1); the
   Journal cannot be read; a Store failure partway through an import, which
-  stops it at once after reporting what was kept (rerunning it keeps those
-  files twice).
+  stops it at once after reporting what was kept (rerunning it keeps again
+  any file kept but not yet moved).
 
 ### 6.8 Recording, exporting and merging
 

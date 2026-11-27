@@ -6008,3 +6008,14 @@ the Journal cannot be read`, exit 1, no file written; merge of a path
 - Reason: (b) would misreport a written bundle (R-498 Q-39); (c) breaks
   R-350's one line; a dotfile `.tmp` is harmless and the Store never reads it.
 - Folded into: not yet
+
+### R-501: Manual §6.7 on rerunning a cut-short import
+
+- Date: 2026-11-27
+- Raised in: R-494's contradiction 2, referred to the owner by the delegate
+  (each original moves into `legacy/` right after it is kept, Q-M-015-20, so
+  "rerunning it keeps those files twice" was no longer true)
+- Question: Change §6.7's parenthetical to "rerunning it keeps again any file
+  kept but not yet moved".
+- Ruling: "fix §6.7"
+- Folded into: `docs/manual/cli.md` §6.7
