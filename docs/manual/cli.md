@@ -163,8 +163,10 @@ Simplified Chinese, Wilhelm–Baynes and Legge all at once; the default Reading
 Preference shows Traditional, Legge, 大象 and 小象 (R-340).
 
 **Browsing** (use case 4) lists the Journal's Consultations, newest first by
-Divined At, narrowed by a filter on the Query text. Moments sort by instant;
-a date-only Divined At sorts before every moment of that day (R-337).
+Divined At, narrowed by a filter on the Query text. Rows sort by the date of
+their Divined At, in its own offset; within one date, a date-only Divined At
+sorts before every moment, and moments of one date sort by instant (R-337,
+R-482).
 **Opening** (5) loads one and resolves it; it never writes to the Journal
 (ADR-0037). **Deleting** (6) removes one and keeps a Deletion Record, so that
 Merging Journals never brings it back.
