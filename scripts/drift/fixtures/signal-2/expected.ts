@@ -13,6 +13,11 @@
 // line 21 is one (R-244); comments and test names are never read, test
 // strings are not read, and `vitest.config.ts` is neither src nor tests
 // (R-200, R-246).
+//
+// Strings in `catalogue-bundled/src/data/` are not read, so `scripture.ts`'s
+// line 2 has no entry, but its names are (R-515); `catalogue-bundled`'s
+// `edition.ts`, outside `data/`, and `demo/src/data/plant.ts`, another
+// package's `data/`, keep G2.
 
 import type { EphemeralCode } from '../../ephemeral-finding.js'
 import type { AvoidForm, GlossaryCode } from '../../glossary-finding.js'
@@ -20,6 +25,9 @@ import type { AvoidForm, GlossaryCode } from '../../glossary-finding.js'
 const plants = 'overhaul/demo/src/plants.ts'
 const view = 'overhaul/demo/src/view.tsx'
 const test = 'overhaul/demo/tests/plants.test.ts'
+const scripture = 'overhaul/catalogue-bundled/src/data/scripture.ts'
+const edition = 'overhaul/catalogue-bundled/src/edition.ts'
+const plant = 'overhaul/demo/src/data/plant.ts'
 
 export const expected: Readonly<
   Record<string, readonly (GlossaryCode | EphemeralCode)[]>
@@ -59,6 +67,11 @@ export const expected: Readonly<
   [`${view}:4`]: ['E2', 'G2'],
   // A test file's identifier (R-200).
   [`${test}:5`]: ['G1'],
+  // The bundled scripture's name, and the strings outside its `data/`
+  // (R-515).
+  [`${scripture}:3`]: ['G1'],
+  [`${edition}:2`]: ['G2'],
+  [`${plant}:2`]: ['G2'],
 }
 
 // The line holding the one E report signal 2's proof judges (R-247).
@@ -104,8 +117,11 @@ export const glossary: {
 }
 
 // The files the stand-in's `overhaul/` holds, so `drift:check` prints
-// "5 files parsed".
+// "8 files parsed".
 export const scanned: readonly string[] = [
+  'overhaul/catalogue-bundled/src/data/scripture.ts',
+  'overhaul/catalogue-bundled/src/edition.ts',
+  'overhaul/demo/src/data/plant.ts',
   'overhaul/demo/src/plants.ts',
   'overhaul/demo/src/twins.ts',
   'overhaul/demo/src/view.tsx',
