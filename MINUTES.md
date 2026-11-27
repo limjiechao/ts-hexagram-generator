@@ -660,3 +660,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Verify: type:check · lint:check · format · drift:check · drift:prove · build and test forced 22/22 and 43/43, on matters
 - Owner touches: 1 (R-515); delegate rulings: 4 (R-514, R-516, R-517, and the referral of Q-20)
 - Landed: the slice's 8 commits ending 5b2dec5
+
+### Iteration 43 — M-011 — 2026-11-27
+
+- Attempt: 1/2 (slice 3 of 3; R-058) · Outcome: landed; M-011 complete
+- Tests: `cli-adapter` reaches `catalogue-bundled` (R-358); ten tests resolve through `composeCli` with the real Catalogue (all-moving 乾 and 坤 with the owner's 用九 and 用六, 屯 with no Moving Line, names, Received Sequence Numbers, the Licence Gate), approved (R-518); a test that the bins get the bundled Catalogue.
+- Build: `composeCli` offers the two new lookups; the bins get the real Catalogue while the Store stays stubbed (R-518, R-505).
+- Review: `APPROVE`.
+- Verify: M-011's whole Acceptance · type:check · lint:check · format · drift:check · drift:prove · build and test forced 22/22 and 44/44, on matters
+- Owner touches: 0; delegate rulings: 1 (R-518)
+- Landed: the slice's 5 commits ending 4823bab
+- Notes: M-011 used 5 owner touches in all (the passages, R-509, R-511, R-512, R-515) and 7 delegate rulings (R-510, R-513, R-514, R-516 to R-518, and the Q-20 referral). M-013 (the Readout) is next; it connects the real Store (R-505).
