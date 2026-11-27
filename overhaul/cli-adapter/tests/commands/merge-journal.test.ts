@@ -337,6 +337,23 @@ describe('hexagram-history --export-journal', () => {
     )
   })
 
+  it('stops with exit 1 when the bundle cannot be written, writing nothing', async () => {
+    const { own } = await seedBoth()
+    const before = await snapshot(own)
+    const parent = path.join(await temporaryFolder(), 'missing')
+    const file = path.join(parent, 'journal.json')
+
+    const result = await history(['--export-journal', file], own)
+
+    expect(result).toEqual({
+      exitCode: 1,
+      stdout: '',
+      stderr: `hexagram-history: ${file} cannot be written\n`,
+    })
+    await expect(readdir(parent)).rejects.toMatchObject({ code: 'ENOENT' })
+    expect(await snapshot(own)).toEqual(before)
+  })
+
   it('refuses a path a file already holds, and leaves the file as it was', async () => {
     const { own } = await seedBoth()
     const file = path.join(await temporaryFolder(), 'journal.json')

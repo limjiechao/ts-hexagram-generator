@@ -1,3 +1,8 @@
+import { randomUUID } from 'node:crypto'
+import { existsSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import path from 'node:path'
+
 import type { Clock } from '@hexagram/application/clock'
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { RandomSource } from '@hexagram/application/random-source'
@@ -21,7 +26,10 @@ import { notBuiltLine } from '#src/commands/not-built.js'
 // The command frame, driven in process: each command parses its options,
 // applies the terminal table of the CLI manual (section 2), and ends in a
 // refusal, a usage line or a not-built line. Every ending writes exactly one
-// line to stderr, nothing to stdout, exits 1, and touches no port.
+// line to stderr, nothing to stdout, exits 1, and touches no port, save the
+// built Journal bundle runs: `--export-journal` reads the Store, whose
+// throwing ports make it the Journal that cannot be read, and
+// `--merge-journal` of a missing file ends before any port.
 
 interface Recorded {
   readonly stdout: string[]
@@ -123,6 +131,43 @@ async function expectEnding(
 }
 
 const line = (text: string): string => `${text}\n`
+
+/**
+ * `--export-journal bundle.json` over the throwing ports: the Journal is read
+ * before anything is written, so it ends as the Journal that cannot be read,
+ * having touched only the Store and written no bundle.
+ */
+async function expectExportJournalEnding(terminal: Terminal): Promise<void> {
+  const result = await runCommand(
+    historyCommand.run,
+    ['--export-journal', 'bundle.json'],
+    terminal,
+  )
+  expect(result.stderr.join('')).toBe(
+    line('hexagram-history: the Journal cannot be read'),
+  )
+  expect(result.stdout.join('')).toBe('')
+  expect(result.exitCode).toBe(1)
+  expect(new Set(result.portsTouched)).toEqual(new Set(['Consultation Store']))
+  expect(existsSync(path.resolve('bundle.json'))).toBe(false)
+}
+
+/** A bundle path inside a folder that does not exist. */
+const missingBundle = path.join(
+  tmpdir(),
+  `hexagram-frame-${randomUUID()}`,
+  'bundle.json',
+)
+
+/** `--merge-journal` of a missing file: it cannot be read, and no port is touched. */
+async function expectMergeJournalEnding(terminal: Terminal): Promise<void> {
+  await expectEnding(
+    historyCommand.run,
+    ['--merge-journal', missingBundle],
+    terminal,
+    line(`hexagram-history: ${missingBundle} cannot be read`),
+  )
+}
 
 const tty = (env: CommandIo['env'] = {}, rows = 40): Terminal => ({
   isTTY: true,
@@ -309,14 +354,6 @@ describe('the terminal table: hexagram-history maintenance runs in every column'
       argv: ['--export', 'out.pdf'],
       expected: line(notBuiltLine('hexagram-history', '--export')),
     },
-    {
-      argv: ['--export-journal', 'bundle.json'],
-      expected: line(notBuiltLine('hexagram-history', '--export-journal')),
-    },
-    {
-      argv: ['--merge-journal', 'bundle.json'],
-      expected: line(notBuiltLine('hexagram-history', '--merge-journal')),
-    },
   ]
   const rows = maintenance.flatMap((run) =>
     Object.entries(columns).map(([column, terminal]) => ({
@@ -330,6 +367,20 @@ describe('the terminal table: hexagram-history maintenance runs in every column'
   it.each(rows)('$shown, $column', async ({ argv, terminal, expected }) => {
     await expectEnding(historyCommand.run, argv, terminal, expected)
   })
+
+  it.each(columnNames)(
+    '--export-journal bundle.json, %s: the Journal cannot be read',
+    async (column) => {
+      await expectExportJournalEnding(columns[column])
+    },
+  )
+
+  it.each(columnNames)(
+    '--merge-journal <a missing file>, %s: it cannot be read',
+    async (column) => {
+      await expectMergeJournalEnding(columns[column])
+    },
+  )
 })
 
 describe('the environment: NO_COLOR and CI count when present and non-empty', () => {
@@ -917,8 +968,6 @@ describe('hexagram-history: the maintenance options and what applies to them', (
       ],
       option: '--export',
     },
-    { argv: ['--export-journal', 'bundle.json'], option: '--export-journal' },
-    { argv: ['--merge-journal', 'bundle.json'], option: '--merge-journal' },
   ] as const
 
   it.each(accepted.map((row) => ({ ...row, shown: row.argv.join(' ') })))(
@@ -932,6 +981,14 @@ describe('hexagram-history: the maintenance options and what applies to them', (
       )
     },
   )
+
+  it('runs --export-journal bundle.json to the Journal that cannot be read', async () => {
+    await expectExportJournalEnding(tty())
+  })
+
+  it('runs --merge-journal <a missing file> to the file that cannot be read', async () => {
+    await expectMergeJournalEnding(tty())
+  })
 
   const refused: readonly (readonly string[])[] = [
     ['--import-legacy'],
