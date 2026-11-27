@@ -330,7 +330,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-011: The bundled Scripture Catalogue
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0025, ADR-0028, ADR-0032, ADR-0037; CONTEXT.md (Edition,
   Witness, Translation, Licence Gate, Received Sequence Number, Commentary,

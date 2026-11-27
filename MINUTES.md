@@ -632,3 +632,10 @@ ephemeral-tier material: it may be cited by people, never by source code.
 ### Landing — M-015 complete on main — 2026-11-27
 
 - PR #65 (M-015 slices 2 and 3, R-497 to R-504) passed every leg at 2dcb7ae; on the owner's "land" the clerk fast-forwarded `main` to 2dcb7ae.
+
+### Follow-up — legacy files with Windows line endings (R-506) — 2026-11-27
+
+- The owner overturned R-504 Q-53 (R-506). A tester rewrote the two CRLF rows and added parser rows, amended by the delegate (R-507); `legacy-import` now reads `\r\n` as `\n` before parsing a legacy `.txt` or version-1 `.md` (31bee88); version-2 strictness (R-460) is untouched. Review `APPROVE`.
+- Verify: type:check · lint:check · format (after R-508) · drift:check · drift:prove · test forced 42/42, on matters.
+- Landed: 9694b1a, 31bee88, 10ba156.
+- The owner's 用九 and 用六 file landed as left (d94ff35); the formatter now ignores `docs/source-texts/` (R-508). Four points in it were raised with the owner before M-011's data slice.
