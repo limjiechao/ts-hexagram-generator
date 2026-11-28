@@ -295,15 +295,19 @@ async function showThenKeep(
     }
   }
   if (readout !== undefined) io.stdout.write(plainReadout(readout, { colour }))
+  let kept = false
   try {
     await cli.keepCastConsultation(consultation)
+    kept = true
+  } catch {
+    exitCode = endWithLine(io, journalFailureLine(command, 'written'))
+  }
+  if (kept) {
     const file = path.resolve(
       ports.journalFolder,
       consultationFileName(consultation),
     )
     io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
-  } catch {
-    exitCode = endWithLine(io, journalFailureLine(command, 'written'))
   }
   if (run.stdoutFailed())
     exitCode = endWithLine(io, stdoutUnwritableLine(command))
