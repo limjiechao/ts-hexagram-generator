@@ -533,6 +533,19 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
     expect(ended.exitCode).toBe(0)
   })
 
+  it('lines after the Query are ignored: the first line is the Query, one Consultation kept, exit 0', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [typed(`${xZhiX.query}\nmore\n`)], {
+      journalFolder,
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
   it('Ctrl+C while the keep runs is ignored: the Consultation is kept, exit 0', async () => {
     const journalFolder = await temporaryJournal()
     const ended = await runRandom([], [asked()], {
@@ -636,6 +649,24 @@ describe('hexagram-random in plain mode: a failing port', () => {
       clock: () => {
         throw new Error('the invented clock stopped')
       },
+    })
+
+    expect(ended.stderr).toBe(prompt + clockFailed)
+    expect(ended.stdout).toBe('')
+    expect(ended.exitCode).toBe(1)
+    expect(ended.touched).not.toContain('Consultation Store')
+    expect(await filesIn(journalFolder)).toEqual([])
+  })
+
+  it('the Clock reads a Moment a Consultation Id cannot hold: the Clock line, exit 1, stdout empty, nothing kept', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      clock: () => ({
+        precision: 'moment',
+        epochMilliseconds: 2 ** 48,
+        offset: xZhiX.divinedAt.offset,
+      }),
     })
 
     expect(ended.stderr).toBe(prompt + clockFailed)

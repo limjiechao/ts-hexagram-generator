@@ -7,6 +7,7 @@ import type { Clock } from '@hexagram/application/clock'
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
+import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import { describe, expect, it } from 'vitest'
 
 import type {
@@ -802,12 +803,6 @@ describe('options a command accepts run to its full-screen not-built line', () =
       ['--script', 'traditional'],
       ['--script', 'simplified'],
       ['--script=simplified'],
-      ['--translation', 'any-edition-at-all'],
-      ['--translation', 'first', '--translation', 'second'],
-      ['--commentary', 'any-work-at-all'],
-      ['--commentary', 'first', '--commentary', 'second'],
-      ['--translation=--x'],
-      ['--commentary=-y'],
       ['--yilin'],
       ['--'],
       [
@@ -889,6 +884,46 @@ describe('options a command accepts run to its full-screen not-built line', () =
       await expectEnding(run, argv, tty(), expected)
     },
   )
+})
+
+describe('hexagram-random checks its Reading Preference while parsing, before choosing a mode', () => {
+  // Over ports that throw if touched, save a Catalogue whose `editions`
+  // answers from the bundled Catalogue: a `--translation` is checked
+  // against it, which the no-port rule exempts (R-533).
+  async function runOverCatalogue(argv: readonly string[]) {
+    const recorded: Recorded = { stdout: [], stderr: [], portsTouched: [] }
+    const ports = untouchablePorts(recorded.portsTouched)
+    const exitCode = await randomCommand.run(argv, fakeIo(recorded, tty()), {
+      ...ports,
+      scriptureCatalogue: {
+        ...ports.scriptureCatalogue,
+        editions: (work) => bundledScriptureCatalogue.editions(work),
+      },
+    })
+    expect(recorded.stdout.join('')).toBe('')
+    expect(exitCode).toBe(1)
+    expect(recorded.portsTouched).toEqual([])
+    return recorded.stderr.join('')
+  }
+
+  it.each(
+    [
+      ['--translation', 'any-edition-at-all'],
+      ['--translation', 'first', '--translation', 'second'],
+      ['--commentary', 'any-work-at-all'],
+      ['--commentary', 'first', '--commentary', 'second'],
+      ['--translation=--x'],
+      ['--commentary=-y'],
+    ].map((argv) => ({ argv, shown: argv.join(' ') })),
+  )('$shown on a TTY is a usage refusal', async ({ argv }) => {
+    expect(await runOverCatalogue(argv)).toBe(line(randomCommand.usage))
+  })
+
+  it('--translation legge-1882 on a TTY reaches the full-screen not-built line', async () => {
+    expect(await runOverCatalogue(['--translation', 'legge-1882'])).toBe(
+      line(notBuiltLine('hexagram-random', 'full-screen')),
+    )
+  })
 })
 
 describe('a bad value, a repeat, an unknown option or a positional is a usage refusal', () => {
