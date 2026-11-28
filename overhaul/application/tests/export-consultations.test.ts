@@ -435,6 +435,26 @@ describe('exportConsultations: what it exports', () => {
     },
   )
 
+  it('a Query holding a tab, and one holding a CR before its newline, reach the source escaped, with no raw tab or CR', async () => {
+    const tabbed = recorded('7', 'a\tb', day(2026, 9, 4))
+    const crlf = recorded('8', 'a\r\nb', day(2026, 9, 5))
+    const exported = await exportConsultations(
+      {
+        consultationStore: storeListing([tabbed, crlf]),
+        scriptureCatalogue: fakeCatalogue(),
+      },
+      '',
+      preference,
+    )
+
+    expect(exported.outcome).toBe('exported')
+    const typst = exported.outcome === 'exported' ? exported.typst : ''
+    expect(typst).toContain(String.raw`#query("a\tb", "2026-09-04")`)
+    expect(typst).toContain(String.raw`#query("a\r\nb", "2026-09-05")`)
+    expect(typst).not.toContain('\t')
+    expect(typst).not.toContain('\r')
+  })
+
   it('the source pins its neutral title and no date, and the title holds no Query', async () => {
     const exported = await exportConsultations(
       {
