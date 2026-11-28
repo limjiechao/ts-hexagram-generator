@@ -221,6 +221,8 @@ interface PortOptions {
   readonly clock?: Clock['now']
   /** The Catalogue the run reads; the Store's bodies always use the bundled one. */
   readonly scriptureCatalogue?: ScriptureCatalogue
+  /** Hands the run the Catalogue itself, unrecorded, so its methods keep their `this`. */
+  readonly catalogueAsGiven?: boolean
   /** Called as the Store's keep begins. */
   readonly onKeep?: () => void
 }
@@ -310,7 +312,8 @@ function portsOver(options: PortOptions, touched: string[]): CommandPorts {
   }
   const { journalFolder } = options
   return {
-    scriptureCatalogue,
+    scriptureCatalogue:
+      options.catalogueAsGiven === true ? catalogue : scriptureCatalogue,
     consultationStore,
     randomSource,
     clock,
@@ -328,6 +331,7 @@ interface RunOptions extends PortOptions {
   readonly env?: { readonly NO_COLOR?: string; readonly CI?: string }
   readonly stdoutFailsAfterWrite?: Error
   readonly stderrFailsAfterWrite?: Error
+  readonly stdoutFailsLate?: Error
   /** Called as the Store's keep begins, with the terminal. */
   readonly duringKeep?: (terminal: ScriptedTerminal) => void
 }
@@ -347,6 +351,7 @@ async function settleRandom(
     script,
     stdoutFailsAfterWrite: options.stdoutFailsAfterWrite,
     stderrFailsAfterWrite: options.stderrFailsAfterWrite,
+    stdoutFailsLate: options.stdoutFailsLate,
   })
   const touched: string[] = []
   const [outcome] = await Promise.allSettled([
@@ -1114,6 +1119,102 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
     expect(ended.stdout).toBe(xZhiXFixture)
     expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+})
+
+/**
+ * The bundled Catalogue behind a class whose methods read `this`, as a
+ * Catalogue built as a class may: called detached, each one throws.
+ */
+class CatalogueReadingThis implements ScriptureCatalogue {
+  readonly #inner: ScriptureCatalogue = bundledScriptureCatalogue
+
+  passageTexts(...args: Parameters<ScriptureCatalogue['passageTexts']>) {
+    return this.#inner.passageTexts(...args)
+  }
+
+  hexagramNames(...args: Parameters<ScriptureCatalogue['hexagramNames']>) {
+    return this.#inner.hexagramNames(...args)
+  }
+
+  receivedSequenceNumber(
+    ...args: Parameters<ScriptureCatalogue['receivedSequenceNumber']>
+  ) {
+    return this.#inner.receivedSequenceNumber(...args)
+  }
+
+  trigramNames(...args: Parameters<ScriptureCatalogue['trigramNames']>) {
+    return this.#inner.trigramNames(...args)
+  }
+
+  editions(...args: Parameters<ScriptureCatalogue['editions']>) {
+    return this.#inner.editions(...args)
+  }
+}
+
+describe('hexagram-random in plain mode: a late stdout failure, a Catalogue reading this, and an error with a stdout failure', () => {
+  it('stdout fails after write returns and before its callback: the Readout, the kept line, the stdout line, exit 1', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      stdoutFailsLate: brokenPipe(),
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(
+      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+    )
+    expect(ended.exitCode).toBe(1)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it.each([
+    { shown: 'with no option', argv: [] },
+    {
+      shown: 'with --translation legge-1882',
+      argv: ['--translation', 'legge-1882'],
+    },
+  ])(
+    'a Catalogue whose methods read this still gives the Readout, $shown',
+    async ({ argv }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom(argv, [asked()], {
+        journalFolder,
+        scriptureCatalogue: new CatalogueReadingThis(),
+        catalogueAsGiven: true,
+      })
+
+      const expected = expectedConsultation()
+      expect(ended.stdout).toBe(xZhiXFixture)
+      expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+      expect(ended.exitCode).toBe(0)
+    },
+  )
+
+  it('an error from no port while the Readout is built, and stdout fails during the keep: the kept line, the stdout line, then the run rejects with that error', async () => {
+    const bug = new Error('an invented bug in building the Readout')
+    const journalFolder = await temporaryJournal()
+    const ended = await settleRandom([], [asked()], {
+      journalFolder,
+      scriptureCatalogue: {
+        ...bundledScriptureCatalogue,
+        trigramNames: () => Promise.resolve(throwingList(bug)),
+      },
+      duringKeep: (terminal) => {
+        terminal.stdoutFailsNow(brokenPipe())
+      },
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.outcome.status === 'rejected' && ended.outcome.reason).toBe(
+      bug,
+    )
+    expect(ended.stdout).toBe('')
+    expect(ended.stderr).toBe(
+      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+    )
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 })

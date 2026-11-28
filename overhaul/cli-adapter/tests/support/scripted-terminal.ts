@@ -29,7 +29,10 @@ export const chunk = (bytes: Buffer): Step => ({ kind: 'bytes', bytes })
 /** stdin ends: the pipe closes, or `Ctrl+D` at an empty line. */
 export const stdinEnds: Step = { kind: 'end' }
 
-/** stdin cannot be read, as when it is a directory; no end follows. */
+/**
+ * stdin cannot be read, as when it is the null device opened write-only;
+ * no end follows.
+ */
 export const stdinFails = (error: Error): Step => ({ kind: 'error', error })
 
 /** `Ctrl+C`, which reaches the process as `SIGINT`, never as a byte. */
@@ -84,34 +87,72 @@ function emit(
 interface RecordingOutput {
   readonly output: CommandOutput
   readonly errors: Set<Listener>
+  /** Whether a write is held, its callback not yet called. */
+  readonly holding: () => boolean
+  /**
+   * Fails the held write: its stream emits `error` on a later turn of the
+   * event loop, and only on the turn after that is the write's callback,
+   * if it gave one, called with the error.
+   */
+  readonly failHeldWrite: (error: Error) => void
 }
 
+/** A write's callback, as a stream calls it once the chunk is handled. */
+type WriteCallback = (error?: Error | null) => void
+
 /**
- * An output that records what is written. Given `failsAfterWrite`, it
- * emits that error on the next tick after its first write.
+ * An output that records what is written and calls each write's callback
+ * on a later turn of the event loop. Given `failsAfterWrite`, it emits that
+ * error on the next tick after its first write. Given `holdsFirstWrite`,
+ * the first write's callback waits for `failHeldWrite`. `afterWrite` is
+ * called after every write.
  */
 function recordingOutput(
   chunks: string[],
   terminal: { readonly isTTY: boolean; readonly columns?: number },
-  failsAfterWrite: Error | undefined,
-  unheard: () => void,
+  options: {
+    readonly failsAfterWrite?: Error
+    readonly holdsFirstWrite?: boolean
+    readonly afterWrite?: () => void
+    readonly unheard: () => void
+  },
 ): RecordingOutput {
   const errors = new Set<Listener>()
   let failed = false
+  let held: { readonly callback: WriteCallback | undefined } | undefined
+  let writes = 0
   return {
     errors,
+    holding: () => held !== undefined,
+    failHeldWrite: (error) => {
+      const write = held
+      setImmediate(() => {
+        if (!emit(errors, [error])) options.unheard()
+        setImmediate(() => write?.callback?.(error))
+      })
+    },
     output: {
       isTTY: terminal.isTTY,
       columns: terminal.columns,
       rows: terminal.isTTY ? 40 : undefined,
-      write: (text) => {
+      write: (text: string, callback?: WriteCallback) => {
         chunks.push(text)
-        if (failsAfterWrite !== undefined && !failed) {
-          failed = true
-          process.nextTick(() => {
-            if (!emit(errors, [failsAfterWrite])) unheard()
+        writes += 1
+        if (options.holdsFirstWrite === true && writes === 1) {
+          held = { callback }
+        } else if (callback !== undefined) {
+          setImmediate(() => {
+            callback()
           })
         }
+        if (options.failsAfterWrite !== undefined && !failed) {
+          failed = true
+          const error = options.failsAfterWrite
+          process.nextTick(() => {
+            if (!emit(errors, [error])) options.unheard()
+          })
+        }
+        options.afterWrite?.()
         return true
       },
       on: (event: 'resize' | 'error', listener: Listener) => {
@@ -128,7 +169,9 @@ function recordingOutput(
  * A terminal whose stdout is a TTY or not, with the environment given,
  * whose stdin and `Ctrl+C` follow `script`. Given `stdoutFailsAfterWrite`
  * or `stderrFailsAfterWrite`, that stream emits the error on the next
- * tick after its first write.
+ * tick after its first write. Given `stdoutFailsLate`, stdout holds its
+ * first write and fails it once stderr is next written to: the error
+ * comes after `write` has returned, and before the write's callback.
  */
 export function scriptedTerminal(options: {
   readonly isTTY: boolean
@@ -136,6 +179,7 @@ export function scriptedTerminal(options: {
   readonly script: readonly Step[]
   readonly stdoutFailsAfterWrite?: Error
   readonly stderrFailsAfterWrite?: Error
+  readonly stdoutFailsLate?: Error
 }): ScriptedTerminal {
   const stdout: string[] = []
   const stderr: string[] = []
@@ -194,17 +238,29 @@ export function scriptedTerminal(options: {
   }
 
   const columns = options.isTTY ? 120 : undefined
+  const late = options.stdoutFailsLate
   const out = recordingOutput(
     stdout,
     { isTTY: options.isTTY, columns },
-    options.stdoutFailsAfterWrite,
-    errorUnheard,
+    {
+      failsAfterWrite: options.stdoutFailsAfterWrite,
+      holdsFirstWrite: late !== undefined,
+      unheard: errorUnheard,
+    },
   )
+  let failedLate = false
   const err = recordingOutput(
     stderr,
     { isTTY: options.isTTY, columns },
-    options.stderrFailsAfterWrite,
-    errorUnheard,
+    {
+      failsAfterWrite: options.stderrFailsAfterWrite,
+      afterWrite: () => {
+        if (late === undefined || failedLate || !out.holding()) return
+        failedLate = true
+        out.failHeldWrite(late)
+      },
+      unheard: errorUnheard,
+    },
   )
   const io: CommandIo = {
     stdin: {
