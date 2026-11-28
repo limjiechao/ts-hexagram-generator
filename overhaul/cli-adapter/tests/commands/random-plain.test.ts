@@ -1330,3 +1330,34 @@ describe('hexagram-random in plain mode: a newline wherever the terminal echoed 
     },
   )
 })
+
+describe('hexagram-random in plain mode: a TTY stdin that echoed no newline', () => {
+  it('stdin a TTY gives a Query, then ends with no newline: the Query is kept, and a newline follows the prompt', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom(['--plain'], [typed('abc'), stdinEnds], {
+      journalFolder,
+      isTTY: true,
+      stdinIsTTY: true,
+    })
+
+    const expected = expectedConsultation('abc')
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it('stdin a TTY that cannot be read at the Query prompt: the prompt, a newline, its line, exit 1, nothing kept', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom(
+      ['--plain'],
+      [stdinFails(new Error('an invented read error'))],
+      { journalFolder, isTTY: true, stdinIsTTY: true },
+    )
+
+    expect(ended.stderr).toBe(promptLine + stdinUnreadable)
+    expect(ended.stdout).toBe('')
+    expect(ended.exitCode).toBe(1)
+    expect(ended.touched).toEqual([])
+    expect(await filesIn(path.dirname(journalFolder))).toEqual([])
+  })
+})
