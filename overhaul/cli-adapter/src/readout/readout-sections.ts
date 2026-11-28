@@ -10,17 +10,16 @@ import type {
   TransformationReadout,
 } from '@hexagram/presentation/readout'
 import type { Edition } from '@hexagram/scripture-catalogue/edition'
-import type { TrigramName } from '@hexagram/scripture-catalogue/trigram-name'
 
 import {
   diagramRows,
-  emergingColumn,
   lineColour,
+  standingLineWidth,
   transformationRows,
 } from '#src/readout/figure-rows.js'
 import { ledgerGrid } from '#src/readout/ledger-grid.js'
 import type { Palette } from '#src/readout/palette.js'
-import { padToColumn } from '#src/readout/text-width.js'
+import { padToColumn, textWidth } from '#src/readout/text-width.js'
 
 /*
  * The Readout's sections as the terminal shows them: the Query, then one
@@ -74,62 +73,109 @@ function castingSection(casting: CastingTab, palette: Palette): string {
   return `${title}Division Method: ${method}\n\n${ledgerGrid(casting.rounds, palette)}`
 }
 
+/**
+ * Several Editions' names on one line: the Chinese names with `joiner`, then
+ * the Translations' names joined to each other with " · ".
+ */
+function sharedLine(
+  names: readonly { readonly edition: Edition; readonly name: string }[],
+  joiner: string,
+): string {
+  const chinese = names.filter((each) => each.edition.script !== undefined)
+  const translations = names.filter(
+    (each) => each.edition.language !== undefined,
+  )
+  return [
+    chinese.map((each) => each.name).join(joiner),
+    translations.map((each) => each.name).join(' · '),
+  ]
+    .filter((part) => part !== '')
+    .join(joiner)
+}
+
 /** A Hexagram's number and the names given, e.g. `#64 未濟 / LXIV. …`. */
 const numberAndNames = (
   hexagram: NamedHexagram,
   names = hexagram.names,
 ): string =>
-  [
-    `#${String(hexagram.receivedSequenceNumber)}`,
-    names.map((each) => each.name).join(' / '),
-  ]
+  [`#${String(hexagram.receivedSequenceNumber)}`, sharedLine(names, ' / ')]
     .filter((part) => part !== '')
     .join(' ')
 
-const trigramNames = (names: readonly TrigramName[]): string =>
-  names.map((each) => each.name).join(' ')
+/** The Emerging column starts at least this far right, and its cells this far past the widest Standing cell. */
+const emergingColumnAtLeast = 46
+const columnGap = 4
 
-/** The Transformation tab names a Hexagram by its first Edition, then the others below. */
-const firstName = (figure: HexagramFigure): string =>
-  numberAndNames(figure.hexagram, figure.hexagram.names.slice(0, 1))
-const otherNames = (figure: HexagramFigure): string =>
-  figure.hexagram.names
-    .slice(1)
-    .map((each) => each.name)
-    .join(' / ')
+/** One row of the Transformation tab below its Lines: a cell for each Hexagram. */
+interface NameRow {
+  readonly paint: 'emphasis' | 'muted'
+  readonly standing: string
+  readonly emerging: string
+}
+
+/** The name an Edition other than the first gives the Hexagram, or none. */
+const nameIn = (figure: HexagramFigure, id: string): string =>
+  figure.hexagram.names.slice(1).find((each) => each.edition.id === id)?.name ??
+  ''
+
+/**
+ * The rows naming the two Hexagrams: each one's number and its first
+ * Edition's name, then one row for each other Edition that names either,
+ * the divider, and the Trigrams' names.
+ */
+function nameRows(
+  standing: HexagramFigure,
+  emerging: HexagramFigure,
+): readonly NameRow[] {
+  const otherEditions = [
+    ...new Set(
+      [standing, emerging].flatMap((figure) =>
+        figure.hexagram.names.slice(1).map((each) => each.edition.id),
+      ),
+    ),
+  ]
+  const both = (
+    paint: NameRow['paint'],
+    cell: (figure: HexagramFigure) => string,
+  ): NameRow => ({ paint, standing: cell(standing), emerging: cell(emerging) })
+  return [
+    both('emphasis', (figure) =>
+      numberAndNames(figure.hexagram, figure.hexagram.names.slice(0, 1)),
+    ),
+    ...otherEditions.map((id) => both('muted', (figure) => nameIn(figure, id))),
+    both('muted', () => '─'.repeat(25)),
+    both('muted', (figure) => `Upper: ${sharedLine(figure.upperTrigram, ' ')}`),
+    both('muted', (figure) => `Lower: ${sharedLine(figure.lowerTrigram, ' ')}`),
+  ]
+}
 
 function transformationSection(
   { standing, emerging }: TransformationReadout['transformation'],
   palette: Palette,
 ): string {
   const { reset } = palette
-  const columns = (
-    paint: string,
-    cell: (figure: HexagramFigure) => string,
-    minGap?: number,
-  ): string =>
-    `${paint}${padToColumn(`  ${cell(standing)}`, emergingColumn, minGap)}${cell(emerging)}${reset}`
-  const divider = '─'.repeat(25)
-
+  const standingTitle = '  Standing Hexagram'
+  const rows = nameRows(standing, emerging)
+  // Names are shown whole, never cut, so long Translations push the
+  // Emerging column right rather than misalign it.
+  const widest = Math.max(
+    standingLineWidth,
+    textWidth(standingTitle),
+    ...rows.map((row) => textWidth(`  ${row.standing}`)),
+  )
+  const emergingColumn = Math.max(emergingColumnAtLeast, widest + columnGap)
   const headings =
-    `${palette.heading}${padToColumn('  Standing Hexagram', emergingColumn)}${reset}` +
+    `${palette.heading}${padToColumn(standingTitle, emergingColumn)}${reset}` +
     `${palette.heading}Emerging Hexagram${reset}`
   return [
     `${palette.heading}TRANSFORMATION:\n\n${reset}${headings}`,
-    transformationRows(standing, emerging, palette).join('\n'),
-    [
-      columns(palette.emphasis, firstName),
-      columns(palette.muted, otherNames, 6),
-      columns(palette.muted, () => divider),
-      columns(
-        palette.muted,
-        (figure) => `Upper: ${trigramNames(figure.upperTrigram)}`,
-      ),
-      columns(
-        palette.muted,
-        (figure) => `Lower: ${trigramNames(figure.lowerTrigram)}`,
-      ),
-    ].join('\n'),
+    transformationRows(standing, emerging, palette, emergingColumn).join('\n'),
+    rows
+      .map(
+        (row) =>
+          `${palette[row.paint]}${padToColumn(`  ${row.standing}`, emergingColumn)}${row.emerging}${reset}`,
+      )
+      .join('\n'),
   ].join('\n\n')
 }
 

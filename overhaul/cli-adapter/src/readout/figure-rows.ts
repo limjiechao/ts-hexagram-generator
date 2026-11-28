@@ -4,6 +4,7 @@ import type { FigureLine, HexagramFigure } from '@hexagram/presentation/readout'
 import type { TrigramName } from '@hexagram/scripture-catalogue/trigram-name'
 
 import type { Palette } from '#src/readout/palette.js'
+import { textWidth } from '#src/readout/text-width.js'
 
 /*
  * A Hexagram's Figure drawn as monospace rows (ADR-0022), Line 6 at the top.
@@ -27,12 +28,10 @@ const positionLabels: Readonly<Record<LinePosition, string>> = {
   6: '（上, 6th）',
 }
 
-/** Where the Transformation tab's Emerging column starts. */
-export const emergingColumn = 46
-
-/** The connector from a Moving Line to the Changed Line it becomes. */
-const movingArrow = `${'─'.repeat(17)}▶ `
-const staticGap = ' '.repeat(movingArrow.length)
+/** How wide a Transformation tab Line row's Standing cell is, its indent included. */
+export const standingLineWidth: number = textWidth(
+  `  7  ${lineGlyphs[7]}  ${positionLabels[1]}`,
+)
 
 /** A Line's colour: a Moving Line's stands out. */
 export const lineColour = (line: FigureLine, palette: Palette): string =>
@@ -45,13 +44,19 @@ const topDown = (figure: HexagramFigure): readonly FigureLine[] =>
 /**
  * The Transformation tab's Line rows: each Line of the Standing Hexagram
  * beside the Line it becomes in the Emerging Hexagram, an arrow joining a
- * Moving Line to its Changed Line.
+ * Moving Line to its Changed Line, the Emerging cell starting at
+ * `emergingColumn`.
  */
 export function transformationRows(
   standing: HexagramFigure,
   emerging: HexagramFigure,
   palette: Palette,
+  emergingColumn: number,
 ): readonly string[] {
+  // The arrow, or the blank in its place, runs to the Emerging column.
+  const reach = emergingColumn - standingLineWidth
+  const movingArrow = `${'─'.repeat(reach - 2)}▶ `
+  const staticGap = ' '.repeat(reach)
   const half = (line: FigureLine): string => {
     const colour = lineColour(line, palette)
     return (
@@ -67,6 +72,10 @@ export function transformationRows(
     return `  ${half(line)}${gap}${changed === undefined ? '' : half(changed)}`
   })
 }
+
+/** The parts that hold text, joined by a space. */
+const nonEmpty = (...parts: readonly string[]): string =>
+  parts.filter((part) => part !== '').join(' ')
 
 /** A Trigram's imagery in its first Edition, and in the others. */
 const imagery = (
@@ -93,10 +102,10 @@ export function diagramRows(
   const braces = [
     '──┐',
     `──┼── ${upper.first}（上卦）`,
-    `──┘   ${upper.others} (upper trigram)`,
+    `──┘   ${nonEmpty(upper.others, '(upper trigram)')}`,
     '──┐',
     `──┼── ${lower.first}（下卦）`,
-    `──┘   ${lower.others} (lower trigram)`,
+    `──┘   ${nonEmpty(lower.others, '(lower trigram)')}`,
   ]
   return topDown(figure).map(
     (line, index) =>
