@@ -1,0 +1,162 @@
+
+
+[1;90mQUERY:
+
+  [1;97mShould the Greyfen Hold council
+  seat a new reeve this spring?
+  [90m2026-10-30 08:05
+
+[1;90mCASTING:[0m
+
+[0mA Recorded Consultation has no Casting.
+
+[1;90mTRANSFORMATION:
+
+[0m[1;90m  Standing Hexagram                           [0m[1;90mEmerging Hexagram[0m
+
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （上, 6th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （上, 6th）
+  [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （五, 5th）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）
+  [1;97m8[0m  [1;97m━━━   ━━━[0m  （三, 3rd）                   [1;97m8[0m  [1;97m━━━   ━━━[0m  （三, 3rd）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）
+  [1;91m6[0m  [1;91m━━━ ✕ ━━━[0m  （初, 1st）─────────────────▶ [1;97m7[0m  [1;97m━━━━━━━━━[0m  （初, 1st）
+
+[1;97m  #64 未濟                                    #38 睽[0m
+[90m  LXIV. The Wei Žî Hexagram                   XXXVIII. The Khwei Hexagram[0m
+[90m  ─────────────────────────                   ─────────────────────────[0m
+[90m  Upper: 離 lî (Fire, as in lightning; the sun) Upper: 離 lî (Fire, as in lightning; the sun)[0m
+[90m  Lower: 坎 khân (Water, as in rain, clouds, springs, streams and defiles. The moon) Lower: 兌 tui (Water, collected as in a marsh or lake)[0m
+
+
+[1;90mSTANDING HEXAGRAM 64:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（上, 6th）──┐
+  [1;97m8  ━━━   ━━━  [0m（五, 5th）──┼── 火（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   Fire, as in lightning; the sun (upper trigram)
+  [1;97m8  ━━━   ━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 水（下卦）
+  [1;91m6  ━━━ ✕ ━━━  [0m（初, 1st）──┘   Water, as in rain, clouds, springs, streams and defiles. The moon (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;91m6, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
+
+[1;90mSTANDING HEXAGRAM NAME:
+
+[90m[武英殿本]
+
+  [1;97m未濟
+
+[90m[Legge]
+
+  [1;97mLXIV. The Wei Žî Hexagram
+
+
+[1;90mSTANDING HEXAGRAM STRUCTURE:
+
+  [90m互卦 Nuclear Hexagram:  [1;97m#63 既濟 / LXIII. The Kî Žî Hexagram[0m
+  [90m錯卦 Inverse Hexagram:  [1;97m#63 既濟 / LXIII. The Kî Žî Hexagram[0m
+  [90m綜卦 Reversed Hexagram: [1;97m#63 既濟 / LXIII. The Kî Žî Hexagram[0m
+
+
+[1;90m卦辭:
+[90m[武英殿本]
+
+  [1;97m未濟：亨，小狐汔濟，濡其尾，无攸利。
+
+[90m[Legge]
+
+  [1;97mWei Žî intimates progress and success (in the circumstances which it implies). (We see) a young fox that has nearly crossed (the stream), when its tail gets immersed. There will be no advantage in any way.
+
+[1;90m大象:
+[90m[武英殿本]
+
+  [1;97m火在水上，未濟；君子以慎辨物居方。
+
+[90m[Legge]
+
+  [1;97mLXIV. (The trigram representing) water and that for fire above it form Wei Žî. The superior man, in accordance with this, carefully discriminates among (the qualities of) things, and the (different) positions they (naturally) occupy.
+
+[1;90m初六:
+[90m[武英殿本]
+
+  [1;97m初六：濡其尾，吝。
+
+[90m[Legge]
+
+  [1;97m1. The first SIX, divided, shows its subject (like a fox) whose tail gets immersed. There will be occasion for regret.
+
+[1;90m小象:
+[90m[武英殿本]
+
+  [1;97m濡其尾，亦不知極也。
+
+[90m[Legge]
+
+  [1;97m1. 'His tail gets immersed:'--this is the very height of ignorance.
+
+
+[1;90mEMERGING HEXAGRAM 38:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（上, 6th）──┐
+  [1;97m8  ━━━   ━━━  [0m（五, 5th）──┼── 火（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   Fire, as in lightning; the sun (upper trigram)
+  [1;97m8  ━━━   ━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 澤（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   Water, collected as in a marsh or lake (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m7, [1;97m8, [1;97m7, [1;97m8, [1;97m7
+
+[1;90mEMERGING HEXAGRAM NAME:
+
+[90m[武英殿本]
+
+  [1;97m睽
+
+[90m[Legge]
+
+  [1;97mXXXVIII. The Khwei Hexagram
+
+
+[1;90mEMERGING HEXAGRAM STRUCTURE:
+
+  [90m互卦 Nuclear Hexagram:  [1;97m#63 既濟 / LXIII. The Kî Žî Hexagram[0m
+  [90m錯卦 Inverse Hexagram:  [1;97m#39 蹇 / XXXIX. The Kien Hexagram[0m
+  [90m綜卦 Reversed Hexagram: [1;97m#37 家人 / XXXVII. The Kiâ Zăn Hexagram[0m
+
+
+[1;90m卦辭:
+[90m[武英殿本]
+
+  [1;97m睽：小事吉。
+
+[90m[Legge]
+
+  [1;97mKhwei indicates that, (notwithstanding the condition of things which it denotes), in small matters there will (still) be good success.
+
+[1;90m大象:
+[90m[武英殿本]
+
+  [1;97m上火下澤，睽；君子以同而異。
+
+[90m[Legge]
+
+  [1;97mXXXVIII. (The trigram representing) fire above, and that for (the waters of) a marsh below, form Khwei. The superior man, in accordance with this, where there is a general agreement, yet admits diversity.
+
+[1;90mEDITIONS:
+
+[90m[武英殿本]
+
+  [1;97m武英殿十三經注疏本《周易正義》 (1739)
+  [0mWitness: ctext.org's transcription of the 武英殿十三經注疏本《周易正義》, from its Book of Changes pages (ctext.org/book-of-changes); the 乾 and 坤 pages (用九, 用六) retrieved 2026-11-27
+
+[90m[Legge]
+
+  [1;97mLegge, Sacred Books of the East vol. 16 (Oxford, 1882)
+  [0mWitness: a scanned copy of Sacred Books of the East vol. 16 (1882); the 乾 and 坤 pages: pp. 58, 61 (text) and 267, 269 (小象)

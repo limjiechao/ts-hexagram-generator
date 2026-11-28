@@ -1,0 +1,125 @@
+
+
+[1;90mQUERY:
+
+  [1;97mWill Steward Aelric’s embassy to Westmill succeed?
+  [90m2026-10-28
+
+[1;90mCASTING:[0m
+
+[0mA Recorded Consultation has no Casting.
+
+[1;90mTRANSFORMATION:
+
+[0m[1;90m  Standing Hexagram                           [0m[1;90mEmerging Hexagram[0m
+
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （上, 6th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （上, 6th）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （五, 5th）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （四, 4th）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （三, 3rd）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （三, 3rd）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （二, 2nd）
+  [1;97m7[0m  [1;97m━━━━━━━━━[0m  （初, 1st）                   [1;97m7[0m  [1;97m━━━━━━━━━[0m  （初, 1st）
+
+[1;97m  #1 乾                                       #1 乾[0m
+[90m  I. The Khien Hexagram                       I. The Khien Hexagram[0m
+[90m  ─────────────────────────                   ─────────────────────────[0m
+[90m  Upper: 乾 khien (Heaven, the Sky)           Upper: 乾 khien (Heaven, the Sky)[0m
+[90m  Lower: 乾 khien (Heaven, the Sky)           Lower: 乾 khien (Heaven, the Sky)[0m
+
+
+[1;90mSTANDING HEXAGRAM 1:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（上, 6th）──┐
+  [1;97m7  ━━━━━━━━━  [0m（五, 5th）──┼── 天（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   Heaven, the Sky (upper trigram)
+  [1;97m7  ━━━━━━━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 天（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   Heaven, the Sky (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7
+
+[1;90mSTANDING HEXAGRAM NAME:
+
+[90m[武英殿本]
+
+  [1;97m乾
+
+[90m[Legge]
+
+  [1;97mI. The Khien Hexagram
+
+
+[1;90mSTANDING HEXAGRAM STRUCTURE:
+
+  [90m互卦 Nuclear Hexagram:  [1;97m#1 乾 / I. The Khien Hexagram[0m
+  [90m錯卦 Inverse Hexagram:  [1;97m#2 坤 / II. The Khwăn Hexagram[0m
+  [90m綜卦 Reversed Hexagram: [1;97m#1 乾 / I. The Khien Hexagram[0m
+
+
+[1;90m卦辭:
+[90m[武英殿本]
+
+  [1;97m乾：元亨，利貞。
+
+[90m[Legge]
+
+  [1;97mKhien (represents) what is great and originating, penetrating, advantageous, correct and firm.
+
+[1;90m大象:
+[90m[武英殿本]
+
+  [1;97m天行健，君子以自強不息。
+
+[90m[Legge]
+
+  [1;97mI. Heaven, in its motion, (gives the idea of) strength. The superior man, in accordance with this, nerves himself to ceaseless activity.
+
+
+[1;90mEMERGING HEXAGRAM 1:
+
+[0m(Line at bottom is first)
+
+  [1;97m7  ━━━━━━━━━  [0m（上, 6th）──┐
+  [1;97m7  ━━━━━━━━━  [0m（五, 5th）──┼── 天（上卦）
+  [1;97m7  ━━━━━━━━━  [0m（四, 4th）──┘   Heaven, the Sky (upper trigram)
+  [1;97m7  ━━━━━━━━━  [0m（三, 3rd）──┐
+  [1;97m7  ━━━━━━━━━  [0m（二, 2nd）──┼── 天（下卦）
+  [1;97m7  ━━━━━━━━━  [0m（初, 1st）──┘   Heaven, the Sky (lower trigram)
+
+[0m(First is line at bottom)
+
+  [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7, [1;97m7
+
+[1;90mEMERGING HEXAGRAM NAME:
+
+[90m[武英殿本]
+
+  [1;97m乾
+
+[90m[Legge]
+
+  [1;97mI. The Khien Hexagram
+
+
+[1;90mEMERGING HEXAGRAM STRUCTURE:
+
+  [90m互卦 Nuclear Hexagram:  [1;97m#1 乾 / I. The Khien Hexagram[0m
+  [90m錯卦 Inverse Hexagram:  [1;97m#2 坤 / II. The Khwăn Hexagram[0m
+  [90m綜卦 Reversed Hexagram: [1;97m#1 乾 / I. The Khien Hexagram[0m
+
+
+[1;90mEDITIONS:
+
+[90m[武英殿本]
+
+  [1;97m武英殿十三經注疏本《周易正義》 (1739)
+  [0mWitness: ctext.org's transcription of the 武英殿十三經注疏本《周易正義》, from its Book of Changes pages (ctext.org/book-of-changes); the 乾 and 坤 pages (用九, 用六) retrieved 2026-11-27
+
+[90m[Legge]
+
+  [1;97mLegge, Sacred Books of the East vol. 16 (Oxford, 1882)
+  [0mWitness: a scanned copy of Sacred Books of the East vol. 16 (1882); the 乾 and 坤 pages: pp. 58, 61 (text) and 267, 269 (小象)
