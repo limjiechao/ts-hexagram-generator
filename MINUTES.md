@@ -676,3 +676,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - The owner said "land"; `main` fast-forwarded 2dcb7ae..cf7e63d (M-011, the R-506 follow-up, the owner's passages). No delegate ruling overturned.
 - Owner touches: 2 (R-520, R-521, both on M-013's referrals).
+
+### Iteration 44 — M-013 — 2026-11-28
+
+- Attempt: 1/2 (slice 1 of 3; R-058) · Outcome: landed on matters
+- Draft: `presentation`'s Readout model and builders; the plain, Ink and Markdown renderers, `--rerender-bodies` and the `processPorts` wiring drafted as stubs in `cli-adapter`; ruled R-519 (delegate, 19 items), R-520 and R-521 (owner).
+- Tests: `presentation` joins the domain tier (B5, pure) with twins and plants; 45 Readout tests on invented inputs, 3 through the real Catalogue, a type test pinning use case 3's result shape; approved with five rows (R-522).
+- Build: the Readout, the ledger (a flagged duplicate of the Division arithmetic) and `divinedAtText`.
+- Review: one wording fix (only Moving Lines carry a text mark); the implementer's choices kept (R-523).
+- Verify: slice-1 tests · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46, on matters
+- Owner touches: 2 (R-520, R-521); delegate rulings: 4 (R-519, R-522, R-523, and the tests' approval)
+- Landed: 11 commits ending d0efb13
+- Notes: CI on main failed after PR #66 when Ubuntu moved to Node 26 (tsx's DEP0205 warning on spawned bins' stderr); fixed by tsx 4.23.15 (8c6ba43), PR #67. A first cherry-pick of this slice was run newest-first and conflicted; aborted and redone oldest-first.

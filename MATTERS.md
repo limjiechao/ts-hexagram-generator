@@ -389,7 +389,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-013: The Readout: plain text, Ink sections and the Markdown file
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0013, ADR-0014, ADR-0022, ADR-0024, ADR-0025, ADR-0027,
   ADR-0046; manual sections 4, 5; R-105, R-283, R-284, R-340 to R-345
