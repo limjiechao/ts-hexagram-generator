@@ -34,8 +34,8 @@ import { readoutCases } from '../support/readout-cases.js'
 
 // `hexagram-history --rerender-bodies`, driven in process over a Journal in
 // a fresh folder under the system's temporary directory, never the
-// repository's own Journal: no spawned bin may reach a maintenance run
-// (R-521). The Consultations are slice 2's invented Readout cases, so a
+// repository's own Journal: no spawned bin may reach a maintenance run.
+// The Consultations are the Readout fixtures' invented cases, so a
 // re-rendered file can be compared with the whole-file fixtures. Every
 // Query, Id and date is invented.
 

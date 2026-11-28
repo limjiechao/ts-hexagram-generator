@@ -96,7 +96,7 @@ describe('the Markdown body and file over the fixtures', () => {
       )
       const expected = await markdownFixture(`${name}.file.md`)
       expect(written).toBe(expected)
-      // The file is the body fixture under its frontmatter (R-453).
+      // The file is the body fixture under its frontmatter and one blank line.
       expect(
         expected.endsWith(`---\n\n${await markdownFixture(`${name}.body.md`)}`),
       ).toBe(true)
