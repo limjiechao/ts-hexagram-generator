@@ -365,6 +365,20 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 
+  it.each(['ended', 'interrupted', 'unreadable'])(
+    'a Query that reads like an ending (%s) is still a Query: kept, its Readout on stdout, exit 0',
+    async (query) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom([], [asked(query)], { journalFolder })
+
+      const expected = expectedConsultation(query)
+      expect(ended.stdout).toBe(await readoutOf(expected))
+      expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
+      expect(ended.exitCode).toBe(0)
+      expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+    },
+  )
+
   it('a Query split across chunks, one cut inside a character, is read whole', async () => {
     const query = 'How will Steward Aelric’s invented journey unfold?'
     const bytes = Buffer.from(`${query}\n`, 'utf8')

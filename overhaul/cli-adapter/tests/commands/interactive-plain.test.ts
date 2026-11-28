@@ -514,6 +514,24 @@ describe('hexagram-interactive in plain mode: the Readout and the keep', () => {
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 
+  it.each(['ended', 'interrupted', 'unreadable'])(
+    'a Query that reads like an ending (%s) is still a Query: kept, its Readout on stdout, exit 0',
+    async (query) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runInteractive([], [asked(query), ...picked()], {
+        journalFolder,
+      })
+
+      const expected = expectedConsultation(query)
+      expect(ended.stdout).toBe(await readoutOf(expected))
+      expect(ended.stderr).toBe(
+        welcome + promptLine + allRounds + keptLine(journalFolder, expected),
+      )
+      expect(ended.exitCode).toBe(0)
+      expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+    },
+  )
+
   it('a blank Query is asked again, after the welcome once', async () => {
     const journalFolder = await temporaryJournal()
     const ended = await runInteractive(
