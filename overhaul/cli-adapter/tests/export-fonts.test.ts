@@ -277,10 +277,8 @@ describe('the export fonts cover every character the export can set', () => {
 // --- The committed bytes ------------------------------------------------------
 
 /**
- * Each font file's SHA-256, as committed. THE IMPLEMENTER FILLS EACH VALUE
- * when committing the fonts, from the file's own bytes; until then every
- * row below fails. A pointer file names the same digest as its `oid`, so
- * the rows hold in a clone without LFS too.
+ * Each font file's SHA-256, as committed. A pointer file names the same
+ * digest as its `oid`, so the rows hold in a clone without LFS too.
  */
 const expectedSha256: Readonly<Record<string, string>> = {
   'LibertinusSerif-Regular.otf':
