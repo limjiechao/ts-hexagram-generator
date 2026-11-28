@@ -417,7 +417,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-014: Plain casting: `hexagram-random` and `hexagram-interactive`
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0010, ADR-0023, ADR-0027; manual sections 6.3, 6.4, 7;
   R-346, R-350

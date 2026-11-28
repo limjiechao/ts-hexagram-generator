@@ -720,3 +720,15 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - The owner said "land"; `main` fast-forwarded 8c6ba43..c603b0c (M-013, the Readout; the bins use the real Markdown Store). No delegate ruling overturned.
 - Owner touches: 2 (R-532, R-533, on M-014's referrals). Manual §6.3 folds R-377 (exit 1) and R-532; the "Still open" section is removed.
+
+### Iteration 47 — M-014 — 2026-11-28
+
+- Attempt: 1/2 (slice 1 of 2; R-058) · Outcome: landed on matters
+- Draft: plain runs, wording, the Reading Preference options; ruled R-531 (delegate), R-532 and R-533 (owner); redraft splitting use case 1 into build and keep, R-534.
+- Tests: R-306 changes for the split; new build and keep rows; `random-plain.test.ts` (in process, temporary Journal, scripted Clock and Random Source reproducing M-013's X之X fixture byte for byte; every ending; option checks); frame and spawn rows with an ending stdin; approved R-535, amended R-536, R-537, R-540, R-541.
+- Build: use case 1 split; `journalFailureLine` takes the command; `consultationFileName`; `CommandIo` hears stdin's end, errors and Ctrl+C; Catalogue failures tagged; stream errors per R-350; the write callback; a newline wherever the terminal echoed none (R-538, owner).
+- Review: three rounds, each `APPROVE` with Tier-B items ruled (R-536, R-537, R-541); R-521's safety confirmed each time.
+- Verify: random-plain · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46, on matters; no `consultations/` in the matters worktree
+- Owner touches: 4 (R-532, R-533, R-538, R-539); delegate rulings: 8 (R-531, R-534 to R-537, R-540, R-541, and test approvals)
+- Landed: 39 commits ending 44dad8a
+- Notes: tests landed before the code (R-536 (7)), so the tester's 5f53dd8 and the implementer's first three commits do not type-check alone; from the `CommandIo` commit on, every commit does. Agents ran a read-only `git stash list` three times against their briefs. Scratch left for the owner: `overhaul/node_modules/.cache/eds.test.ts` and probe files in the M-014 worktree, `m014-probe-*` folders under $TMPDIR.
