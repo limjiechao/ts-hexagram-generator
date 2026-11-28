@@ -18,6 +18,11 @@
       "types": "./dist/readout.d.mts",
       "import": "./dist/readout.mjs"
     },
+    "./typst-export": {
+      "source": "./src/typst-export.ts",
+      "types": "./dist/typst-export.d.mts",
+      "import": "./dist/typst-export.mjs"
+    },
     "./package.json": "./package.json"
   },
   "files": [
