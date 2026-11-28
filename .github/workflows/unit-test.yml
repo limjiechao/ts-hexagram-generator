@@ -52,6 +52,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v6
+        with:
+          # The PDF export's tests read the fonts, which are LFS objects.
+          lfs: true
 
       - name: Install pnpm
         uses: pnpm/action-setup@v6
