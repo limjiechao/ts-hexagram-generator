@@ -16,7 +16,7 @@ import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
 import { markdownConsultationStore } from '@hexagram/store-markdown/markdown-consultation-store'
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import type {
   CommandIo,
@@ -33,6 +33,13 @@ import {
   type CompilePdf,
 } from '#src/typst-pdf.js'
 
+import {
+  fontFolderWith,
+  inventedFontLikeBytes,
+  modeCanDenyReading,
+  unreadableFonts,
+  type MadeFontFolder,
+} from '../support/export-fonts.js'
 import {
   browseOrder,
   typstConsultations,
@@ -251,6 +258,8 @@ function fakeOutput(chunks: string[], failure: StreamFailure = {}) {
 interface RunOptions {
   readonly stdout?: StreamFailure
   readonly stderr?: StreamFailure
+  /** The command's `run`, from a fresh copy of the modules, in place of this file's. */
+  readonly run?: typeof run
 }
 
 /** Runs `hexagram-history` with `argv`, stdout not a TTY. */
@@ -273,7 +282,7 @@ async function history(
     columns: undefined,
     env: {},
   }
-  const exitCode = await run(argv, io, ports)
+  const exitCode = await (options.run ?? run)(argv, io, ports)
   return {
     exitCode,
     stdout: stdout.join(''),
@@ -935,4 +944,106 @@ describe('hexagram-history --export <path>.pdf', () => {
     expect(ended.stderr).not.toContain('invented diagnostic')
     expect(await snapshot(folder)).toEqual(before)
   })
+})
+
+describe('hexagram-history --export <path>.pdf: every failure before a PDF exists ends in one line', () => {
+  const fontFolders: (() => Promise<void>)[] = []
+  afterEach(async () => {
+    await Promise.all(fontFolders.splice(0).map((remove) => remove()))
+    vi.doUnmock('@myriaddreamin/typst-ts-web-compiler')
+    vi.resetModules()
+  })
+
+  const fontCases: {
+    readonly shown: string
+    readonly file: string
+    readonly skip: boolean
+    readonly made: (file: string) => Promise<MadeFontFolder>
+  }[] = [
+    {
+      shown: 'of mode 000 (EACCES)',
+      file: 'NotoSerifCJKtc-Regular.otf',
+      skip: !modeCanDenyReading,
+      made: unreadableFonts.EACCES,
+    },
+    {
+      shown: 'a folder (EISDIR)',
+      file: 'LibertinusSerif-Bold.otf',
+      skip: false,
+      made: unreadableFonts.EISDIR,
+    },
+    {
+      shown: 'beginning OTTO but no font Typst takes',
+      file: 'NotoSansSymbols2-Regular.ttf',
+      skip: false,
+      made: (file) => fontFolderWith({ [file]: inventedFontLikeBytes }),
+    },
+  ]
+
+  for (const { shown, file, skip, made } of fontCases) {
+    it.skipIf(skip)(
+      `the real compiler, ${file} ${shown}: the font line, exit 1, no file`,
+      async () => {
+        const fonts = await made(file)
+        fontFolders.push(fonts.remove)
+        const folder = await temporaryFolder()
+        const journalFolder = await journalHolding(
+          folder,
+          casesNamed(['recorded-day']),
+        )
+        const before = await snapshot(folder)
+
+        const ended = await history(
+          ['--export', path.join(folder, 'out.pdf')],
+          portsOver(journalFolder, [], {
+            compilePdf: typstPdfCompiler(fonts.folder),
+          }),
+        )
+
+        expect(ended).toEqual({
+          exitCode: 1,
+          stdout: '',
+          stderr: line(
+            `hexagram-history: the export's font ${file} cannot be read`,
+          ),
+          listenersLeft: 0,
+        })
+        expect(await snapshot(folder)).toEqual(before)
+      },
+      120_000,
+    )
+  }
+
+  it('the WebAssembly build cannot be loaded: one line of its own, exit 1, no file, no stack', async () => {
+    // Fresh copies of the command and the compiler, sharing one module
+    // graph, whose import of the WebAssembly build fails.
+    vi.resetModules()
+    vi.doMock('@myriaddreamin/typst-ts-web-compiler', () => {
+      throw new Error('an invented WebAssembly load failure')
+    })
+    const freshCommand = await import('#src/commands/hexagram-history.js')
+    const freshCompiler = await import('#src/typst-pdf.js')
+    const folder = await temporaryFolder()
+    const journalFolder = await journalHolding(
+      folder,
+      casesNamed(['recorded-day']),
+    )
+    const before = await snapshot(folder)
+
+    const ended = await history(
+      ['--export', path.join(folder, 'out.pdf')],
+      portsOver(journalFolder, [], {
+        compilePdf: freshCompiler.typstPdfCompiler(
+          freshCompiler.exportFontFolder(),
+        ),
+      }),
+      { run: freshCommand.run },
+    )
+
+    expect(ended).toMatchObject({ exitCode: 1, stdout: '', listenersLeft: 0 })
+    // Its wording is the implementer's; it is one line of the command's own.
+    expect(ended.stderr).toMatch(/^hexagram-history: [^\n]+\n$/)
+    expect(ended.stderr).not.toMatch(/font|Typst cannot compile|invented|\bat /)
+    expect(await snapshot(folder)).toEqual(before)
+  }, 120_000)
 })

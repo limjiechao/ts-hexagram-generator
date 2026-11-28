@@ -1,7 +1,8 @@
 import { existsSync, readFileSync } from 'node:fs'
-import { mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
+import { chmod, mkdir, mkdtemp, rm, symlink, writeFile } from 'node:fs/promises'
 import { tmpdir } from 'node:os'
 import path from 'node:path'
+import process from 'node:process'
 
 import { exportFontFiles, exportFontFolder } from '#src/typst-pdf.js'
 
@@ -48,6 +49,12 @@ export function exportFontsState(): 'real' | 'pointers' | 'missing' {
 export const pointersSkipReason: string =
   'skipped: the export fonts are Git LFS pointers; run `git lfs pull` to fetch them'
 
+/** A temporary font folder and how to remove it. */
+export interface MadeFontFolder {
+  readonly folder: string
+  readonly remove: () => Promise<void>
+}
+
 /**
  * A fresh font folder under the system's temporary directory, each real
  * font linked in by name, except those `replaced` names, which hold the
@@ -56,7 +63,7 @@ export const pointersSkipReason: string =
  */
 export async function fontFolderWith(
   replaced: Readonly<Record<string, string | undefined>> = {},
-): Promise<{ readonly folder: string; readonly remove: () => Promise<void> }> {
+): Promise<MadeFontFolder> {
   const folder = await mkdtemp(path.join(tmpdir(), 'hexagram-fonts-'))
   const real = exportFontFolder()
   for (const { file } of exportFontFiles) {
@@ -73,3 +80,34 @@ export async function fontFolderWith(
     remove: () => rm(folder, { recursive: true, force: true }),
   }
 }
+
+/**
+ * Bytes that begin as an OpenType font does (`OTTO`) and hold no table, so
+ * they pass a check of the first four bytes and no font parser takes them.
+ */
+export const inventedFontLikeBytes: string = `OTTO${'\u0000'.repeat(60)}`
+
+/**
+ * Whether a file's mode can make it unreadable here: not on Windows, and
+ * not as root, who reads it anyway.
+ */
+export const modeCanDenyReading: boolean =
+  process.platform !== 'win32' && process.getuid?.() !== 0
+
+/**
+ * The ways a font file is there but cannot be read, each a font folder
+ * built like `fontFolderWith`'s with `file` made so: `EACCES` a file of
+ * mode 000, `EISDIR` a folder under the font's name.
+ */
+export const unreadableFonts = {
+  EACCES: async (file: string): Promise<MadeFontFolder> => {
+    const made = await fontFolderWith({ [file]: inventedFontLikeBytes })
+    await chmod(path.join(made.folder, file), 0o000)
+    return made
+  },
+  EISDIR: async (file: string): Promise<MadeFontFolder> => {
+    const made = await fontFolderWith({ [file]: undefined })
+    await mkdir(path.join(made.folder, file))
+    return made
+  },
+} as const

@@ -4,7 +4,7 @@ import { rm } from 'node:fs/promises'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
-import { afterEach, describe, expect, it } from 'vitest'
+import { afterEach, describe, expect, it, vi } from 'vitest'
 
 import {
   exportFontFiles,
@@ -14,7 +14,13 @@ import {
   typstPdfCompiler,
 } from '#src/typst-pdf.js'
 
-import { fontFolderWith, inventedLfsPointer } from './support/export-fonts.js'
+import {
+  fontFolderWith,
+  inventedFontLikeBytes,
+  inventedLfsPointer,
+  modeCanDenyReading,
+  unreadableFonts,
+} from './support/export-fonts.js'
 import { typstFixture, typstFixtures } from './support/typst-cases.js'
 
 // The PDF side of `--export` (use case 9) on Typst's WebAssembly build:
@@ -242,4 +248,83 @@ describe('typstPdfCompiler: a source Typst refuses', () => {
     },
     compiling.timeout,
   )
+})
+
+describe('typstPdfCompiler: a font that is there but cannot be read', () => {
+  it.skipIf(!modeCanDenyReading).each(exportFontFiles.map(({ file }) => file))(
+    '%s of mode 000 (EACCES): ExportFontsError naming it, reason unreadable',
+    async (file) => {
+      const made = await unreadableFonts.EACCES(file)
+      removals.push(made.remove)
+
+      const failure = await typstPdfCompiler(made.folder)(
+        fixtureSource('recorded-day.typ'),
+      ).catch((error: unknown) => error)
+
+      expect(failure).toBeInstanceOf(ExportFontsError)
+      expect(failure).toMatchObject({ file, reason: 'unreadable' })
+    },
+  )
+
+  it.each(exportFontFiles.map(({ file }) => file))(
+    '%s a folder (EISDIR): ExportFontsError naming it, reason unreadable',
+    async (file) => {
+      const made = await unreadableFonts.EISDIR(file)
+      removals.push(made.remove)
+
+      const failure = await typstPdfCompiler(made.folder)(
+        fixtureSource('recorded-day.typ'),
+      ).catch((error: unknown) => error)
+
+      expect(failure).toBeInstanceOf(ExportFontsError)
+      expect(failure).toMatchObject({ file, reason: 'unreadable' })
+    },
+  )
+
+  // Each case starts the WebAssembly build, so one file of two families.
+  it.each(['LibertinusSerif-Italic.otf', 'NotoSansSymbols2-Regular.ttf'])(
+    '%s begins OTTO but Typst takes no font from it: ExportFontsError naming it, reason unreadable',
+    async (file) => {
+      const compile = typstPdfCompiler(
+        await fontFolder({ [file]: inventedFontLikeBytes }),
+      )
+
+      const failure = await compile(fixtureSource('recorded-day.typ')).catch(
+        (error: unknown) => error,
+      )
+
+      expect(failure).toBeInstanceOf(ExportFontsError)
+      expect(failure).toMatchObject({ file, reason: 'unreadable' })
+    },
+    compiling.timeout,
+  )
+})
+
+describe('typstPdfCompiler: the WebAssembly build cannot be loaded', () => {
+  afterEach(() => {
+    vi.doUnmock('@myriaddreamin/typst-ts-web-compiler')
+    vi.resetModules()
+  })
+
+  it('rejects with an error of its own class, neither a font nor a compile error', async () => {
+    // A fresh copy of the module, whose import of the WebAssembly build
+    // fails as an unreadable or missing `.wasm` would.
+    vi.resetModules()
+    vi.doMock('@myriaddreamin/typst-ts-web-compiler', () => {
+      throw new Error('an invented WebAssembly load failure')
+    })
+    const fresh = await import('#src/typst-pdf.js')
+    const compile = fresh.typstPdfCompiler(exportFontFolder())
+
+    const failure = await compile(fixtureSource('recorded-day.typ')).catch(
+      (error: unknown) => error,
+    )
+
+    expect(failure).toBeInstanceOf(Error)
+    expect(failure).not.toBeInstanceOf(fresh.ExportFontsError)
+    expect(failure).not.toBeInstanceOf(fresh.TypstCompileError)
+    // The run tells it from any other error by its class, to give it its
+    // own line.
+    expect(Object.getPrototypeOf(failure)).not.toBe(Error.prototype)
+  })
 })
