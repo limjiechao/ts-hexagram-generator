@@ -71,14 +71,14 @@ hexagram-random` and its siblings run the same command from source; options
 
 **Inputs the CLI accepts:**
 
-| Input              | Domain                                                                                                                            |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------- |
-| Query              | any non-blank text, kept exactly as written; typed on one line (R-346)                                                            |
-| Pick (Virtual)     | a valid Pick of the Round: 1 to the Round's stalks − 2 (ADR-0023)                                                                 |
-| Transcription      | four whole counts: piles of four and Remainder, for the left and the right heap; Remainders 1 to 4 (ADR-0043)                     |
-| Transformation     | six Line Values, each 6, 7, 8 or 9, set bottom-up from Line Position 1                                                            |
-| Divined At         | for a Recorded Consultation, a date, or a date and time with UTC offset (ADR-0046, R-037); for a Cast one, the moment it was kept |
-| Reading Preference | Chinese script, Translations in order, Commentaries, and the Yilin Verse on or off (`CONTEXT.md`; options in section 7)           |
+| Input              | Domain                                                                                                                                                  |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Query              | any non-blank text, kept exactly as written; typed on one line (R-346)                                                                                  |
+| Pick (Virtual)     | a valid Pick of the Round: 1 to the Round's stalks − 2 (ADR-0023)                                                                                       |
+| Transcription      | four whole counts: piles of four and Remainder, for the left and the right heap; Remainders 1 to 4 (ADR-0043)                                           |
+| Transformation     | six Line Values, each 6, 7, 8 or 9, set bottom-up from Line Position 1                                                                                  |
+| Divined At         | for a Recorded Consultation, a date, or a date and time with UTC offset (ADR-0046, R-037); for a Cast one, the moment its Casting was completed (R-532) |
+| Reading Preference | Chinese script, Translations in order, Commentaries, and the Yilin Verse on or off (`CONTEXT.md`; options in section 7)                                 |
 
 **What the CLI produces:**
 
@@ -124,8 +124,9 @@ Casting (`CONTEXT.md`).
 
 **Keeping.** A completed Casting is kept as a Cast Consultation: the Query,
 Divined At, the Transformation, the Casting and the Division Method. Divined
-At is the moment of keeping, read once from the Clock; the Consultation Id, a
-ULID, is built from that same moment (ADR-0046). A kept Consultation is never
+At is read once from the Clock when the Casting is complete, before the
+Consultation is kept; the Consultation Id, a ULID, is built from that same
+moment (ADR-0046, R-532). A kept Consultation is never
 edited, only deleted.
 
 **Recording** (use case 2) keeps a Recorded Consultation: Query, Divined At as

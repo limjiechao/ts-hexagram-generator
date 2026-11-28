@@ -6844,3 +6844,19 @@ read`, exit 1, nothing kept; once nothing more is read it is heard and
 - Reason: R-306, R-350, R-401, R-521, R-531 Q-13, R-535 Q-30, R-536,
   R-538, R-540; manual §6.4, §7; AGENTS.md §5, §6.
 - Folded into: not yet
+
+### R-543: M-014 slice 2's review items; the manual folds R-532
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 2 review (a084d32 to bf41a4b)
+- Ruled by: delegate (R-423)
+- Ruling: `showThenKeep` takes the run's palette rather than recomputing
+  it, and the `Ask` type's doc points at `askUntilAccepted` (one refactor
+  commit); `checkedReadingPreference` stays as it is until another command
+  needs it. Manual §3's Divined At row and §4's Keeping paragraph are an
+  editorial fold of R-532: Divined At is read once from the Clock when the
+  Casting is complete, before the keep. The fix-before-test order of a084d32
+  and bf41a4b is recorded in the Minutes (bf41a4b fails against the pre-fix
+  code).
+- Reason: R-532, R-539; AGENTS.md §5, §6.
+- Folded into: `docs/manual/cli.md` §3, §4
