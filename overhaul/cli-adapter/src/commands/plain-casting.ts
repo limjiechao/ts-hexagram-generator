@@ -3,7 +3,8 @@ import path from 'node:path'
 
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
-import { isQuery, type Query } from '@hexagram/consultation-journal/query'
+import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
+import { isQuery } from '@hexagram/consultation-journal/query'
 import type { CompleteCasting } from '@hexagram/oracle/casting'
 import type { ConsultationReadout } from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
@@ -23,6 +24,7 @@ import { isSet } from '#src/commands/frame.js'
 import { journalFailureLine } from '#src/commands/maintenance-reports.js'
 import {
   blankQueryLine,
+  castingUnfinishedLine,
   consultationKeptLine,
   portFailureLine,
   queryNotGivenLine,
@@ -97,32 +99,84 @@ import { consultationReadoutFor } from '#src/readout/readout-for.js'
  * with no pause between Rounds (the slider's and reveal's options apply to
  * the full-screen Viewer only).
  */
-export async function randomPlainRun(
+export function randomPlainRun(
   io: CommandIo,
   ports: CommandPorts,
   preference: ReadingPreference,
 ): Promise<ExitCode> {
-  const command = 'hexagram-random'
+  return plainCastingRun(io, ports, preference, {
+    command: 'hexagram-random',
+    divisionMethod: 'automatic',
+    cast: (cli) => castAutomatically(cli),
+  })
+}
+
+/**
+ * `hexagram-interactive` in plain mode: the welcome, the Query, then
+ * Virtual Division by a typed Pick for each Round. Plain mode always takes
+ * typed input (CLI manual, section 6.4).
+ */
+export function interactivePlainRun(
+  io: CommandIo,
+  ports: CommandPorts,
+  preference: ReadingPreference,
+): Promise<ExitCode> {
+  throw new Error('not built', { cause: { io, ports, preference } })
+}
+
+/** How asking ended when no answer came: `Ctrl+C`, stdin's end, or a stdin error. */
+type Unanswered = 'interrupted' | 'ended' | 'unreadable'
+
+/**
+ * Asks with `prompt` until a line is accepted, writing `refusal` after
+ * each line `accept` refuses: the accepted value, held apart from the
+ * endings, or how the asking ended.
+ */
+type Ask = <Value>(
+  prompt: string,
+  accept: (line: string) => Value | undefined,
+  refusal: string,
+) => Promise<{ readonly value: Value } | Unanswered>
+
+/** What a command brings to the run both plain casting commands share. */
+interface PlainCasting {
+  readonly command: PlainCastingCommand
+  readonly divisionMethod: DivisionMethod
+  /** The complete Casting, or how asking for its Picks ended. */
+  readonly cast: (
+    cli: ReturnType<typeof composeCli>,
+    ask: Ask,
+  ) => CompleteCasting | Promise<CompleteCasting | Unanswered>
+}
+
+/** The run both plain casting commands share, in the order above. */
+async function plainCastingRun(
+  io: CommandIo,
+  ports: CommandPorts,
+  preference: ReadingPreference,
+  casting: PlainCasting,
+): Promise<ExitCode> {
+  const { command } = casting
   const reader = lineReader(io.stdin)
   const streams = watchingStreams(io, reader)
+  const ask: Ask = (prompt, accept, refusal) =>
+    askUntilAccepted(io, reader, prompt, accept, refusal)
   try {
-    const asked = await askForQuery(io, reader)
-    if (asked === 'interrupted') return 0
-    if (asked === 'ended') return endWithLine(io, queryNotGivenLine(command))
-    if (asked === 'unreadable')
-      return endWithLine(io, stdinUnreadableLine(command))
-    const { query } = asked
-    // The Query is the last line read: from here `Ctrl+C` and a stdin
-    // error are heard and ignored, so a keep is never cut short.
-    reader.close()
+    const asked = await ask(
+      queryPrompt,
+      (line) => (isQuery(line) ? line : undefined),
+      blankQueryLine,
+    )
+    if (typeof asked === 'string')
+      return endedUnanswered(io, command, asked, queryNotGivenLine(command))
 
     const cli = composeCli({
       ...ports,
       randomSource: namingItsFailure(ports.randomSource),
     })
-    let casting: CompleteCasting
+    let cast: CompleteCasting | Unanswered
     try {
-      casting = castAutomatically(cli)
+      cast = await casting.cast(cli, ask)
     } catch (error) {
       if (!(error instanceof RandomSourceFailureError)) throw error
       return endWithLine(
@@ -130,9 +184,19 @@ export async function randomPlainRun(
         portFailureLine(command, 'the Random Source failed'),
       )
     }
+    if (typeof cast === 'string')
+      return endedUnanswered(io, command, cast, castingUnfinishedLine(command))
+    // The last line is read: from here `Ctrl+C` and a stdin error are heard
+    // and ignored, so a keep is never cut short.
+    reader.close()
+
     let consultation: CastConsultation
     try {
-      consultation = cli.buildCastConsultation(query, casting, 'automatic')
+      consultation = cli.buildCastConsultation(
+        asked.value,
+        cast,
+        casting.divisionMethod,
+      )
     } catch (error) {
       // Besides the Random Source, building reads only the Clock, so any
       // other failure is the Clock's, a Moment a Consultation Id cannot
@@ -161,16 +225,20 @@ export async function randomPlainRun(
 }
 
 /**
- * `hexagram-interactive` in plain mode: the welcome, the Query, then
- * Virtual Division by a typed Pick for each Round. Plain mode always takes
- * typed input (CLI manual, section 6.4).
+ * The ending when a prompt got no answer: exit 0 on `Ctrl+C`; the stdin
+ * line, exit 1, when stdin cannot be read; and `endedLine`, exit 1, when
+ * stdin ended.
  */
-export function interactivePlainRun(
+function endedUnanswered(
   io: CommandIo,
-  ports: CommandPorts,
-  preference: ReadingPreference,
-): Promise<ExitCode> {
-  throw new Error('not built', { cause: { io, ports, preference } })
+  command: PlainCastingCommand,
+  unanswered: Unanswered,
+  endedLine: string,
+): ExitCode {
+  if (unanswered === 'interrupted') return 0
+  if (unanswered === 'unreadable')
+    return endWithLine(io, stdinUnreadableLine(command))
+  return endWithLine(io, endedLine)
 }
 
 /** One line on stderr, then exit 1. */
@@ -192,23 +260,28 @@ function echoedNoNewline(io: CommandIo, answer: Answer): boolean {
 }
 
 /**
- * Asks for the Query until a line holds one: the Query, held apart so a
- * Query that reads `ended` is still a Query, or how the asking ended. Wherever no newline was echoed, `Ctrl+C` included, stderr writes
- * one, so the next line, or the shell's prompt, starts its own line.
+ * Asks with `prompt` until `accept` takes a line, writing `refusal` after
+ * each line it refuses. Wherever no newline was echoed, `Ctrl+C` included,
+ * stderr writes one, so the next line, or the shell's prompt, starts its
+ * own line.
  */
-async function askForQuery(
+async function askUntilAccepted<Value>(
   io: CommandIo,
   reader: LineReader,
-): Promise<{ readonly query: Query } | 'ended' | 'interrupted' | 'unreadable'> {
+  prompt: string,
+  accept: (line: string) => Value | undefined,
+  refusal: string,
+): Promise<{ readonly value: Value } | Unanswered> {
   for (;;) {
-    io.stderr.write(queryPrompt)
+    io.stderr.write(prompt)
     const answer = await reader.next()
     if (echoedNoNewline(io, answer)) io.stderr.write('\n')
     if (answer.kind === 'interrupt') return 'interrupted'
     if (answer.kind === 'end') return 'ended'
     if (answer.kind === 'unreadable') return 'unreadable'
-    if (isQuery(answer.line)) return { query: answer.line }
-    io.stderr.write(`${blankQueryLine}\n`)
+    const value = accept(answer.line)
+    if (value !== undefined) return { value }
+    io.stderr.write(`${refusal}\n`)
   }
 }
 
