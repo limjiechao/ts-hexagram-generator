@@ -102,13 +102,13 @@ describe('composeCli with the system Clock and the node:crypto Random Source', (
     const before = Date.now()
     const returned: CastConsultation[] = []
     for (const each of queries) {
-      returned.push(
-        await cli.keepCastConsultation(
-          each,
-          castAutomatically(cli),
-          'automatic',
-        ),
+      const consultation = cli.buildCastConsultation(
+        each,
+        castAutomatically(cli),
+        'automatic',
       )
+      await cli.keepCastConsultation(consultation)
+      returned.push(consultation)
     }
     const after = Date.now()
 

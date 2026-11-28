@@ -151,7 +151,7 @@ function castByPicks(cli: Composed, picks: readonly number[]): CompleteCasting {
  * date.
  */
 async function keepThree(cli: Composed) {
-  const cast = await cli.keepCastConsultation(
+  const cast = cli.buildCastConsultation(
     query('Should the granary at Greyfen Hold be rebuilt before winter?'),
     castByPicks(
       cli,
@@ -159,6 +159,7 @@ async function keepThree(cli: Composed) {
     ),
     'automatic',
   )
+  await cli.keepCastConsultation(cast)
   const onADay = await cli.recordConsultation(
     query("Will Steward Aelric's embassy to Westmill succeed?"),
     day(2026, 11, 2),

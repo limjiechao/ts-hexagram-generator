@@ -6,6 +6,7 @@ import type { CommandIo } from '#src/commands/entry-point.js'
 
 export const processIo: CommandIo = {
   stdin: process.stdin,
+  signals: process,
   stdout: process.stdout,
   stderr: process.stderr,
   isTTY: process.stdout.isTTY,
@@ -21,7 +22,8 @@ const fakeOutput = {
 }
 
 export const fakeIo: CommandIo = {
-  stdin: { on: (): void => {}, off: (): void => {} },
+  stdin: { on: (): void => {}, off: (): void => {}, pause: (): void => {} },
+  signals: { on: (): void => {}, off: (): void => {} },
   stdout: { ...fakeOutput, isTTY: true, columns: 80, rows: 32 },
   stderr: fakeOutput,
   isTTY: true,

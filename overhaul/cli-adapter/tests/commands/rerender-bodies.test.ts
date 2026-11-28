@@ -166,7 +166,8 @@ async function rerender(ports: CommandPorts, isTTY = false) {
   const stdout: string[] = []
   const stderr: string[] = []
   const io: CommandIo = {
-    stdin: { isTTY, on: () => {}, off: () => {} },
+    stdin: { isTTY, on: () => {}, off: () => {}, pause: () => {} },
+    signals: { on: () => {}, off: () => {} },
     stdout: fakeOutput(stdout, isTTY),
     stderr: fakeOutput(stderr, isTTY),
     isTTY,
@@ -289,9 +290,9 @@ describe('hexagram-history --rerender-bodies over a temporary Journal', () => {
     expect(ended).toEqual({
       exitCode: 1,
       stdout: '',
-      stderr: line(journalFailureLine('written')),
+      stderr: line(journalFailureLine('hexagram-history', 'written')),
     })
-    expect(journalFailureLine('written')).toBe(
+    expect(journalFailureLine('hexagram-history', 'written')).toBe(
       'hexagram-history: the Journal cannot be written',
     )
   })
@@ -307,7 +308,7 @@ describe('hexagram-history --rerender-bodies over a temporary Journal', () => {
     expect(ended).toEqual({
       exitCode: 1,
       stdout: '',
-      stderr: line(journalFailureLine('written')),
+      stderr: line(journalFailureLine('hexagram-history', 'written')),
     })
     expect(await snapshot(journalFolder)).toEqual(before)
   })

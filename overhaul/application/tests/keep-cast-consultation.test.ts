@@ -1,3 +1,4 @@
+import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
 import { isConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import {
   isUtcOffset,
@@ -13,7 +14,10 @@ import { beginCasting } from '#src/begin-casting.js'
 import type { Clock } from '#src/clock.js'
 import type { ConsultationStore } from '#src/consultation-store.js'
 import { divide } from '#src/divide.js'
-import { keepCastConsultation } from '#src/keep-cast-consultation.js'
+import {
+  buildCastConsultation,
+  keepCastConsultation,
+} from '#src/keep-cast-consultation.js'
 import type { RandomSource } from '#src/random-source.js'
 
 // Every Query below is invented.
@@ -110,18 +114,35 @@ function stubPorts(
   }
 }
 
+/**
+ * Use case 1's last step whole: builds the Cast Consultation, keeps it, and
+ * resolves to what was kept, so a throw while building rejects as the keep
+ * did before the split.
+ */
+async function buildThenKeep(
+  ports: Parameters<typeof buildCastConsultation>[0] &
+    Parameters<typeof keepCastConsultation>[0],
+  query: Query,
+  casting: CompleteCasting,
+  divisionMethod: DivisionMethod,
+): Promise<CastConsultation> {
+  const consultation = buildCastConsultation(
+    ports,
+    query,
+    casting,
+    divisionMethod,
+  )
+  await keepCastConsultation(ports, consultation)
+  return consultation
+}
+
 const aQuery = query('Should the invented guild open a second workshop?')
 
 describe('keepCastConsultation', () => {
   it("keeps a Cast Consultation of the Query, the Clock's Moment, the Casting with its Transformation, and the Division Method, and returns what it kept", async () => {
     const { ports, keep } = stubPorts()
 
-    const kept = await keepCastConsultation(
-      ports,
-      aQuery,
-      mixedCasting,
-      'virtual',
-    )
+    const kept = await buildThenKeep(ports, aQuery, mixedCasting, 'virtual')
 
     expect(kept).toStrictEqual({
       origin: 'cast',
@@ -140,7 +161,7 @@ describe('keepCastConsultation', () => {
     const descending = Array.from({ length: 16 }, (_, at) => 31 - at)
     const { ports } = stubPorts({ draws: descending })
 
-    const { id } = await keepCastConsultation(
+    const { id } = await buildThenKeep(
       ports,
       aQuery,
       oldYangCasting,
@@ -155,7 +176,7 @@ describe('keepCastConsultation', () => {
   it('draws integerBelow(32) exactly sixteen times', async () => {
     const { ports, bounds } = stubPorts()
 
-    await keepCastConsultation(ports, aQuery, oldYangCasting, 'automatic')
+    await buildThenKeep(ports, aQuery, oldYangCasting, 'automatic')
 
     expect(bounds).toStrictEqual(Array.from({ length: 16 }, () => 32))
   })
@@ -169,12 +190,7 @@ describe('keepCastConsultation', () => {
         .mockReturnValue(later),
     })
 
-    const kept = await keepCastConsultation(
-      ports,
-      aQuery,
-      oldYangCasting,
-      'physical',
-    )
+    const kept = await buildThenKeep(ports, aQuery, oldYangCasting, 'physical')
 
     expect(now).toHaveBeenCalledTimes(1)
     expect(kept.id.slice(0, 10)).toBe(clockTime)
@@ -186,12 +202,7 @@ describe('keepCastConsultation', () => {
     const westOfGreenwich = moment(1_469_918_176_385, '-03:30')
     const { ports } = stubPorts({ now: () => westOfGreenwich })
 
-    const kept = await keepCastConsultation(
-      ports,
-      aQuery,
-      oldYangCasting,
-      'automatic',
-    )
+    const kept = await buildThenKeep(ports, aQuery, oldYangCasting, 'automatic')
 
     expect(kept.divinedAt).toStrictEqual({
       precision: 'moment',
@@ -206,7 +217,7 @@ describe('keepCastConsultation', () => {
     async (divisionMethod) => {
       const { ports, keep } = stubPorts()
 
-      const kept = await keepCastConsultation(
+      const kept = await buildThenKeep(
         ports,
         aQuery,
         oldYangCasting,
@@ -226,7 +237,7 @@ describe('keepCastConsultation', () => {
     )
     const { ports } = stubPorts()
 
-    const kept = await keepCastConsultation(
+    const kept = await buildThenKeep(
       ports,
       written,
       oldYangCasting,
@@ -241,12 +252,7 @@ describe('keepCastConsultation', () => {
   it('keeps a Consultation at the Unix epoch, its time characters 0000000000', async () => {
     const { ports } = stubPorts({ now: () => moment(0, '+00:00') })
 
-    const kept = await keepCastConsultation(
-      ports,
-      aQuery,
-      oldYangCasting,
-      'automatic',
-    )
+    const kept = await buildThenKeep(ports, aQuery, oldYangCasting, 'automatic')
 
     expect(kept.id).toBe('00000000000123456789ABCDEF')
   })
@@ -256,12 +262,7 @@ describe('keepCastConsultation', () => {
       now: () => moment(2 ** 48 - 1, '+00:00'),
     })
 
-    const kept = await keepCastConsultation(
-      ports,
-      aQuery,
-      oldYangCasting,
-      'automatic',
-    )
+    const kept = await buildThenKeep(ports, aQuery, oldYangCasting, 'automatic')
 
     expect(kept.id).toBe('7ZZZZZZZZZ0123456789ABCDEF')
     expect(keep).toHaveBeenCalledTimes(1)
@@ -279,7 +280,7 @@ describe('keepCastConsultation', () => {
       })
 
       await expect(
-        keepCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+        buildThenKeep(ports, aQuery, oldYangCasting, 'automatic'),
       ).rejects.toBeInstanceOf(Error)
       expect(keep).not.toHaveBeenCalled()
     },
@@ -294,7 +295,7 @@ describe('keepCastConsultation', () => {
     })
 
     await expect(
-      keepCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+      buildThenKeep(ports, aQuery, oldYangCasting, 'automatic'),
     ).rejects.toBe(failure)
     expect(keep).not.toHaveBeenCalled()
   })
@@ -308,7 +309,7 @@ describe('keepCastConsultation', () => {
     })
 
     await expect(
-      keepCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+      buildThenKeep(ports, aQuery, oldYangCasting, 'automatic'),
     ).rejects.toBe(failure)
     expect(keep).not.toHaveBeenCalled()
   })
@@ -318,7 +319,7 @@ describe('keepCastConsultation', () => {
     const { ports } = stubPorts({ keep: () => Promise.reject(failure) })
 
     await expect(
-      keepCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+      buildThenKeep(ports, aQuery, oldYangCasting, 'automatic'),
     ).rejects.toBe(failure)
   })
 })

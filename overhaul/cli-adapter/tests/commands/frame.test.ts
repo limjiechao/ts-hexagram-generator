@@ -64,7 +64,13 @@ function fakeOutput(chunks: string[], terminal: Terminal): CommandOutput {
 
 function fakeIo(recorded: Recorded, terminal: Terminal): CommandIo {
   return {
-    stdin: { isTTY: terminal.isTTY, on: () => {}, off: () => {} },
+    stdin: {
+      isTTY: terminal.isTTY,
+      on: () => {},
+      off: () => {},
+      pause: () => {},
+    },
+    signals: { on: () => {}, off: () => {} },
     stdout: fakeOutput(recorded.stdout, terminal),
     stderr: fakeOutput(recorded.stderr, terminal),
     isTTY: terminal.isTTY,

@@ -281,7 +281,8 @@ async function history(argv: readonly string[], ports: CommandPorts) {
   const stdout: string[] = []
   const stderr: string[] = []
   const io: CommandIo = {
-    stdin: { isTTY: false, on: () => {}, off: () => {} },
+    stdin: { isTTY: false, on: () => {}, off: () => {}, pause: () => {} },
+    signals: { on: () => {}, off: () => {} },
     stdout: fakeOutput(stdout),
     stderr: fakeOutput(stderr),
     isTTY: false,

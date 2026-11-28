@@ -235,7 +235,8 @@ describe('no spawned row reaches a keep or a maintenance run', () => {
     const stderr: string[] = []
     const touched: string[] = []
     const io: CommandIo = {
-      stdin: { isTTY: false, on: () => {}, off: () => {} },
+      stdin: { isTTY: false, on: () => {}, off: () => {}, pause: () => {} },
+      signals: { on: () => {}, off: () => {} },
       stdout: fakeOutput(stdout),
       stderr: fakeOutput(stderr),
       isTTY: false,

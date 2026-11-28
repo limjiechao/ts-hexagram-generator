@@ -124,9 +124,7 @@ describe('composeCli for keeping and recording a Consultation', () => {
   it('gives keepCastConsultation and recordConsultation the signatures @hexagram/application gives them, minus their ports', () => {
     expectTypeOf<Composed['keepCastConsultation']>().toEqualTypeOf<
       (
-        query: Parameters<typeof keepCastConsultation>[1],
-        casting: Parameters<typeof keepCastConsultation>[2],
-        divisionMethod: Parameters<typeof keepCastConsultation>[3],
+        consultation: Parameters<typeof keepCastConsultation>[1],
       ) => ReturnType<typeof keepCastConsultation>
     >()
     expectTypeOf<Composed['recordConsultation']>().toEqualTypeOf<
@@ -154,7 +152,8 @@ describe('composeCli for keeping and recording a Consultation', () => {
     )
 
     const casting = castAutomatically(cli)
-    const kept = await cli.keepCastConsultation(aQuery, casting, 'automatic')
+    const kept = cli.buildCastConsultation(aQuery, casting, 'automatic')
+    await cli.keepCastConsultation(kept)
 
     expect(kept).toStrictEqual({
       origin: 'cast',
