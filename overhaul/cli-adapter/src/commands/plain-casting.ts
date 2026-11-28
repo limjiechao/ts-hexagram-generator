@@ -447,9 +447,10 @@ function lineReader(stdin: CommandInput): LineReader {
 /**
  * What the run hears besides lines, from start to end: `Ctrl+C` and a
  * stdin error go to the reader, which ignores them once closed; a stdout
- * error, by its event or a write's callback, is remembered once, so the keep still runs and its line comes after;
- * a stderr error is heard and ignored, since there is nowhere left to say
- * so. Unheard, a stream's error would end the process.
+ * error, by its event or a write's callback, is remembered once, so the
+ * keep still runs and its line comes after; a stderr error is heard and
+ * ignored, since there is nowhere left to say so. Unheard, a stream's
+ * error would end the process.
  */
 function watchingStreams(
   io: CommandIo,
