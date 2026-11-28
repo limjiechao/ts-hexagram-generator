@@ -182,10 +182,12 @@ function endWithLine(io: CommandIo, text: string): ExitCode {
  * Whether no newline was echoed after a prompt, so stderr must end the
  * prompt's line itself, once. A terminal echoes the Enter of an answer
  * typed at it, but no newline for `Ctrl+C`, for stdin's end, for a stdin
- * that cannot be read, or for an answer piped in.
+ * that cannot be read, for an answer piped in, or for a last line that
+ * stdin's end, not Enter, ended.
  */
 function echoedNoNewline(io: CommandIo, answer: Answer): boolean {
-  return answer.kind === 'line' ? io.stdin.isTTY !== true : true
+  if (answer.kind !== 'line') return true
+  return !answer.endedByNewline || io.stdin.isTTY !== true
 }
 
 /**
@@ -331,7 +333,12 @@ async function showThenKeep(
 
 /** What a prompt gets: a line, the end of stdin, a stdin error, or `Ctrl+C`. */
 type Answer =
-  | { readonly kind: 'line'; readonly line: string }
+  | {
+      readonly kind: 'line'
+      readonly line: string
+      /** False for a last line that stdin's end ended instead. */
+      readonly endedByNewline: boolean
+    }
   | { readonly kind: 'end' }
   | { readonly kind: 'unreadable' }
   | { readonly kind: 'interrupt' }
@@ -364,7 +371,8 @@ function withoutFinalReturn(line: string): string {
  */
 function lineReader(stdin: CommandInput): LineReader {
   const decoder = new TextDecoder('utf-8')
-  const lines: string[] = []
+  const lines: { readonly line: string; readonly endedByNewline: boolean }[] =
+    []
   let partial = ''
   let ended = false
   let unreadable = false
@@ -379,8 +387,8 @@ function lineReader(stdin: CommandInput): LineReader {
 
   function offer(): void {
     if (waiting === undefined) return
-    const line = lines.shift()
-    if (line !== undefined) answer({ kind: 'line', line })
+    const next = lines.shift()
+    if (next !== undefined) answer({ kind: 'line', ...next })
     else if (unreadable) answer({ kind: 'unreadable' })
     else if (ended) answer({ kind: 'end' })
   }
@@ -393,7 +401,7 @@ function lineReader(stdin: CommandInput): LineReader {
     let newline = partial.indexOf('\n')
     while (newline !== -1) {
       const line = partial.slice(0, newline)
-      lines.push(withoutFinalReturn(line))
+      lines.push({ line: withoutFinalReturn(line), endedByNewline: true })
       partial = partial.slice(newline + 1)
       newline = partial.indexOf('\n')
     }
@@ -402,7 +410,8 @@ function lineReader(stdin: CommandInput): LineReader {
 
   function onEnd(): void {
     partial += decoder.decode()
-    if (partial !== '') lines.push(withoutFinalReturn(partial))
+    if (partial !== '')
+      lines.push({ line: withoutFinalReturn(partial), endedByNewline: false })
     partial = ''
     ended = true
     offer()
