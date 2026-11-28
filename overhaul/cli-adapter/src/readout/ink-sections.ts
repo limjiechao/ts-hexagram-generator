@@ -1,5 +1,8 @@
 import type { ConsultationReadout } from '@hexagram/presentation/readout'
 
+import { paletteFor } from '#src/readout/palette.js'
+import { readoutSections } from '#src/readout/readout-sections.js'
+
 /**
  * The strings the full-screen Readout shows: the Query above the tabs, and
  * one string for each of the four tabs. The Emerging Hexagram tab is always
@@ -25,5 +28,5 @@ export function inkSections(
   readout: ConsultationReadout,
   options: { readonly colour: boolean },
 ): InkSections {
-  throw new Error('not built', { cause: { readout, options } })
+  return readoutSections(readout, paletteFor(options.colour))
 }

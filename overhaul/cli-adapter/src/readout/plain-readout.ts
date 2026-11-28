@@ -1,5 +1,8 @@
 import type { ConsultationReadout } from '@hexagram/presentation/readout'
 
+import { paletteFor } from '#src/readout/palette.js'
+import { readoutSections } from '#src/readout/readout-sections.js'
+
 /**
  * The plain output of a Consultation's Readout, as `--plain` prints it to
  * stdout: the Query, then each tab as a titled section in tab order
@@ -14,5 +17,7 @@ export function plainReadout(
   readout: ConsultationReadout,
   options: { readonly colour: boolean },
 ): string {
-  throw new Error('not built', { cause: { readout, options } })
+  const { query, casting, transformation, standing, emerging } =
+    readoutSections(readout, paletteFor(options.colour))
+  return `\n\n${query}\n\n${casting}\n\n${transformation}\n\n\n${standing}\n\n\n${emerging}\n`
 }
