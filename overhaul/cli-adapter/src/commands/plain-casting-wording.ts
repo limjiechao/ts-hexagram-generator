@@ -79,8 +79,9 @@ export function castingUnfinishedLine(command: PlainCastingCommand): string {
 }
 
 /**
- * The one line on stderr, before exit 1, when stdin cannot be read before
- * a Query is given. Nothing is kept.
+ * The one line on stderr, before exit 1, when stdin cannot be read while
+ * the run still reads it, at the Query or at any Pick. Nothing is kept.
+ * Once nothing more is read, a stdin error is heard and ignored.
  */
 export function stdinUnreadableLine(command: PlainCastingCommand): string {
   return `${command}: stdin cannot be read`

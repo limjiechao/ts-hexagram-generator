@@ -73,6 +73,9 @@ import { consultationReadoutFor } from '#src/readout/readout-for.js'
  *   nothing kept;
  * - stdin ends mid-Casting (Virtual): the Casting-unfinished line, exit 1,
  *   nothing kept;
+ * - stdin cannot be read while the run still reads it, at the Query or at
+ *   a Pick: the stdin line, exit 1, nothing kept. Once nothing more is
+ *   read, a stdin error is heard and ignored;
  * - `Ctrl+C` while a prompt waits, at the Query or at a Pick: a newline on
  *   stderr, so the shell's prompt starts its own line, exit 0, nothing
  *   kept. From the last line read to the end of the run, `Ctrl+C` is
