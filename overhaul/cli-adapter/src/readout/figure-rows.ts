@@ -77,7 +77,7 @@ export function transformationRows(
 const nonEmpty = (...parts: readonly string[]): string =>
   parts.filter((part) => part !== '').join(' ')
 
-/** A Trigram's imagery in its first Edition, and in the others. */
+/** A Trigram's imagery in its first Edition, and in the others joined by " · ". */
 const imagery = (
   names: readonly TrigramName[],
 ): { readonly first: string; readonly others: string } => ({
@@ -85,7 +85,7 @@ const imagery = (
   others: names
     .slice(1)
     .map((each) => each.imagery)
-    .join(' / '),
+    .join(' · '),
 })
 
 /**
