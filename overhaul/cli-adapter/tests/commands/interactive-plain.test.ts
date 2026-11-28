@@ -1416,3 +1416,56 @@ describe('hexagram-interactive in plain mode: the Reading Preference options, ch
     expect(await filesIn(path.dirname(journalFolder))).toEqual([])
   })
 })
+
+describe('hexagram-interactive in plain mode: a stdin that fails mid-Casting, and lines after the last Pick', () => {
+  it.each([
+    { shown: 'stdin not a TTY', stdinIsTTY: false },
+    { shown: 'stdin a TTY', stdinIsTTY: true },
+  ])(
+    'stdin cannot be read at a Pick prompt, $shown: a newline, the stdin line, exit 1, nothing kept',
+    async ({ stdinIsTTY }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runInteractive(
+        ['--plain'],
+        [
+          asked(),
+          ...picked(allMovingPicks.slice(0, 5)),
+          stdinFails(new Error('an invented read error')),
+        ],
+        { journalFolder, isTTY: true, stdinIsTTY },
+      )
+
+      const newline = !stdinIsTTY
+      expect(ended.stderr).toBe(
+        welcome +
+          queryPrompt +
+          (newline ? '\n' : '') +
+          roundsText(5, colourful, { newline }) +
+          roundText(allMovingPicks, 5, colourful, { newline: true }) +
+          stdinUnreadable,
+      )
+      expect(ended.stdout).toBe('')
+      expect(ended.exitCode).toBe(1)
+      expect(ended.touched).not.toContain('Consultation Store')
+      expect(ended.pauses).toBeGreaterThan(0)
+      expect(await filesIn(path.dirname(journalFolder))).toEqual([])
+    },
+  )
+
+  it('lines after the eighteenth Pick are ignored: one Consultation kept, exit 0', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runInteractive(
+      [],
+      [...wholeCasting(), typed('5\nmore\n')],
+      { journalFolder },
+    )
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(allMovingFixture)
+    expect(ended.stderr).toBe(
+      welcome + promptLine + allRounds + keptLine(journalFolder, expected),
+    )
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+})
