@@ -1,5 +1,6 @@
 import path from 'node:path'
 
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
 import { isConsultationId } from '@hexagram/consultation-journal/consultation-id'
@@ -37,7 +38,6 @@ import {
 } from '#src/commands/plain-casting-wording.js'
 import { paletteFor, type Palette } from '#src/readout/palette.js'
 import { plainReadout } from '#src/readout/plain-readout.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 import {
   brokenPipe,

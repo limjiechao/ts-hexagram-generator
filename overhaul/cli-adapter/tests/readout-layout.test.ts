@@ -1,5 +1,6 @@
 import { stripVTControlCharacters } from 'node:util'
 
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
 import { isConsultationId } from '@hexagram/consultation-journal/consultation-id'
@@ -13,7 +14,6 @@ import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-pr
 import { describe, expect, it } from 'vitest'
 
 import { plainReadout } from '#src/readout/plain-readout.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 // The plain Readout's layout under Reading Preferences other than the
 // default, which the byte fixtures do not reach: the Transformation tab's

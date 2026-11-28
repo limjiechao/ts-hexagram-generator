@@ -1,9 +1,9 @@
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import { defaultReadingPreference } from '@hexagram/scripture-catalogue/default-reading-preference'
 import { describe, expect, it } from 'vitest'
 
 import { plainReadout } from '#src/readout/plain-readout.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 import { readoutCases, readoutFixture } from './support/readout-cases.js'
 

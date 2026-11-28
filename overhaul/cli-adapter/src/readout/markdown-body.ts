@@ -1,3 +1,4 @@
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { divinedAtText } from '@hexagram/presentation/build-readout'
 import type {
@@ -13,7 +14,6 @@ import type { RenderBody } from '@hexagram/store-markdown/markdown-consultation-
 import { diagramRows } from '#src/readout/figure-rows.js'
 import { ledgerGrid } from '#src/readout/ledger-grid.js'
 import { paletteFor } from '#src/readout/palette.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 import {
   divisionMethodNames,
   numberAndNames,

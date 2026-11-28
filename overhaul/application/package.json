@@ -23,6 +23,11 @@
       "types": "./dist/clock.d.mts",
       "import": "./dist/clock.mjs"
     },
+    "./consultation-readout": {
+      "source": "./src/consultation-readout.ts",
+      "types": "./dist/consultation-readout.d.mts",
+      "import": "./dist/consultation-readout.mjs"
+    },
     "./consultation-store": {
       "source": "./src/consultation-store.ts",
       "types": "./dist/consultation-store.d.mts",

@@ -1,10 +1,3 @@
-import {
-  lookUpHexagramNames,
-  lookUpReceivedSequenceNumber,
-  lookUpTrigramNames,
-} from '@hexagram/application/look-up-catalogue'
-import { resolveTransformation } from '@hexagram/application/resolve-transformation'
-import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
 import {
   consultationReadout,
@@ -17,6 +10,14 @@ import type {
 } from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 import type { TrigramName } from '@hexagram/scripture-catalogue/trigram-name'
+
+import {
+  lookUpHexagramNames,
+  lookUpReceivedSequenceNumber,
+  lookUpTrigramNames,
+} from '#src/look-up-catalogue.js'
+import { resolveTransformation } from '#src/resolve-transformation.js'
+import type { ScriptureCatalogue } from '#src/scripture-catalogue.js'
 
 /**
  * A Consultation's Readout in the Reading Preference given: use case 3

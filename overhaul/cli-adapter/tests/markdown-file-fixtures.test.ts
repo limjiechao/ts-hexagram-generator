@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import { defaultReadingPreference } from '@hexagram/scripture-catalogue/default-reading-preference'
 import { markdownConsultationStore } from '@hexagram/store-markdown/markdown-consultation-store'
@@ -12,7 +13,6 @@ import {
   markdownBody,
   markdownBodyRenderer,
 } from '#src/readout/markdown-body.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 import { readoutCases } from './support/readout-cases.js'
 

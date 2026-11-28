@@ -1,6 +1,7 @@
 import type { Buffer } from 'node:buffer'
 import path from 'node:path'
 
+import { consultationReadoutFor } from '@hexagram/application/consultation-readout'
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
 import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
@@ -43,7 +44,6 @@ import {
 import { composeCli } from '#src/composition-root.js'
 import { paletteFor, type Palette } from '#src/readout/palette.js'
 import { plainReadout } from '#src/readout/plain-readout.js'
-import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 /*
  * Plain casting (CLI manual, sections 6.3 and 6.4): with `--plain`, or a

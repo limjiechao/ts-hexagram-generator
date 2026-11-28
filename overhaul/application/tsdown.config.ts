@@ -5,6 +5,7 @@ export default defineConfig({
     './src/begin-casting.ts',
     './src/browse-consultations.ts',
     './src/clock.ts',
+    './src/consultation-readout.ts',
     './src/consultation-store.ts',
     './src/delete-consultation.ts',
     './src/divide.ts',
