@@ -67,12 +67,14 @@ export interface CommandIo {
 /**
  * The adapters a command works through: the four driven ports, as the
  * composition root takes them (ADR-0037), the Journal's folder (ADR-0020),
- * and the Markdown Store's move of an imported original into `legacy/`,
- * which no port offers since only that Store has the folder.
+ * and the Markdown Store's own maintenance, which no port offers since only
+ * that Store has the folder: its move of an imported original into
+ * `legacy/`, and its re-rendering of every body.
  */
 export type CommandPorts = Parameters<typeof composeCli>[0] & {
   readonly journalFolder: string
   readonly moveToLegacy: MarkdownConsultationStore['moveToLegacy']
+  readonly rerenderBodies: MarkdownConsultationStore['rerenderBodies']
 }
 
 /**

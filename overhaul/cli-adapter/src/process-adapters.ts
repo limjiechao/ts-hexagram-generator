@@ -42,7 +42,8 @@ const consultationStore: ConsultationStore = {
  * `node:crypto`, the bundled Scripture Catalogue, a throwing stub for the
  * Consultation Store until its adapter lands, and the Journal's folder
  * (ADR-0020).
- * `moveToLegacy` is a throwing stub until the bin builds the Markdown Store.
+ * `moveToLegacy` and `rerenderBodies` are throwing stubs until the bin
+ * builds the Markdown Store.
  *
  * Drafted for ratification, not yet built: the bin builds the Markdown
  * Consultation Store over the Journal's folder with
@@ -63,5 +64,6 @@ export function processPorts(process: NodeJS.Process): CommandPorts {
     consultationStore,
     journalFolder: journalFolder(),
     moveToLegacy: notBuilt('Markdown Consultation Store'),
+    rerenderBodies: notBuilt('Markdown Consultation Store'),
   }
 }

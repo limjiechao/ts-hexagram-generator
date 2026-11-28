@@ -68,8 +68,8 @@ export function exportedLine(
 }
 
 /** A count and its noun, singular for a count of one. */
-function counted(count: number, noun: string): string {
-  return `${String(count)} ${noun}${count === 1 ? '' : 's'}`
+function counted(count: number, noun: string, plural = `${noun}s`): string {
+  return `${String(count)} ${count === 1 ? noun : plural}`
 }
 
 /**
@@ -236,5 +236,5 @@ export function importedLine(counts: {
  * instead, and no count.
  */
 export function rerenderedLine(rewritten: number): string {
-  throw new Error('not built', { cause: rewritten })
+  return `Re-rendered ${counted(rewritten, 'body', 'bodies')}.`
 }

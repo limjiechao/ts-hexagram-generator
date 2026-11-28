@@ -19,6 +19,7 @@ import {
   notBuiltLine,
   type MaintenanceOption,
 } from '#src/commands/not-built.js'
+import { rerenderBodiesRun } from '#src/commands/rerender-bodies-run.js'
 
 const divisionMethods = [
   'physical',
@@ -89,6 +90,9 @@ export const run: Command = (argv, io, ports) => {
   if (exportFile !== undefined) return exportJournalRun(exportFile, io, ports)
   const [mergeFile] = given.get('--merge-journal') ?? []
   if (mergeFile !== undefined) return mergeJournalRun(mergeFile, io, ports)
+  if (maintenance === '--rerender-bodies') {
+    return rerenderBodiesRun(io, ports.rerenderBodies)
+  }
   const importPaths = given.get('--import-legacy')
   const [divisionMethod] = given.get('--division-method') ?? []
   if (importPaths !== undefined && isDivisionMethod(divisionMethod)) {
