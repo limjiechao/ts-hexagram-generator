@@ -24,6 +24,8 @@
     "@hexagram/oracle": "workspace:*",
     "@hexagram/presentation": "workspace:*",
     "@hexagram/scripture-catalogue": "workspace:*",
-    "@hexagram/store-markdown": "workspace:*"
+    "@hexagram/store-markdown": "workspace:*",
+    "@myriaddreamin/typst-ts-web-compiler": "0.7.0",
+    "@myriaddreamin/typst.ts": "0.7.0"
   }
 }
