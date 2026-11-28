@@ -6806,3 +6806,19 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   ending; nothing was echoed, so R-538's reason holds. For the owner's
   digest as an application of R-538.
 - Folded into: not yet
+
+### R-541: M-014 slice 1's final review items
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1, final review (through ee1af9d)
+- Ruled by: delegate (R-423)
+- Ruling: (1) A — a line ended by end of input rather than a newline also
+  gets the newline on stderr, TTY or not, applying R-538's "wherever the
+  terminal echoed none"; a tester pins a TTY row (`abc` then end, no
+  newline) first. (2) a row for a TTY stdin that cannot be read at the
+  Query prompt (newline, then the stdin line, exit 1, nothing kept). (3) a
+  synchronous throw from `stdout.write` is accepted, unguarded. One
+  over-long comment line in `plain-casting.ts` is rewrapped (Tier B).
+- Reason: R-536 to R-540; AGENTS.md §6 and §7. For the owner's digest as an
+  application of R-538.
+- Folded into: not yet
