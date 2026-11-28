@@ -283,11 +283,16 @@ describe('the export fonts cover every character the export can set', () => {
  * the rows hold in a clone without LFS too.
  */
 const expectedSha256: Readonly<Record<string, string>> = {
-  'LibertinusSerif-Regular.otf': '',
-  'LibertinusSerif-Bold.otf': '',
-  'LibertinusSerif-Italic.otf': '',
-  'NotoSerifCJKtc-Regular.otf': '',
-  'NotoSansSymbols2-Regular.ttf': '',
+  'LibertinusSerif-Regular.otf':
+    'fcf06307a77367394fcb0ccb241e59eea70dba3d732be309647611224679c733',
+  'LibertinusSerif-Bold.otf':
+    '0264914210ed51b3231ebc92ce529e9f2e166ba9eebf0cd4a579558690a27b64',
+  'LibertinusSerif-Italic.otf':
+    '9a393d63d6e05f620d3dc0190dfd35a8ede58c0808cf0fc9de7fcb9c723e4c24',
+  'NotoSerifCJKtc-Regular.otf':
+    '234301038e76e7c35c43113785024700c4e4fe7bdce1d1fbbc42fca7e6683798',
+  'NotoSansSymbols2-Regular.ttf':
+    '3ce38effdb615dd929c8b0f52768dfa2cd21f206e3824bc7df61e4074b41ae52',
 }
 
 /** The SHA-256 of a font's bytes, or the one its LFS pointer names. */
