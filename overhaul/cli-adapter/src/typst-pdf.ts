@@ -3,6 +3,7 @@ import path from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 import type { typstFontFamilies } from '@hexagram/presentation/typst-export'
+import type { TypstFontResolverBuilder } from '@myriaddreamin/typst-ts-web-compiler'
 
 /*
  * The PDF side of `hexagram-history --export` (use case 9): Typst source
@@ -56,11 +57,17 @@ export class ExportFontsError extends Error {
   /**
    * `missing` when no file holds the name; `not-a-font` when the file does
    * not begin as an OpenType or TrueType font does, which is how a Git LFS
-   * pointer left by a clone without LFS reads.
+   * pointer left by a clone without LFS reads; `unreadable` when the file
+   * is there but cannot be read, or begins as a font does but Typst takes
+   * no font face from it.
    */
-  readonly reason: 'missing' | 'not-a-font'
+  readonly reason: 'missing' | 'not-a-font' | 'unreadable'
 
-  constructor(file: string, reason: 'missing' | 'not-a-font', cause?: unknown) {
+  constructor(
+    file: string,
+    reason: 'missing' | 'not-a-font' | 'unreadable',
+    cause?: unknown,
+  ) {
     super(`the export's font ${file} cannot be loaded`, { cause })
     this.file = file
     this.reason = reason
@@ -111,8 +118,10 @@ const fontHeads: ReadonlySet<string> = new Set([
  * Every file of `exportFontFiles` from `fontFolder`, checked, in order. The
  * first that cannot be loaded rejects with its `ExportFontsError`.
  */
-async function exportFonts(fontFolder: string): Promise<Uint8Array[]> {
-  const fonts: Uint8Array[] = []
+async function exportFonts(
+  fontFolder: string,
+): Promise<{ readonly file: string; readonly bytes: Uint8Array }[]> {
+  const fonts: { readonly file: string; readonly bytes: Uint8Array }[] = []
   for (const { file } of exportFontFiles) {
     let bytes: Uint8Array
     try {
@@ -120,14 +129,13 @@ async function exportFonts(fontFolder: string): Promise<Uint8Array[]> {
     } catch (error) {
       const code =
         error instanceof Error && 'code' in error ? error.code : undefined
-      if (code === 'ENOENT' || code === 'ENOTDIR') {
-        throw new ExportFontsError(file, 'missing', error)
-      }
-      throw error
+      const reason =
+        code === 'ENOENT' || code === 'ENOTDIR' ? 'missing' : 'unreadable'
+      throw new ExportFontsError(file, reason, error)
     }
     const head = new TextDecoder('latin1').decode(bytes.subarray(0, 4))
     if (!fontHeads.has(head)) throw new ExportFontsError(file, 'not-a-font')
-    fonts.push(bytes)
+    fonts.push({ file, bytes })
   }
   return fonts
 }
@@ -152,9 +160,21 @@ async function loadedCompiler(fontFolder: string): Promise<CompilePdf> {
     getWrapper: () => Promise.resolve(wrapper),
     beforeBuild: [
       typst.initOptions.disableDefaultFontAssets(),
-      typst.loadFonts(fonts),
+      typst.loadFonts(fonts.map(({ bytes }) => bytes)),
     ],
   })
+  // Typst drops a font it cannot parse without a word, and would set the
+  // text in another face; asking its own parser for each file's faces
+  // finds the one it dropped.
+  const faces = new wrapper.TypstFontResolverBuilder()
+  try {
+    for (const { file, bytes } of fonts) {
+      if (!holdsFace(faces, bytes))
+        throw new ExportFontsError(file, 'unreadable')
+    }
+  } finally {
+    faces.free()
+  }
   // The source is the only file Typst is given, under this one path.
   const mainFilePath = '/main.typ'
   return async (source) => {
@@ -167,4 +187,27 @@ async function loadedCompiler(fontFolder: string): Promise<CompilePdf> {
     if (result === undefined) throw new TypstCompileError(diagnostics ?? [])
     return result
   }
+}
+
+/**
+ * Whether Typst's font parser finds at least one face in `bytes`: it
+ * answers `{ info: [...] }`, one entry for each face it takes.
+ */
+function holdsFace(
+  faces: TypstFontResolverBuilder,
+  bytes: Uint8Array,
+): boolean {
+  let found: unknown
+  try {
+    found = faces.get_font_info(bytes)
+  } catch {
+    return false
+  }
+  return (
+    typeof found === 'object' &&
+    found !== null &&
+    'info' in found &&
+    Array.isArray(found.info) &&
+    found.info.length > 0
+  )
 }
