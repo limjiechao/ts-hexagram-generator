@@ -320,11 +320,17 @@ interface LineReader {
   readonly close: () => void
 }
 
+/** A line without the `\r` that a CR LF or CR-ended input leaves on it. */
+function withoutFinalReturn(line: string): string {
+  return line.endsWith('\r') ? line.slice(0, -1) : line
+}
+
 /**
  * Reads stdin line by line from the moment it is made. A line's newline,
  * and a `\r` before it, are dropped; a last line with no newline still
- * counts. Bytes are decoded as UTF-8 as they come, so a character split
- * across chunks is read whole.
+ * counts, a `\r` at the very end of input dropped as well. Bytes are
+ * decoded as UTF-8 as they come, so a character split across chunks is
+ * read whole.
  */
 function lineReader(stdin: CommandInput): LineReader {
   const decoder = new TextDecoder('utf-8')
@@ -355,7 +361,7 @@ function lineReader(stdin: CommandInput): LineReader {
     let newline = partial.indexOf('\n')
     while (newline !== -1) {
       const line = partial.slice(0, newline)
-      lines.push(line.endsWith('\r') ? line.slice(0, -1) : line)
+      lines.push(withoutFinalReturn(line))
       partial = partial.slice(newline + 1)
       newline = partial.indexOf('\n')
     }
@@ -364,7 +370,7 @@ function lineReader(stdin: CommandInput): LineReader {
 
   function onEnd(): void {
     partial += decoder.decode()
-    if (partial !== '') lines.push(partial)
+    if (partial !== '') lines.push(withoutFinalReturn(partial))
     partial = ''
     ended = true
     offer()
