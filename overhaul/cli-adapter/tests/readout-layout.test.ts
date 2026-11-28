@@ -336,6 +336,32 @@ describe('(B) several Editions on one line', () => {
   })
 })
 
+describe('several Translations in the diagram', () => {
+  it('Simplified, Wilhelm–Baynes and Legge: the brace rows join the Translations\' imagery with " · "', async () => {
+    const [readout] = await stillReadouts([48], simplifiedWithBoth)
+    if (readout === undefined) throw new Error('no 井')
+    const braces = stripped(plainReadout(readout, { colour: true }))
+      .split('\n')
+      .filter((line) => line.includes('──┘'))
+    for (const [trigram, where] of [
+      [readout.standing.figure.upperTrigram, 'upper'],
+      [readout.standing.figure.lowerTrigram, 'lower'],
+    ] as const) {
+      const translations = trigram.slice(1)
+      expect(translations.map((each) => each.edition.id)).toEqual([
+        'wilhelm-baynes-1967',
+        'legge-1882',
+      ])
+      expect(translations.every((each) => each.imagery !== '')).toBe(true)
+      const imagery = translations.map((each) => each.imagery).join(' · ')
+      const row = braces.find((line) => line.endsWith(`(${where} trigram)`))
+      expect(row?.slice(row.indexOf('──┘'))).toBe(
+        `──┘   ${imagery} (${where} trigram)`,
+      )
+    }
+  })
+})
+
 describe('(C) a Chinese-only preference', () => {
   it('the Transformation tab holds no line of spaces only: the names row is left out, so the divider follows the #N row', async () => {
     const [readout] = await stillReadouts([48], chineseOnly)
