@@ -113,8 +113,9 @@ function chosenFrom<Known extends string>(
 type ReadingOption = keyof typeof readingPreferenceRules
 
 /**
- * A casting command's Reading Preference, checked while its options are
- * parsed, before a mode is chosen: the Reading Preference, or the ending
+ * A command's Reading Preference, a casting command's or
+ * `hexagram-history`'s, checked while its options are parsed, before a
+ * mode is chosen or the Journal is read: the Reading Preference, or the ending
  * already written, the usage line for options it refuses and the
  * Catalogue line when the Catalogue fails, each exit 1. An error that is
  * no Catalogue failure propagates.
@@ -122,7 +123,10 @@ type ReadingOption = keyof typeof readingPreferenceRules
 export async function checkedReadingPreference(
   io: CommandIo,
   ports: CommandPorts,
-  command: { readonly name: PlainCastingCommand; readonly usage: string },
+  command: {
+    readonly name: PlainCastingCommand | 'hexagram-history'
+    readonly usage: string
+  },
   given: ReadonlyMap<string, readonly string[]>,
 ): Promise<ReadingPreference | ExitCode> {
   let preference

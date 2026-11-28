@@ -15,7 +15,6 @@ export const reachable = {
     'full-screen, no colour, typed input',
     '--import-legacy',
     '--rerender-bodies',
-    '--export',
     '--export-journal',
     '--merge-journal',
   ],

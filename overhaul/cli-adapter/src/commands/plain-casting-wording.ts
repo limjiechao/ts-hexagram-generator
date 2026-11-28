@@ -91,9 +91,11 @@ export function stdinUnreadableLine(command: PlainCastingCommand): string {
  * The one line on stderr, before exit 1, when stdout cannot be written, as
  * when the pipe it feeds is closed. It comes after the keep, which a
  * broken stdout never cuts short, and after the kept line or the Journal
- * line.
+ * line; for `hexagram-history --export`, after the file is written.
  */
-export function stdoutUnwritableLine(command: PlainCastingCommand): string {
+export function stdoutUnwritableLine(
+  command: PlainCastingCommand | 'hexagram-history',
+): string {
   return `${command}: stdout cannot be written`
 }
 
@@ -105,7 +107,7 @@ export function stdoutUnwritableLine(command: PlainCastingCommand): string {
  * every command shares.
  */
 export function portFailureLine(
-  command: PlainCastingCommand,
+  command: PlainCastingCommand | 'hexagram-history',
   failure:
     | 'the Scripture Catalogue cannot be read'
     | 'the Clock cannot be read'

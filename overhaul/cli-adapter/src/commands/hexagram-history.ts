@@ -1,6 +1,7 @@
 import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
 
 import type { Command } from '#src/commands/entry-point.js'
+import { exportFormatOf, exportRun } from '#src/commands/export-run.js'
 import {
   endWith,
   fullScreenOnlyMode,
@@ -15,10 +16,8 @@ import {
   exportJournalRun,
   mergeJournalRun,
 } from '#src/commands/journal-bundle-runs.js'
-import {
-  notBuiltLine,
-  type MaintenanceOption,
-} from '#src/commands/not-built.js'
+import { notBuiltLine } from '#src/commands/not-built.js'
+import { checkedReadingPreference } from '#src/commands/reading-preference-options.js'
 import { rerenderBodiesRun } from '#src/commands/rerender-bodies-run.js'
 
 const divisionMethods = [
@@ -49,7 +48,9 @@ const maintenanceOptions = [
   '--export',
   '--export-journal',
   '--merge-journal',
-] as const satisfies readonly MaintenanceOption[]
+] as const
+
+type MaintenanceOption = (typeof maintenanceOptions)[number]
 
 /**
  * Whether an option is given that does not apply to the run asked for:
@@ -79,7 +80,7 @@ export const usage =
   'usage: hexagram-history [--script traditional|simplified] [--translation <edition>]... [--commentary <work>]... [--yilin] [--export <path> [--filter <text>]] | --import-legacy [<path>...] --division-method physical|virtual|automatic | --rerender-bodies | --export-journal <file> | --merge-journal <file>'
 
 /** `hexagram-history`: browse, open and delete, and the maintenance options. */
-export const run: Command = (argv, io, ports) => {
+export const run: Command = async (argv, io, ports) => {
   const given = parseOptions(argv, rules)
   if (given === undefined) return endWith(io, usage)
   const asked = maintenanceOptions.filter((option) => given.has(option))
@@ -92,6 +93,28 @@ export const run: Command = (argv, io, ports) => {
   if (mergeFile !== undefined) return mergeJournalRun(mergeFile, io, ports)
   if (maintenance === '--rerender-bodies') {
     return rerenderBodiesRun(io, ports.rerenderBodies)
+  }
+  if (maintenance === '--export') {
+    const [target = ''] = given.get('--export') ?? []
+    const format = exportFormatOf(target)
+    if (format === undefined) return endWith(io, usage)
+    const preference = await checkedReadingPreference(
+      io,
+      ports,
+      { name: 'hexagram-history', usage },
+      given,
+    )
+    if (typeof preference === 'number') return preference
+    const [filter = ''] = given.get('--filter') ?? []
+    return exportRun(
+      target,
+      format,
+      filter,
+      preference,
+      io,
+      ports,
+      ports.compilePdf,
+    )
   }
   const importPaths = given.get('--import-legacy')
   const [divisionMethod] = given.get('--division-method') ?? []

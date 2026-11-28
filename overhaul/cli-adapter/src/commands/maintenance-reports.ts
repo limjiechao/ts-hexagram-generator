@@ -251,7 +251,7 @@ export function rerenderedLine(rewritten: number): string {
  * taking the singular. Unreadable files are left out and not counted.
  */
 export function exportedConsultationsLine(file: string, count: number): string {
-  throw new Error('not built', { cause: { file, count } })
+  return `Exported ${counted(count, 'consultation')} to ${file}.`
 }
 
 /**
@@ -260,17 +260,18 @@ export function exportedConsultationsLine(file: string, count: number): string {
  * Consultation to export`. No file is written.
  */
 export function nothingToExportLine(): string {
-  throw new Error('not built')
+  return 'hexagram-history: no Consultation to export'
 }
 
 /**
  * `--export`'s failure, on stderr before exit 1, when a font a PDF needs
  * cannot be loaded, such as a clone made without Git LFS:
- * `hexagram-history: the export's fonts cannot be read`. No file is
- * written; a `.typ` export needs no font and never meets it.
+ * `hexagram-history: the export's font NotoSerifCJKtc-Regular.otf cannot
+ * be read`, naming the font's file. No file is written; a `.typ` export
+ * needs no font and never meets it.
  */
-export function exportFontsLine(): string {
-  throw new Error('not built')
+export function exportFontsLine(file: string): string {
+  return `hexagram-history: the export's font ${file} cannot be read`
 }
 
 /**
@@ -279,5 +280,5 @@ export function exportFontsLine(): string {
  * `hexagram-history: Typst cannot compile the export`. No file is written.
  */
 export function typstRefusedLine(): string {
-  throw new Error('not built')
+  return 'hexagram-history: Typst cannot compile the export'
 }
