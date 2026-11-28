@@ -120,7 +120,7 @@ export function parseOptions<Rules extends OptionRules>(
 }
 
 /** Whether an environment variable counts as set: present and non-empty (ADR-0044). */
-const isSet = (value: string | undefined): boolean =>
+export const isSet = (value: string | undefined): boolean =>
   value !== undefined && value !== ''
 
 /** Every ending of the frame: one line on stderr, exit 1. */

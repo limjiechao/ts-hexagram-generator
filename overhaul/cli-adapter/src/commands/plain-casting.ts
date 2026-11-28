@@ -1,10 +1,34 @@
+import type { Buffer } from 'node:buffer'
+import path from 'node:path'
+
+import type { RandomSource } from '@hexagram/application/random-source'
+import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
+import { isQuery, type Query } from '@hexagram/consultation-journal/query'
+import type { CompleteCasting } from '@hexagram/oracle/casting'
+import type { ConsultationReadout } from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
+import { consultationFileName } from '@hexagram/store-markdown/markdown-consultation-store'
 
 import type {
+  CommandInput,
   CommandIo,
   CommandPorts,
   ExitCode,
 } from '#src/commands/entry-point.js'
+import { isSet } from '#src/commands/frame.js'
+import { journalFailureLine } from '#src/commands/maintenance-reports.js'
+import {
+  blankQueryLine,
+  consultationKeptLine,
+  portFailureLine,
+  queryNotGivenLine,
+  queryPrompt,
+  type PlainCastingCommand,
+} from '#src/commands/plain-casting-wording.js'
+import { composeCli } from '#src/composition-root.js'
+import { paletteFor } from '#src/readout/palette.js'
+import { plainReadout } from '#src/readout/plain-readout.js'
+import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
 /*
  * Plain casting (CLI manual, sections 6.3 and 6.4): with `--plain`, or a
@@ -66,12 +90,65 @@ import type {
  * with no pause between Rounds (the slider's and reveal's options apply to
  * the full-screen Viewer only).
  */
-export function randomPlainRun(
+export async function randomPlainRun(
   io: CommandIo,
   ports: CommandPorts,
   preference: ReadingPreference,
 ): Promise<ExitCode> {
-  throw new Error('not built', { cause: { io, ports, preference } })
+  const command = 'hexagram-random'
+  const reader = lineReader(io.stdin)
+  const onInterrupt = (): void => {
+    reader.interrupt()
+  }
+  io.signals.on('SIGINT', onInterrupt)
+  try {
+    const query = await askForQuery(io, reader)
+    if (query === 'interrupted') return 0
+    if (query === 'ended') return endWithLine(io, queryNotGivenLine(command))
+    // The Query is the last line read: from here `Ctrl+C` is heard and
+    // ignored, so a keep is never cut short.
+    reader.close()
+
+    const cli = composeCli({
+      ...ports,
+      randomSource: namingItsFailure(ports.randomSource),
+    })
+    let casting: CompleteCasting
+    try {
+      casting = castAutomatically(cli)
+    } catch (error) {
+      if (!(error instanceof RandomSourceFailureError)) throw error
+      return endWithLine(
+        io,
+        portFailureLine(command, 'the Random Source failed'),
+      )
+    }
+    let consultation: CastConsultation
+    try {
+      consultation = cli.buildCastConsultation(query, casting, 'automatic')
+    } catch (error) {
+      // Besides the Random Source, building reads only the Clock, so any
+      // other failure is the Clock's, a Moment a Consultation Id cannot
+      // hold among them (ADR-0046).
+      return endWithLine(
+        io,
+        portFailureLine(
+          command,
+          error instanceof RandomSourceFailureError
+            ? 'the Random Source failed'
+            : 'the Clock cannot be read',
+        ),
+      )
+    }
+    return await showThenKeep(io, ports, cli, {
+      command,
+      preference,
+      consultation,
+    })
+  } finally {
+    io.signals.off('SIGINT', onInterrupt)
+    reader.close()
+  }
 }
 
 /**
@@ -85,4 +162,216 @@ export function interactivePlainRun(
   preference: ReadingPreference,
 ): Promise<ExitCode> {
   throw new Error('not built', { cause: { io, ports, preference } })
+}
+
+/** One line on stderr, then exit 1. */
+function endWithLine(io: CommandIo, text: string): ExitCode {
+  io.stderr.write(`${text}\n`)
+  return 1
+}
+
+/*
+ * What stderr gets once a prompt is answered, or stdin ends at it: nothing.
+ * An answer piped in is not echoed, so the next line on stderr follows the
+ * prompt on its line.
+ */
+const afterAnswer: string = ''
+
+/**
+ * Asks for the Query until a line holds one: the Query, or how the asking
+ * ended. `Ctrl+C` writes a newline, so the shell's prompt starts its own
+ * line.
+ */
+async function askForQuery(
+  io: CommandIo,
+  reader: LineReader,
+): Promise<Query | 'ended' | 'interrupted'> {
+  for (;;) {
+    io.stderr.write(queryPrompt)
+    const answer = await reader.next()
+    if (answer.kind === 'interrupt') {
+      io.stderr.write('\n')
+      return 'interrupted'
+    }
+    if (afterAnswer !== '') io.stderr.write(afterAnswer)
+    if (answer.kind === 'end') return 'ended'
+    if (isQuery(answer.line)) return answer.line
+    io.stderr.write(`${blankQueryLine}\n`)
+  }
+}
+
+/** The use cases an Automatic Casting goes through. */
+type CastingSteps = Pick<
+  ReturnType<typeof composeCli>,
+  'beginCasting' | 'nextRound' | 'drawAutomaticPick' | 'divide'
+>
+
+/**
+ * The eighteen Divisions of Automatic Division, from the Empty Casting
+ * (ADR-0038), each Pick drawn by the Remainder-Group policy (ADR-0023).
+ */
+function castAutomatically(cli: CastingSteps): CompleteCasting {
+  let casting = cli.beginCasting()
+  for (;;) {
+    const next = cli.nextRound(casting)
+    if (next.outcome === 'refused')
+      throw new Error('a Casting begun here did not replay', { cause: next })
+    const pick = cli.drawAutomaticPick(next.round.remainderGroups)
+    const divided = cli.divide(casting, pick)
+    if (divided.outcome === 'refused')
+      throw new Error('a drawn Pick was refused', { cause: divided })
+    if (divided.casting.state === 'complete') return divided.casting
+    casting = divided.casting
+  }
+}
+
+/** A failure of the Random Source, so its line can be told from the Clock's. */
+class RandomSourceFailureError extends Error {
+  override readonly name = 'RandomSourceFailureError'
+
+  constructor(cause: unknown) {
+    super('the Random Source failed', { cause })
+  }
+}
+
+/** The Random Source, its every failure thrown as a `RandomSourceFailureError`. */
+function namingItsFailure(randomSource: RandomSource): RandomSource {
+  return {
+    integerBelow: (bound) => {
+      try {
+        return randomSource.integerBelow(bound)
+      } catch (error) {
+        throw new RandomSourceFailureError(error)
+      }
+    },
+  }
+}
+
+/**
+ * The Readout on stdout, written whole or not at all, then the keep and
+ * the kept line. A Catalogue failure writes its line instead of the
+ * Readout and still keeps, exit 1; a failed keep writes the Journal line,
+ * exit 1.
+ */
+async function showThenKeep(
+  io: CommandIo,
+  ports: CommandPorts,
+  cli: Pick<ReturnType<typeof composeCli>, 'keepCastConsultation'>,
+  run: {
+    readonly command: PlainCastingCommand
+    readonly preference: ReadingPreference
+    readonly consultation: CastConsultation
+  },
+): Promise<ExitCode> {
+  const { command, preference, consultation } = run
+  const colour = !isSet(io.env.NO_COLOR)
+  let exitCode: ExitCode = 0
+  let readout: ConsultationReadout | undefined
+  try {
+    readout = await consultationReadoutFor(ports, consultation, preference)
+  } catch {
+    io.stderr.write(
+      `${portFailureLine(command, 'the Scripture Catalogue cannot be read')}\n`,
+    )
+    exitCode = 1
+  }
+  if (readout !== undefined) io.stdout.write(plainReadout(readout, { colour }))
+  try {
+    await cli.keepCastConsultation(consultation)
+  } catch {
+    return endWithLine(io, journalFailureLine(command, 'written'))
+  }
+  const file = path.resolve(
+    ports.journalFolder,
+    consultationFileName(consultation),
+  )
+  io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
+  return exitCode
+}
+
+/** What a prompt gets: a line, the end of stdin, or `Ctrl+C`. */
+type Answer =
+  | { readonly kind: 'line'; readonly line: string }
+  | { readonly kind: 'end' }
+  | { readonly kind: 'interrupt' }
+
+interface LineReader {
+  /** The next line, or the end of stdin, or `Ctrl+C` while it waits. */
+  readonly next: () => Promise<Answer>
+  /** Hands `Ctrl+C` to a prompt that waits; with none waiting, it does nothing. */
+  readonly interrupt: () => void
+  /** Stops reading and pauses stdin; reading nothing more, it may be called again. */
+  readonly close: () => void
+}
+
+/**
+ * Reads stdin line by line from the moment it is made. A line's newline,
+ * and a `\r` before it, are dropped; a last line with no newline still
+ * counts. Bytes are decoded as UTF-8 as they come, so a character split
+ * across chunks is read whole.
+ */
+function lineReader(stdin: CommandInput): LineReader {
+  const decoder = new TextDecoder('utf-8')
+  const lines: string[] = []
+  let partial = ''
+  let ended = false
+  let closed = false
+  let waiting: ((answer: Answer) => void) | undefined
+
+  function answer(given: Answer): void {
+    const resolve = waiting
+    waiting = undefined
+    resolve?.(given)
+  }
+
+  function offer(): void {
+    if (waiting === undefined) return
+    const line = lines.shift()
+    if (line !== undefined) answer({ kind: 'line', line })
+    else if (ended) answer({ kind: 'end' })
+  }
+
+  function onData(chunk: string | Buffer): void {
+    partial +=
+      typeof chunk === 'string'
+        ? chunk
+        : decoder.decode(chunk, { stream: true })
+    let newline = partial.indexOf('\n')
+    while (newline !== -1) {
+      const line = partial.slice(0, newline)
+      lines.push(line.endsWith('\r') ? line.slice(0, -1) : line)
+      partial = partial.slice(newline + 1)
+      newline = partial.indexOf('\n')
+    }
+    offer()
+  }
+
+  function onEnd(): void {
+    partial += decoder.decode()
+    if (partial !== '') lines.push(partial)
+    partial = ''
+    ended = true
+    offer()
+  }
+
+  stdin.on('data', onData)
+  stdin.on('end', onEnd)
+
+  return {
+    next: () =>
+      new Promise((resolve) => {
+        waiting = resolve
+        offer()
+      }),
+    interrupt: () => {
+      answer({ kind: 'interrupt' })
+    },
+    close: () => {
+      if (closed) return
+      closed = true
+      stdin.off('data', onData)
+      stdin.off('end', onEnd)
+      stdin.pause()
+    },
+  }
 }

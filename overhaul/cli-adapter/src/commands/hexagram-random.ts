@@ -9,6 +9,7 @@ import {
 } from '#src/commands/frame.js'
 import { notBuiltLine } from '#src/commands/not-built.js'
 import { portFailureLine } from '#src/commands/plain-casting-wording.js'
+import { randomPlainRun } from '#src/commands/plain-casting.js'
 import { readingPreferenceFrom } from '#src/commands/reading-preference-options.js'
 import { composeCli } from '#src/composition-root.js'
 
@@ -63,5 +64,6 @@ export const run: Command = async (argv, io, ports) => {
     plain: given.has('--plain'),
     numericInput: given.has('--numeric-input'),
   })
+  if (mode === 'plain mode') return randomPlainRun(io, ports, preference)
   return endWith(io, notBuiltLine('hexagram-random', mode))
 }
