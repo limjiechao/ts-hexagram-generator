@@ -743,3 +743,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0 this slice (4 in M-014: R-532, R-533, R-538, R-539); delegate rulings: 2 (R-542, R-543)
 - Landed: 13 commits ending f22e34b
 - Notes: scratch left for the owner: `../hexagram-wt-redcheck2` (a detached worktree). M-016 (Typst) carries the font-shipping question to the owner.
+
+### Landing — PR #69 — 2026-11-28
+
+- The owner said "land"; `main` fast-forwarded c603b0c..0b3697e (M-014: plain casting). No delegate ruling overturned.
+- Owner touches: 3 (R-544 to R-546, M-016's Typst engine, fonts and PDF metadata, asked before it starts).

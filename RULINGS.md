@@ -6860,3 +6860,44 @@ read`, exit 1, nothing kept; once nothing more is read it is heard and
   code).
 - Reason: R-532, R-539; AGENTS.md §5, §6.
 - Folded into: `docs/manual/cli.md` §3, §4
+
+### R-544: Typst through its WebAssembly build
+
+- Date: 2026-11-28
+- Raised in: M-016, question Q-M-016-1 (the clerk, from the Typst spike)
+- Ruled by: owner
+- Ruling: A — the export compiles PDFs in process with
+  `@myriaddreamin/typst.ts` 0.7.0 (Typst's WebAssembly build), pinned,
+  with `disableDefaultFontAssets()` so it fetches nothing; no system Typst
+  or system fonts. A new runtime dependency of the package that renders the
+  export.
+- Reason: the only option that gives identical PDFs on every machine (R-347);
+  the costs (a 28 MB dependency, one maintainer, a Typst version behind,
+  about 0.4 s and 450 MB cold) are accepted.
+- Folded into: not yet
+
+### R-545: The export's fonts ship in git through Git LFS
+
+- Date: 2026-11-28
+- Raised in: M-016, question Q-M-016-2
+- Ruled by: owner
+- Ruling: A — Noto Serif CJK TC (full OTF, set with `region: "cn"` for the
+  Simplified Edition), Noto Sans Symbols 2 (the hexagram symbols
+  U+4DC0–U+4DFF) and an OFL Latin face are committed through Git LFS, about
+  26 MB; their OFL licence texts are committed beside them.
+- Reason: a clone gets exact font bytes, so PDFs stay identical, without
+  26 MB in ordinary git history.
+- Folded into: not yet
+
+### R-546: The PDF's title metadata never holds a Query
+
+- Date: 2026-11-28
+- Raised in: M-016, question Q-M-016-3
+- Ruled by: owner
+- Ruling: A — the PDF's title metadata is neutral (for example the export's
+  date range), never a Query; `#set document(date: none)` keeps the bytes
+  stable. Byte fixtures carry only invented or Legge text (ADR-0028); the
+  template imports no `@preview` packages.
+- Reason: metadata travels with the file and shows in file browsers; the
+  Query is private (ADR-0015).
+- Folded into: not yet
