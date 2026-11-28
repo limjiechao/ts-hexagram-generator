@@ -1,12 +1,11 @@
-import { randomUUID } from 'node:crypto'
-import { link, open, readFile, rm } from 'node:fs/promises'
-import path from 'node:path'
+import { readFile } from 'node:fs/promises'
 
 import {
   decodeJournalBundle,
   encodeJournalBundle,
 } from '@hexagram/consultation-journal/journal-bundle'
 
+import { createExclusively } from '#src/commands/create-exclusively.js'
 import type {
   CommandIo,
   CommandPorts,
@@ -91,41 +90,4 @@ export async function mergeJournalRun(
     )
     return 0
   })
-}
-
-/**
- * Writes `text` at `file` only if no file holds that path: `exists` when
- * one does, `unwritable` on any other failure. The text is written whole
- * beside it first and then linked in, since a hard link, unlike a rename,
- * refuses to replace a file, so a reader never sees part of a bundle. A
- * known limit: a filesystem without hard links cannot be exported to.
- */
-async function createExclusively(
-  file: string,
-  text: string,
-): Promise<'created' | 'exists' | 'unwritable'> {
-  const temporary = path.join(
-    path.dirname(file),
-    `.${path.basename(file)}.${randomUUID()}.tmp`,
-  )
-  try {
-    const handle = await open(temporary, 'wx')
-    try {
-      await handle.writeFile(text, 'utf8')
-      await handle.sync()
-    } finally {
-      await handle.close()
-    }
-    await link(temporary, file)
-    return 'created'
-  } catch (error) {
-    if (error instanceof Error && 'code' in error && error.code === 'EEXIST') {
-      return 'exists'
-    }
-    return 'unwritable'
-  } finally {
-    // What is reported is the bundle, or the failure that stopped it; a
-    // leftover dotfile `.tmp` is harmless, so a failed removal is ignored.
-    await rm(temporary, { force: true, maxRetries: 3 }).catch(() => {})
-  }
 }
