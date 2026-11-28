@@ -6,6 +6,7 @@ import { markdownConsultationStore } from '@hexagram/store-markdown/markdown-con
 import type { CommandIo, CommandPorts } from '#src/commands/entry-point.js'
 import { journalFolder } from '#src/journal-folder.js'
 import { markdownBodyRenderer } from '#src/readout/markdown-body.js'
+import { exportFontFolder, typstPdfCompiler } from '#src/typst-pdf.js'
 
 /**
  * The process's own terminal, as a command takes it: stdout decides the mode
@@ -57,8 +58,6 @@ export function processPorts(process: NodeJS.Process): CommandPorts {
     journalFolder: folder,
     moveToLegacy: store.moveToLegacy,
     rerenderBodies: store.rerenderBodies,
-    // The PDF compiler is not built yet; it fails only when a PDF is asked
-    // for, so every other run pays nothing for it.
-    compilePdf: () => Promise.reject(new Error('not built')),
+    compilePdf: typstPdfCompiler(exportFontFolder()),
   }
 }

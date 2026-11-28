@@ -1,3 +1,7 @@
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
+import { fileURLToPath } from 'node:url'
+
 import type { typstFontFamilies } from '@hexagram/presentation/typst-export'
 
 /*
@@ -36,12 +40,12 @@ export const exportFontFiles: readonly ExportFontFile[] = [
 ]
 
 /**
- * The export's font folder, `assets/fonts/` under the repository root,
- * found from this module's own location as the Journal's folder is, never
- * from the working folder.
+ * The export's font folder, `overhaul/cli-adapter/fonts/`, found from this
+ * module's own location as the Journal's folder is, never from the working
+ * folder.
  */
 export function exportFontFolder(moduleUrl: string = import.meta.url): string {
-  throw new Error('not built', { cause: { moduleUrl } })
+  return path.resolve(path.dirname(fileURLToPath(moduleUrl)), '..', 'fonts')
 }
 
 /** A font the export needs could not be loaded, so no PDF is made. */
@@ -84,5 +88,83 @@ export class TypstCompileError extends Error {
  * package, and returns the PDF's bytes, which begin `%PDF-`.
  */
 export function typstPdfCompiler(fontFolder: string): CompilePdf {
-  throw new Error('not built', { cause: { fontFolder } })
+  let ready: Promise<CompilePdf> | undefined
+  return async (typst) => {
+    ready ??= loadedCompiler(fontFolder).catch((error: unknown) => {
+      // A failed load is not kept, so a later call tries again.
+      ready = undefined
+      throw error
+    })
+    const compile = await ready
+    return compile(typst)
+  }
+}
+
+/** How an OpenType (`OTTO`) or TrueType (`0x00010000`, `true`) font begins. */
+const fontHeads: ReadonlySet<string> = new Set([
+  'OTTO',
+  '\u0000\u0001\u0000\u0000',
+  'true',
+])
+
+/**
+ * Every file of `exportFontFiles` from `fontFolder`, checked, in order. The
+ * first that cannot be loaded rejects with its `ExportFontsError`.
+ */
+async function exportFonts(fontFolder: string): Promise<Uint8Array[]> {
+  const fonts: Uint8Array[] = []
+  for (const { file } of exportFontFiles) {
+    let bytes: Uint8Array
+    try {
+      bytes = await readFile(path.join(fontFolder, file))
+    } catch (error) {
+      const code =
+        error instanceof Error && 'code' in error ? error.code : undefined
+      if (code === 'ENOENT' || code === 'ENOTDIR') {
+        throw new ExportFontsError(file, 'missing', error)
+      }
+      throw error
+    }
+    const head = new TextDecoder('latin1').decode(bytes.subarray(0, 4))
+    if (!fontHeads.has(head)) throw new ExportFontsError(file, 'not-a-font')
+    fonts.push(bytes)
+  }
+  return fonts
+}
+
+/**
+ * A Typst compiler over the export's fonts alone. The fonts are read and
+ * checked before the WebAssembly build is imported, so a missing font
+ * costs nothing more.
+ */
+async function loadedCompiler(fontFolder: string): Promise<CompilePdf> {
+  const fonts = await exportFonts(fontFolder)
+  const [typst, { createTypstCompiler, CompileFormatEnum }, wrapper] =
+    await Promise.all([
+      import('@myriaddreamin/typst.ts'),
+      import('@myriaddreamin/typst.ts/compiler'),
+      import('@myriaddreamin/typst-ts-web-compiler'),
+    ])
+  const compiler = createTypstCompiler()
+  await compiler.init({
+    // The pinned WebAssembly module, which reads its own `.wasm` file from
+    // beside itself when initialised.
+    getWrapper: () => Promise.resolve(wrapper),
+    beforeBuild: [
+      typst.initOptions.disableDefaultFontAssets(),
+      typst.loadFonts(fonts),
+    ],
+  })
+  // The source is the only file Typst is given, under this one path.
+  const mainFilePath = '/main.typ'
+  return async (source) => {
+    compiler.addSource(mainFilePath, source)
+    const { result, diagnostics } = await compiler.compile({
+      mainFilePath,
+      format: CompileFormatEnum.pdf,
+      diagnostics: 'unix',
+    })
+    if (result === undefined) throw new TypstCompileError(diagnostics ?? [])
+    return result
+  }
 }
