@@ -17,6 +17,7 @@ export function processIo(process: NodeJS.Process): CommandIo {
   const isTTY = process.stdout.isTTY === true
   return {
     stdin: process.stdin,
+    signals: process,
     stdout: process.stdout,
     stderr: process.stderr,
     isTTY,

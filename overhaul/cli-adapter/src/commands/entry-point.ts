@@ -9,19 +9,32 @@ export type ExitCode = 0 | 1
 
 /**
  * The stdin a command reads: only what it uses, so the process's stdin and a
- * test's fake both fit.
+ * test's fake both fit. Its end lets a closed stdin end a plain-mode run, and
+ * `pause` lets a stdin read to its last line stop holding the process open
+ * once the run ends.
  */
 export interface CommandInput {
   readonly isTTY?: boolean
   readonly setRawMode?: (mode: boolean) => unknown
-  readonly on: (
-    event: 'data',
-    listener: (chunk: string | Buffer) => void,
-  ) => unknown
-  readonly off: (
-    event: 'data',
-    listener: (chunk: string | Buffer) => void,
-  ) => unknown
+  readonly on: {
+    (event: 'data', listener: (chunk: string | Buffer) => void): unknown
+    (event: 'end', listener: () => void): unknown
+  }
+  readonly off: {
+    (event: 'data', listener: (chunk: string | Buffer) => void): unknown
+    (event: 'end', listener: () => void): unknown
+  }
+  readonly pause: () => unknown
+}
+
+/**
+ * The interrupt a command hears: `Ctrl+C` at a terminal whose stdin is not
+ * in raw mode reaches the process as `SIGINT`, never as a byte on stdin.
+ * The process fits it; a test passes a fake it can fire.
+ */
+export interface CommandSignals {
+  readonly on: (event: 'SIGINT', listener: () => void) => unknown
+  readonly off: (event: 'SIGINT', listener: () => void) => unknown
 }
 
 /**
@@ -43,6 +56,7 @@ export interface CommandOutput {
  */
 export interface CommandIo {
   readonly stdin: CommandInput
+  readonly signals: CommandSignals
   readonly stdout: CommandOutput
   readonly stderr: CommandOutput
   /**

@@ -1,9 +1,6 @@
-import type { Buffer } from 'node:buffer'
-
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 
 import type {
-  CommandInput,
   CommandIo,
   CommandPorts,
   ExitCode,
@@ -12,44 +9,9 @@ import type {
 /*
  * Plain casting (CLI manual, sections 6.3 and 6.4): with `--plain`, or a
  * stdout that is not a TTY, a casting command asks for the Query on one
- * line, casts, keeps the Cast Consultation and prints its Readout. The
- * widened terminal below is a draft of `CommandIo`'s widening: once
- * ratified it folds into `entry-point.ts`, and each command's `run` passes
- * its `io` here in plain mode.
+ * line, casts, prints the Readout and keeps the Cast Consultation. Each
+ * command's `run` passes its `io` here in plain mode.
  */
-
-/**
- * The stdin plain casting reads lines from: `CommandInput` with its end, so
- * a closed stdin ends the run, and `pause`, so a stdin read to its last
- * line no longer holds the process open once the run ends.
- */
-export interface PlainInput extends CommandInput {
-  readonly on: {
-    (event: 'data', listener: (chunk: string | Buffer) => void): unknown
-    (event: 'end', listener: () => void): unknown
-  }
-  readonly off: {
-    (event: 'data', listener: (chunk: string | Buffer) => void): unknown
-    (event: 'end', listener: () => void): unknown
-  }
-  readonly pause: () => unknown
-}
-
-/**
- * The interrupt a command hears: `Ctrl+C` at a terminal whose stdin is not
- * in raw mode reaches the process as `SIGINT`, never as a byte on stdin.
- * The process fits it; a test passes a fake it can fire.
- */
-export interface CommandSignals {
-  readonly on: (event: 'SIGINT', listener: () => void) => unknown
-  readonly off: (event: 'SIGINT', listener: () => void) => unknown
-}
-
-/** `CommandIo` as plain casting needs it: lines from stdin, and `Ctrl+C`. */
-export type PlainIo = Omit<CommandIo, 'stdin'> & {
-  readonly stdin: PlainInput
-  readonly signals: CommandSignals
-}
 
 /*
  * What both runs share, in order:
@@ -105,7 +67,7 @@ export type PlainIo = Omit<CommandIo, 'stdin'> & {
  * the full-screen Viewer only).
  */
 export function randomPlainRun(
-  io: PlainIo,
+  io: CommandIo,
   ports: CommandPorts,
   preference: ReadingPreference,
 ): Promise<ExitCode> {
@@ -118,7 +80,7 @@ export function randomPlainRun(
  * typed input (CLI manual, section 6.4).
  */
 export function interactivePlainRun(
-  io: PlainIo,
+  io: CommandIo,
   ports: CommandPorts,
   preference: ReadingPreference,
 ): Promise<ExitCode> {
