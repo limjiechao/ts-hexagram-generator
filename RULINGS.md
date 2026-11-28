@@ -6934,3 +6934,33 @@ read`; Typst's diagnostics not printed). Q-16 A. Q-17 A. Q-18 A (○ and ✕
 - Reason: R-105, R-306, R-519, R-521, R-533, R-544 to R-546; ADR-0015,
   ADR-0028, ADR-0037; manual §2, §6.7, §6.8, §7, §9; AGENTS.md §4 to §6.
 - Folded into: not yet
+
+### R-548: Use case 9 reads the Journal and Catalogue itself
+
+- Date: 2026-11-28
+- Raised in: M-016, question Q-M-016-4 (referred by the delegate)
+- Ruled by: owner
+- Ruling: A — `exportConsultations(ports: { consultationStore;
+scriptureCatalogue }, filter, preference)` lists through use case 4's
+  filter and browse order, resolves names through use cases 3 and 8, and
+  returns the Typst source or 'none-matching'. This amends R-124 (the
+  pre-resolved input) and R-125 (1) (no Reading Preference), restoring
+  R-105's shape. R-547 Q-5 takes its (A) branch: `consultationReadoutFor`
+  moves into `application`; the `application` → `presentation` arrow is
+  ratified.
+- Reason: ADR-0037's port table lists use case 9 under both the Store and
+  the Catalogue; manual §6.8 wants the browse list's filter and order.
+- Folded into: not yet
+
+### R-549: R-546's fixture rule covers the Typst fixtures only
+
+- Date: 2026-11-28
+- Raised in: M-016 (the delegate's referral of R-546's reach)
+- Ruled by: owner
+- Ruling: A — "fixtures carry only invented or Legge text" governs the new
+  Typst byte fixtures. The approved Markdown and plain fixtures keep their
+  ctext Chinese, which the bundled Catalogue already commits. CI does not
+  cache LFS objects.
+- Reason: the existing fixtures add no text the repository doesn't already
+  hold.
+- Folded into: not yet
