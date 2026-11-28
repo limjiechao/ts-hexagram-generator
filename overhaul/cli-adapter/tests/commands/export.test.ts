@@ -1,4 +1,4 @@
-import type { Buffer } from 'node:buffer'
+import { Buffer } from 'node:buffer'
 import {
   mkdir,
   mkdtemp,
@@ -25,7 +25,13 @@ import type {
 } from '#src/commands/entry-point.js'
 import { run, usage } from '#src/commands/hexagram-history.js'
 import { exportedConsultationsLine } from '#src/commands/maintenance-reports.js'
-import type { CompilePdf } from '#src/typst-pdf.js'
+import {
+  exportFontFolder,
+  ExportFontsError,
+  TypstCompileError,
+  typstPdfCompiler,
+  type CompilePdf,
+} from '#src/typst-pdf.js'
 
 import {
   browseOrder,
@@ -102,13 +108,16 @@ async function snapshot(folder: string): Promise<Record<string, string>> {
 interface PortOptions {
   readonly scriptureCatalogue?: ScriptureCatalogue
   readonly consultationStore?: ConsultationStore
+  /** The PDF compiler, in place of the stub. */
+  readonly compilePdf?: CompilePdf
 }
 
 /**
  * The ports over the Journal: the real Markdown Store and the fake
  * Catalogue, unless the options name others, each use recorded by port;
  * the Random Source, the Clock and the Store's maintenance throw if used,
- * and `compilePdf` is a stub that records each call.
+ * and `compilePdf` is a stub, or the compiler the options name, each call
+ * recorded.
  */
 function portsOver(
   journalFolder: string,
@@ -177,7 +186,9 @@ function portsOver(
   const clock: Clock = { now: unused('Clock') }
   const compilePdf: CompilePdf = (typst) => {
     touched.push('compilePdf')
-    return Promise.resolve(new TextEncoder().encode(`%PDF-stub ${typst}`))
+    return options.compilePdf === undefined
+      ? Promise.resolve(new TextEncoder().encode(`%PDF-stub ${typst}`))
+      : options.compilePdf(typst)
   }
   return {
     scriptureCatalogue,
@@ -807,5 +818,121 @@ describe('hexagram-history --export: a stream that fails', () => {
       stderr: noConsultation,
       listenersLeft: 0,
     })
+  })
+})
+
+describe('hexagram-history --export <path>.pdf', () => {
+  it('the real compiler over the real font folder: the PDF of the fixture’s source, its count on stdout, exit 0', async () => {
+    const realCompiler = typstPdfCompiler(exportFontFolder())
+    const folder = await temporaryFolder()
+    const journalFolder = await journalHolding(
+      folder,
+      casesNamed(['cast-several-moving']),
+    )
+    const target = path.join(folder, 'out.pdf')
+    const touched: string[] = []
+
+    const ended = await history(
+      ['--export', target],
+      portsOver(journalFolder, touched, { compilePdf: realCompiler }),
+    )
+
+    expect(ended).toEqual({
+      exitCode: 0,
+      stdout: exported(target, 1),
+      stderr: '',
+      listenersLeft: 0,
+    })
+    const written = await bytesOf(target)
+    expect(written.toString('latin1', 0, 5)).toBe('%PDF-')
+    const fromTheFixture = await realCompiler(
+      typstFixture('cast-several-moving.typ').toString('utf8'),
+    )
+    expect(written.equals(Buffer.from(fromTheFixture))).toBe(true)
+    expect(await readdir(folder)).toEqual(['journal', 'out.pdf'].toSorted())
+    expect(touched.filter((port) => port === 'compilePdf')).toEqual([
+      'compilePdf',
+    ])
+    // The WebAssembly build is slow to start.
+  }, 120_000)
+
+  it('compiles exactly the source a .typ export writes, once', async () => {
+    const folder = await temporaryFolder()
+    const journalFolder = await journalHolding(folder, casesNamed(browseOrder))
+    const target = path.join(folder, 'out.pdf')
+    const sources: string[] = []
+
+    const ended = await history(
+      ['--export', target],
+      portsOver(journalFolder, [], {
+        compilePdf: (typst) => {
+          sources.push(typst)
+          return Promise.resolve(new TextEncoder().encode('%PDF-stub'))
+        },
+      }),
+    )
+
+    expect(ended.exitCode).toBe(0)
+    expect(ended.stdout).toBe(exported(target, 5))
+    expect(sources).toEqual([typstFixture('all-five.typ').toString('utf8')])
+    expect(await readFile(target, 'utf8')).toBe('%PDF-stub')
+  })
+
+  it.each([
+    { file: 'NotoSansSymbols2-Regular.ttf', reason: 'missing' as const },
+    { file: 'NotoSerifCJKtc-Regular.otf', reason: 'not-a-font' as const },
+  ])(
+    'a font that cannot be loaded ($file, $reason): its line, exit 1, no file',
+    async ({ file, reason }) => {
+      const folder = await temporaryFolder()
+      const journalFolder = await journalHolding(
+        folder,
+        casesNamed(['recorded-day']),
+      )
+      const before = await snapshot(folder)
+
+      const ended = await history(
+        ['--export', path.join(folder, 'out.pdf')],
+        portsOver(journalFolder, [], {
+          compilePdf: () => Promise.reject(new ExportFontsError(file, reason)),
+        }),
+      )
+
+      expect(ended).toEqual({
+        exitCode: 1,
+        stdout: '',
+        stderr: line(
+          `hexagram-history: the export's font ${file} cannot be read`,
+        ),
+        listenersLeft: 0,
+      })
+      expect(await snapshot(folder)).toEqual(before)
+    },
+  )
+
+  it('Typst refuses the source: its line, exit 1, no file, the diagnostics not printed', async () => {
+    const folder = await temporaryFolder()
+    const journalFolder = await journalHolding(
+      folder,
+      casesNamed(['recorded-day']),
+    )
+    const before = await snapshot(folder)
+    const diagnostic = 'error: an invented diagnostic at 1:11'
+
+    const ended = await history(
+      ['--export', path.join(folder, 'out.pdf')],
+      portsOver(journalFolder, [], {
+        compilePdf: () => Promise.reject(new TypstCompileError([diagnostic])),
+      }),
+    )
+
+    expect(ended).toEqual({
+      exitCode: 1,
+      stdout: '',
+      stderr: line('hexagram-history: Typst cannot compile the export'),
+      listenersLeft: 0,
+    })
+    expect(ended.stderr).not.toContain('invented diagnostic')
+    expect(await snapshot(folder)).toEqual(before)
   })
 })
