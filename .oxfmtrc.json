@@ -7,6 +7,7 @@
   "sortPackageJson": false,
   "ignorePatterns": [
     "cli/text-grid/tests/fixtures/*.md",
+    "overhaul/cli-adapter/tests/fixtures/markdown/*.md",
     "domain/consultation-file/tests/fixtures/*.md",
     "overhaul/consultation-journal/tests/fixtures/*.json",
     "docs/archive/**",

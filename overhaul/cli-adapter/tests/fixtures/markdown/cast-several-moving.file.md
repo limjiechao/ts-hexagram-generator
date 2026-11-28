@@ -1,0 +1,234 @@
+---
+schemaVersion: 2
+id: 01M6E6AHA84T7V2M5N6P0R1S2K
+divinedAt: '2026-11-12T23:59:30.000-05:00'
+query: How will Steward Aelric’s journey to Westmill unfold?
+transformation: '697878'
+casting:
+  - [4, 3, 3]
+  - [1, 1, 1]
+  - [1, 3, 3]
+  - [1, 1, 3]
+  - [1, 3, 3]
+  - [1, 1, 3]
+divisionMethod: physical
+---
+
+## QUERY
+
+How will Steward Aelric’s journey to Westmill unfold?
+
+2026-11-12 23:59
+
+## CASTING
+
+Division Method: Physical
+
+```text
+        │       │        │          左Left          │                右Right                │           │      
+     爻 │    變 │     蓍 │   左 │    揲 │        扐 │   右 │    揲 │         掛 │        扐 │      歸奇 │    營
+   Line │ Round │ Stalks │ Heap │ Fours │ Remainder │ Heap │ Fours │ Hung Stalk │ Remainder │ Set-aside │ Tally
+   ═════╪═══════╪════════╪══════╪═══════╪═══════════╪══════╪═══════╪════════════╪═══════════╪═══════════╪══════
+    上6 │     3 │     40 │    3 │     0 │         3 │   37 │     8 │          1 │         4 │         8 │   ⇒ 8
+        │     2 │     44 │    1 │     0 │         1 │   43 │    10 │          1 │         2 │         4 │    10
+        │     1 │     49 │    1 │     0 │         1 │   48 │    11 │          1 │         3 │         5 │    11
+   ─────┼───────┼────────┼──────┼───────┼───────────┼──────┼───────┼────────────┼───────────┼───────────┼──────
+    五5 │     3 │     36 │    3 │     0 │         3 │   33 │     7 │          1 │         4 │         8 │   ⇒ 7
+        │     2 │     44 │    3 │     0 │         3 │   41 │     9 │          1 │         4 │         8 │     9
+        │     1 │     49 │    1 │     0 │         1 │   48 │    11 │          1 │         3 │         5 │    11
+   ─────┼───────┼────────┼──────┼───────┼───────────┼──────┼───────┼────────────┼───────────┼───────────┼──────
+    四4 │     3 │     40 │    3 │     0 │         3 │   37 │     8 │          1 │         4 │         8 │   ⇒ 8
+        │     2 │     44 │    1 │     0 │         1 │   43 │    10 │          1 │         2 │         4 │    10
+        │     1 │     49 │    1 │     0 │         1 │   48 │    11 │          1 │         3 │         5 │    11
+   ─────┼───────┼────────┼──────┼───────┼───────────┼──────┼───────┼────────────┼───────────┼───────────┼──────
+    三3 │     3 │     36 │    3 │     0 │         3 │   33 │     7 │          1 │         4 │         8 │   ⇒ 7
+        │     2 │     44 │    3 │     0 │         3 │   41 │     9 │          1 │         4 │         8 │     9
+        │     1 │     49 │    1 │     0 │         1 │   48 │    11 │          1 │         3 │         5 │    11
+   ─────┼───────┼────────┼──────┼───────┼───────────┼──────┼───────┼────────────┼───────────┼───────────┼──────
+    二2 │     3 │     40 │    1 │     0 │         1 │   39 │     9 │          1 │         2 │         4 │   ⇒ 9
+        │     2 │     44 │    1 │     0 │         1 │   43 │    10 │          1 │         2 │         4 │    10
+        │     1 │     49 │    1 │     0 │         1 │   48 │    11 │          1 │         3 │         5 │    11
+   ─────┼───────┼────────┼──────┼───────┼───────────┼──────┼───────┼────────────┼───────────┼───────────┼──────
+    初1 │     3 │     32 │    3 │     0 │         3 │   29 │     6 │          1 │         4 │         8 │   ⇒ 6
+        │     2 │     40 │    3 │     0 │         3 │   37 │     8 │          1 │         4 │         8 │     8
+        │     1 │     49 │    4 │     0 │         4 │   45 │    10 │          1 │         4 │         9 │    10
+```
+
+## TRANSFORMATION
+
+```text
+  Standing Hexagram                           Emerging Hexagram
+
+  8  ━━━   ━━━  （上, 6th）                   8  ━━━   ━━━  （上, 6th）
+  7  ━━━━━━━━━  （五, 5th）                   7  ━━━━━━━━━  （五, 5th）
+  8  ━━━   ━━━  （四, 4th）                   8  ━━━   ━━━  （四, 4th）
+  7  ━━━━━━━━━  （三, 3rd）                   7  ━━━━━━━━━  （三, 3rd）
+  9  ━━━━○━━━━  （二, 2nd）─────────────────▶ 8  ━━━   ━━━  （二, 2nd）
+  6  ━━━ ✕ ━━━  （初, 1st）─────────────────▶ 7  ━━━━━━━━━  （初, 1st）
+
+  #48 井                                      #63 既濟
+  XLVIII. The Žing Hexagram                   LXIII. The Kî Žî Hexagram
+  ─────────────────────────                   ─────────────────────────
+  Upper: 坎 khân                              Upper: 坎 khân
+  Lower: 巽 sun                               Lower: 離 lî
+```
+
+## STANDING HEXAGRAM 48
+
+_Line at bottom is first._
+
+```text
+  8  ━━━   ━━━  （上, 6th）──┐
+  7  ━━━━━━━━━  （五, 5th）──┼── 水（上卦）
+  8  ━━━   ━━━  （四, 4th）──┘   Water, as in rain, clouds, springs, streams and defiles. The moon (upper trigram)
+  7  ━━━━━━━━━  （三, 3rd）──┐
+  9  ━━━━○━━━━  （二, 2nd）──┼── 風（下卦）
+  6  ━━━ ✕ ━━━  （初, 1st）──┘   The wind, wood (lower trigram)
+```
+
+_First is line at bottom._
+
+6, 9, 7, 8, 7, 8
+
+## STANDING HEXAGRAM NAME
+
+### 武英殿本
+
+井
+
+### Legge
+
+XLVIII. The Žing Hexagram
+
+## STANDING HEXAGRAM STRUCTURE
+
+- 互卦 Nuclear Hexagram: #38 睽 / XXXVIII. The Khwei Hexagram
+- 錯卦 Inverse Hexagram: #21 噬嗑 / XXI. The Shih Ho Hexagram
+- 綜卦 Reversed Hexagram: #47 困 / XLVII. The Khwăn Hexagram
+
+### 卦辭
+
+#### 武英殿本
+
+井：改邑不改井，无喪无得，往來井井。汔至，亦未繘井，羸其瓶，凶。
+
+#### Legge
+
+(Looking at) Žing, (we think of) how (the site of) a town may be changed, while (the fashion of) its wells undergoes no change. (The water of a well) never disappears and never receives (any great) increase, and those who come and those who go can draw and enjoy the benefit. If (the drawing) have nearly been accomplished, but, before the rope has quite reached the water, the bucket is broken, this is evil.
+
+### 大象
+
+#### 武英殿本
+
+木上有水，井；君子以勞民勸相。
+
+#### Legge
+
+XLVIII. (The trigram representing) wood and above it that for water form Žing. The superior man, in accordance with this, comforts the people, and. stimulates them to mutual helpfulness.
+
+### 初六
+
+#### 武英殿本
+
+初六：井泥不食，舊井无禽。
+
+#### Legge
+
+1. The first SIX, divided, shows a well so muddy that men will not drink of it; or an old well to which neither birds (nor other creatures) resort.
+
+### 小象
+
+#### 武英殿本
+
+井泥不食，下也。舊井无禽，時舍也。
+
+#### Legge
+
+1. 'A well so muddy that men will not drink of it:'--this is indicated by the low position (of the line).'An old well to which the birds do not come:'--it has been forsaken in the course of time.
+
+### 九二
+
+#### 武英殿本
+
+九二：井谷射鮒，瓮敝漏。
+
+#### Legge
+
+2. The second NINE, undivided, shows a well from which by a hole the water escapes and flows away to the shrimps (and such small creatures among the grass), or one the water of which leaks away from a broken basket.
+
+### 小象
+
+#### 武英殿本
+
+井谷射鮒，无與也。
+
+#### Legge
+
+2. 'A well from which by a hole the water escapes, and flows away to the shrimps:'--(the subject of this second line has) none co-operating with him (above).
+
+## EMERGING HEXAGRAM 63
+
+_Line at bottom is first._
+
+```text
+  8  ━━━   ━━━  （上, 6th）──┐
+  7  ━━━━━━━━━  （五, 5th）──┼── 水（上卦）
+  8  ━━━   ━━━  （四, 4th）──┘   Water, as in rain, clouds, springs, streams and defiles. The moon (upper trigram)
+  7  ━━━━━━━━━  （三, 3rd）──┐
+  8  ━━━   ━━━  （二, 2nd）──┼── 火（下卦）
+  7  ━━━━━━━━━  （初, 1st）──┘   Fire, as in lightning; the sun (lower trigram)
+```
+
+_First is line at bottom._
+
+7, 8, 7, 8, 7, 8
+
+## EMERGING HEXAGRAM NAME
+
+### 武英殿本
+
+既濟
+
+### Legge
+
+LXIII. The Kî Žî Hexagram
+
+## EMERGING HEXAGRAM STRUCTURE
+
+- 互卦 Nuclear Hexagram: #64 未濟 / LXIV. The Wei Žî Hexagram
+- 錯卦 Inverse Hexagram: #64 未濟 / LXIV. The Wei Žî Hexagram
+- 綜卦 Reversed Hexagram: #64 未濟 / LXIV. The Wei Žî Hexagram
+
+### 卦辭
+
+#### 武英殿本
+
+既濟：亨，小利貞，初吉終亂。
+
+#### Legge
+
+Kî Žî intimates progress and success in small matters. There will be advantage in being firm and correct. There has been good fortune in the beginning; there may be disorder in the end.
+
+### 大象
+
+#### 武英殿本
+
+水在火上，既濟；君子以思患而預防之。
+
+#### Legge
+
+LXIII. (The trigram representing) fire and that for water above it form Kî Žî. The superiorman, in accordance with this, thinks of evil (that may come), and beforehand guards against it.
+
+## EDITIONS AND WITNESSES
+
+### 武英殿本
+
+武英殿十三經注疏本《周易正義》 (1739)
+
+Witness: ctext.org's transcription of the 武英殿十三經注疏本《周易正義》, from its Book of Changes pages (ctext.org/book-of-changes); the 乾 and 坤 pages (用九, 用六) retrieved 2026-11-27
+
+### Legge
+
+Legge, Sacred Books of the East vol. 16 (Oxford, 1882)
+
+Witness: a scanned copy of Sacred Books of the East vol. 16 (1882); the 乾 and 坤 pages: pp. 58, 61 (text) and 267, 269 (小象)
