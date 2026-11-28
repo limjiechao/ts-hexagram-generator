@@ -28,7 +28,7 @@ export function welcomeText(palette: Palette): string {
 }
 
 /** The prompt for the Query, typed on one line (CLI manual, section 3). */
-export const queryPrompt = 'Enter your Query for the Oracle: '
+export const queryPrompt = 'Enter your Query: '
 
 /** The line after a blank Query, before the Query prompt again. */
 export const blankQueryLine = 'A Query cannot be blank.'
@@ -79,15 +79,15 @@ export function castingUnfinishedLine(command: PlainCastingCommand): string {
 }
 
 /**
- * The one line on stderr, before exit 1, when a driven port fails: the
- * Journal cannot be written by the keep, the Scripture Catalogue cannot be
- * read for the Readout, or the Clock or the Random Source fails (CLI
- * manual, section 6.1).
+ * The one line on stderr, before exit 1, when a driven port other than the
+ * Store fails: the Scripture Catalogue cannot be read for the Readout or
+ * the Reading Preference, or the Clock or the Random Source fails (CLI
+ * manual, section 6.1). A failed keep is `journalFailureLine`'s, which
+ * every command shares.
  */
 export function portFailureLine(
   command: PlainCastingCommand,
   failure:
-    | 'the Journal cannot be written'
     | 'the Scripture Catalogue cannot be read'
     | 'the Clock cannot be read'
     | 'the Random Source failed',
