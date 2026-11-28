@@ -9,6 +9,7 @@ import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
+import { isConsultationId } from '@hexagram/consultation-journal/consultation-id'
 import { isQuery } from '@hexagram/consultation-journal/query'
 import type { CompleteCasting, PartialCasting } from '@hexagram/oracle/casting'
 import { divide, emptyCasting, nextRound } from '@hexagram/oracle/division'
@@ -117,9 +118,11 @@ const allDraws = [...pickDraws(xZhiX.casting), ...idDraws]
 /** The Cast Consultation a run keeps of this Query, by Automatic Division. */
 function expectedConsultation(query: string = xZhiX.query): CastConsultation {
   if (!isQuery(query)) throw new Error('a blank Query')
+  const id = `${timeCharacters(xZhiX.divinedAt.epochMilliseconds)}${idRandomPart}`
+  if (!isConsultationId(id)) throw new Error(`${id} is no ULID`)
   return {
     ...xZhiX,
-    id: `${timeCharacters(xZhiX.divinedAt.epochMilliseconds)}${idRandomPart}`,
+    id,
     query,
     divisionMethod: 'automatic',
   }
