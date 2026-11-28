@@ -7,11 +7,7 @@
 export const reachable = {
   hexagram: ['full-screen', 'full-screen, no colour, typed input'],
   'hexagram-random': ['full-screen', 'full-screen, typed input'],
-  'hexagram-interactive': [
-    'full-screen',
-    'full-screen, typed input',
-    'plain mode',
-  ],
+  'hexagram-interactive': ['full-screen', 'full-screen, typed input'],
   'hexagram-manual': ['full-screen', 'full-screen, no colour, typed input'],
   'hexagram-playground': ['full-screen', 'full-screen, no colour, typed input'],
   'hexagram-history': [

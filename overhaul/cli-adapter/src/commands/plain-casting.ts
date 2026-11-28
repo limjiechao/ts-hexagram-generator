@@ -6,6 +6,8 @@ import type { CastConsultation } from '@hexagram/consultation-journal/cast-consu
 import type { DivisionMethod } from '@hexagram/consultation-journal/division-method'
 import { isQuery } from '@hexagram/consultation-journal/query'
 import type { CompleteCasting } from '@hexagram/oracle/casting'
+import type { NextRound } from '@hexagram/oracle/division'
+import type { LinePosition } from '@hexagram/oracle/line-position'
 import type { ConsultationReadout } from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 import { consultationFileName } from '@hexagram/store-markdown/markdown-consultation-store'
@@ -17,24 +19,29 @@ import {
 import type {
   CommandInput,
   CommandIo,
+  CommandOutput,
   CommandPorts,
   ExitCode,
 } from '#src/commands/entry-point.js'
-import { isSet } from '#src/commands/frame.js'
+import { isSet, isWholeNumber } from '#src/commands/frame.js'
 import { journalFailureLine } from '#src/commands/maintenance-reports.js'
 import {
   blankQueryLine,
   castingUnfinishedLine,
   consultationKeptLine,
+  invalidPickLine,
+  lineHeading,
+  pickPrompt,
   portFailureLine,
   queryNotGivenLine,
   queryPrompt,
   stdinUnreadableLine,
   stdoutUnwritableLine,
+  welcomeText,
   type PlainCastingCommand,
 } from '#src/commands/plain-casting-wording.js'
 import { composeCli } from '#src/composition-root.js'
-import { paletteFor } from '#src/readout/palette.js'
+import { paletteFor, type Palette } from '#src/readout/palette.js'
 import { plainReadout } from '#src/readout/plain-readout.js'
 import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
@@ -110,7 +117,8 @@ export function randomPlainRun(
   return plainCastingRun(io, ports, preference, {
     command: 'hexagram-random',
     divisionMethod: 'automatic',
-    cast: (cli) => castAutomatically(cli),
+    welcome: false,
+    cast: ({ cli }) => castAutomatically(cli),
   })
 }
 
@@ -124,7 +132,12 @@ export function interactivePlainRun(
   ports: CommandPorts,
   preference: ReadingPreference,
 ): Promise<ExitCode> {
-  throw new Error('not built', { cause: { io, ports, preference } })
+  return plainCastingRun(io, ports, preference, {
+    command: 'hexagram-interactive',
+    divisionMethod: 'virtual',
+    welcome: true,
+    cast: castVirtually,
+  })
 }
 
 /** How asking ended when no answer came: `Ctrl+C`, stdin's end, or a stdin error. */
@@ -141,14 +154,23 @@ type Ask = <Value>(
   refusal: string,
 ) => Promise<{ readonly value: Value } | Unanswered>
 
+/** What casting may use: the use cases, the asking, stderr and its palette. */
+interface CastingTools {
+  readonly cli: ReturnType<typeof composeCli>
+  readonly ask: Ask
+  readonly stderr: CommandOutput
+  readonly palette: Palette
+}
+
 /** What a command brings to the run both plain casting commands share. */
 interface PlainCasting {
   readonly command: PlainCastingCommand
   readonly divisionMethod: DivisionMethod
+  /** Whether the welcome comes before the Query prompt. */
+  readonly welcome: boolean
   /** The complete Casting, or how asking for its Picks ended. */
   readonly cast: (
-    cli: ReturnType<typeof composeCli>,
-    ask: Ask,
+    tools: CastingTools,
   ) => CompleteCasting | Promise<CompleteCasting | Unanswered>
 }
 
@@ -164,7 +186,10 @@ async function plainCastingRun(
   const streams = watchingStreams(io, reader)
   const ask: Ask = (prompt, accept, refusal) =>
     askUntilAccepted(io, reader, prompt, accept, refusal)
+  const colour = !isSet(io.env.NO_COLOR)
+  const palette = paletteFor(colour)
   try {
+    if (casting.welcome) io.stderr.write(welcomeText(palette))
     const asked = await ask(
       queryPrompt,
       (line) => (isQuery(line) ? line : undefined),
@@ -179,7 +204,7 @@ async function plainCastingRun(
     })
     let cast: CompleteCasting | Unanswered
     try {
-      cast = await casting.cast(cli, ask)
+      cast = await casting.cast({ cli, ask, stderr: io.stderr, palette })
     } catch (error) {
       if (!(error instanceof RandomSourceFailureError)) throw error
       return endWithLine(
@@ -218,6 +243,7 @@ async function plainCastingRun(
       command,
       preference,
       consultation,
+      colour,
       stdoutFailed: streams.stdoutFailed,
       stdoutFails: streams.stdoutFails,
     })
@@ -313,6 +339,58 @@ function castAutomatically(cli: CastingSteps): CompleteCasting {
   }
 }
 
+const linePositions = [
+  1, 2, 3, 4, 5, 6,
+] as const satisfies readonly LinePosition[]
+
+/**
+ * The eighteen Divisions of Virtual Division, from the Empty Casting
+ * (ADR-0038): before each Line's first Round its heading, bottom-up from
+ * Line 1, then for each Round a Pick asked for until it is among the
+ * Round's valid Picks (ADR-0023). Asking may end unanswered.
+ */
+async function castVirtually(
+  tools: CastingTools,
+): Promise<CompleteCasting | Unanswered> {
+  const { cli, ask, stderr, palette } = tools
+  let casting = cli.beginCasting()
+  for (let round = 0; ; round += 1) {
+    const next = cli.nextRound(casting)
+    if (next.outcome === 'refused')
+      throw new Error('a Casting begun here did not replay', { cause: next })
+    const position = linePositions[Math.floor(round / 3)]
+    if (round % 3 === 0 && position !== undefined)
+      stderr.write(lineHeading(position, palette))
+    const { validPicks } = next.round
+    const picked = await ask(
+      pickPrompt(validPicks),
+      (line) => pickAmong(line, validPicks),
+      invalidPickLine(validPicks),
+    )
+    if (typeof picked === 'string') return picked
+    const divided = cli.divide(casting, picked.value)
+    if (divided.outcome === 'refused')
+      throw new Error('a valid Pick was refused', { cause: divided })
+    if (divided.casting.state === 'complete') return divided.casting
+    casting = divided.casting
+  }
+}
+
+/**
+ * The Pick a typed line gives, or undefined when it is none of the
+ * Round's valid Picks: a positive whole number, whatever `trim` strips
+ * around it ignored.
+ */
+function pickAmong(
+  line: string,
+  validPicks: NextRound['validPicks'],
+): number | undefined {
+  const digits = line.trim()
+  if (!isWholeNumber(digits)) return undefined
+  const pick = Number(digits)
+  return pick >= validPicks.min && pick <= validPicks.max ? pick : undefined
+}
+
 /** A failure of the Random Source, so its line can be told from the Clock's. */
 class RandomSourceFailureError extends Error {
   override readonly name = 'RandomSourceFailureError'
@@ -349,12 +427,12 @@ async function showThenKeep(
     readonly command: PlainCastingCommand
     readonly preference: ReadingPreference
     readonly consultation: CastConsultation
+    readonly colour: boolean
     readonly stdoutFailed: () => boolean
     readonly stdoutFails: () => void
   },
 ): Promise<ExitCode> {
-  const { command, preference, consultation } = run
-  const colour = !isSet(io.env.NO_COLOR)
+  const { command, preference, consultation, colour } = run
   let exitCode: ExitCode = 0
   let readout: ConsultationReadout | undefined
   // An error that is no Catalogue failure is held until the keep is done,
