@@ -322,7 +322,7 @@ derived, never kept. Every Consultation is either Cast or Recorded.
 _Avoid_: entry, reading, session, study.
 
 **Consultation Id**:
-The opaque identifier a Consultation receives once, when first kept, and
+The opaque identifier a Consultation receives once, when it is made, and
 keeps for ever — the same in every store. It carries no meaning; Consultations
 are ordered by Divined At, never by Id. A kept Consultation is never edited,
 only removed.

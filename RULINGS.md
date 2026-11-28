@@ -6768,3 +6768,27 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   `CommandOutput.write` and the wait for stdout after the keep.
 - Reason: R-350, R-388, R-532, R-534, R-536; manual §6.3; AGENTS.md §3, §7.
 - Folded into: not yet
+
+### R-538: A newline wherever the terminal echoed none
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1, question Q-M-014-28 (referred by the delegate)
+- Ruled by: owner
+- Ruling: C — in plain mode, stderr gets a newline wherever the terminal
+  echoed none: whenever stdin ends at a prompt, and after an answered prompt
+  when stdin is not a TTY. The held `afterAnswer` constant takes this value;
+  the affected rows' stderr bytes in `random-plain`, `frame` and
+  `frame-spawn` change mechanically (R-535).
+- Reason: piped input echoes nothing, so the prompt and the next line would
+  otherwise run together.
+- Folded into: not yet
+
+### R-539: The Consultation Id is given when the Consultation is made
+
+- Date: 2026-11-28
+- Raised in: M-014 (R-534's glossary follow-up to R-532)
+- Ruled by: owner
+- Ruling: yes — CONTEXT.md's **Consultation Id** reads "receives once, when
+  it is made, and keeps for ever".
+- Reason: R-532 builds the Consultation, with its Id, before it is kept.
+- Folded into: `CONTEXT.md` (Consultation Id)
