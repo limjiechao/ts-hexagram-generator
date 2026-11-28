@@ -6553,3 +6553,29 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   the brace rows on their own.
 - Reason: R-527 (A) to (C); manual §2's default width; R-519 Q-14.
 - Folded into: not yet
+
+### R-529: M-013 slice 3's tests and fixtures; Q-M-013-47 to -59
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 3 (tester's 2b65dce, 249cc78, cadbe21, 20c40ef,
+  e9f3113)
+- Ruled by: delegate (R-423)
+- Ruling: approve all five commits, with one amendment: a unit row pinning
+  the brace's second imagery row with two non-first Translations joined by
+  " · ". The replaced spawn row and the in-process guard meet R-521; the
+  process-adapters test never calls the real Store. Questions, all (A):
+  several Translations' imagery joined by " · " (Q-47); `##` titles without
+  colon, `###` passage subtitles, Editions one level below their parent
+  (Q-48); the Divined At its own paragraph (Q-49); Query lines as given
+  (Q-50); `_A Recorded Consultation has no Casting._` (Q-51); the related
+  Hexagrams a bullet list (Q-52); an Edition's title and Witness two
+  paragraphs (Q-53); no escaping (Q-54); today's Figure notes (Q-55);
+  `query: |-` ratified, narrowing R-461's "no multi-line Query fixture" to
+  M-012's fixtures (Q-56); one blank line between blocks and one final
+  newline (Q-57); only a rejection pinned (Q-58); the formatter ignores the
+  Markdown fixtures (Q-59).
+- Reason: R-375 (today's Markdown forms), R-453, R-461, R-463, R-505,
+  R-519 Q-16, Q-17, Q-21, R-520, R-521, R-524, R-527; ADR-0046 (the body is
+  a view `--rerender-bodies` can redo). For M-014: the spawn guard's stdin
+  never ends; M-014's tester makes it end like the child's.
+- Folded into: not yet
