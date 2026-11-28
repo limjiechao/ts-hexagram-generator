@@ -120,6 +120,7 @@ describe('hexagram-history --export-journal when its temporary file cannot be re
       journalFolder,
       moveToLegacy: unused,
       rerenderBodies: unused,
+      compilePdf: unused,
     }
     const stdout: string[] = []
     const stderr: string[] = []

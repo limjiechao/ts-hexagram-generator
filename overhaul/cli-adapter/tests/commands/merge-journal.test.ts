@@ -221,6 +221,7 @@ function portsOver(journalFolder: string): CommandPorts {
     journalFolder,
     moveToLegacy: unused,
     rerenderBodies: unused,
+    compilePdf: unused,
   }
 }
 

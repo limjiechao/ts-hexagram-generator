@@ -146,6 +146,7 @@ function portsOver(
     journalFolder,
     moveToLegacy: unused,
     rerenderBodies: store.rerenderBodies,
+    compilePdf: unused,
   }
 }
 

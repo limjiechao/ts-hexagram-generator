@@ -258,6 +258,7 @@ function recordingPorts(touched: string[]): CommandPorts {
     },
     moveToLegacy: untouched('Markdown Consultation Store'),
     rerenderBodies: untouched('Markdown Consultation Store'),
+    compilePdf: untouched('PDF compiler'),
   }
 }
 

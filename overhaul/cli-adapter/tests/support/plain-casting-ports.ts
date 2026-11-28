@@ -212,6 +212,10 @@ export function recordingPorts(
     },
     moveToLegacy: maintenance,
     rerenderBodies: maintenance,
+    compilePdf: () => {
+      touched.push('PDF compiler')
+      throw new Error('plain casting reached the PDF compiler')
+    },
   }
 }
 
