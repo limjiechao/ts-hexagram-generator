@@ -1,5 +1,9 @@
+import type { ConsultationReadout } from '@hexagram/presentation/readout'
+import { typstExport } from '@hexagram/presentation/typst-export'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 
+import { browseConsultations } from '#src/browse-consultations.js'
+import { consultationReadoutFor } from '#src/consultation-readout.js'
 import type { ConsultationStore } from '#src/consultation-store.js'
 import type { ScriptureCatalogue } from '#src/scripture-catalogue.js'
 
@@ -31,7 +35,7 @@ export type ExportedConsultations =
  * Promise unchanged. Compiling the source to PDF is an adapter's effect
  * (ADR-0037).
  */
-export function exportConsultations(
+export async function exportConsultations(
   ports: {
     readonly consultationStore: ConsultationStore
     readonly scriptureCatalogue: ScriptureCatalogue
@@ -39,5 +43,17 @@ export function exportConsultations(
   filter: string,
   preference: ReadingPreference,
 ): Promise<ExportedConsultations> {
-  throw new Error('not built', { cause: { ports, filter, preference } })
+  const { consultations } = await browseConsultations(ports, filter)
+  const [first, ...rest] = consultations
+  if (first === undefined) return { outcome: 'none-matching' }
+  const readouts: [ConsultationReadout, ...ConsultationReadout[]] = [
+    await consultationReadoutFor(ports, first, preference),
+  ]
+  for (const consultation of rest)
+    readouts.push(await consultationReadoutFor(ports, consultation, preference))
+  return {
+    outcome: 'exported',
+    consultations: readouts.length,
+    typst: typstExport(readouts, preference.script),
+  }
 }
