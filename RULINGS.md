@@ -6493,7 +6493,7 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Raised in: M-013 slice 2, question Q-M-013-32 (referred by the delegate)
 - Ruled by: owner
 - Ruling: C — the ledger's column headings take two rows, the Chinese above
-  the glossary's English: 爻/Line, 蓍/Stalks, 變/Round, 左/Heap, 揲/Fours,
+  the glossary's English, in today's column order: 爻/Line, 變/Round, 蓍/Stalks, 左/Heap, 揲/Fours,
   扐/Remainder, 右/Heap, 掛/Hung Stalk, 歸奇/Set-aside, and 營/Tally kept, so
   the ledger stays within the default 120 columns with the Line Value in
   view.
