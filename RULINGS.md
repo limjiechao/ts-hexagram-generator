@@ -6579,3 +6579,22 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   a view `--rerender-bodies` can redo). For M-014: the spawn guard's stdin
   never ends; M-014's tester makes it end like the child's.
 - Folded into: not yet
+
+### R-530: M-013 slice 3's review items
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 3 review (4a3860d to 9442eb6)
+- Ruled by: delegate (R-423)
+- Ruling: (1) A, narrowed — the section wording both renderers share (the
+  title words, the `<role> HEXAGRAM …` builders, the no-Casting sentence,
+  the `Division Method: `, `Witness: ` and ` (unidentified)` labels, the
+  two Figure notes) lives in one private table in `cli-adapter`; each
+  renderer keeps its own punctuation, markup, palette and blank lines; its
+  own refactor commit, no fixture bytes change. (2) a multi-line Edition
+  text stays written with single newlines in the Markdown body; for the
+  owner's digest only.
+- Reason: AGENTS.md §5 (one piece of knowledge, the manual's titles) and
+  §6; R-529 Q-54 and Q-57; R-375; ADR-0046 (`--rerender-bodies` can apply a
+  later change). For the record: f76bb12 alone fails `type:check`, fixed by
+  5641b7b; the clerk folds them at landing.
+- Folded into: not yet
