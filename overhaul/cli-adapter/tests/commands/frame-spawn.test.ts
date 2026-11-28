@@ -27,11 +27,12 @@ import { run as manualRun } from '#src/commands/hexagram-manual.js'
 import { run as playgroundRun } from '#src/commands/hexagram-playground.js'
 import { run as randomRun } from '#src/commands/hexagram-random.js'
 import { run as homeRun } from '#src/commands/hexagram.js'
-import { notBuiltLine } from '#src/commands/not-built.js'
 import {
   queryNotGivenLine,
   queryPrompt,
+  welcomeText,
 } from '#src/commands/plain-casting-wording.js'
+import { paletteFor } from '#src/readout/palette.js'
 
 import {
   scriptedTerminal,
@@ -162,11 +163,17 @@ const rows: readonly {
     expected: line('hexagram-playground requires an interactive terminal'),
   },
   {
-    case: 'hexagram-interactive is plain mode with CI',
+    // Plain mode with CI over the stdin the parent ends at once: the
+    // welcome, then no Query is given, so nothing is kept and no port is
+    // touched.
+    case: 'hexagram-interactive in plain mode with CI ends without a Query when stdin ends',
     command: 'hexagram-interactive',
     argv: [],
     env: { CI: 'true' },
-    expected: line(notBuiltLine('hexagram-interactive', 'plain mode')),
+    expected:
+      welcomeText(paletteFor(true)) +
+      line(queryPrompt) +
+      line(queryNotGivenLine('hexagram-interactive')),
   },
   {
     case: 'hexagram-history browsing refuses with CI',

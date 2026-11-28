@@ -26,14 +26,17 @@ import { notBuiltLine } from '#src/commands/not-built.js'
 import {
   queryNotGivenLine,
   queryPrompt,
+  welcomeText,
 } from '#src/commands/plain-casting-wording.js'
+import { paletteFor } from '#src/readout/palette.js'
 
 import { scriptedTerminal, stdinEnds } from '../support/scripted-terminal.js'
 
 // The command frame, driven in process: each command parses its options,
 // applies the terminal table of the CLI manual (section 2), and ends in a
-// refusal, a usage line or a not-built line, or, for `hexagram-random` in
-// plain mode over a stdin that ends at once, the Query prompt and then the
+// refusal, a usage line or a not-built line, or, for `hexagram-random` and
+// `hexagram-interactive` in plain mode over a stdin that ends at once, the
+// Query prompt (after `hexagram-interactive`'s welcome) and then the
 // Query-not-given line. Every ending writes exactly one line to stderr
 // (after that prompt), nothing to stdout, exits 1, and touches no port, save the
 // built maintenance runs: `--export-journal` reads the Store, whose
@@ -175,6 +178,17 @@ const line = (text: string): string => `${text}\n`
  */
 const randomPlainEnding =
   line(queryPrompt) + line(queryNotGivenLine('hexagram-random'))
+
+/**
+ * `hexagram-interactive` in plain mode over a stdin that ends at once: the
+ * welcome, without escape codes under `NO_COLOR`, then the Query prompt,
+ * the newline the terminal did not echo, and the Query-not-given line,
+ * before any port is touched.
+ */
+const interactivePlainEnding = (colour = true): string =>
+  welcomeText(paletteFor(colour)) +
+  line(queryPrompt) +
+  line(queryNotGivenLine('hexagram-interactive'))
 
 /**
  * `--export-journal bundle.json` over the throwing ports: the Journal is read
@@ -371,9 +385,7 @@ describe('the terminal table: each command with no options, in each column', () 
         'TTY with CI': line(
           notBuiltLine('hexagram-interactive', 'full-screen, typed input'),
         ),
-        'stdout not a TTY': line(
-          notBuiltLine('hexagram-interactive', 'plain mode'),
-        ),
+        'stdout not a TTY': interactivePlainEnding(),
       },
     },
     {
@@ -549,7 +561,7 @@ describe('the environment: NO_COLOR and CI count when present and non-empty', ()
       case: 'NO_COLOR with stdout not a TTY is plain mode for hexagram-interactive',
       run: interactiveCommand.run,
       terminal: notTty({ NO_COLOR: '1' }),
-      expected: line(notBuiltLine('hexagram-interactive', 'plain mode')),
+      expected: interactivePlainEnding(false),
     },
   ]
 
@@ -579,14 +591,14 @@ describe('flags that name a mode', () => {
       run: interactiveCommand.run,
       argv: ['--plain'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-interactive', 'plain mode')),
+      expected: interactivePlainEnding(),
     },
     {
       case: 'hexagram-interactive --plain on a TTY with NO_COLOR',
       run: interactiveCommand.run,
       argv: ['--plain'],
       terminal: tty({ NO_COLOR: '1' }),
-      expected: line(notBuiltLine('hexagram-interactive', 'plain mode')),
+      expected: interactivePlainEnding(false),
     },
     {
       case: 'hexagram-random --plain on a TTY with CI',
@@ -625,7 +637,7 @@ describe('flags that name a mode', () => {
       run: interactiveCommand.run,
       argv: ['--numeric-input'],
       terminal: notTty(),
-      expected: line(notBuiltLine('hexagram-interactive', 'plain mode')),
+      expected: interactivePlainEnding(),
     },
     {
       case: 'hexagram --numeric-input on a TTY stays full-screen',
@@ -824,7 +836,6 @@ describe('options a command accepts run to its full-screen not-built line', () =
     ...[
       ['--wrap-width', '80'],
       ['--slider-sweep-ms', '1800'],
-      ['--commentary', 'a', '--translation', 'b', '--commentary', 'c'],
     ].map((argv) => ({
       name: 'hexagram-interactive',
       run: interactiveCommand.run,
@@ -887,46 +898,53 @@ describe('options a command accepts run to its full-screen not-built line', () =
   )
 })
 
-describe('hexagram-random checks its Reading Preference while parsing, before choosing a mode', () => {
-  // Over ports that throw if touched, save a Catalogue whose `editions`
-  // answers from the bundled Catalogue: a `--translation` is checked
-  // against it, and the Scripture Catalogue is the one port that may be
-  // read before the Query.
-  async function runOverCatalogue(argv: readonly string[]) {
-    const recorded: Recorded = { stdout: [], stderr: [], portsTouched: [] }
-    const ports = untouchablePorts(recorded.portsTouched)
-    const exitCode = await randomCommand.run(argv, fakeIo(recorded, tty()), {
-      ...ports,
-      scriptureCatalogue: {
-        ...ports.scriptureCatalogue,
-        editions: (work) => bundledScriptureCatalogue.editions(work),
-      },
+describe.each([
+  { name: 'hexagram-random', command: randomCommand },
+  { name: 'hexagram-interactive', command: interactiveCommand },
+] as const)(
+  '$name checks its Reading Preference while parsing, before choosing a mode',
+  ({ name, command }) => {
+    // Over ports that throw if touched, save a Catalogue whose `editions`
+    // answers from the bundled Catalogue: a `--translation` is checked
+    // against it, and the Scripture Catalogue is the one port that may be
+    // read before the Query.
+    async function runOverCatalogue(argv: readonly string[]) {
+      const recorded: Recorded = { stdout: [], stderr: [], portsTouched: [] }
+      const ports = untouchablePorts(recorded.portsTouched)
+      const exitCode = await command.run(argv, fakeIo(recorded, tty()), {
+        ...ports,
+        scriptureCatalogue: {
+          ...ports.scriptureCatalogue,
+          editions: (work) => bundledScriptureCatalogue.editions(work),
+        },
+      })
+      expect(recorded.stdout.join('')).toBe('')
+      expect(exitCode).toBe(1)
+      expect(recorded.portsTouched).toEqual([])
+      return recorded.stderr.join('')
+    }
+
+    it.each(
+      [
+        ['--translation', 'any-edition-at-all'],
+        ['--translation', 'first', '--translation', 'second'],
+        ['--commentary', 'any-work-at-all'],
+        ['--commentary', 'first', '--commentary', 'second'],
+        ['--commentary', 'a', '--translation', 'b', '--commentary', 'c'],
+        ['--translation=--x'],
+        ['--commentary=-y'],
+      ].map((argv) => ({ argv, shown: argv.join(' ') })),
+    )('$shown on a TTY is a usage refusal', async ({ argv }) => {
+      expect(await runOverCatalogue(argv)).toBe(line(command.usage))
     })
-    expect(recorded.stdout.join('')).toBe('')
-    expect(exitCode).toBe(1)
-    expect(recorded.portsTouched).toEqual([])
-    return recorded.stderr.join('')
-  }
 
-  it.each(
-    [
-      ['--translation', 'any-edition-at-all'],
-      ['--translation', 'first', '--translation', 'second'],
-      ['--commentary', 'any-work-at-all'],
-      ['--commentary', 'first', '--commentary', 'second'],
-      ['--translation=--x'],
-      ['--commentary=-y'],
-    ].map((argv) => ({ argv, shown: argv.join(' ') })),
-  )('$shown on a TTY is a usage refusal', async ({ argv }) => {
-    expect(await runOverCatalogue(argv)).toBe(line(randomCommand.usage))
-  })
-
-  it('--translation legge-1882 on a TTY reaches the full-screen not-built line', async () => {
-    expect(await runOverCatalogue(['--translation', 'legge-1882'])).toBe(
-      line(notBuiltLine('hexagram-random', 'full-screen')),
-    )
-  })
-})
+    it('--translation legge-1882 on a TTY reaches the full-screen not-built line', async () => {
+      expect(await runOverCatalogue(['--translation', 'legge-1882'])).toBe(
+        line(notBuiltLine(name, 'full-screen')),
+      )
+    })
+  },
+)
 
 describe('a bad value, a repeat, an unknown option or a positional is a usage refusal', () => {
   const bad: readonly (readonly string[])[] = [
