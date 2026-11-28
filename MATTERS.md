@@ -40,7 +40,7 @@ from its actual figures when it lands (R-006).
 | 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                     | 1,500             | –                              | landed (M-002 to M-004)     |
 | 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009) | 1,500             | –                              | landed (M-005 to M-009)     |
 | 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 4 (M-011), 2 (M-012), 3 (M-015)            | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 4 (M-011), 2 (M-012), 4 (M-013), 3 (M-015) | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
 | 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending                     |
 | 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                      | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
 | 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                      | – (no brief)      | –                              | pending (R-419)             |
@@ -389,7 +389,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-013: The Readout: plain text, Ink sections and the Markdown file
 
-- Status: in-progress
+- Status: landed
 - Phase: 4
 - Licensed by: ADR-0013, ADR-0014, ADR-0022, ADR-0024, ADR-0025, ADR-0027,
   ADR-0046; manual sections 4, 5; R-105, R-283, R-284, R-340 to R-345

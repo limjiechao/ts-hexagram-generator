@@ -704,3 +704,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 2 (R-525, R-526); delegate rulings: 3 (R-524, R-527, R-528)
 - Landed: 9 commits ending f6aff96
 - Notes: open for the next delegate batch: the diagram's brace rows still join several Translations' imagery with " / ", not " · ". `drift:prove` reported "the working tree changed during the proof" twice while a tester and the clerk wrote to the same worktree; it passed on the settled tree. A scratch worktree `../hexagram-wt-redcheck` awaits removal.
+
+### Iteration 46 — M-013 — 2026-11-28
+
+- Attempt: 1/2 (slice 3 of 3; R-058) · Outcome: landed; M-013 complete
+- Tests: Markdown body and whole-file fixtures (five cases, from slice 2's plain content in today's Markdown forms); `--rerender-bodies` end to end in process over a temporary Journal; R-306 changes for `rerenderBodies` on `CommandPorts`; the `--rerender-bodies` spawn row replaced and an in-process guard that no spawned row touches any port or the Journal folder (R-521); approved (R-529).
+- Build: " · " between Translations' imagery; `markdownBody` and `markdownBodyRenderer` sharing slice 2's grids; `rerenderBodies` on `CommandPorts` and the routed run; `processPorts` builds the real Markdown Store (R-505); one private table for the section wording (R-530).
+- Review: `APPROVE`, R-521's safety confirmed (no spawned row, script or CI job runs an overhaul bin against a Journal; building the ports does no Journal I/O).
+- Verify: M-013's whole Acceptance · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46 · test:stress:once, on matters; no `consultations/` in the matters worktree
+- Owner touches: 0; delegate rulings: 2 (R-529, R-530)
+- Landed: 11 commits ending 4155895. f76bb12 (the Markdown renderer) failed `type:check` alone; folded with its fix 5641b7b at landing as 223f488, so every landed commit type-checks.
+- Notes: M-013 used 4 owner touches in all (R-520, R-521, R-525, R-526) and 12 delegate rulings (R-519, R-522 to R-524, R-527 to R-530, and test approvals). The implementer ran `git stash list` once (read-only). The bins now write the real Journal, so the owner can migrate; M-014 must make the spawn guard's stdin end like the child's (R-529). Scratch left for the owner: `../hexagram-wt-redcheck` (a detached worktree), probe files under `hexagram-wt-M-013`'s `node_modules/.cache`.
