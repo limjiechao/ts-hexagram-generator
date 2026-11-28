@@ -22,11 +22,19 @@ import * as playgroundCommand from '#src/commands/hexagram-playground.js'
 import * as randomCommand from '#src/commands/hexagram-random.js'
 import * as homeCommand from '#src/commands/hexagram.js'
 import { notBuiltLine } from '#src/commands/not-built.js'
+import {
+  queryNotGivenLine,
+  queryPrompt,
+} from '#src/commands/plain-casting-wording.js'
+
+import { scriptedTerminal, stdinEnds } from '../support/scripted-terminal.js'
 
 // The command frame, driven in process: each command parses its options,
 // applies the terminal table of the CLI manual (section 2), and ends in a
-// refusal, a usage line or a not-built line. Every ending writes exactly one
-// line to stderr, nothing to stdout, exits 1, and touches no port, save the
+// refusal, a usage line or a not-built line, or, for `hexagram-random` in
+// plain mode over a stdin that ends at once, the Query prompt and then the
+// Query-not-given line. Every ending writes exactly one line to stderr
+// (after that prompt), nothing to stdout, exits 1, and touches no port, save the
 // built maintenance runs: `--export-journal` reads the Store, whose
 // throwing ports make it the Journal that cannot be read;
 // `--rerender-bodies` calls the Markdown Store's `rerenderBodies`, whose
@@ -62,15 +70,21 @@ function fakeOutput(chunks: string[], terminal: Terminal): CommandOutput {
   }
 }
 
+/**
+ * A stdin that ends at once, as a pipe from nothing does, and a `Ctrl+C`
+ * that never comes: a plain-mode run ends without a Query.
+ */
+function endingStdin(isTTY: boolean): Pick<CommandIo, 'stdin' | 'signals'> {
+  const { stdin, signals } = scriptedTerminal({
+    isTTY: false,
+    script: [stdinEnds],
+  }).io
+  return { stdin: { ...stdin, isTTY }, signals }
+}
+
 function fakeIo(recorded: Recorded, terminal: Terminal): CommandIo {
   return {
-    stdin: {
-      isTTY: terminal.isTTY,
-      on: () => {},
-      off: () => {},
-      pause: () => {},
-    },
-    signals: { on: () => {}, off: () => {} },
+    ...endingStdin(terminal.isTTY),
     stdout: fakeOutput(recorded.stdout, terminal),
     stderr: fakeOutput(recorded.stderr, terminal),
     isTTY: terminal.isTTY,
@@ -152,6 +166,13 @@ async function expectEnding(
 }
 
 const line = (text: string): string => `${text}\n`
+
+/**
+ * `hexagram-random` in plain mode over a stdin that ends at once: the Query
+ * prompt, then the Query-not-given line, before any port is touched.
+ */
+const randomPlainEnding =
+  queryPrompt + line(queryNotGivenLine('hexagram-random'))
 
 /**
  * `--export-journal bundle.json` over the throwing ports: the Journal is read
@@ -334,7 +355,7 @@ describe('the terminal table: each command with no options, in each column', () 
         'TTY with CI': line(
           notBuiltLine('hexagram-random', 'full-screen, typed input'),
         ),
-        'stdout not a TTY': line(notBuiltLine('hexagram-random', 'plain mode')),
+        'stdout not a TTY': randomPlainEnding,
       },
     },
     {
@@ -542,14 +563,14 @@ describe('flags that name a mode', () => {
       run: randomCommand.run,
       argv: ['--plain'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-random --no-ui on a TTY',
       run: randomCommand.run,
       argv: ['--no-ui'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-interactive --plain on a TTY',
@@ -570,14 +591,14 @@ describe('flags that name a mode', () => {
       run: randomCommand.run,
       argv: ['--plain'],
       terminal: tty({ CI: 'true' }),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-random --plain with stdout not a TTY',
       run: randomCommand.run,
       argv: ['--plain'],
       terminal: notTty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-random --numeric-input on a TTY',
@@ -623,21 +644,21 @@ describe('flags that name a mode', () => {
       run: randomCommand.run,
       argv: ['--', '--plain'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-random --yilin -- --plain on a TTY drops the lone --',
       run: randomCommand.run,
       argv: ['--yilin', '--', '--plain'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-random --plain -- on a TTY drops the lone --',
       run: randomCommand.run,
       argv: ['--plain', '--'],
       terminal: tty(),
-      expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+      expected: randomPlainEnding,
     },
     {
       case: 'hexagram-interactive -- --numeric-input on a TTY drops the lone --',
