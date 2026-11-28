@@ -28,17 +28,20 @@ function naming<Inputs extends unknown[], Output>(
 
 /**
  * The Scripture Catalogue, its every failure thrown as a
- * `CatalogueFailureError`. What a lookup resolves to is passed on as it
- * is, so an error in using it is no failure of the port.
+ * `CatalogueFailureError`. Each lookup is called on the Catalogue, so one
+ * that reads `this` still finds it. What a lookup resolves to is passed on
+ * as it is, so an error in using it is no failure of the port.
  */
 export function namingCatalogueFailure(
   catalogue: ScriptureCatalogue,
 ): ScriptureCatalogue {
   return {
-    passageTexts: naming(catalogue.passageTexts),
-    hexagramNames: naming(catalogue.hexagramNames),
-    receivedSequenceNumber: naming(catalogue.receivedSequenceNumber),
-    trigramNames: naming(catalogue.trigramNames),
-    editions: naming(catalogue.editions),
+    passageTexts: naming((...inputs) => catalogue.passageTexts(...inputs)),
+    hexagramNames: naming((...inputs) => catalogue.hexagramNames(...inputs)),
+    receivedSequenceNumber: naming((...inputs) =>
+      catalogue.receivedSequenceNumber(...inputs),
+    ),
+    trigramNames: naming((...inputs) => catalogue.trigramNames(...inputs)),
+    editions: naming((...inputs) => catalogue.editions(...inputs)),
   }
 }
