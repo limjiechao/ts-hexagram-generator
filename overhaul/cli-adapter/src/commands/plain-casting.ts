@@ -106,11 +106,12 @@ export async function randomPlainRun(
   const reader = lineReader(io.stdin)
   const streams = watchingStreams(io, reader)
   try {
-    const query = await askForQuery(io, reader)
-    if (query === 'interrupted') return 0
-    if (query === 'ended') return endWithLine(io, queryNotGivenLine(command))
-    if (query === 'unreadable')
+    const asked = await askForQuery(io, reader)
+    if (asked === 'interrupted') return 0
+    if (asked === 'ended') return endWithLine(io, queryNotGivenLine(command))
+    if (asked === 'unreadable')
       return endWithLine(io, stdinUnreadableLine(command))
+    const { query } = asked
     // The Query is the last line read: from here `Ctrl+C` and a stdin
     // error are heard and ignored, so a keep is never cut short.
     reader.close()
@@ -191,14 +192,14 @@ function echoedNoNewline(io: CommandIo, answer: Answer): boolean {
 }
 
 /**
- * Asks for the Query until a line holds one: the Query, or how the asking
- * ended. Wherever no newline was echoed, `Ctrl+C` included, stderr writes
+ * Asks for the Query until a line holds one: the Query, held apart so a
+ * Query that reads `ended` is still a Query, or how the asking ended. Wherever no newline was echoed, `Ctrl+C` included, stderr writes
  * one, so the next line, or the shell's prompt, starts its own line.
  */
 async function askForQuery(
   io: CommandIo,
   reader: LineReader,
-): Promise<Query | 'ended' | 'interrupted' | 'unreadable'> {
+): Promise<{ readonly query: Query } | 'ended' | 'interrupted' | 'unreadable'> {
   for (;;) {
     io.stderr.write(queryPrompt)
     const answer = await reader.next()
@@ -206,7 +207,7 @@ async function askForQuery(
     if (answer.kind === 'interrupt') return 'interrupted'
     if (answer.kind === 'end') return 'ended'
     if (answer.kind === 'unreadable') return 'unreadable'
-    if (isQuery(answer.line)) return answer.line
+    if (isQuery(answer.line)) return { query: answer.line }
     io.stderr.write(`${blankQueryLine}\n`)
   }
 }
