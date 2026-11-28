@@ -27,6 +27,9 @@ import { padToColumn, textWidth } from '#src/readout/text-width.js'
  * these, so the two never drift apart.
  */
 
+/** Which of the two Hexagram tabs a section belongs to. */
+export type HexagramRole = 'STANDING' | 'EMERGING'
+
 export interface ReadoutSections {
   readonly query: string
   readonly casting: string
@@ -53,7 +56,7 @@ function editionBlocks(
 
 function querySection(readout: ConsultationReadout, palette: Palette): string {
   return (
-    `${palette.heading}QUERY:\n\n` +
+    `${palette.heading}${wording.query}:\n\n` +
     `  ${palette.emphasis}${indented(readout.query)}\n` +
     `  ${palette.muted}${divinedAtText(readout.divinedAt)}`
   )
@@ -66,11 +69,10 @@ export const divisionMethodNames: Readonly<Record<DivisionMethod, string>> = {
 }
 
 function castingSection(casting: CastingTab, palette: Palette): string {
-  const title = `${palette.heading}CASTING:${palette.reset}\n\n${palette.reset}`
-  if (casting.origin === 'recorded')
-    return `${title}A Recorded Consultation has no Casting.`
+  const title = `${palette.heading}${wording.casting}:${palette.reset}\n\n${palette.reset}`
+  if (casting.origin === 'recorded') return `${title}${wording.noCasting}`
   const method = divisionMethodNames[casting.divisionMethod]
-  return `${title}Division Method: ${method}\n\n${ledgerGrid(casting.rounds, palette)}`
+  return `${title}${wording.divisionMethod}${method}\n\n${ledgerGrid(casting.rounds, palette)}`
 }
 
 /**
@@ -187,8 +189,31 @@ function transformationSection(
   transformation: TransformationReadout['transformation'],
   palette: Palette,
 ): string {
-  return `${palette.heading}TRANSFORMATION:\n\n${palette.reset}${transformationGrid(transformation, palette)}`
+  return `${palette.heading}${wording.transformation}:\n\n${palette.reset}${transformationGrid(transformation, palette)}`
 }
+
+/**
+ * The words of the Readout's sections, which plain output and the Markdown
+ * body share; each adds its own punctuation, markup and colour.
+ */
+export const wording = {
+  query: 'QUERY',
+  casting: 'CASTING',
+  transformation: 'TRANSFORMATION',
+  yilinVerse: 'YILIN VERSE',
+  editions: 'EDITIONS AND WITNESSES',
+  hexagram: (role: HexagramRole, tab: HexagramTab): string =>
+    `${role} HEXAGRAM ${String(tab.figure.hexagram.receivedSequenceNumber)}`,
+  hexagramName: (role: HexagramRole): string => `${role} HEXAGRAM NAME`,
+  hexagramStructure: (role: HexagramRole): string =>
+    `${role} HEXAGRAM STRUCTURE`,
+  noCasting: 'A Recorded Consultation has no Casting.',
+  divisionMethod: 'Division Method: ',
+  witness: 'Witness: ',
+  unidentified: ' (unidentified)',
+  lineAtBottomFirst: 'Line at bottom is first',
+  firstLineAtBottom: 'First is line at bottom',
+} as const
 
 /** The related Hexagrams a Hexagram tab lists, each by its label. */
 export const structureLabels = [
@@ -218,12 +243,11 @@ function passageBlocks(passage: PassageShown, palette: Palette): string {
 }
 
 function hexagramSection(
-  role: 'STANDING' | 'EMERGING',
+  role: HexagramRole,
   tab: HexagramTab,
   palette: Palette,
 ): string {
   const { figure } = tab
-  const title = `${role} HEXAGRAM ${String(figure.hexagram.receivedSequenceNumber)}`
   const values = [...figure.lines]
     .map((line) => `${lineColour(line, palette)}${String(line.value)}`)
     .join(', ')
@@ -232,12 +256,12 @@ function hexagramSection(
     palette,
   )
   const diagram = [
-    `${palette.heading}${title}:`,
-    `${palette.reset}(Line at bottom is first)`,
+    `${palette.heading}${wording.hexagram(role, tab)}:`,
+    `${palette.reset}(${wording.lineAtBottomFirst})`,
     diagramRows(figure, palette).join('\n'),
-    `${palette.reset}(First is line at bottom)`,
+    `${palette.reset}(${wording.firstLineAtBottom})`,
     `  ${values}`,
-    `${palette.heading}${role} HEXAGRAM NAME:`,
+    `${palette.heading}${wording.hexagramName(role)}:`,
     names,
   ].join('\n\n')
   const structureRows = structureLabels.map(
@@ -245,7 +269,7 @@ function hexagramSection(
       `  ${palette.muted}${padToColumn(`${label}:`, structureColumn)}${palette.emphasis}${numberAndNames(tab[key])}${palette.reset}`,
   )
   const structure = [
-    `${palette.heading}${role} HEXAGRAM STRUCTURE:`,
+    `${palette.heading}${wording.hexagramStructure(role)}:`,
     structureRows.join('\n'),
   ].join('\n\n')
   return [
@@ -267,7 +291,7 @@ function yilinVerseSection(
 ): readonly string[] {
   if (readout.yilinVerse.length === 0) return []
   return [
-    `${palette.heading}YILIN VERSE:\n${editionBlocks(readout.yilinVerse, palette)}`,
+    `${palette.heading}${wording.yilinVerse}:\n${editionBlocks(readout.yilinVerse, palette)}`,
   ]
 }
 
@@ -275,12 +299,12 @@ function editionsSection(
   editions: readonly Edition[],
   palette: Palette,
 ): string {
-  return `${palette.heading}EDITIONS AND WITNESSES:\n\n${editions
+  return `${palette.heading}${wording.editions}:\n\n${editions
     .map(
       (edition) =>
         `${palette.muted}[${edition.shortName}]\n\n` +
-        `  ${palette.emphasis}${edition.title}${edition.unidentified ? ' (unidentified)' : ''}\n` +
-        `  ${palette.reset}Witness: ${edition.witness.description}`,
+        `  ${palette.emphasis}${edition.title}${edition.unidentified ? wording.unidentified : ''}\n` +
+        `  ${palette.reset}${wording.witness}${edition.witness.description}`,
     )
     .join('\n\n')}`
 }

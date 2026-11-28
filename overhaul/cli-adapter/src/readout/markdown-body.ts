@@ -19,6 +19,8 @@ import {
   numberAndNames,
   structureLabels,
   transformationGrid,
+  wording,
+  type HexagramRole,
 } from '#src/readout/readout-sections.js'
 
 /*
@@ -40,10 +42,9 @@ const editionBlocks = (
   blocks.flatMap(({ edition, text }) => [`${level} ${edition.shortName}`, text])
 
 function castingBlocks(casting: CastingTab): readonly string[] {
-  if (casting.origin === 'recorded')
-    return ['_A Recorded Consultation has no Casting._']
+  if (casting.origin === 'recorded') return [`_${wording.noCasting}_`]
   return [
-    `Division Method: ${divisionMethodNames[casting.divisionMethod]}`,
+    `${wording.divisionMethod}${divisionMethodNames[casting.divisionMethod]}`,
     fenced(ledgerGrid(casting.rounds, palette)),
   ]
 }
@@ -56,17 +57,17 @@ function passageBlocks(passage: PassageShown): readonly string[] {
 }
 
 function hexagramBlocks(
-  role: 'STANDING' | 'EMERGING',
+  role: HexagramRole,
   tab: HexagramTab,
 ): readonly string[] {
   const { figure } = tab
   return [
-    `## ${role} HEXAGRAM ${String(figure.hexagram.receivedSequenceNumber)}`,
-    '_Line at bottom is first._',
+    `## ${wording.hexagram(role, tab)}`,
+    `_${wording.lineAtBottomFirst}._`,
     fenced(diagramRows(figure, palette).join('\n')),
-    '_First is line at bottom._',
+    `_${wording.firstLineAtBottom}._`,
     figure.lines.map((line) => String(line.value)).join(', '),
-    `## ${role} HEXAGRAM NAME`,
+    `## ${wording.hexagramName(role)}`,
     ...editionBlocks(
       figure.hexagram.names.map(({ edition, name }) => ({
         edition,
@@ -74,7 +75,7 @@ function hexagramBlocks(
       })),
       '###',
     ),
-    `## ${role} HEXAGRAM STRUCTURE`,
+    `## ${wording.hexagramStructure(role)}`,
     structureLabels
       .map(([label, key]) => `- ${label}: ${numberAndNames(tab[key])}`)
       .join('\n'),
@@ -92,23 +93,26 @@ function hexagramBlocks(
  */
 export function markdownBody(readout: ConsultationReadout): string {
   const blocks = [
-    '## QUERY',
+    `## ${wording.query}`,
     readout.query,
     divinedAtText(readout.divinedAt),
-    '## CASTING',
+    `## ${wording.casting}`,
     ...castingBlocks(readout.casting),
-    '## TRANSFORMATION',
+    `## ${wording.transformation}`,
     fenced(transformationGrid(readout.transformation, palette)),
     ...hexagramBlocks('STANDING', readout.standing),
     ...hexagramBlocks('EMERGING', readout.emerging),
     ...(readout.yilinVerse.length === 0
       ? []
-      : ['## YILIN VERSE', ...editionBlocks(readout.yilinVerse, '###')]),
-    '## EDITIONS AND WITNESSES',
+      : [
+          `## ${wording.yilinVerse}`,
+          ...editionBlocks(readout.yilinVerse, '###'),
+        ]),
+    `## ${wording.editions}`,
     ...readout.editions.flatMap((edition) => [
       `### ${edition.shortName}`,
-      `${edition.title}${edition.unidentified ? ' (unidentified)' : ''}`,
-      `Witness: ${edition.witness.description}`,
+      `${edition.title}${edition.unidentified ? wording.unidentified : ''}`,
+      `${wording.witness}${edition.witness.description}`,
     ]),
   ]
   return `${blocks.join('\n\n')}\n`
