@@ -16,11 +16,11 @@ import { endWith } from '#src/commands/frame.js'
 import {
   bundleRefusedLine,
   bundleUnreadableLine,
-  bundleUnwritableLine,
   exportedLine,
   exportTargetExistsLine,
   leftOutLine,
   mergedLine,
+  targetUnwritableLine,
 } from '#src/commands/maintenance-reports.js'
 import {
   reportingJournalFailure,
@@ -46,7 +46,7 @@ export function exportJournalRun(
     const written = await createExclusively(file, encodeJournalBundle(journal))
     if (written === 'exists') return endWith(io, exportTargetExistsLine(file))
     if (written === 'unwritable') {
-      return endWith(io, bundleUnwritableLine(file))
+      return endWith(io, targetUnwritableLine(file))
     }
     io.stdout.write(
       `${exportedLine(file, {

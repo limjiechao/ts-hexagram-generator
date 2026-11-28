@@ -41,7 +41,7 @@ export function exportFormatOf(target: string): 'typst' | 'pdf' | undefined {
  * 4. The bytes are written at the path only if no file holds it, whole or
  *    not at all, as `--export-journal` writes a bundle:
  *    `exportTargetExistsLine` when a file does, and
- *    `bundleUnwritableLine`'s wording on any other failure, each exit 1.
+ *    `targetUnwritableLine` on any other failure, each exit 1.
  * 5. `exportedConsultationsLine` on stdout, exit 0. A stdout failure after
  *    the file is written ends with the stdout line, exit 1, the file kept.
  *

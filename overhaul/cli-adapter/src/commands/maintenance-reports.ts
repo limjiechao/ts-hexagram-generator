@@ -79,22 +79,22 @@ function counted(count: number, noun: string, plural = `${noun}s`): string {
 }
 
 /**
- * `--export-journal`'s refusal, on stderr before exit 1, when a file
- * already holds the path: `hexagram-history: journal.json already exists`.
- * A bundle is never written over a file.
+ * `--export-journal`'s and `--export`'s refusal, on stderr before exit 1,
+ * when a file already holds the path: `hexagram-history: journal.json
+ * already exists`. An export is never written over a file.
  */
 export function exportTargetExistsLine(file: string): string {
   return `hexagram-history: ${file} already exists`
 }
 
 /**
- * `--export-journal`'s failure, on stderr before exit 1, when the bundle
- * cannot be written for any reason but a file already holding the path,
- * such as a missing folder, no permission, or a filesystem without hard
- * links: `hexagram-history: journal.json cannot be written`, the file as
- * the user gave it.
+ * `--export-journal`'s and `--export`'s failure, on stderr before exit 1,
+ * when the file cannot be written for any reason but a file already
+ * holding the path, such as a missing folder, no permission, or a
+ * filesystem without hard links: `hexagram-history: journal.json cannot be
+ * written`, the file as the user gave it.
  */
-export function bundleUnwritableLine(file: string): string {
+export function targetUnwritableLine(file: string): string {
   return `hexagram-history: ${file} cannot be written`
 }
 
