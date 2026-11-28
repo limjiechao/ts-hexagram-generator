@@ -47,7 +47,14 @@ export interface CommandOutput {
   readonly isTTY?: boolean
   readonly columns?: number
   readonly rows?: number
-  readonly write: (chunk: string) => unknown
+  /**
+   * Writes the chunk; the callback, when given, is called once the stream
+   * has handled it, with the error that kept it from being written.
+   */
+  readonly write: (
+    chunk: string,
+    callback?: (error?: Error | null) => void,
+  ) => unknown
   readonly on: {
     (event: 'resize', listener: () => void): unknown
     (event: 'error', listener: (error: Error) => void): unknown

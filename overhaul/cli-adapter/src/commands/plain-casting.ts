@@ -150,6 +150,7 @@ export async function randomPlainRun(
       preference,
       consultation,
       stdoutFailed: streams.stdoutFailed,
+      stdoutFails: streams.stdoutFails,
     })
   } finally {
     streams.release()
@@ -269,6 +270,7 @@ async function showThenKeep(
     readonly preference: ReadingPreference
     readonly consultation: CastConsultation
     readonly stdoutFailed: () => boolean
+    readonly stdoutFails: () => void
   },
 ): Promise<ExitCode> {
   const { command, preference, consultation } = run
@@ -294,7 +296,17 @@ async function showThenKeep(
       held = { error }
     }
   }
-  if (readout !== undefined) io.stdout.write(plainReadout(readout, { colour }))
+  // Settles once stdout has handled the Readout: a broken pipe may be
+  // reported only then, after the keep's line is written.
+  const readoutWritten =
+    readout === undefined
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          io.stdout.write(plainReadout(readout, { colour }), (error) => {
+            if (error !== undefined && error !== null) run.stdoutFails()
+            resolve()
+          })
+        })
   let kept = false
   try {
     await cli.keepCastConsultation(consultation)
@@ -309,6 +321,7 @@ async function showThenKeep(
     )
     io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
   }
+  await readoutWritten
   if (run.stdoutFailed())
     exitCode = endWithLine(io, stdoutUnwritableLine(command))
   if (held !== undefined) throw held.error
@@ -424,14 +437,18 @@ function lineReader(stdin: CommandInput): LineReader {
 /**
  * What the run hears besides lines, from start to end: `Ctrl+C` and a
  * stdin error go to the reader, which ignores them once closed; a stdout
- * error is remembered, so the keep still runs and its line comes after;
+ * error, by its event or a write's callback, is remembered once, so the keep still runs and its line comes after;
  * a stderr error is heard and ignored, since there is nowhere left to say
  * so. Unheard, a stream's error would end the process.
  */
 function watchingStreams(
   io: CommandIo,
   reader: LineReader,
-): { readonly stdoutFailed: () => boolean; readonly release: () => void } {
+): {
+  readonly stdoutFailed: () => boolean
+  readonly stdoutFails: () => void
+  readonly release: () => void
+} {
   let stdoutFailed = false
   const onInterrupt = (): void => {
     reader.interrupt()
@@ -449,6 +466,7 @@ function watchingStreams(
   io.stderr.on('error', onStderrError)
   return {
     stdoutFailed: () => stdoutFailed,
+    stdoutFails: onStdoutError,
     release: () => {
       io.signals.off('SIGINT', onInterrupt)
       io.stdin.off('error', onStdinError)
