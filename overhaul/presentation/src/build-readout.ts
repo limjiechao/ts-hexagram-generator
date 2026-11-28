@@ -438,6 +438,10 @@ function editionsShown(
 
 // --- Divined At -------------------------------------------------------------------
 
+// A known duplicate of the Journal's date writing for the stored record:
+// the date a Readout shows must match the one the Consultation's file name
+// and record carry (ADR-0046), and the Journal does not export its writer.
+// Change the two together.
 const twoDigits = (value: number): string => String(value).padStart(2, '0')
 
 function isoDate({ year, month, day }: ReturnType<typeof localDate>): string {
@@ -446,7 +450,9 @@ function isoDate({ year, month, day }: ReturnType<typeof localDate>): string {
 
 /**
  * The minutes past midnight a Moment's wall clock reads in its own offset,
- * its seconds cut off, never rounded.
+ * its seconds cut off, never rounded. Reading the `±HH:MM` offset repeats
+ * the Journal's own reading of a Divined At's offset, a known duplicate kept
+ * because the Journal does not export it; change the two together.
  */
 function wallClockMinutes(
   moment: Extract<DivinedAt, { precision: 'moment' }>,

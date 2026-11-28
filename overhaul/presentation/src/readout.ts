@@ -38,7 +38,7 @@ export interface NamedHexagram {
  * One Line of a Figure as a Readout shows it. `change` is `moving` for a
  * Moving Line of the Standing Hexagram, `changed` for the Changed Line it
  * becomes in the Emerging Hexagram, and `static` otherwise; X之X has neither.
- * A renderer that colours a Moving or Changed Line also marks it with text,
+ * A renderer that colours a Moving Line also marks it with text,
  * so the meaning survives `NO_COLOR` (ADR-0044).
  */
 export interface FigureLine {
