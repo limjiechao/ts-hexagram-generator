@@ -413,8 +413,9 @@ Endings:
   stops it at once after reporting what was kept (rerunning it keeps again
   any file kept but not yet moved); with `--export`, no Consultation
   matching, the target already existing, the target unwritable, a font that
-  cannot be read, or Typst refusing the source, each one line on stderr and
-  no file written (R-547).
+  cannot be read, Typst's WebAssembly build cannot be loaded, or Typst
+  refusing the source, each one line on stderr and no file written (R-547,
+  R-554).
 
 ### 6.8 Recording, exporting and merging
 
@@ -486,8 +487,9 @@ perceptible time. What a user waits for is pace, set on purpose:
 - **Browsing** reads every file in the Journal to list it. With a few hundred
   Consultations this is expected to take well under a second; it has not been
   measured.
-- **Export to PDF** compiles in-process with Typst's WebAssembly build; not
-  yet measured.
+- **Export to PDF** compiles in-process with Typst's WebAssembly build: about
+  0.4 s for each PDF in the test suite under load; the first export in a run
+  also loads the WebAssembly build (about 0.4 s and 450 MB, R-544).
 
 ## 9. Accuracy and checking
 
