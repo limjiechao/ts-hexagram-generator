@@ -693,3 +693,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - The owner said "land"; `main` fast-forwarded cf7e63d..8c6ba43 (tsx 4.23.15 for Node 26; R-519 to R-521). No delegate ruling overturned.
 - Owner touches: 2 (R-525, R-526, on M-013 slice 2's referrals).
+
+### Iteration 45 — M-013 — 2026-11-28
+
+- Attempt: 1/2 (slice 2 of 3; R-058) · Outcome: landed on matters
+- Tests: byte fixtures for plain output and Ink sections (five cases, colour and no colour), made by running today's serializers and editing to the rulings, scripture from the bundled data; approved with amendments (R-524), the owner's two-row ledger headings and name-only Trigram rows (R-525, R-526); layout rows beyond the default preference (R-527, R-528), each shown red against the pre-fix renderer by the clerk.
+- Build: `consultationReadoutFor`; `plainReadout` and `inkSections` from one set of sections; a private width table, palette and glyphs; the Transformation tab's Emerging column derived from one number.
+- Review: `APPROVE` twice; the layout defects beyond the default preference fixed (R-527).
+- Verify: slice-2 tests · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46, on matters
+- Owner touches: 2 (R-525, R-526); delegate rulings: 3 (R-524, R-527, R-528)
+- Landed: 9 commits ending f6aff96
+- Notes: open for the next delegate batch: the diagram's brace rows still join several Translations' imagery with " / ", not " · ". `drift:prove` reported "the working tree changed during the proof" twice while a tester and the clerk wrote to the same worktree; it passed on the settled tree. A scratch worktree `../hexagram-wt-redcheck` awaits removal.
