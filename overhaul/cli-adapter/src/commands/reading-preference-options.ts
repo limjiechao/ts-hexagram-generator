@@ -2,11 +2,25 @@ import { defaultReadingPreference } from '@hexagram/scripture-catalogue/default-
 import type { EditionId } from '@hexagram/scripture-catalogue/edition-id'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 
+import {
+  CatalogueFailureError,
+  namingCatalogueFailure,
+} from '#src/commands/catalogue-failure.js'
 import type {
-  GivenOptions,
+  CommandIo,
+  CommandPorts,
+  ExitCode,
+} from '#src/commands/entry-point.js'
+import {
+  endWith,
   readingPreferenceRules,
+  type GivenOptions,
 } from '#src/commands/frame.js'
-import type { composeCli } from '#src/composition-root.js'
+import {
+  portFailureLine,
+  type PlainCastingCommand,
+} from '#src/commands/plain-casting-wording.js'
+import { composeCli } from '#src/composition-root.js'
 
 /**
  * The Reading Preference the options give, each option left out taking
@@ -94,4 +108,47 @@ function chosenFrom<Known extends string>(
     chosen.push(found)
   }
   return chosen
+}
+
+type ReadingOption = keyof typeof readingPreferenceRules
+
+/**
+ * A casting command's Reading Preference, checked while its options are
+ * parsed, before a mode is chosen: the Reading Preference, or the ending
+ * already written, the usage line for options it refuses and the
+ * Catalogue line when the Catalogue fails, each exit 1. An error that is
+ * no Catalogue failure propagates.
+ */
+export async function checkedReadingPreference(
+  io: CommandIo,
+  ports: CommandPorts,
+  command: { readonly name: PlainCastingCommand; readonly usage: string },
+  given: ReadonlyMap<string, readonly string[]>,
+): Promise<ReadingPreference | ExitCode> {
+  let preference
+  try {
+    preference = await readingPreferenceFrom(
+      // The four ports one by one: spreading `ports` would read the
+      // Journal's folder, which nothing before the Query may touch.
+      composeCli({
+        scriptureCatalogue: namingCatalogueFailure(ports.scriptureCatalogue),
+        randomSource: ports.randomSource,
+        consultationStore: ports.consultationStore,
+        clock: ports.clock,
+      }),
+      new Map(
+        [...given].filter(
+          (entry): entry is [ReadingOption, readonly string[]] =>
+            Object.keys(readingPreferenceRules).includes(entry[0]),
+        ),
+      ),
+    )
+  } catch (error) {
+    if (!(error instanceof CatalogueFailureError)) throw error
+    return endWith(
+      io,
+      portFailureLine(command.name, 'the Scripture Catalogue cannot be read'),
+    )
+  }
+  return preference ?? endWith(io, command.usage)
 }
