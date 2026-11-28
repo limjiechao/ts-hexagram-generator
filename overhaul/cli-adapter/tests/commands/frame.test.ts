@@ -39,8 +39,9 @@ import { scriptedTerminal, stdinEnds } from '../support/scripted-terminal.js'
 // Query prompt (after `hexagram-interactive`'s welcome) and then the
 // Query-not-given line. Every ending writes exactly one line to stderr
 // (after that prompt), nothing to stdout, exits 1, and touches no port, save the
-// built maintenance runs: `--export-journal` reads the Store, whose
-// throwing ports make it the Journal that cannot be read;
+// built maintenance runs: `--export-journal` and `--export` read the Store,
+// whose throwing ports make it the Journal that cannot be read, before any
+// file is written;
 // `--rerender-bodies` calls the Markdown Store's `rerenderBodies`, whose
 // rejecting stub makes it the Journal that cannot be written;
 // `--merge-journal` of a missing file ends before any port; and
@@ -138,6 +139,7 @@ function untouchablePorts(touched: string[]): CommandPorts {
         new Error('the frame touched the Markdown Consultation Store'),
       )
     },
+    compilePdf: untouched('PDF compiler'),
   }
 }
 
@@ -145,14 +147,31 @@ async function runCommand(
   command: Command,
   argv: readonly string[],
   terminal: Terminal,
+  ports: (touched: string[]) => CommandPorts = untouchablePorts,
 ): Promise<{ readonly exitCode: number } & Recorded> {
   const recorded: Recorded = { stdout: [], stderr: [], portsTouched: [] }
   const exitCode = await command(
     argv,
     fakeIo(recorded, terminal),
-    untouchablePorts(recorded.portsTouched),
+    ports(recorded.portsTouched),
   )
   return { exitCode, ...recorded }
+}
+
+/**
+ * The throwing ports, save a Catalogue whose `editions` answers, unrecorded,
+ * from the bundled Catalogue, so a valid `--translation` can be checked
+ * and the run go on.
+ */
+function portsAnsweringEditions(touched: string[]): CommandPorts {
+  const ports = untouchablePorts(touched)
+  return {
+    ...ports,
+    scriptureCatalogue: {
+      ...ports.scriptureCatalogue,
+      editions: (work) => bundledScriptureCatalogue.editions(work),
+    },
+  }
 }
 
 /** Asserts the one ending every frame path shares: one stderr line, exit 1. */
@@ -208,6 +227,33 @@ async function expectExportJournalEnding(terminal: Terminal): Promise<void> {
   expect(result.exitCode).toBe(1)
   expect(new Set(result.portsTouched)).toEqual(new Set(['Consultation Store']))
   expect(existsSync(path.resolve('bundle.json'))).toBe(false)
+}
+
+/**
+ * `--export <target>` over the throwing ports, save a Catalogue that can
+ * check a `--translation`: the Journal is read before any file is created,
+ * so it ends as the Journal that cannot be read, having touched only the
+ * Store and written no file.
+ */
+async function expectExportEnding(
+  argv: readonly string[],
+  target: string,
+  terminal: Terminal,
+): Promise<void> {
+  expect(existsSync(path.resolve(target))).toBe(false)
+  const result = await runCommand(
+    historyCommand.run,
+    argv,
+    terminal,
+    portsAnsweringEditions,
+  )
+  expect(result.stderr.join('')).toBe(
+    line('hexagram-history: the Journal cannot be read'),
+  )
+  expect(result.stdout.join('')).toBe('')
+  expect(result.exitCode).toBe(1)
+  expect(new Set(result.portsTouched)).toEqual(new Set(['Consultation Store']))
+  expect(existsSync(path.resolve(target))).toBe(false)
 }
 
 /** A bundle path inside a folder that does not exist. */
@@ -451,24 +497,16 @@ describe('the terminal table: each command with no options, in each column', () 
 })
 
 describe('the terminal table: hexagram-history maintenance runs in every column', () => {
-  const maintenance = [
-    {
-      argv: ['--export', 'out.pdf'],
-      expected: line(notBuiltLine('hexagram-history', '--export')),
+  it.each(columnNames)(
+    '--export out.pdf, %s: the Journal cannot be read',
+    async (column) => {
+      await expectExportEnding(
+        ['--export', 'out.pdf'],
+        'out.pdf',
+        columns[column],
+      )
     },
-  ]
-  const rows = maintenance.flatMap((run) =>
-    Object.entries(columns).map(([column, terminal]) => ({
-      ...run,
-      shown: run.argv.join(' '),
-      column,
-      terminal,
-    })),
   )
-
-  it.each(rows)('$shown, $column', async ({ argv, terminal, expected }) => {
-    await expectEnding(historyCommand.run, argv, terminal, expected)
-  })
 
   it.each(columnNames)(
     '--import-legacy --division-method physical, %s: the missing Journal folder imports nothing',
@@ -878,11 +916,7 @@ describe('options a command accepts run to its full-screen not-built line', () =
       argv,
       expected: line(notBuiltLine('hexagram-playground', 'full-screen')),
     })),
-    ...[
-      ['--script', 'simplified'],
-      ['--translation', 'x', '--commentary', 'y', '--yilin'],
-      ['--'],
-    ].map((argv) => ({
+    ...[['--script', 'simplified'], ['--']].map((argv) => ({
       name: 'hexagram-history',
       run: historyCommand.run,
       argv,
@@ -896,6 +930,23 @@ describe('options a command accepts run to its full-screen not-built line', () =
       await expectEnding(run, argv, tty(), expected)
     },
   )
+
+  it('hexagram-history --translation legge-1882 --commentary daxiang --yilin', async () => {
+    // A valid --translation may be checked against the Catalogue's
+    // Editions, which these ports answer; nothing else is touched.
+    const result = await runCommand(
+      historyCommand.run,
+      ['--translation', 'legge-1882', '--commentary', 'daxiang', '--yilin'],
+      tty(),
+      portsAnsweringEditions,
+    )
+    expect(result.stderr.join('')).toBe(
+      line(notBuiltLine('hexagram-history', 'full-screen')),
+    )
+    expect(result.stdout.join('')).toBe('')
+    expect(result.exitCode).toBe(1)
+    expect(result.portsTouched).toEqual([])
+  })
 })
 
 describe.each([
@@ -1056,11 +1107,11 @@ describe('a bad value, a repeat, an unknown option or a positional is a usage re
 
 describe('hexagram-history: the maintenance options and what applies to them', () => {
   const accepted = [
-    { argv: ['--export', 'out.pdf'], option: '--export' },
-    { argv: ['--export=-out.typ'], option: '--export' },
+    { argv: ['--export', 'out.pdf'], target: 'out.pdf' },
+    { argv: ['--export=-out.typ'], target: '-out.typ' },
     {
       argv: ['--export', 'out.pdf', '--filter', 'harvest'],
-      option: '--export',
+      target: 'out.pdf',
     },
     {
       argv: [
@@ -1069,24 +1120,19 @@ describe('hexagram-history: the maintenance options and what applies to them', (
         '--script',
         'simplified',
         '--translation',
-        'x',
+        'legge-1882',
         '--commentary',
-        'y',
+        'daxiang',
         '--yilin',
       ],
-      option: '--export',
+      target: 'out.pdf',
     },
   ] as const
 
   it.each(accepted.map((row) => ({ ...row, shown: row.argv.join(' ') })))(
-    'runs $shown to the line naming its option',
-    async ({ argv, option }) => {
-      await expectEnding(
-        historyCommand.run,
-        argv,
-        tty(),
-        line(notBuiltLine('hexagram-history', option)),
-      )
+    'runs $shown to the Journal that cannot be read',
+    async ({ argv, target }) => {
+      await expectExportEnding(argv, target, tty())
     },
   )
 
