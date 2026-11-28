@@ -70,7 +70,7 @@ export async function reportingJournalFailure(
     return await body()
   } catch (error) {
     if (error instanceof JournalFailureError) {
-      return endWith(io, journalFailureLine(error.failure))
+      return endWith(io, journalFailureLine('hexagram-history', error.failure))
     }
     throw error
   }

@@ -23,7 +23,7 @@ export async function rerenderBodiesRun(
   try {
     rerendered = await rerenderBodies()
   } catch {
-    return endWith(io, journalFailureLine('written'))
+    return endWith(io, journalFailureLine('hexagram-history', 'written'))
   }
   io.stdout.write(`${rerenderedLine(rerendered.rewritten)}\n`)
   return 0

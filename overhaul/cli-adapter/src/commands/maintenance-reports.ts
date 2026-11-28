@@ -3,6 +3,8 @@ import type { BundleUnreadableReason } from '@hexagram/consultation-journal/jour
 import type { UnreadableReason } from '@hexagram/consultation-journal/unreadable-file'
 import type { LegacyUnreadableReason } from '@hexagram/legacy-import/parse-legacy'
 
+import type { CommandName } from '#src/commands/not-built.js'
+
 /*
  * The words `hexagram-history`'s maintenance runs print. A report's lines go
  * to stdout and the run exits 0, even with files skipped or left out; a
@@ -45,13 +47,17 @@ export function unreadableReasonText(reason: UnreadableReason): string {
 }
 
 /**
- * A failure that stops a maintenance run, on stderr before exit 1:
- * `hexagram-history: the Journal cannot be read` when listing the Journal
- * or its Deletion Records fails, and `hexagram-history: the Journal cannot
- * be written` when keeping, removing or moving fails.
+ * A Store failure that stops a command, on stderr before exit 1, named by
+ * the command: for example `hexagram-history: the Journal cannot be read`
+ * when listing the Journal or its Deletion Records fails, and
+ * `hexagram-random: the Journal cannot be written` when keeping, removing
+ * or moving fails.
  */
-export function journalFailureLine(failure: 'read' | 'written'): string {
-  return `hexagram-history: the Journal cannot be ${failure}`
+export function journalFailureLine(
+  command: CommandName,
+  failure: 'read' | 'written',
+): string {
+  return `${command}: the Journal cannot be ${failure}`
 }
 
 /**
@@ -218,7 +224,7 @@ export function legacyUnreadableReasonText(
  * cast, 3 recorded); 2 skipped. Originals moved to legacy/ in the Journal
  * folder.`, every count shown even when zero. A Store failure
  * partway prints the lines of the files already kept, then
- * `journalFailureLine('written')`, and no summary.
+ * `journalFailureLine('hexagram-history', 'written')`, and no summary.
  */
 export function importedLine(counts: {
   readonly cast: number
@@ -232,8 +238,8 @@ export function importedLine(counts: {
 /**
  * `--rerender-bodies`'s one line, for example `Re-rendered 40 bodies.`, a
  * count of one taking the singular. Unreadable files are skipped and not
- * counted. A failure partway prints `journalFailureLine('written')`
- * instead, and no count.
+ * counted. A failure partway prints
+ * `journalFailureLine('hexagram-history', 'written')` instead, and no count.
  */
 export function rerenderedLine(rewritten: number): string {
   return `Re-rendered ${counted(rewritten, 'body', 'bodies')}.`
