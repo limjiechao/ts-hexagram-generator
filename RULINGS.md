@@ -6993,3 +6993,26 @@ scriptureCatalogue }, filter, preference)` lists through use case 4's
 - Reason: R-105, R-306, R-314, R-337, R-520, R-521, R-524, R-525, R-530,
   R-533, R-536, R-537, R-546 to R-549; manual §5, §7; AGENTS.md §5.
 - Folded into: not yet
+
+### R-551: M-016 slice 1's drift finding and departures
+
+- Date: 2026-11-28
+- Raised in: M-016 slice 1 (implementer's 8217e32 to 90ea6d2)
+- Ruled by: delegate (R-423)
+- Ruling: (1) the tester re-cuts the Typst fixtures with the template's
+  `emerging` parameter renamed (for example `emerging-figure`) so the
+  glossary's Avoid form no longer appears, and the implementer follows; the
+  re-cut bytes are approved when the diff changes only that name; it may
+  share a re-cut with the owner's pending answer on the bundled names. No
+  exception to signal 2 and no split literal. (2) 3abb838's one-line import
+  changes in six approved test files are licensed after the fact as an
+  R-306 mechanical change (made by the implementer, not a tester). (3) the
+  shared `createExclusively` refactor and the commit order are accepted.
+  (4) M-016 lands on `matters` only with slice 2: until then a `.pdf`
+  export from the bin ends in a stack trace, which breaks the exit policy;
+  slice 2's tester adds rows for the font and compile failures and the
+  wired compiler, with the `%PDF-` row and all eight fixtures compiled by
+  typst.ts 0.7.0.
+- Reason: R-200, R-246, R-306, R-515, R-547, R-548, R-550; ADR-0042;
+  manual §6.7; AGENTS.md §5.
+- Folded into: not yet

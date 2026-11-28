@@ -467,7 +467,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-016: Exporting to Typst and PDF
 
-- Status: pending
+- Status: in-progress
 - Phase: 4
 - Licensed by: ADR-0015, ADR-0037; manual sections 6.8, 7, 8; R-105, R-125,
   R-347
@@ -483,6 +483,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 - Open questions: none open; ruled in R-376, R-380. Likely from the tester: an extension that
   is neither; an empty filter result.
 - Commits: –
+- Note (R-551): slice 1 lands on `matters` only together with slice 2.
 - Notes: about 900 lines, two slices, after the spike R-376 (A) asks for.
 
 ### M-017: The Viewer and full-screen Automatic Division
