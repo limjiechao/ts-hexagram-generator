@@ -6536,3 +6536,20 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   owner's digest: the Emerging column moves right under long Translation
   names, and " · " between Translations is a taste choice.
 - Folded into: not yet
+
+### R-528: The rows pinning R-527
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 2 (tester's e4c7152)
+- Ruled by: delegate (R-423)
+- Ruling: approve the seven rows with three amendments: (1) a new row with
+  小畜 as the Standing Hexagram and a Moving Line, under Wilhelm–Baynes alone
+  and under Wilhelm–Baynes then Legge, asserting every Line row's Emerging
+  cell, moving or still, starts at the names' and Trigrams' column and each
+  moving row has `▶ ` just before it; (2) the all-64 sweeps also check the
+  name rows and the floor of 46, keeping the 120-column check as a guard on
+  the bundled data; (3) the Chinese-only row splits in two: the line after
+  the `#N` row is the divider (the names row is left out, not blanked), and
+  the brace rows on their own.
+- Reason: R-527 (A) to (C); manual §2's default width; R-519 Q-14.
+- Folded into: not yet
