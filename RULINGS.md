@@ -6822,3 +6822,25 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: R-536 to R-540; AGENTS.md §6 and §7. For the owner's digest as an
   application of R-538.
 - Folded into: not yet
+
+### R-542: M-014 slice 2's tests; Q-M-014-32 to -36
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 2 (tester's 1b51f68, d66bb74, fd1f99a)
+- Ruled by: delegate (R-423)
+- Ruling: approve d66bb74 and fd1f99a; approve 1b51f68 with three new rows
+  (`01` and `047` refused; `\t12 ` accepted as 12 and `1\t2` refused; a last
+  Pick `1\r` ended by stdin's end counts). R-521 holds. Questions: Q-32 A —
+  a stdin read error while the run still reads stdin, at the Query or any
+  Pick prompt, ends it with a newline and `<command>: stdin cannot be
+read`, exit 1, nothing kept; once nothing more is read it is heard and
+  ignored (clarifies R-536 (5)); Q-33 A — input after the eighteenth Pick
+  is ignored; Q-34 B — a Pick with a leading zero is refused, as R-401
+  defines a whole number; Q-35 B — anything `trim` strips around a Pick is
+  ignored, the digits stay ASCII; Q-36 A — after approval a refactor-only
+  commit moves the shared test helpers to
+  `tests/support/plain-casting-ports.ts`, titles and assertions unchanged.
+  For the owner's digest: Q-32 and Q-34.
+- Reason: R-306, R-350, R-401, R-521, R-531 Q-13, R-535 Q-30, R-536,
+  R-538, R-540; manual §6.4, §7; AGENTS.md §5, §6.
+- Folded into: not yet
