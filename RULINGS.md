@@ -6964,3 +6964,32 @@ scriptureCatalogue }, filter, preference)` lists through use case 4's
 - Reason: the existing fixtures add no text the repository doesn't already
   hold.
 - Folded into: not yet
+
+### R-550: M-016 slice 1's tests and fixtures; Q-M-016-22 to -29
+
+- Date: 2026-11-28
+- Raised in: M-016 slice 1 (tester's f5d05f8, 08b2a3f, be1b63c, b71cfee,
+  2641678, 90d9d7f)
+- Ruled by: delegate (R-423)
+- Ruling: approve the boundary, stub, frame and test commits; R-521 holds
+  (no spawned row reaches `--export`). The Typst fixtures (b71cfee) are
+  approved on the owner's answer to whether they may borrow the bundled
+  Chinese Hexagram and Trigram names and imagery (referred). Q-22 A, as
+  clarified: the title runs from the earliest to the latest local date the
+  Readouts show, or one date. Q-23 A: `presentation` exports one table
+  `{9: '○', 6: '✕'}` both renderers use (a refactor-only commit). Q-24 A:
+  the PDF's wording ratified as drafted. Q-25 A: R-536 (6) and R-537 apply
+  to `--export`. Q-26 A: a bare `.typ` or `.pdf` is a usage refusal. Q-27
+  A: browsing checks the Reading Preference too (M-020 adds the row). Q-28
+  B, narrowed: the `.typ` source writes a tab as `\t` and a carriage return
+  as `\r`, one row each. Q-29 A. Slice 2 must add the `%PDF-` row and compile
+  all eight fixtures with typst.ts 0.7.0. For the owner's digest: the
+  print-only phrases "Line Values, the bottom first:", "Upper Trigram:" and
+  "Lower Trigram:", "左 Left" and "右 Right", "An unidentified Edition.";
+  the escaped tab and carriage return; `--export-journal` is quieter on
+  stream errors than R-536 (6) requires (a gap for a later Matter). The
+  tester checked the fixtures with the system `typst` 0.15.1 (harmless;
+  briefs should say whether a system tool may be used).
+- Reason: R-105, R-306, R-314, R-337, R-520, R-521, R-524, R-525, R-530,
+  R-533, R-536, R-537, R-546 to R-549; manual §5, §7; AGENTS.md §5.
+- Folded into: not yet
