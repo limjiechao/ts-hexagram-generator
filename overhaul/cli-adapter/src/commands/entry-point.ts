@@ -3,6 +3,7 @@ import type { Buffer } from 'node:buffer'
 import type { MarkdownConsultationStore } from '@hexagram/store-markdown/markdown-consultation-store'
 
 import type { composeCli } from '#src/composition-root.js'
+import type { CompilePdf } from '#src/typst-pdf.js'
 
 /** What a command may end with: 0 on a normal ending, 1 on a refusal or an error. */
 export type ExitCode = 0 | 1
@@ -98,12 +99,15 @@ export interface CommandIo {
  * composition root takes them (ADR-0037), the Journal's folder (ADR-0020),
  * and the Markdown Store's own maintenance, which no port offers since only
  * that Store has the folder: its move of an imported original into
- * `legacy/`, and its re-rendering of every body.
+ * `legacy/`, and its re-rendering of every body; and the compiler that
+ * turns `--export`'s Typst source into a PDF, an adapter's effect
+ * (ADR-0037).
  */
 export type CommandPorts = Parameters<typeof composeCli>[0] & {
   readonly journalFolder: string
   readonly moveToLegacy: MarkdownConsultationStore['moveToLegacy']
   readonly rerenderBodies: MarkdownConsultationStore['rerenderBodies']
+  readonly compilePdf: CompilePdf
 }
 
 /**

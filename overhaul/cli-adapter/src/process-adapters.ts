@@ -33,7 +33,8 @@ export function processIo(process: NodeJS.Process): CommandIo {
  * Consultation Store over the Journal's folder (ADR-0020), its bodies
  * rendered by `markdownBodyRenderer` from the bundled Catalogue. Besides its
  * `consultationStore`, the bin passes the Store's `moveToLegacy` and its
- * `rerenderBodies` for `--rerender-bodies`. Every command run from a bin
+ * `rerenderBodies` for `--rerender-bodies`, and the PDF compiler for
+ * `--export`. Every command run from a bin
  * writes to and reads the real Journal of its checkout; only a test's own
  * ports keep it untouched.
  */
@@ -56,5 +57,8 @@ export function processPorts(process: NodeJS.Process): CommandPorts {
     journalFolder: folder,
     moveToLegacy: store.moveToLegacy,
     rerenderBodies: store.rerenderBodies,
+    // The PDF compiler is not built yet; it fails only when a PDF is asked
+    // for, so every other run pays nothing for it.
+    compilePdf: () => Promise.reject(new Error('not built')),
   }
 }
