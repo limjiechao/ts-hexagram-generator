@@ -1,5 +1,6 @@
 import type { LinePosition } from '@hexagram/oracle/line-position'
 import type { LineValue } from '@hexagram/oracle/line-value'
+import { movingLineMarks } from '@hexagram/presentation/moving-line-marks'
 import type { FigureLine, HexagramFigure } from '@hexagram/presentation/readout'
 import type { TrigramName } from '@hexagram/scripture-catalogue/trigram-name'
 
@@ -8,15 +9,15 @@ import { textWidth } from '#src/readout/text-width.js'
 
 /*
  * A Hexagram's Figure drawn as monospace rows (ADR-0022), Line 6 at the top.
- * A Moving Line's glyph carries ○ or ✕ whether or not colour is on, so the
- * meaning survives `NO_COLOR` (ADR-0044).
+ * A Moving Line's glyph carries its mark whether or not colour is on, so
+ * the meaning survives `NO_COLOR` (ADR-0044).
  */
 
 const lineGlyphs: Readonly<Record<LineValue, string>> = {
-  6: '━━━ ✕ ━━━',
+  6: `━━━ ${movingLineMarks[6]} ━━━`,
   7: '━━━━━━━━━',
   8: '━━━   ━━━',
-  9: '━━━━○━━━━',
+  9: `━━━━${movingLineMarks[9]}━━━━`,
 }
 
 const positionLabels: Readonly<Record<LinePosition, string>> = {

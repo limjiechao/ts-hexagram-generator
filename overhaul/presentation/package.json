@@ -13,6 +13,11 @@
       "types": "./dist/build-readout.d.mts",
       "import": "./dist/build-readout.mjs"
     },
+    "./moving-line-marks": {
+      "source": "./src/moving-line-marks.ts",
+      "types": "./dist/moving-line-marks.d.mts",
+      "import": "./dist/moving-line-marks.mjs"
+    },
     "./readout": {
       "source": "./src/readout.ts",
       "types": "./dist/readout.d.mts",
