@@ -6460,3 +6460,29 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   a third copy, and the YYYY-MM-DD text must match the file name; one
   exported date-text function would be a Tier-A question for a later Matter.
 - Folded into: not yet
+
+### R-524: M-013 slice 2's fixtures and tests; Q-M-013-29 to -46
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 2 (tester's ed1d579, 4b5205f)
+- Ruled by: delegate (R-423)
+- Ruling: (tests) approve. (fixtures) approve with two amendments: the
+  closing title is `EDITIONS AND WITNESSES:` (R-519 Q-15's drafted title)
+  in all files, and the closing section always has two blank lines before
+  its title; the ledger rows and the Transformation tab's Trigram rows wait
+  on Q-32 and Q-35, referred to the owner. X之X shows both Figures side by
+  side, without today's "(No transformation)". Questions: Q-29 A (Divined At
+  under the Query, indented two, grey, no label); Q-30 A (every Query line
+  indented two); Q-31 the drafted top-level titles with today's trailing
+  colon, and per-passage subtitles (`卦辭:`, `初六:`, `大象:`…) inside the
+  tabs; Q-33 A (`Division Method: …` between `CASTING:` and the ledger);
+  Q-34 A ("A Recorded Consultation has no Casting."); Q-36 A (brace imagery
+  as today with the Editions' imagery); Q-37 A (one name block per Edition);
+  Q-38 A (one row per related Hexagram, no Edition headings); Q-39 A,
+  amended as above; Q-40 A (every continuation line indented two); Q-41 A;
+  Q-42 A with the Q-31 title; Q-43 A (no-colour = escape codes stripped);
+  Q-44 A (plain and Ink built from the same parts, as today); Q-45 A
+  (today's colours); Q-46 A (the default preference suffices here).
+- Reason: R-375 (today's bytes where nothing changes), R-331, R-341 to
+  R-345, R-373, R-383, R-512, R-519 to R-523; ADR-0026, ADR-0044; manual §5.
+- Folded into: not yet
