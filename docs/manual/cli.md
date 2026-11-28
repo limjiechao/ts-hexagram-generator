@@ -297,8 +297,8 @@ one line, casts, prints the Readout and keeps the Consultation.
   too, exit 0, with nothing kept.
 - Abnormal endings: the Consultation cannot be kept: in the full-screen
   interface, retry or discard as in 6.1; in plain mode, one line on stderr,
-  exit 1. In plain mode, a stdin closed before the Query is given ends with
-  nothing kept; its exit code is still open (see the end).
+  exit 1, with the Readout already printed (R-532). In plain mode, a stdin
+  closed before the Query is given ends with nothing kept, exit 1 (R-377).
 
 ### 6.4 `hexagram-interactive`: cast with Virtual Division
 
@@ -508,9 +508,3 @@ perceptible time. What a user waits for is pace, set on purpose:
   locked byte for byte; regenerate them deliberately (ADR-0013).
 - **Imports and merges report themselves**: each prints what it kept, skipped
   or left out (6.7, 6.8).
-
-## Still open
-
-- The exit code when stdin is closed in plain mode before the Query is given
-  (R-350 leaves it proposed). This manual proposes exit 1, as an error; today's
-  behaviour is not verified.

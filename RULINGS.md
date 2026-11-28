@@ -6628,3 +6628,38 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   R-521, R-529; ADR-0014 (易筮占, the Yijing Yarrow Oracle), ADR-0044;
   manual §2, §6.1, §6.3, §6.4, §7, §9; AGENTS.md §5 and §6.
 - Folded into: not yet
+
+### R-532: The Consultation exists before it is kept
+
+- Date: 2026-11-28
+- Raised in: M-014, question Q-M-014-6 (referred by the delegate)
+- Ruled by: owner
+- Ruling: B — use case 1 is split so the Cast Consultation, with its
+  Consultation Id and Divined At from one Clock read, is built before it is
+  kept. Plain mode prints the Readout, then keeps, as manual §6.3 says; a
+  failed keep leaves the Readout on screen, one line on stderr, exit 1. This
+  changes `keepCastConsultation`'s Tier-A signature; the drafter drafts the
+  split for ratification. R-531 Q-8 takes its (B) branch: a Catalogue
+  failure comes before the keep, the Casting is still kept, the Catalogue
+  line then the kept line, exit 1.
+- Reason: the glossary's Divined At is "not the moment it was saved";
+  manual §6.1's full-screen Viewer keeps the Readout on screen when keeping
+  fails (M-017 needs the same split); Virtual Picks cannot honestly be
+  redone.
+- Folded into: `docs/manual/cli.md` §6.3
+
+### R-533: Reading Preference options are checked against the Catalogue
+
+- Date: 2026-11-28
+- Raised in: M-014, question Q-M-014-10 (referred by the delegate)
+- Ruled by: owner
+- Ruling: C — `--translation` takes an EditionId slug (such as
+  `legge-1882`) and `--commentary` a Work key
+  (`tuan|daxiang|xiaoxiang|wenyan`); a given list replaces the default; each
+  `--translation` is checked against the bundled Catalogue's Editions before
+  the Query is asked, and an unknown one is refused with the usage line,
+  exit 1. The no-port-before-the-Query rule exempts the Scripture Catalogue
+  (it is not the Journal; R-521 is untouched).
+- Reason: R-403 has the values checked against the Catalogue; a typo must
+  not silently show nothing.
+- Folded into: not yet

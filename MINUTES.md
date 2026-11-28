@@ -715,3 +715,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 0; delegate rulings: 2 (R-529, R-530)
 - Landed: 11 commits ending 4155895. f76bb12 (the Markdown renderer) failed `type:check` alone; folded with its fix 5641b7b at landing as 223f488, so every landed commit type-checks.
 - Notes: M-013 used 4 owner touches in all (R-520, R-521, R-525, R-526) and 12 delegate rulings (R-519, R-522 to R-524, R-527 to R-530, and test approvals). The implementer ran `git stash list` once (read-only). The bins now write the real Journal, so the owner can migrate; M-014 must make the spawn guard's stdin end like the child's (R-529). Scratch left for the owner: `../hexagram-wt-redcheck` (a detached worktree), probe files under `hexagram-wt-M-013`'s `node_modules/.cache`.
+
+### Landing — PR #68 — 2026-11-28
+
+- The owner said "land"; `main` fast-forwarded 8c6ba43..c603b0c (M-013, the Readout; the bins use the real Markdown Store). No delegate ruling overturned.
+- Owner touches: 2 (R-532, R-533, on M-014's referrals). Manual §6.3 folds R-377 (exit 1) and R-532; the "Still open" section is removed.
