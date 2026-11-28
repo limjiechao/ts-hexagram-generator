@@ -362,7 +362,11 @@ describe('the export fonts are committed through Git LFS, each with its OFL lice
   it.each(exportFontFiles.map(({ file }) => file))(
     '%s: .gitattributes gives it to LFS, and git holds its pointer',
     (file) => {
-      const relative = path.relative(repositoryRoot, fontPath(file))
+      // Git reads a path with forward slashes, on Windows too.
+      const relative = path
+        .relative(repositoryRoot, fontPath(file))
+        .split(path.sep)
+        .join('/')
 
       expect(gitAttributes(relative)).toEqual({
         filter: 'lfs',
