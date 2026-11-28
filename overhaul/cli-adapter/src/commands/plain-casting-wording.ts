@@ -79,6 +79,24 @@ export function castingUnfinishedLine(command: PlainCastingCommand): string {
 }
 
 /**
+ * The one line on stderr, before exit 1, when stdin cannot be read before
+ * a Query is given. Nothing is kept.
+ */
+export function stdinUnreadableLine(command: PlainCastingCommand): string {
+  return `${command}: stdin cannot be read`
+}
+
+/**
+ * The one line on stderr, before exit 1, when stdout cannot be written, as
+ * when the pipe it feeds is closed. It comes after the keep, which a
+ * broken stdout never cuts short, and after the kept line or the Journal
+ * line.
+ */
+export function stdoutUnwritableLine(command: PlainCastingCommand): string {
+  return `${command}: stdout cannot be written`
+}
+
+/**
  * The one line on stderr, before exit 1, when a driven port other than the
  * Store fails: the Scripture Catalogue cannot be read for the Readout or
  * the Reading Preference, or the Clock or the Random Source fails (CLI

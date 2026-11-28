@@ -27,6 +27,8 @@ import {
   portFailureLine,
   queryNotGivenLine,
   queryPrompt,
+  stdinUnreadableLine,
+  stdoutUnwritableLine,
   type PlainCastingCommand,
 } from '#src/commands/plain-casting-wording.js'
 import { composeCli } from '#src/composition-root.js'
@@ -101,16 +103,15 @@ export async function randomPlainRun(
 ): Promise<ExitCode> {
   const command = 'hexagram-random'
   const reader = lineReader(io.stdin)
-  const onInterrupt = (): void => {
-    reader.interrupt()
-  }
-  io.signals.on('SIGINT', onInterrupt)
+  const streams = watchingStreams(io, reader)
   try {
     const query = await askForQuery(io, reader)
     if (query === 'interrupted') return 0
     if (query === 'ended') return endWithLine(io, queryNotGivenLine(command))
-    // The Query is the last line read: from here `Ctrl+C` is heard and
-    // ignored, so a keep is never cut short.
+    if (query === 'unreadable')
+      return endWithLine(io, stdinUnreadableLine(command))
+    // The Query is the last line read: from here `Ctrl+C` and a stdin
+    // error are heard and ignored, so a keep is never cut short.
     reader.close()
 
     const cli = composeCli({
@@ -148,9 +149,10 @@ export async function randomPlainRun(
       command,
       preference,
       consultation,
+      stdoutFailed: streams.stdoutFailed,
     })
   } finally {
-    io.signals.off('SIGINT', onInterrupt)
+    streams.release()
     reader.close()
   }
 }
@@ -189,7 +191,7 @@ const afterAnswer: string = ''
 async function askForQuery(
   io: CommandIo,
   reader: LineReader,
-): Promise<Query | 'ended' | 'interrupted'> {
+): Promise<Query | 'ended' | 'interrupted' | 'unreadable'> {
   for (;;) {
     io.stderr.write(queryPrompt)
     const answer = await reader.next()
@@ -199,6 +201,7 @@ async function askForQuery(
     }
     if (afterAnswer !== '') io.stderr.write(afterAnswer)
     if (answer.kind === 'end') return 'ended'
+    if (answer.kind === 'unreadable') return 'unreadable'
     if (isQuery(answer.line)) return answer.line
     io.stderr.write(`${blankQueryLine}\n`)
   }
@@ -255,7 +258,7 @@ function namingItsFailure(randomSource: RandomSource): RandomSource {
  * The Readout on stdout, written whole or not at all, then the keep and
  * the kept line. A Catalogue failure writes its line instead of the
  * Readout and still keeps, exit 1; a failed keep writes the Journal line,
- * exit 1.
+ * exit 1. A stdout that failed meanwhile adds its line last, exit 1.
  */
 async function showThenKeep(
   io: CommandIo,
@@ -265,6 +268,7 @@ async function showThenKeep(
     readonly command: PlainCastingCommand
     readonly preference: ReadingPreference
     readonly consultation: CastConsultation
+    readonly stdoutFailed: () => boolean
   },
 ): Promise<ExitCode> {
   const { command, preference, consultation } = run
@@ -301,14 +305,17 @@ async function showThenKeep(
   } catch {
     exitCode = endWithLine(io, journalFailureLine(command, 'written'))
   }
+  if (run.stdoutFailed())
+    exitCode = endWithLine(io, stdoutUnwritableLine(command))
   if (held !== undefined) throw held.error
   return exitCode
 }
 
-/** What a prompt gets: a line, the end of stdin, or `Ctrl+C`. */
+/** What a prompt gets: a line, the end of stdin, a stdin error, or `Ctrl+C`. */
 type Answer =
   | { readonly kind: 'line'; readonly line: string }
   | { readonly kind: 'end' }
+  | { readonly kind: 'unreadable' }
   | { readonly kind: 'interrupt' }
 
 interface LineReader {
@@ -316,6 +323,11 @@ interface LineReader {
   readonly next: () => Promise<Answer>
   /** Hands `Ctrl+C` to a prompt that waits; with none waiting, it does nothing. */
   readonly interrupt: () => void
+  /**
+   * Hears that stdin cannot be read: the lines already read come first,
+   * then every prompt gets `unreadable`. Once closed, it does nothing.
+   */
+  readonly fail: () => void
   /** Stops reading and pauses stdin; reading nothing more, it may be called again. */
   readonly close: () => void
 }
@@ -337,6 +349,7 @@ function lineReader(stdin: CommandInput): LineReader {
   const lines: string[] = []
   let partial = ''
   let ended = false
+  let unreadable = false
   let closed = false
   let waiting: ((answer: Answer) => void) | undefined
 
@@ -350,6 +363,7 @@ function lineReader(stdin: CommandInput): LineReader {
     if (waiting === undefined) return
     const line = lines.shift()
     if (line !== undefined) answer({ kind: 'line', line })
+    else if (unreadable) answer({ kind: 'unreadable' })
     else if (ended) answer({ kind: 'end' })
   }
 
@@ -388,12 +402,54 @@ function lineReader(stdin: CommandInput): LineReader {
     interrupt: () => {
       answer({ kind: 'interrupt' })
     },
+    fail: () => {
+      if (closed) return
+      unreadable = true
+      offer()
+    },
     close: () => {
       if (closed) return
       closed = true
       stdin.off('data', onData)
       stdin.off('end', onEnd)
       stdin.pause()
+    },
+  }
+}
+
+/**
+ * What the run hears besides lines, from start to end: `Ctrl+C` and a
+ * stdin error go to the reader, which ignores them once closed; a stdout
+ * error is remembered, so the keep still runs and its line comes after;
+ * a stderr error is heard and ignored, since there is nowhere left to say
+ * so. Unheard, a stream's error would end the process.
+ */
+function watchingStreams(
+  io: CommandIo,
+  reader: LineReader,
+): { readonly stdoutFailed: () => boolean; readonly release: () => void } {
+  let stdoutFailed = false
+  const onInterrupt = (): void => {
+    reader.interrupt()
+  }
+  const onStdinError = (): void => {
+    reader.fail()
+  }
+  const onStdoutError = (): void => {
+    stdoutFailed = true
+  }
+  const onStderrError = (): void => {}
+  io.signals.on('SIGINT', onInterrupt)
+  io.stdin.on('error', onStdinError)
+  io.stdout.on('error', onStdoutError)
+  io.stderr.on('error', onStderrError)
+  return {
+    stdoutFailed: () => stdoutFailed,
+    release: () => {
+      io.signals.off('SIGINT', onInterrupt)
+      io.stdin.off('error', onStdinError)
+      io.stdout.off('error', onStdoutError)
+      io.stderr.off('error', onStderrError)
     },
   }
 }

@@ -9,8 +9,8 @@ export type ExitCode = 0 | 1
 
 /**
  * The stdin a command reads: only what it uses, so the process's stdin and a
- * test's fake both fit. Its end lets a closed stdin end a plain-mode run, and
- * `pause` lets a stdin read to its last line stop holding the process open
+ * test's fake both fit. Its end lets a closed stdin end a plain-mode run, its
+ * error lets one that cannot be read end it too, and `pause` lets a stdin read to its last line stop holding the process open
  * once the run ends.
  */
 export interface CommandInput {
@@ -19,10 +19,12 @@ export interface CommandInput {
   readonly on: {
     (event: 'data', listener: (chunk: string | Buffer) => void): unknown
     (event: 'end', listener: () => void): unknown
+    (event: 'error', listener: (error: Error) => void): unknown
   }
   readonly off: {
     (event: 'data', listener: (chunk: string | Buffer) => void): unknown
     (event: 'end', listener: () => void): unknown
+    (event: 'error', listener: (error: Error) => void): unknown
   }
   readonly pause: () => unknown
 }
@@ -46,8 +48,14 @@ export interface CommandOutput {
   readonly columns?: number
   readonly rows?: number
   readonly write: (chunk: string) => unknown
-  readonly on: (event: 'resize', listener: () => void) => unknown
-  readonly off: (event: 'resize', listener: () => void) => unknown
+  readonly on: {
+    (event: 'resize', listener: () => void): unknown
+    (event: 'error', listener: (error: Error) => void): unknown
+  }
+  readonly off: {
+    (event: 'resize', listener: () => void): unknown
+    (event: 'error', listener: (error: Error) => void): unknown
+  }
 }
 
 /**
