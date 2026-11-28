@@ -1,11 +1,6 @@
 import { Buffer } from 'node:buffer'
-import { mkdtemp, readdir, rm, writeFile } from 'node:fs/promises'
-import { tmpdir } from 'node:os'
 import path from 'node:path'
 
-import type { Clock } from '@hexagram/application/clock'
-import type { ConsultationStore } from '@hexagram/application/consultation-store'
-import type { RandomSource } from '@hexagram/application/random-source'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import { bundledScriptureCatalogue } from '@hexagram/catalogue-bundled/bundled-scripture-catalogue'
 import type { CastConsultation } from '@hexagram/consultation-journal/cast-consultation'
@@ -15,12 +10,8 @@ import type { CompleteCasting, PartialCasting } from '@hexagram/oracle/casting'
 import { divide, emptyCasting, nextRound } from '@hexagram/oracle/division'
 import type { Remainder } from '@hexagram/oracle/remainder'
 import { defaultReadingPreference } from '@hexagram/scripture-catalogue/default-reading-preference'
-import { isEditionId } from '@hexagram/scripture-catalogue/edition-id'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
-import {
-  consultationFileName,
-  markdownConsultationStore,
-} from '@hexagram/store-markdown/markdown-consultation-store'
+import { consultationFileName } from '@hexagram/store-markdown/markdown-consultation-store'
 import { afterEach, describe, expect, it } from 'vitest'
 
 import type { CommandPorts } from '#src/commands/entry-point.js'
@@ -33,11 +24,26 @@ import {
   queryNotGivenLine,
   queryPrompt,
 } from '#src/commands/plain-casting-wording.js'
-import { markdownBodyRenderer } from '#src/readout/markdown-body.js'
 import { paletteFor } from '#src/readout/palette.js'
 import { plainReadout } from '#src/readout/plain-readout.js'
 import { consultationReadoutFor } from '#src/readout/readout-for.js'
 
+import {
+  brokenPipe,
+  editionId,
+  filesIn,
+  idDraws,
+  idRandomPart,
+  keptConsultations,
+  keptIn,
+  recordingPorts,
+  removeTemporaryJournals,
+  temporaryJournal as temporaryJournalIn,
+  throwingList,
+  timeCharacters,
+  unwritableJournal as unwritableJournalIn,
+  type PortOptions,
+} from '../support/plain-casting-ports.js'
 import { readoutCases, readoutFixture } from '../support/readout-cases.js'
 import {
   chunk,
@@ -69,24 +75,6 @@ function castCase(name: string): CastConsultation {
 /** X之X, cast by Automatic Division, the one such case among the fixtures. */
 const xZhiX = castCase('cast-x-zhi-x')
 const xZhiXFixture = readoutFixture('plain-cast-x-zhi-x.txt')
-
-/** Crockford's base 32, the ULID alphabet (ADR-0046). */
-const crockford = '0123456789ABCDEFGHJKMNPQRSTVWXYZ'
-
-/** The ten time characters of a ULID for this millisecond. */
-function timeCharacters(epochMilliseconds: number): string {
-  let text = ''
-  let remaining = epochMilliseconds
-  for (let at = 0; at < 10; at += 1) {
-    text = crockford.charAt(remaining % 32) + text
-    remaining = Math.floor(remaining / 32)
-  }
-  return text
-}
-
-/** The random part of the fixtures' Consultation Ids. */
-const idRandomPart = '4T7V2M5N6P0R1S2K'
-const idDraws = [...idRandomPart].map((symbol) => crockford.indexOf(symbol))
 
 const remainders: readonly Remainder[] = [1, 2, 3, 4]
 
@@ -164,166 +152,22 @@ function withoutColour(text: string): string {
   return left
 }
 
-const folders: string[] = []
+afterEach(removeTemporaryJournals)
 
-afterEach(async () => {
-  await Promise.all(
-    folders
-      .splice(0)
-      .map((folder) => rm(folder, { recursive: true, force: true })),
-  )
-})
-
-/** A Journal folder, not yet created, in a fresh temporary folder. */
-async function temporaryJournal(): Promise<string> {
-  const root = await mkdtemp(path.join(tmpdir(), 'random-plain-'))
-  folders.push(root)
-  return path.join(root, 'journal')
-}
-
-/** A Journal folder that cannot be created: its parent is a file. */
-async function unwritableJournal(): Promise<string> {
-  const root = await mkdtemp(path.join(tmpdir(), 'random-plain-'))
-  folders.push(root)
-  await writeFile(path.join(root, 'a-file'), 'not a folder\n')
-  return path.join(root, 'a-file', 'journal')
-}
-
-async function filesIn(folder: string): Promise<readonly string[]> {
-  try {
-    const names = await readdir(folder)
-    return names.toSorted()
-  } catch {
-    return []
-  }
-}
-
-/** What a fresh Store reads back from the Journal folder. */
-function keptIn(journalFolder: string) {
-  const store = markdownConsultationStore({
-    journalFolder,
-    renderBody: markdownBodyRenderer({
-      scriptureCatalogue: bundledScriptureCatalogue,
-    }),
-  })
-  return store.consultationStore.list()
-}
-
-/** The Consultations a fresh Store reads back from the Journal folder. */
-async function keptConsultations(journalFolder: string) {
-  const { consultations } = await keptIn(journalFolder)
-  return consultations
-}
-
-interface PortOptions {
-  readonly journalFolder: string
-  readonly draws?: readonly number[]
-  readonly clock?: Clock['now']
-  /** The Catalogue the run reads; the Store's bodies always use the bundled one. */
-  readonly scriptureCatalogue?: ScriptureCatalogue
-  /** Hands the run the Catalogue itself, unrecorded, so its methods keep their `this`. */
-  readonly catalogueAsGiven?: boolean
-  /** Called as the Store's keep begins. */
-  readonly onKeep?: () => void
-}
+const temporaryJournal = () => temporaryJournalIn('random-plain-')
+const unwritableJournal = () => unwritableJournalIn('random-plain-')
 
 /**
- * The run's ports: the real Markdown Store over the Journal folder, the
- * bundled Catalogue, a Clock that reads X之X's Divined At and a Random
- * Source that gives the scripted draws in turn. Every use is recorded by
- * port, the Journal folder included.
+ * The run's ports, over the real Markdown Store: a Clock that reads X之X's
+ * Divined At and a Random Source that gives `allDraws`, unless the options
+ * name others.
  */
 function portsOver(options: PortOptions, touched: string[]): CommandPorts {
-  const store = markdownConsultationStore({
-    journalFolder: options.journalFolder,
-    renderBody: markdownBodyRenderer({
-      scriptureCatalogue: bundledScriptureCatalogue,
-    }),
-  })
-  const catalogue = options.scriptureCatalogue ?? bundledScriptureCatalogue
-  const scriptureCatalogue: ScriptureCatalogue = {
-    passageTexts: (...args) => {
-      touched.push('Scripture Catalogue')
-      return catalogue.passageTexts(...args)
-    },
-    hexagramNames: (...args) => {
-      touched.push('Scripture Catalogue')
-      return catalogue.hexagramNames(...args)
-    },
-    receivedSequenceNumber: (...args) => {
-      touched.push('Scripture Catalogue')
-      return catalogue.receivedSequenceNumber(...args)
-    },
-    trigramNames: (...args) => {
-      touched.push('Scripture Catalogue')
-      return catalogue.trigramNames(...args)
-    },
-    editions: (...args) => {
-      touched.push('Scripture Catalogue')
-      return catalogue.editions(...args)
-    },
-  }
-  const real = store.consultationStore
-  const consultationStore: ConsultationStore = {
-    keep: (consultation) => {
-      touched.push('Consultation Store')
-      options.onKeep?.()
-      return real.keep(consultation)
-    },
-    list: () => {
-      touched.push('Consultation Store')
-      return real.list()
-    },
-    get: (id) => {
-      touched.push('Consultation Store')
-      return real.get(id)
-    },
-    remove: (record) => {
-      touched.push('Consultation Store')
-      return real.remove(record)
-    },
-    deletionRecords: () => {
-      touched.push('Consultation Store')
-      return real.deletionRecords()
-    },
-  }
-  const draws = options.draws ?? allDraws
-  let drawn = 0
-  const randomSource: RandomSource = {
-    integerBelow: (bound) => {
-      touched.push('Random Source')
-      const draw = draws[drawn]
-      drawn += 1
-      if (draw === undefined) throw new Error('the invented entropy ran dry')
-      if (draw >= bound) throw new Error(`draw ${draw} is not below ${bound}`)
-      return draw
-    },
-  }
-  const now = options.clock ?? (() => xZhiX.divinedAt)
-  const clock: Clock = {
-    now: () => {
-      touched.push('Clock')
-      return now()
-    },
-  }
-  const maintenance = (): never => {
-    touched.push('Markdown Consultation Store')
-    throw new Error('plain casting reached a maintenance run')
-  }
-  const { journalFolder } = options
-  return {
-    scriptureCatalogue:
-      options.catalogueAsGiven === true ? catalogue : scriptureCatalogue,
-    consultationStore,
-    randomSource,
-    clock,
-    get journalFolder(): string {
-      touched.push('Journal folder')
-      return journalFolder
-    },
-    moveToLegacy: maintenance,
-    rerenderBodies: maintenance,
-  }
+  return recordingPorts(
+    options,
+    { moment: xZhiX.divinedAt, draws: allDraws },
+    touched,
+  )
 }
 
 interface RunOptions extends PortOptions {
@@ -767,11 +611,6 @@ describe('hexagram-random in plain mode: a failing port', () => {
   })
 })
 
-function editionId(text: string) {
-  if (!isEditionId(text)) throw new Error(`${text} is no EditionId`)
-  return text
-}
-
 describe('hexagram-random in plain mode: the Reading Preference options', () => {
   it.each([
     {
@@ -903,25 +742,6 @@ describe('hexagram-random in plain mode: the Reading Preference options', () => 
 
 const stdinUnreadable = line('hexagram-random: stdin cannot be read')
 const stdoutUnwritable = line('hexagram-random: stdout cannot be written')
-
-/** A closed pipe's write error, as Node reports it. */
-function brokenPipe(): Error {
-  return Object.assign(new Error('write EPIPE'), { code: 'EPIPE' })
-}
-
-/**
- * A list that resolves as a value but throws `error` at any use: the
- * failure comes after the port has answered, so no port failed.
- */
-function throwingList(error: Error): never[] {
-  return new Proxy<never[]>([], {
-    get: (_target, key) => {
-      // Not thenable, so it resolves as a value.
-      if (key === 'then') return
-      throw error
-    },
-  })
-}
 
 describe('hexagram-random in plain mode: only a Catalogue port failure is the Catalogue line', () => {
   it('an error from no port while the Readout is built: the keep still runs, then the run rejects with that error', async () => {
