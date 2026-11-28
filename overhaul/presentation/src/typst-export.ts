@@ -376,9 +376,9 @@ const prelude = (
 
 // The Standing and Emerging Hexagrams side by side, an arrow from each
 // Moving Line to the Changed Line it becomes.
-#let transformation-row(standing, emerging, at) = {
+#let transformation-row(standing, emerging-figure, at) = {
   let (value, change) = standing.lines.at(at - 1)
-  let (emerging-value, _) = emerging.lines.at(at - 1)
+  let (emerging-value, _) = emerging-figure.lines.at(at - 1)
   (
     str(value), bar(value), mark(value, change), position(at),
     if change == "moving" { "→" } else { "" },
@@ -386,20 +386,20 @@ const prelude = (
   )
 }
 
-#let transformation(standing, emerging) = [
+#let transformation(standing, emerging-figure) = [
   = Transformation
   #grid(
     columns: 8,
     column-gutter: 0.8em,
     row-gutter: 0.5em,
     align: horizon,
-    ..range(6, 0, step: -1).map(at => transformation-row(standing, emerging, at)).flatten(),
+    ..range(6, 0, step: -1).map(at => transformation-row(standing, emerging-figure, at)).flatten(),
   )
   #grid(
     columns: 2,
     column-gutter: 2em,
     [*Standing Hexagram* \ #figure-summary(standing)],
-    [*Emerging Hexagram* \ #figure-summary(emerging)],
+    [*Emerging Hexagram* \ #figure-summary(emerging-figure)],
   )
 ]
 
