@@ -5,6 +5,7 @@ import type { ConsultationStore } from '@hexagram/application/consultation-store
 import { deleteConsultation } from '@hexagram/application/delete-consultation'
 import { divide } from '@hexagram/application/divide'
 import { drawAutomaticPick } from '@hexagram/application/draw-automatic-pick'
+import { exportConsultations } from '@hexagram/application/export-consultations'
 import { importLegacyFiles } from '@hexagram/application/import-legacy-files'
 import {
   buildCastConsultation,
@@ -41,10 +42,10 @@ type PortsSupplied<UseCase> = UseCase extends (
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
  * use case 8's lookups, use case 1's Automatic Division step and its last
  * step, build and keep, use case 2, record, use case 3, resolve, use case 4,
- * browse, use case 5, open, use case 6, delete, use case 7, import, and use
- * case 10's export and merge, with those ports supplied, and use case 1's steps
- * for a Division by Pick and a Physical Division, which take no ports and
- * so pass through unchanged.
+ * browse, use case 5, open, use case 6, delete, use case 7, import, use case
+ * 9, export, and use case 10's export and merge, with those ports supplied,
+ * and use case 1's steps for a Division by Pick and a Physical Division,
+ * which take no ports and so pass through unchanged.
  */
 export function composeCli(ports: {
   readonly scriptureCatalogue: ScriptureCatalogue
@@ -72,6 +73,7 @@ export function composeCli(ports: {
   readonly openConsultation: PortsSupplied<typeof openConsultation>
   readonly deleteConsultation: PortsSupplied<typeof deleteConsultation>
   readonly importLegacyFiles: PortsSupplied<typeof importLegacyFiles>
+  readonly exportConsultations: PortsSupplied<typeof exportConsultations>
   readonly exportJournal: PortsSupplied<typeof exportJournal>
   readonly mergeJournal: PortsSupplied<typeof mergeJournal>
 } {
@@ -104,6 +106,8 @@ export function composeCli(ports: {
     deleteConsultation: (id) => deleteConsultation(ports, id),
     importLegacyFiles: (records, divisionMethod) =>
       importLegacyFiles(ports, records, divisionMethod),
+    exportConsultations: (filter, preference) =>
+      exportConsultations(ports, filter, preference),
     exportJournal: () => exportJournal(ports),
     mergeJournal: (journal) => mergeJournal(ports, journal),
   }
