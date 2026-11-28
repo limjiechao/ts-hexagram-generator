@@ -6696,3 +6696,25 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: R-350, R-351, R-377, R-388, R-516, R-521, R-529, R-531 to R-533;
   ADR-0037; manual §6.1, §6.3, §7; AGENTS.md §5 and §6.
 - Folded into: not yet
+
+### R-535: M-014 slice 1's tests; Q-M-014-26, -27, -29, -30
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1 (tester's 87c4084, bc810ee, 4687ca7, e1cc655,
+  6311a6b, aae2b9e, fee8e0f)
+- Ruled by: delegate (R-423)
+- Ruling: approve all seven commits; R-521 holds (no spawned row supplies a
+  Query; the guard still asserts nothing touched). Amendments: a row where
+  the Clock reads 2^48 (the Clock line, exit 1, nothing kept, Q-27); a row
+  with input after the Query (`<query>\nmore\n`: the first line's Readout,
+  exit 0, one Consultation kept, Q-30); `hexagram-random`'s full-screen
+  frame rows with invalid `--translation`/`--commentary` become usage
+  refusals, plus one valid `--translation legge-1882` row over an answering
+  Catalogue reaching the full-screen not-built line (Q-26: `hexagram-random`
+  checks these options while parsing, before choosing a mode; other
+  commands in their own slices). Q-29 (A): `NO_COLOR` output is compared
+  with the colour fixture minus the palette's codes. Q-28 is referred to the
+  owner; the affected rows' stderr bytes follow the answer.
+- Reason: R-350, R-351, R-377, R-521, R-529, R-531 to R-534; ADR-0044;
+  manual §6.1, §6.3, §7.
+- Folded into: not yet
