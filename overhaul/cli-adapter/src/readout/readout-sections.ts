@@ -59,7 +59,7 @@ function querySection(readout: ConsultationReadout, palette: Palette): string {
   )
 }
 
-const divisionMethodNames: Readonly<Record<DivisionMethod, string>> = {
+export const divisionMethodNames: Readonly<Record<DivisionMethod, string>> = {
   automatic: 'Automatic',
   physical: 'Physical',
   virtual: 'Virtual',
@@ -94,9 +94,9 @@ function sharedLine(
 }
 
 /** A Hexagram's number and the names given, e.g. `#64 未濟 / LXIV. …`. */
-const numberAndNames = (
+export const numberAndNames = (
   hexagram: NamedHexagram,
-  names = hexagram.names,
+  names: NamedHexagram['names'] = hexagram.names,
 ): string =>
   [`#${String(hexagram.receivedSequenceNumber)}`, sharedLine(names, ' / ')]
     .filter((part) => part !== '')
@@ -149,7 +149,11 @@ function nameRows(
   ]
 }
 
-function transformationSection(
+/**
+ * The Transformation tab below its title: the two Hexagrams' headings, their
+ * Line rows side by side, and the rows naming them.
+ */
+export function transformationGrid(
   { standing, emerging }: TransformationReadout['transformation'],
   palette: Palette,
 ): string {
@@ -168,7 +172,7 @@ function transformationSection(
     `${palette.heading}${padToColumn(standingTitle, emergingColumn)}${reset}` +
     `${palette.heading}Emerging Hexagram${reset}`
   return [
-    `${palette.heading}TRANSFORMATION:\n\n${reset}${headings}`,
+    headings,
     transformationRows(standing, emerging, palette, emergingColumn).join('\n'),
     rows
       .map(
@@ -179,11 +183,23 @@ function transformationSection(
   ].join('\n\n')
 }
 
-const structureLabels = [
-  ['互卦 Nuclear Hexagram:  ', 'nuclearHexagram'],
-  ['錯卦 Inverse Hexagram:  ', 'inverseHexagram'],
-  ['綜卦 Reversed Hexagram: ', 'reversedHexagram'],
+function transformationSection(
+  transformation: TransformationReadout['transformation'],
+  palette: Palette,
+): string {
+  return `${palette.heading}TRANSFORMATION:\n\n${palette.reset}${transformationGrid(transformation, palette)}`
+}
+
+/** The related Hexagrams a Hexagram tab lists, each by its label. */
+export const structureLabels = [
+  ['互卦 Nuclear Hexagram', 'nuclearHexagram'],
+  ['錯卦 Inverse Hexagram', 'inverseHexagram'],
+  ['綜卦 Reversed Hexagram', 'reversedHexagram'],
 ] as const
+
+/** The related Hexagrams' names start one space past the widest label. */
+const structureColumn =
+  Math.max(...structureLabels.map(([label]) => textWidth(`${label}:`))) + 1
 
 function passageBlocks(passage: PassageShown, palette: Palette): string {
   const titled = (
@@ -226,7 +242,7 @@ function hexagramSection(
   ].join('\n\n')
   const structureRows = structureLabels.map(
     ([label, key]) =>
-      `  ${palette.muted}${label}${palette.emphasis}${numberAndNames(tab[key])}${palette.reset}`,
+      `  ${palette.muted}${padToColumn(`${label}:`, structureColumn)}${palette.emphasis}${numberAndNames(tab[key])}${palette.reset}`,
   )
   const structure = [
     `${palette.heading}${role} HEXAGRAM STRUCTURE:`,

@@ -1,6 +1,86 @@
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
-import type { ConsultationReadout } from '@hexagram/presentation/readout'
+import { divinedAtText } from '@hexagram/presentation/build-readout'
+import type {
+  CastingTab,
+  ConsultationReadout,
+  HexagramTab,
+  PassageShown,
+} from '@hexagram/presentation/readout'
+import { defaultReadingPreference } from '@hexagram/scripture-catalogue/default-reading-preference'
+import type { Edition } from '@hexagram/scripture-catalogue/edition'
 import type { RenderBody } from '@hexagram/store-markdown/markdown-consultation-store'
+
+import { diagramRows } from '#src/readout/figure-rows.js'
+import { ledgerGrid } from '#src/readout/ledger-grid.js'
+import { paletteFor } from '#src/readout/palette.js'
+import { consultationReadoutFor } from '#src/readout/readout-for.js'
+import {
+  divisionMethodNames,
+  numberAndNames,
+  structureLabels,
+  transformationGrid,
+} from '#src/readout/readout-sections.js'
+
+/*
+ * The Markdown body is built from the same grids as plain output, drawn
+ * without colour, so the two layouts never drift apart; only the headings,
+ * notes and lists take Markdown's forms.
+ */
+
+const palette = paletteFor(false)
+
+/** A monospace grid, kept as drawn (ADR-0022). */
+const fenced = (grid: string): string => `\`\`\`text\n${grid}\n\`\`\``
+
+/** Blocks of text, each under its Edition's short name at `level`. */
+const editionBlocks = (
+  blocks: readonly { readonly edition: Edition; readonly text: string }[],
+  level: string,
+): readonly string[] =>
+  blocks.flatMap(({ edition, text }) => [`${level} ${edition.shortName}`, text])
+
+function castingBlocks(casting: CastingTab): readonly string[] {
+  if (casting.origin === 'recorded')
+    return ['_A Recorded Consultation has no Casting._']
+  return [
+    `Division Method: ${divisionMethodNames[casting.divisionMethod]}`,
+    fenced(ledgerGrid(casting.rounds, palette)),
+  ]
+}
+
+function passageBlocks(passage: PassageShown): readonly string[] {
+  return [passage, ...passage.commentaries].flatMap(({ label, texts }) => [
+    `### ${label}`,
+    ...editionBlocks(texts, '####'),
+  ])
+}
+
+function hexagramBlocks(
+  role: 'STANDING' | 'EMERGING',
+  tab: HexagramTab,
+): readonly string[] {
+  const { figure } = tab
+  return [
+    `## ${role} HEXAGRAM ${String(figure.hexagram.receivedSequenceNumber)}`,
+    '_Line at bottom is first._',
+    fenced(diagramRows(figure, palette).join('\n')),
+    '_First is line at bottom._',
+    figure.lines.map((line) => String(line.value)).join(', '),
+    `## ${role} HEXAGRAM NAME`,
+    ...editionBlocks(
+      figure.hexagram.names.map(({ edition, name }) => ({
+        edition,
+        text: name,
+      })),
+      '###',
+    ),
+    `## ${role} HEXAGRAM STRUCTURE`,
+    structureLabels
+      .map(([label, key]) => `- ${label}: ${numberAndNames(tab[key])}`)
+      .join('\n'),
+    ...tab.passages.flatMap(passageBlocks),
+  ]
+}
 
 /**
  * The body of a Consultation's file: its Readout in Markdown, the sections
@@ -11,7 +91,27 @@ import type { RenderBody } from '@hexagram/store-markdown/markdown-consultation-
  * (ADR-0013). The Store never reads it back (ADR-0046).
  */
 export function markdownBody(readout: ConsultationReadout): string {
-  throw new Error('not built', { cause: readout })
+  const blocks = [
+    '## QUERY',
+    readout.query,
+    divinedAtText(readout.divinedAt),
+    '## CASTING',
+    ...castingBlocks(readout.casting),
+    '## TRANSFORMATION',
+    fenced(transformationGrid(readout.transformation, palette)),
+    ...hexagramBlocks('STANDING', readout.standing),
+    ...hexagramBlocks('EMERGING', readout.emerging),
+    ...(readout.yilinVerse.length === 0
+      ? []
+      : ['## YILIN VERSE', ...editionBlocks(readout.yilinVerse, '###')]),
+    '## EDITIONS AND WITNESSES',
+    ...readout.editions.flatMap((edition) => [
+      `### ${edition.shortName}`,
+      `${edition.title}${edition.unidentified ? ' (unidentified)' : ''}`,
+      `Witness: ${edition.witness.description}`,
+    ]),
+  ]
+  return `${blocks.join('\n\n')}\n`
 }
 
 /**
@@ -26,5 +126,12 @@ export function markdownBody(readout: ConsultationReadout): string {
 export function markdownBodyRenderer(ports: {
   readonly scriptureCatalogue: ScriptureCatalogue
 }): RenderBody {
-  throw new Error('not built', { cause: ports })
+  return async (consultation) =>
+    markdownBody(
+      await consultationReadoutFor(
+        ports,
+        consultation,
+        defaultReadingPreference,
+      ),
+    )
 }
