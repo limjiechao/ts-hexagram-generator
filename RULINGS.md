@@ -6512,3 +6512,27 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: manual §5 item 2 asks this tab for the Upper and Lower Trigrams,
   not their imagery; Legge's long imagery misaligned the two columns.
 - Folded into: not yet
+
+### R-527: M-013 slice 2's review items
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 2 review (fafa41b, 09e6b57)
+- Ruled by: delegate (R-423)
+- Ruling: (A) in the Transformation tab, the first Edition's name stays on
+  the `#N` row and every other Edition's name gets its own row; the Emerging
+  column is max(46, the widest Standing cell + the gap), and the moving
+  arrow is built from that one number. (B) where several Editions' names
+  share a line (the Trigram rows and the related-Hexagram rows), the Chinese
+  name keeps today's joiner (a space for Trigrams, " / " for Hexagrams) and
+  the Translations are joined to each other with " · ". (C) under a
+  Chinese-only preference the empty names row is left out and the brace
+  rows have no doubled space. (D) `text-width.ts`'s comment names only the
+  ranges the table covers; no new ranges. (E) `topDown` is not exported.
+  (F) the implementer's six choices stand, with (A) replacing "others joined
+  below" in the Transformation tab. A tester pins (A) to (C) with unit rows
+  first; none changes the five fixtures' bytes.
+- Reason: manual §5 item 2 and R-526 (aligned columns); R-519 Q-14 (names
+  exactly as given, so no truncation); R-524 Q-37; AGENTS.md §6. For the
+  owner's digest: the Emerging column moves right under long Translation
+  names, and " · " between Translations is a taste choice.
+- Folded into: not yet
