@@ -7048,3 +7048,26 @@ scriptureCatalogue }, filter, preference)` lists through use case 4's
   instances may each start the WebAssembly build).
 - Reason: R-347, R-521, R-544 to R-552; AGENTS.md §6.
 - Folded into: not yet
+
+### R-554: M-016 slice 2's review items
+
+- Date: 2026-11-28
+- Raised in: M-016 slice 2 review (8b9773b to 47e8cee)
+- Ruled by: delegate (R-423)
+- Ruling: (1) every way the export can fail before it has a PDF ends in one
+  stderr line, exit 1, no file: `ExportFontsError.reason` gains
+  'unreadable' for every other font read error and for a font with a valid
+  signature Typst rejects (the font line, unchanged); a failed read or start
+  of the WebAssembly build gets its own line (wording Tier B); manual §6.7's
+  endings gain "Typst's WebAssembly build cannot be loaded"; a tester pins
+  EACCES, EISDIR, a rejected font and a failed wasm load first; M-016 lands
+  only with them passing. (2) R-553's stress check counts only if it
+  actually runs (no "FULL TURBO"); run it as `TURBO_FORCE=true pnpm
+test:stress:once`; whether the script itself changes is referred to the
+  owner (Tier C). (3a) the tester removes the stale "THE IMPLEMENTER FILLS"
+  comment. (3b), (3c) accepted. (3d) manual §6.8's "not yet measured" gets
+  the measured figure. (3e) for the digest: typst.ts 0.7.0 bundles Typst
+  0.14.2, which the PDF names as its creator.
+- Reason: R-350, R-353, R-544, R-547, R-551 (4), R-553; ADR-0042; AGENTS.md
+  §3, §6.
+- Folded into: `docs/manual/cli.md` §6.7, §6.8 (at landing)
