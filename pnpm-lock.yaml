@@ -371,6 +371,9 @@ importers:
       '@hexagram/oracle':
         specifier: workspace:*
         version: link:../oracle
+      '@hexagram/presentation':
+        specifier: workspace:*
+        version: link:../presentation
       '@hexagram/remainder-group-policy':
         specifier: workspace:*
         version: link:../remainder-group-policy

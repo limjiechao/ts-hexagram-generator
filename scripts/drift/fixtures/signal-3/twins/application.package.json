@@ -1,0 +1,14 @@
+{
+  "//": "Linted as overhaul/application/package.json. Twin for B9: its five arrows.",
+  "name": "@hexagram/application",
+  "type": "module",
+  "version": "0.0.0",
+  "private": true,
+  "dependencies": {
+    "@hexagram/consultation-journal": "workspace:*",
+    "@hexagram/oracle": "workspace:*",
+    "@hexagram/presentation": "workspace:*",
+    "@hexagram/remainder-group-policy": "workspace:*",
+    "@hexagram/scripture-catalogue": "workspace:*"
+  }
+}

@@ -95,6 +95,8 @@ export const expected: Readonly<Record<string, BoundaryRule | null>> = {
   'twins/adapter-node-and-clock.ts': null,
   'twins/adapter-tests-import-catalogue.test.ts': null,
   'twins/application-imports-domain.ts': null,
+  'twins/application-imports-presentation.ts': null,
+  'twins/application.package.json': null,
   'twins/as-const-satisfies-expect-error.ts': null,
   'twins/catalogue-bundled-holds-data.ts': null,
   'twins/catalogue-bundled.package.json': null,

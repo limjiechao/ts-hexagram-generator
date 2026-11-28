@@ -85,6 +85,9 @@ const overhaulPackages = {
       'consultation-journal': 'any',
       'scripture-catalogue': 'any',
       'remainder-group-policy': 'any',
+      // R-105, R-548: use case 9 renders its Readouts through presentation's
+      // Typst export, so application reaches the pure presentation package.
+      presentation: 'any',
     },
   },
   // R-105: the medium-neutral Readout, which combines the Oracle's

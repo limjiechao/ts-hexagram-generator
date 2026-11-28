@@ -119,6 +119,7 @@
   "dependencies": {
     "@hexagram/consultation-journal": "workspace:*",
     "@hexagram/oracle": "workspace:*",
+    "@hexagram/presentation": "workspace:*",
     "@hexagram/remainder-group-policy": "workspace:*",
     "@hexagram/scripture-catalogue": "workspace:*"
   }
