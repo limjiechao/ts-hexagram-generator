@@ -889,7 +889,8 @@ describe('options a command accepts run to its full-screen not-built line', () =
 describe('hexagram-random checks its Reading Preference while parsing, before choosing a mode', () => {
   // Over ports that throw if touched, save a Catalogue whose `editions`
   // answers from the bundled Catalogue: a `--translation` is checked
-  // against it, which the no-port rule exempts (R-533).
+  // against it, and the Scripture Catalogue is the one port that may be
+  // read before the Query.
   async function runOverCatalogue(argv: readonly string[]) {
     const recorded: Recorded = { stdout: [], stderr: [], portsTouched: [] }
     const ports = untouchablePorts(recorded.portsTouched)
