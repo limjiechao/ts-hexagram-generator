@@ -6901,3 +6901,36 @@ read`, exit 1, nothing kept; once nothing more is read it is heard and
 - Reason: metadata travels with the file and shows in file browsers; the
   Query is private (ADR-0015).
 - Folded into: not yet
+
+### R-547: M-016's drafted surface (Q-M-016-5 to -21, less those referred)
+
+- Date: 2026-11-28
+- Raised in: M-016 (drafts 587d596, 75e22db, 80db0c7, 0b7a75f)
+- Ruled by: delegate (R-423)
+- Ruling: Q-4 (use case 9's signature, revisiting R-124 and R-125) and
+  R-546's reach over the existing fixtures are referred to the owner. Q-5 A
+  if Q-4 is A (`consultationReadoutFor` moves to
+  `@hexagram/application/consultation-readout`, refactor-only). Q-6 A
+  (`CommandPorts` gains `compilePdf`; the typst.ts import and wasm load
+  happen inside the first call, so other bins pay nothing). Q-7 A (the
+  compiler lives in `cli-adapter`). Q-8 **B** (fonts in
+  `overhaul/cli-adapter/fonts/`, not a new top-level folder). Q-9 A (CJK and
+  Symbols 2 Regular only; Libertinus Regular, Bold, Italic; font versions
+  recorded from the files' name tables and pinned by SHA-256 rows). Q-10 A
+  (`.typ` or `.pdf` exactly). Q-11 A (nothing matches: one stderr line,
+  exit 1, no file; manual §6.7's endings list gains the new `--export`
+  endings). Q-12 A (never overwrite). Q-13 A (`targetUnwritableLine`).
+  Q-14 A. Q-15 new (`hexagram-history: the export's font <file> cannot be
+read`; Typst's diagnostics not printed). Q-16 A. Q-17 A. Q-18 A (○ and ✕
+  move into `presentation`). Q-19 A (a fake Catalogue for the Typst byte
+  fixtures; the bundled Catalogue only for the font-coverage test). Q-20 A.
+  Q-21 A (blocking: no font commit until Git LFS is installed in this clone
+  and `git lfs ls-files` lists all five fonts; CI checks out with
+  `lfs: true`; pointer files are refused as 'not-a-font'). Listing
+  `@myriaddreamin/typst-ts-web-compiler@0.7.0` beside `typst.ts@0.7.0`
+  (both pinned exactly in `cli-adapter`) applies R-544, for the owner's
+  digest. `checkedReadingPreference` widens to `hexagram-history` (Tier B).
+  The fixture plan is approved, plus a two-line Query row.
+- Reason: R-105, R-306, R-519, R-521, R-533, R-544 to R-546; ADR-0015,
+  ADR-0028, ADR-0037; manual §2, §6.7, §6.8, §7, §9; AGENTS.md §4 to §6.
+- Folded into: not yet
