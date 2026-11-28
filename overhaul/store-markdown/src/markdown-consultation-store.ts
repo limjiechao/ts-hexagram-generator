@@ -391,3 +391,15 @@ async function fileNames(folder: string, extension: string): Promise<string[]> {
     throw error
   }
 }
+
+/**
+ * The name of the file `keep` writes a Consultation to, inside the
+ * Journal's folder: `<divined date>--<Consultation Id>.md`, the date being
+ * the first ten characters of the record's Divined At, so a Moment's date
+ * in the offset it was read in and a Day as it was entered (ADR-0046).
+ * Pure; it touches no file. A Consultation the Journal held before a
+ * keep keeps the file it already has, whose name may differ.
+ */
+export function consultationFileName(consultation: Consultation): string {
+  throw new Error('not built', { cause: { consultation } })
+}
