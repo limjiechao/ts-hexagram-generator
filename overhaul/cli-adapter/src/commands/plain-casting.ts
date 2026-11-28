@@ -143,11 +143,7 @@ export function interactivePlainRun(
 /** How asking ended when no answer came: `Ctrl+C`, stdin's end, or a stdin error. */
 type Unanswered = 'interrupted' | 'ended' | 'unreadable'
 
-/**
- * Asks with `prompt` until a line is accepted, writing `refusal` after
- * each line `accept` refuses: the accepted value, held apart from the
- * endings, or how the asking ended.
- */
+/** `askUntilAccepted` over the run's stdin and stderr. */
 type Ask = <Value>(
   prompt: string,
   accept: (line: string) => Value | undefined,
@@ -244,6 +240,7 @@ async function plainCastingRun(
       preference,
       consultation,
       colour,
+      palette,
       stdoutFailed: streams.stdoutFailed,
       stdoutFails: streams.stdoutFails,
     })
@@ -428,11 +425,12 @@ async function showThenKeep(
     readonly preference: ReadingPreference
     readonly consultation: CastConsultation
     readonly colour: boolean
+    readonly palette: Palette
     readonly stdoutFailed: () => boolean
     readonly stdoutFails: () => void
   },
 ): Promise<ExitCode> {
-  const { command, preference, consultation, colour } = run
+  const { command, preference, consultation, colour, palette } = run
   let exitCode: ExitCode = 0
   let readout: ConsultationReadout | undefined
   // An error that is no Catalogue failure is held until the keep is done,
@@ -477,7 +475,7 @@ async function showThenKeep(
       ports.journalFolder,
       consultationFileName(consultation),
     )
-    io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
+    io.stderr.write(`${consultationKeptLine(file, palette)}\n`)
   }
   await readoutWritten
   if (run.stdoutFailed())
