@@ -122,14 +122,122 @@ function transformationLines(readout: ConsultationReadout): string[] {
   return lines.slice(start + 1, end)
 }
 
-/** The column at which `cell` last starts in `line`, the Emerging side for X之X. */
-function emergingColumn(line: string, cell: string): number {
-  const at = line.lastIndexOf(cell)
-  if (at <= 0) throw new Error(`no ${cell} in: ${line}`)
-  return columns(line.slice(0, at))
+const lineRowValue = /[6-9] {2}[━✕○ ]{9} {2}（/gu
+
+/**
+ * Where each row of the Transformation tab starts its Emerging cell: the six
+ * Line rows (the second Line half of each), the `#N` row and each other
+ * Edition's name row, and the two Trigram rows. Each Emerging cell is found
+ * after its Standing cell, by the Emerging Hexagram's own names. Rows that
+ * break the layout are reported as problems rather than thrown.
+ */
+function emergingStarts(readout: ConsultationReadout): {
+  readonly starts: readonly number[]
+  readonly problems: readonly string[]
+  readonly widest: number
+} {
+  const lines = transformationLines(readout)
+  const { standing, emerging } = readout.transformation
+  const starts: number[] = []
+  const problems: string[] = []
+
+  const lineRows = lines.filter(
+    (line) => [...line.matchAll(lineRowValue)].length > 0,
+  )
+  if (lineRows.length !== 6) problems.push(`${lineRows.length} Line rows`)
+  for (const row of lineRows) {
+    const index = [...row.matchAll(lineRowValue)][1]?.index
+    if (index === undefined) {
+      problems.push(`no Emerging half: ${row}`)
+      continue
+    }
+    starts.push(columns(row.slice(0, index)))
+    if (row.includes('─▶') !== row.slice(0, index).endsWith('▶ '))
+      problems.push(`the arrow does not end "▶ " at the Emerging cell: ${row}`)
+  }
+  const movingRows = lineRows.filter((row) => row.includes('▶'))
+  const movingLines = standing.lines.filter((line) => line.change === 'moving')
+  if (movingRows.length !== movingLines.length)
+    problems.push(
+      `${movingRows.length} arrows for ${movingLines.length} Moving Lines`,
+    )
+
+  /** The Emerging cell of a row whose Standing cell comes first. */
+  const findCell = (
+    row: number,
+    standingCell: string,
+    emergingCell: string,
+  ): void => {
+    const line = lines[row] ?? ''
+    if (!line.trimStart().startsWith(standingCell)) {
+      problems.push(`row ${row} does not start with ${standingCell}: ${line}`)
+      return
+    }
+    const after = line.indexOf(standingCell) + standingCell.length
+    const at = line.indexOf(emergingCell, after)
+    if (at === -1) {
+      problems.push(`row ${row} has no ${emergingCell}: ${line}`)
+      return
+    }
+    starts.push(columns(line.slice(0, at)))
+  }
+
+  const standingNames = standing.hexagram.names
+  const emergingNames = emerging.hexagram.names
+  const [standingFirst, ...standingOthers] = standingNames
+  const [emergingFirst, ...emergingOthers] = emergingNames
+  if (standingFirst === undefined || emergingFirst === undefined)
+    throw new Error('no names')
+  const standingNumber = `#${standing.hexagram.receivedSequenceNumber} ${standingFirst.name}`
+  const numberAt = lines.findIndex((line) =>
+    line.trimStart().startsWith(standingNumber),
+  )
+  if (numberAt === -1) problems.push(`no ${standingNumber} row`)
+  else {
+    findCell(
+      numberAt,
+      standingNumber,
+      `#${emerging.hexagram.receivedSequenceNumber} ${emergingFirst.name}`,
+    )
+    for (const [offset, each] of standingOthers.entries()) {
+      const row = numberAt + 1 + offset
+      for (const other of standingNames)
+        if (
+          other !== each &&
+          other.name !== each.name &&
+          (lines[row] ?? '').includes(other.name)
+        )
+          problems.push(`row ${row} also holds ${other.name}`)
+      findCell(row, each.name, emergingOthers[offset]?.name ?? '\u0000')
+    }
+  }
+
+  for (const position of ['Upper:', 'Lower:'] as const) {
+    const row = lines.findIndex((line) => line.trimStart().startsWith(position))
+    if (row === -1) problems.push(`no ${position} row`)
+    else findCell(row, position, position)
+  }
+
+  return {
+    starts,
+    problems,
+    widest: Math.max(...lines.map((line) => columns(line))),
+  }
 }
 
-const lineRowValue = /[6-9] {2}[━✕○ ]{9} {2}（/gu
+/** These Line Values, bottom-up, with the Lines at `positions` made to move: 7 to 9, 8 to 6. */
+function moving(
+  values: readonly LineValue[],
+  positions: readonly number[],
+): Transformation {
+  const value = (index: number): LineValue => {
+    const each = values[index] ?? 7
+    if (!positions.includes(index + 1)) return each
+    if (each === 7) return 9
+    return each === 8 ? 6 : each
+  }
+  return [value(0), value(1), value(2), value(3), value(4), value(5)]
+}
 
 describe('(A) the Transformation tab with Translations', () => {
   for (const [title, shown] of [
@@ -140,80 +248,53 @@ describe('(A) the Transformation tab with Translations', () => {
       const readouts = await stillReadouts([18, 9, 48], shown)
       expect(readouts).toHaveLength(3)
       for (const readout of readouts) {
-        const lines = transformationLines(readout)
-        const { hexagram } = readout.transformation.standing
-        const named = hexagram.names
-        const starts: number[] = []
-
-        const lineRows = lines.filter(
-          (line) =>
-            line.includes('th）') ||
-            line.includes('st）') ||
-            line.includes('nd）') ||
-            line.includes('rd）'),
+        const { starts, problems } = emergingStarts(readout)
+        expect(problems).toEqual([])
+        expect(starts).toHaveLength(
+          6 + readout.transformation.standing.hexagram.names.length + 2,
         )
-        expect(lineRows).toHaveLength(6)
-        for (const row of lineRows) {
-          const matches = [...row.matchAll(lineRowValue)]
-          expect(matches).toHaveLength(2)
-          starts.push(columns(row.slice(0, matches[1]?.index)))
-        }
-
-        const [first, ...others] = named
-        if (first === undefined) throw new Error('no names')
-        const numberRow = `#${hexagram.receivedSequenceNumber} ${first.name}`
-        const numberAt = lines.findIndex((line) =>
-          line.trimStart().startsWith(numberRow),
-        )
-        expect(numberAt).toBeGreaterThan(0)
-        starts.push(emergingColumn(lines[numberAt] ?? '', numberRow))
-        for (const [offset, each] of others.entries()) {
-          const row = lines[numberAt + 1 + offset] ?? ''
-          expect(row.trimStart().startsWith(each.name)).toBe(true)
-          for (const other of named)
-            if (other !== each) expect(row).not.toContain(other.name)
-          starts.push(emergingColumn(row, each.name))
-        }
-
-        for (const position of ['Upper:', 'Lower:']) {
-          const row = lines.find((line) =>
-            line.trimStart().startsWith(position),
-          )
-          if (row === undefined) throw new Error(`no ${position} row`)
-          starts.push(emergingColumn(row, position))
-        }
-
         expect(new Set(starts).size).toBe(1)
         expect(starts[0]).toBeGreaterThanOrEqual(46)
       }
     })
 
-    it(`${title}: across all 64 X之X, the Emerging cells align and no Transformation row is wider than 120 columns`, async () => {
+    it(`${title}: 小畜 with Lines 1 and 4 moving: every Line row, moving or still, starts its Emerging cell at the names' and Trigrams' column, each moving row with "▶ " just before it`, async () => {
+      const [still] = await stillReadouts([9], shown)
+      if (still === undefined) throw new Error('no 小畜')
+      const readout = await readoutOf(
+        moving(
+          still.transformation.standing.lines.map((line) => line.value),
+          [1, 4],
+        ),
+        shown,
+      )
+      expect(
+        readout.transformation.standing.hexagram.receivedSequenceNumber,
+      ).toBe(9)
+      expect(
+        readout.transformation.standing.lines.filter(
+          (line) => line.change === 'moving',
+        ),
+      ).toHaveLength(2)
+      const { starts, problems } = emergingStarts(readout)
+      expect(problems).toEqual([])
+      expect(starts).toHaveLength(
+        6 + readout.transformation.standing.hexagram.names.length + 2,
+      )
+      expect(new Set(starts).size).toBe(1)
+      expect(starts[0]).toBeGreaterThanOrEqual(46)
+    })
+
+    it(`${title}: across all 64 X之X, the Line, name and Trigram rows share one Emerging column of at least 46, and no Transformation row is wider than 120 columns`, async () => {
       const failures: string[] = []
       for (const transformation of everyStillTransformation) {
         const readout = await readoutOf(transformation, shown)
-        const lines = transformationLines(readout)
         const number =
           readout.transformation.standing.hexagram.receivedSequenceNumber
-        const tooWide = lines.filter((line) => columns(line) > 120)
-        if (tooWide.length > 0)
-          failures.push(`#${number} wider than 120: ${tooWide[0]}`)
-        const starts = [
-          ...lines
-            .map((line) => [...line.matchAll(lineRowValue)][1]?.index)
-            .flatMap((index, row) =>
-              index === undefined
-                ? []
-                : [columns((lines[row] ?? '').slice(0, index))],
-            ),
-          ...['Upper:', 'Lower:'].map((position) =>
-            emergingColumn(
-              lines.find((line) => line.trimStart().startsWith(position)) ?? '',
-              position,
-            ),
-          ),
-        ]
-        if (new Set(starts).size !== 1)
+        const { starts, problems, widest } = emergingStarts(readout)
+        failures.push(...problems.map((problem) => `#${number}: ${problem}`))
+        if (widest > 120) failures.push(`#${number} is ${widest} wide`)
+        if (new Set(starts).size !== 1 || (starts[0] ?? 0) < 46)
           failures.push(`#${number} columns ${starts.join(',')}`)
       }
       expect(failures).toEqual([])
@@ -256,11 +337,25 @@ describe('(B) several Editions on one line', () => {
 })
 
 describe('(C) a Chinese-only preference', () => {
-  it('the Transformation tab holds no line of spaces only, and the brace rows end "──┘   (upper trigram)" and "──┘   (lower trigram)"', async () => {
+  it('the Transformation tab holds no line of spaces only: the names row is left out, so the divider follows the #N row', async () => {
     const [readout] = await stillReadouts([48], chineseOnly)
     if (readout === undefined) throw new Error('no 井')
     const lines = transformationLines(readout)
     expect(lines.filter((line) => /^ +$/u.test(line))).toEqual([])
+    const numberAt = lines.findIndex((line) =>
+      line
+        .trimStart()
+        .startsWith(
+          `#${readout.transformation.standing.hexagram.receivedSequenceNumber} `,
+        ),
+    )
+    expect(numberAt).toBeGreaterThan(0)
+    expect((lines[numberAt + 1] ?? '').trim().slice(0, 1)).toBe('─')
+  })
+
+  it('the brace rows end "──┘   (upper trigram)" and "──┘   (lower trigram)"', async () => {
+    const [readout] = await stillReadouts([48], chineseOnly)
+    if (readout === undefined) throw new Error('no 井')
     const all = stripped(plainReadout(readout, { colour: true })).split('\n')
     const braces = all.filter((line) => line.includes('──┘'))
     expect(braces.length).toBeGreaterThan(0)
