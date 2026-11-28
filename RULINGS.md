@@ -6598,3 +6598,33 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   later change). For the record: f76bb12 alone fails `type:check`, fixed by
   5641b7b; the clerk folds them at landing.
 - Folded into: not yet
+
+### R-531: M-014's drafted surface (Q-M-014-1 to -16, less Q-6 and Q-10)
+
+- Date: 2026-11-28
+- Raised in: M-014 (drafts 0764f86, b451126, 6d8f31a)
+- Ruled by: delegate (R-423)
+- Ruling: (A) for Q-1 to Q-5, Q-7, Q-9, Q-11 to Q-14, Q-16; Q-6 and Q-10
+  referred to the owner; Q-8 (A) if Q-6 is (A), else the Catalogue line
+  then the kept line, exit 1, the Casting still kept. In short: in plain
+  mode everything but the Readout goes to stderr, and stdout holds exactly
+  `plainReadout`'s bytes (Q-1); a hand-written line reader, `CommandInput`
+  gains `end` and `pause` (Q-2); a `signals` member hears Ctrl+C (Q-3);
+  Ctrl+C at the Query or a Pick quits, exit 0, nothing kept (Q-4); stdin
+  ending mid-Casting is one line, exit 1, nothing kept (Q-5);
+  `store-markdown` exports a pure `consultationFileName` that `keep` uses,
+  and the kept line prints the file's path (Q-7, a new public export, for
+  the owner's digest); `journalFailureLine` takes the command name (Q-9);
+  options that change nothing in plain mode are accepted and ignored
+  (Q-11); a Query line is kept exactly, a whitespace-only line asked again
+  (Q-12); a Pick is ASCII digits (Q-13); prompts unstyled and ending in a
+  space, the welcome, banners and kept line in today's styles (Q-14);
+  `reachable` loses 'plain mode' in each command's slice (Q-16). The wording
+  table is ratified (Q-15) with one change: the Query prompt is "Enter your
+  Query: ". The forced test changes are approved (R-306). Manual §6.3's
+  "its exit code is still open" becomes "exit 1", and its "Still open" item
+  is removed (R-377 folded).
+- Reason: R-331, R-346, R-350, R-375, R-377, R-388, R-519 Q-17 and Q-19,
+  R-521, R-529; ADR-0014 (易筮占, the Yijing Yarrow Oracle), ADR-0044;
+  manual §2, §6.1, §6.3, §6.4, §7, §9; AGENTS.md §5 and §6.
+- Folded into: not yet
