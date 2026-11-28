@@ -48,10 +48,14 @@ function isRuleName<Rules extends OptionRules>(
   return Object.keys(rules).includes(name)
 }
 
-const wholeNumber = /^[1-9]\d*$/
+/**
+ * Whether the text is a positive whole number: ASCII decimal digits with
+ * no leading zero, nothing around them.
+ */
+export const isWholeNumber = (text: string): boolean => /^[1-9]\d*$/.test(text)
 
 function isValid(value: string, rule: OptionValue): boolean {
-  if (rule === 'whole number') return wholeNumber.test(value)
+  if (rule === 'whole number') return isWholeNumber(value)
   if (rule === 'text') return value !== ''
   if (typeof rule === 'string') return false
   return rule.includes(value)
