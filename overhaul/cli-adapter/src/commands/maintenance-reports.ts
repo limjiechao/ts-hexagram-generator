@@ -244,3 +244,40 @@ export function importedLine(counts: {
 export function rerenderedLine(rewritten: number): string {
   return `Re-rendered ${counted(rewritten, 'body', 'bodies')}.`
 }
+
+/**
+ * `--export`'s one line on stdout, for example `Exported 3 consultations
+ * to readings.pdf.`, the path as the user gave it and a count of one
+ * taking the singular. Unreadable files are left out and not counted.
+ */
+export function exportedConsultationsLine(file: string, count: number): string {
+  throw new Error('not built', { cause: { file, count } })
+}
+
+/**
+ * `--export`'s refusal, on stderr before exit 1, when no Consultation
+ * matches the filter, or the Journal holds none: `hexagram-history: no
+ * Consultation to export`. No file is written.
+ */
+export function nothingToExportLine(): string {
+  throw new Error('not built')
+}
+
+/**
+ * `--export`'s failure, on stderr before exit 1, when a font a PDF needs
+ * cannot be loaded, such as a clone made without Git LFS:
+ * `hexagram-history: the export's fonts cannot be read`. No file is
+ * written; a `.typ` export needs no font and never meets it.
+ */
+export function exportFontsLine(): string {
+  throw new Error('not built')
+}
+
+/**
+ * `--export`'s failure, on stderr before exit 1, when Typst refuses the
+ * source, which is a renderer's error, not the user's:
+ * `hexagram-history: Typst cannot compile the export`. No file is written.
+ */
+export function typstRefusedLine(): string {
+  throw new Error('not built')
+}
