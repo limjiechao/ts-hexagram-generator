@@ -6792,3 +6792,17 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   it is made, and keeps for ever".
 - Reason: R-532 builds the Consultation, with its Id, before it is kept.
 - Folded into: `CONTEXT.md` (Consultation Id)
+
+### R-540: R-538's rows; a newline before the stdin-unreadable line
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1 (tester's fe8dc28), question Q-M-014-31
+- Ruled by: delegate (R-423)
+- Ruling: approve fe8dc28 with one amendment: the two unreadable-stdin rows
+  (in process and spawned) expect a newline after the Query prompt before
+  `hexagram-random: stdin cannot be read` (Q-31 A), applying R-538's "a
+  newline wherever the terminal echoed none".
+- Reason: R-536 (5) makes a read error at the prompt end the run like stdin
+  ending; nothing was echoed, so R-538's reason holds. For the owner's
+  digest as an application of R-538.
+- Folded into: not yet
