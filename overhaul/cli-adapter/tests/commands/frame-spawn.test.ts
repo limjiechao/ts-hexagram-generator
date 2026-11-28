@@ -26,6 +26,12 @@ import { run as playgroundRun } from '#src/commands/hexagram-playground.js'
 import { run as randomRun } from '#src/commands/hexagram-random.js'
 import { run as homeRun } from '#src/commands/hexagram.js'
 import { notBuiltLine } from '#src/commands/not-built.js'
+import {
+  queryNotGivenLine,
+  queryPrompt,
+} from '#src/commands/plain-casting-wording.js'
+
+import { scriptedTerminal, stdinEnds } from '../support/scripted-terminal.js'
 
 // The bins, spawned as real processes, for the two columns of the terminal
 // table a fake cannot stand in for: stdout not a TTY, and CI. A spawned
@@ -106,11 +112,13 @@ const rows: readonly {
     expected: line('hexagram requires an interactive terminal'),
   },
   {
-    case: 'hexagram-random is plain mode with stdout not a TTY',
+    // Plain mode over the stdin the parent ends at once: no Query is
+    // given, so nothing is kept and no port is touched.
+    case: 'hexagram-random in plain mode ends without a Query when stdin ends',
     command: 'hexagram-random',
     argv: [],
     env: {},
-    expected: line(notBuiltLine('hexagram-random', 'plain mode')),
+    expected: queryPrompt + line(queryNotGivenLine('hexagram-random')),
   },
   {
     case: 'hexagram-manual refuses with stdout not a TTY',
@@ -234,9 +242,15 @@ describe('no spawned row reaches a keep or a maintenance run', () => {
     const stdout: string[] = []
     const stderr: string[] = []
     const touched: string[] = []
+    // Its stdin ends on a later turn of the event loop, as the child's
+    // does once the parent ends it, and nothing sends SIGINT.
+    const { stdin, signals } = scriptedTerminal({
+      isTTY: false,
+      script: [stdinEnds],
+    }).io
     const io: CommandIo = {
-      stdin: { isTTY: false, on: () => {}, off: () => {}, pause: () => {} },
-      signals: { on: () => {}, off: () => {} },
+      stdin,
+      signals,
       stdout: fakeOutput(stdout),
       stderr: fakeOutput(stderr),
       isTTY: false,
