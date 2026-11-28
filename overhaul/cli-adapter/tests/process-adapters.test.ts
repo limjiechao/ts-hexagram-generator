@@ -7,16 +7,20 @@ import { describe, expect, it, vi } from 'vitest'
 import { journalFolder } from '#src/journal-folder.js'
 import { processPorts } from '#src/process-adapters.js'
 import { markdownBodyRenderer } from '#src/readout/markdown-body.js'
+import { exportFontFolder, typstPdfCompiler } from '#src/typst-pdf.js'
 
-// The Store builder and the body renderer are replaced by stand-ins that
-// only say what they were given, so nothing here reads or writes the
-// Journal folder the bins use: the real one, of this checkout.
+// The Store builder, the body renderer and the PDF compiler's builder are
+// replaced by stand-ins that only say what they were given, so nothing here
+// reads or writes the Journal folder the bins use, the real one of this
+// checkout, and nothing loads Typst.
 const standIns = vi.hoisted(() => {
   const unusable = (): never => {
     throw new Error('a stand-in was called')
   }
   return {
     renderBody: unusable,
+    compilePdf: (typst: string) =>
+      Promise.resolve(new TextEncoder().encode(`%PDF-stand-in ${typst}`)),
     store: {
       consultationStore: {
         keep: unusable,
@@ -37,6 +41,11 @@ vi.mock('@hexagram/store-markdown/markdown-consultation-store', () => ({
 
 vi.mock('#src/readout/markdown-body.js', () => ({
   markdownBodyRenderer: vi.fn(() => standIns.renderBody),
+}))
+
+vi.mock('#src/typst-pdf.js', async (importOriginal) => ({
+  ...(await importOriginal<typeof import('#src/typst-pdf.js')>()),
+  typstPdfCompiler: vi.fn(() => standIns.compilePdf),
 }))
 
 describe('processPorts: the adapters a bin passes', () => {
@@ -62,5 +71,19 @@ describe('processPorts: the adapters a bin passes', () => {
     expect(ports.consultationStore).toBe(standIns.store.consultationStore)
     expect(ports.moveToLegacy).toBe(standIns.store.moveToLegacy)
     expect(ports.rerenderBodies).toBe(standIns.store.rerenderBodies)
+  })
+
+  it('passes the real PDF compiler over the export’s font folder, built without compiling anything', async () => {
+    vi.mocked(typstPdfCompiler).mockClear()
+
+    const ports = processPorts(process)
+    const compiled = await ports.compilePdf('an invented source')
+
+    expect(vi.mocked(typstPdfCompiler).mock.calls).toEqual([
+      [exportFontFolder()],
+    ])
+    expect(new TextDecoder().decode(compiled)).toBe(
+      '%PDF-stand-in an invented source',
+    )
   })
 })
