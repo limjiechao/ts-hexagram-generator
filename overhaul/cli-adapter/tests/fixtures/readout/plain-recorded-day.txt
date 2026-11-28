@@ -23,8 +23,8 @@
 [1;97m  #1 乾                                       #1 乾[0m
 [90m  I. The Khien Hexagram                       I. The Khien Hexagram[0m
 [90m  ─────────────────────────                   ─────────────────────────[0m
-[90m  Upper: 乾 khien (Heaven, the Sky)           Upper: 乾 khien (Heaven, the Sky)[0m
-[90m  Lower: 乾 khien (Heaven, the Sky)           Lower: 乾 khien (Heaven, the Sky)[0m
+[90m  Upper: 乾 khien                             Upper: 乾 khien[0m
+[90m  Lower: 乾 khien                             Lower: 乾 khien[0m
 
 
 [1;90mSTANDING HEXAGRAM 1:
@@ -112,7 +112,7 @@
   [90m綜卦 Reversed Hexagram: [1;97m#1 乾 / I. The Khien Hexagram[0m
 
 
-[1;90mEDITIONS:
+[1;90mEDITIONS AND WITNESSES:
 
 [90m[武英殿本]
 

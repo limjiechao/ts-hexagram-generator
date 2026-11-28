@@ -24,8 +24,8 @@
 [1;97m  #64 未濟                                    #38 睽[0m
 [90m  LXIV. The Wei Žî Hexagram                   XXXVIII. The Khwei Hexagram[0m
 [90m  ─────────────────────────                   ─────────────────────────[0m
-[90m  Upper: 離 lî (Fire, as in lightning; the sun) Upper: 離 lî (Fire, as in lightning; the sun)[0m
-[90m  Lower: 坎 khân (Water, as in rain, clouds, springs, streams and defiles. The moon) Lower: 兌 tui (Water, collected as in a marsh or lake)[0m
+[90m  Upper: 離 lî                                Upper: 離 lî[0m
+[90m  Lower: 坎 khân                              Lower: 兌 tui[0m
 
 
 [1;90mSTANDING HEXAGRAM 64:
@@ -149,7 +149,8 @@
 
   [1;97mXXXVIII. (The trigram representing) fire above, and that for (the waters of) a marsh below, form Khwei. The superior man, in accordance with this, where there is a general agreement, yet admits diversity.
 
-[1;90mEDITIONS:
+
+[1;90mEDITIONS AND WITNESSES:
 
 [90m[武英殿本]
 
