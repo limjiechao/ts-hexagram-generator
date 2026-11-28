@@ -6440,3 +6440,23 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   bytes); R-519 Q-1 and Q-8; manual §5 and R-337 (the date matches the file
   name and the browse list).
 - Folded into: not yet
+
+### R-523: M-013 slice 1's review items
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 1 review (876f7f3, d8dca17)
+- Ruled by: delegate (R-423)
+- Ruling: keep every implementer choice. (1) The Editions list orders all
+  names first, then passages with their Commentaries, then the Yilin Verse,
+  as the approved test pins. (2) The Resolution check compares only the
+  Standing and Emerging Hexagrams. (3) A Yilin text for other Hexagrams is a
+  `RangeError`. (4) When any Line moves, the last Applicable Passage goes on
+  the Emerging tab. (5) The private copies of consultation-journal's date
+  and offset helpers stay, flagged as known duplicates; no export. The
+  reviewer's wording fix (only Moving Lines carry a text mark) is made.
+- Reason: R-519 Q-8 and Q-12, R-522 Q-26, R-283 (the order of Applicable
+  Passages), R-344; AGENTS.md §5 and §6. For the owner's digest:
+  consultation-journal already holds two private `offsetMinutes`, so this is
+  a third copy, and the YYYY-MM-DD text must match the file name; one
+  exported date-text function would be a Tier-A question for a later Matter.
+- Folded into: not yet
