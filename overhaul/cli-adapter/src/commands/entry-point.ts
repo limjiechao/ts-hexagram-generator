@@ -10,8 +10,8 @@ export type ExitCode = 0 | 1
 /**
  * The stdin a command reads: only what it uses, so the process's stdin and a
  * test's fake both fit. Its end lets a closed stdin end a plain-mode run, its
- * error lets one that cannot be read end it too, and `pause` lets a stdin read to its last line stop holding the process open
- * once the run ends.
+ * error lets one that cannot be read end it too, and `pause` lets a stdin
+ * read to its last line stop holding the process open once the run ends.
  */
 export interface CommandInput {
   readonly isTTY?: boolean
