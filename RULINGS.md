@@ -7016,3 +7016,18 @@ scriptureCatalogue }, filter, preference)` lists through use case 4's
 - Reason: R-200, R-246, R-306, R-515, R-547, R-548, R-550; ADR-0042;
   manual §6.7; AGENTS.md §5.
 - Folded into: not yet
+
+### R-552: The Typst fixtures may borrow the bundled Chinese names
+
+- Date: 2026-11-28
+- Raised in: M-016 slice 1 (the delegate's referral in R-550)
+- Ruled by: owner
+- Ruling: A — Hexagram and Trigram names and imagery are not "text" in
+  R-546's sense; the Typst fixtures' invented Chinese Editions may take
+  them from the bundled Catalogue (copied by a generator, never typed by an
+  agent). Passages stay invented or Legge. The fixtures (b71cfee, re-cut in
+  deb467c) are approved.
+- Reason: single-word names and images, the same in every Edition, already
+  committed in the bundled Catalogue and in M-013's fixtures (R-549); the
+  layout tests stay faithful to real names.
+- Folded into: not yet
