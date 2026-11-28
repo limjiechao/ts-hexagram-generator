@@ -50,7 +50,8 @@ import { consultationReadoutFor } from '#src/readout/readout-for.js'
  * 2. The Query prompt on stderr, then one line from stdin: its newline and
  *    a `\r` before it are dropped, and a last line with no newline still
  *    counts. A blank line writes the blank-Query line and asks again. The
- *    Query is kept exactly as typed otherwise.
+ *    Query is kept exactly as typed otherwise. Wherever the terminal
+ *    echoed no newline after a prompt, stderr writes one.
  * 3. The eighteen Divisions, through use case 1's steps from the Empty
  *    Casting (ADR-0038): Automatic draws each Pick by the Remainder-Group
  *    policy (ADR-0023); Virtual writes each Line's heading and a Pick
@@ -177,17 +178,20 @@ function endWithLine(io: CommandIo, text: string): ExitCode {
   return 1
 }
 
-/*
- * What stderr gets once a prompt is answered, or stdin ends at it: nothing.
- * An answer piped in is not echoed, so the next line on stderr follows the
- * prompt on its line.
+/**
+ * Whether no newline was echoed after a prompt, so stderr must end the
+ * prompt's line itself, once. A terminal echoes the Enter of an answer
+ * typed at it, but no newline for `Ctrl+C`, for stdin's end, for a stdin
+ * that cannot be read, or for an answer piped in.
  */
-const afterAnswer: string = ''
+function echoedNoNewline(io: CommandIo, answer: Answer): boolean {
+  return answer.kind === 'line' ? io.stdin.isTTY !== true : true
+}
 
 /**
  * Asks for the Query until a line holds one: the Query, or how the asking
- * ended. `Ctrl+C` writes a newline, so the shell's prompt starts its own
- * line.
+ * ended. Wherever no newline was echoed, `Ctrl+C` included, stderr writes
+ * one, so the next line, or the shell's prompt, starts its own line.
  */
 async function askForQuery(
   io: CommandIo,
@@ -196,11 +200,8 @@ async function askForQuery(
   for (;;) {
     io.stderr.write(queryPrompt)
     const answer = await reader.next()
-    if (answer.kind === 'interrupt') {
-      io.stderr.write('\n')
-      return 'interrupted'
-    }
-    if (afterAnswer !== '') io.stderr.write(afterAnswer)
+    if (echoedNoNewline(io, answer)) io.stderr.write('\n')
+    if (answer.kind === 'interrupt') return 'interrupted'
     if (answer.kind === 'end') return 'ended'
     if (answer.kind === 'unreadable') return 'unreadable'
     if (isQuery(answer.line)) return answer.line
