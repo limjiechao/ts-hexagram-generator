@@ -6747,3 +6747,24 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
   after a prompt nothing echoed) and the glossary's Consultation Id wording
   (R-534).
 - Folded into: not yet
+
+### R-537: M-014 slice 1's second review items
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1, review of the R-536 fixes (6655214 to 831b921)
+- Ruled by: delegate (R-423)
+- Ruling: (1) fix now: `CommandOutput.write` gains an optional callback
+  (`(chunk, callback?) => unknown`); after the keep and its line, the plain
+  run waits for the Readout write's callback before checking for a stdout
+  failure and releasing its listeners, so a late broken pipe gives the one
+  stdout line, never a stack. (2) only the keep sits in `showThenKeep`'s
+  `try`; the path and the kept line follow it. (3) the Catalogue wrapper
+  calls each method on the Catalogue, not detached. (4) the `stdinFails`
+  comment names the null device opened write-only; one doc line rewrapped.
+  (5) new rows: a late stdout error after `write` returns but before its
+  callback; a Catalogue fake whose methods read `this`; an untagged Readout
+  error with a stdout error (kept line, stdout line, then the rejection). A
+  tester pins them first. For the owner's digest: the widened
+  `CommandOutput.write` and the wait for stdout after the keep.
+- Reason: R-350, R-388, R-532, R-534, R-536; manual §6.3; AGENTS.md §3, §7.
+- Folded into: not yet
