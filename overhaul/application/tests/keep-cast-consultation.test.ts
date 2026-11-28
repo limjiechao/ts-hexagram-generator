@@ -323,3 +323,140 @@ describe('keepCastConsultation', () => {
     ).rejects.toBe(failure)
   })
 })
+
+/** The error `act` throws synchronously; fails the test when it returns. */
+function thrownBy(act: () => unknown): unknown {
+  try {
+    act()
+  } catch (error) {
+    return error
+  }
+  throw new Error('it returned instead of throwing')
+}
+
+describe('buildCastConsultation', () => {
+  it('returns the Cast Consultation itself, not a Promise, and never touches the Store', () => {
+    const { ports, keep } = stubPorts()
+
+    const built = buildCastConsultation(ports, aQuery, mixedCasting, 'virtual')
+
+    expect(built).not.toBeInstanceOf(Promise)
+    expect(built).toStrictEqual({
+      origin: 'cast',
+      id: `${clockTime}0123456789ABCDEF`,
+      query: aQuery,
+      divinedAt: clockMoment,
+      transformation: [6, 7, 8, 9, 7, 6],
+      casting: mixedCasting,
+      divisionMethod: 'virtual',
+    })
+    expect(keep).not.toHaveBeenCalled()
+  })
+
+  it("throws the Clock's error synchronously, unchanged, and never touches the Store, when the Clock fails", () => {
+    const failure = new Error('the invented clock stopped')
+    const { ports, keep } = stubPorts({
+      now: () => {
+        throw failure
+      },
+    })
+
+    expect(
+      thrownBy(() =>
+        buildCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+      ),
+    ).toBe(failure)
+    expect(keep).not.toHaveBeenCalled()
+  })
+
+  it("throws the Random Source's error synchronously, unchanged, and never touches the Store, when the Random Source fails", () => {
+    const failure = new Error('the invented entropy ran dry')
+    const { ports, keep } = stubPorts({
+      integerBelow: () => {
+        throw failure
+      },
+    })
+
+    expect(
+      thrownBy(() =>
+        buildCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+      ),
+    ).toBe(failure)
+    expect(keep).not.toHaveBeenCalled()
+  })
+
+  it.each([
+    ['2^48, one past what 48 bits hold', 2 ** 48],
+    ['−1, before the Unix epoch', -1],
+    ['1.5, not a whole millisecond', 1.5],
+  ])(
+    'throws an Error synchronously, and never touches the Store, when the Clock reads %s',
+    (_, epochMilliseconds) => {
+      const { ports, keep } = stubPorts({
+        now: () => moment(epochMilliseconds, '+00:00'),
+      })
+
+      expect(
+        thrownBy(() =>
+          buildCastConsultation(ports, aQuery, oldYangCasting, 'automatic'),
+        ),
+      ).toBeInstanceOf(Error)
+      expect(keep).not.toHaveBeenCalled()
+    },
+  )
+})
+
+describe('keepCastConsultation, given a built Cast Consultation', () => {
+  /** A Cast Consultation built from the default stub ports. */
+  const builtConsultation = () =>
+    buildCastConsultation(stubPorts().ports, aQuery, mixedCasting, 'physical')
+
+  /** A Clock and a Random Source that fail the test if read. */
+  function unreadable() {
+    return stubPorts({
+      now: () => {
+        throw new Error('the keep read the Clock')
+      },
+      integerBelow: () => {
+        throw new Error('the keep drew from the Random Source')
+      },
+    })
+  }
+
+  it('keeps exactly the Consultation it is given, once, reading neither the Clock nor the Random Source', async () => {
+    const built = builtConsultation()
+    const { ports, keep, now } = unreadable()
+
+    await keepCastConsultation(ports, built)
+
+    expect(keep).toHaveBeenCalledTimes(1)
+    expect(keep.mock.calls[0]?.[0]).toBe(built)
+    expect(keep).toHaveBeenCalledWith({
+      origin: 'cast',
+      id: `${clockTime}0123456789ABCDEF`,
+      query: aQuery,
+      divinedAt: clockMoment,
+      transformation: [6, 7, 8, 9, 7, 6],
+      casting: mixedCasting,
+      divisionMethod: 'physical',
+    })
+    expect(now).not.toHaveBeenCalled()
+  })
+
+  it('resolves to undefined', async () => {
+    const { ports } = unreadable()
+
+    await expect(
+      keepCastConsultation(ports, builtConsultation()),
+    ).resolves.toBeUndefined()
+  })
+
+  it("rejects with the Store's error unchanged when keeping fails", async () => {
+    const failure = new Error('the invented disk is full')
+    const { ports } = stubPorts({ keep: () => Promise.reject(failure) })
+
+    await expect(keepCastConsultation(ports, builtConsultation())).rejects.toBe(
+      failure,
+    )
+  })
+})

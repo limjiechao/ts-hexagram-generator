@@ -1,7 +1,10 @@
 import type { Clock } from '@hexagram/application/clock'
 import type { ConsultationStore } from '@hexagram/application/consultation-store'
 import type { divide } from '@hexagram/application/divide'
-import type { keepCastConsultation } from '@hexagram/application/keep-cast-consultation'
+import type {
+  buildCastConsultation,
+  keepCastConsultation,
+} from '@hexagram/application/keep-cast-consultation'
 import type { RandomSource } from '@hexagram/application/random-source'
 import type { recordConsultation } from '@hexagram/application/record-consultation'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
@@ -137,6 +140,18 @@ describe('composeCli for keeping and recording a Consultation', () => {
     const cli = composeCli(stubPorts([]).ports)
     expect(typeof cli.keepCastConsultation).toBe('function')
     expect(typeof cli.recordConsultation).toBe('function')
+  })
+
+  it('gives buildCastConsultation the signature @hexagram/application gives it, minus its ports', () => {
+    expectTypeOf<Composed['buildCastConsultation']>().toEqualTypeOf<
+      (
+        query: Parameters<typeof buildCastConsultation>[1],
+        casting: Parameters<typeof buildCastConsultation>[2],
+        divisionMethod: Parameters<typeof buildCastConsultation>[3],
+      ) => ReturnType<typeof buildCastConsultation>
+    >()
+    const cli = composeCli(stubPorts([]).ports)
+    expect(typeof cli.buildCastConsultation).toBe('function')
   })
 
   it('casts from beginCasting by eighteen Automatic Divisions and keeps the Cast Consultation in the Store it takes, its Id from the Clock and the Random Source it takes', async () => {
