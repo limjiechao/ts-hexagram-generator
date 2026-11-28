@@ -123,7 +123,7 @@ export function markdownConsultationStore(options: {
         writeFrontmatter(record),
         await renderBody(consultation),
       )
-      const name = `${record.divinedAt.slice(0, 10)}--${record.id}.md`
+      const name = consultationFileName(consultation)
       await mkdir(journalFolder, { recursive: true })
       // Losing a race to a keep of the same Consultation is keeping an Id
       // the Journal already holds, so it does nothing.
@@ -401,5 +401,6 @@ async function fileNames(folder: string, extension: string): Promise<string[]> {
  * keep keeps the file it already has, whose name may differ.
  */
 export function consultationFileName(consultation: Consultation): string {
-  throw new Error('not built', { cause: { consultation } })
+  const record = encodeRecord(consultation)
+  return `${record.divinedAt.slice(0, 10)}--${record.id}.md`
 }
