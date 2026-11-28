@@ -6486,3 +6486,29 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: R-375 (today's bytes where nothing changes), R-331, R-341 to
   R-345, R-373, R-383, R-512, R-519 to R-523; ADR-0026, ADR-0044; manual §5.
 - Folded into: not yet
+
+### R-525: The ledger's headings take two rows
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 2, question Q-M-013-32 (referred by the delegate)
+- Ruled by: owner
+- Ruling: C — the ledger's column headings take two rows, the Chinese above
+  the glossary's English: 爻/Line, 蓍/Stalks, 變/Round, 左/Heap, 揲/Fours,
+  扐/Remainder, 右/Heap, 掛/Hung Stalk, 歸奇/Set-aside, and 營/Tally kept, so
+  the ledger stays within the default 120 columns with the Line Value in
+  view.
+- Reason: keeps the glossary's terms on screen (R-331) without hiding the
+  Line Value behind panning on every Cast reading.
+- Folded into: not yet
+
+### R-526: The Transformation tab names the Trigrams without imagery
+
+- Date: 2026-11-28
+- Raised in: M-013 slice 2, question Q-M-013-35 (referred by the delegate)
+- Ruled by: owner
+- Ruling: B — the Transformation tab's Trigram rows show the Trigrams' names
+  only (for example `Upper: 坎 khân`); the imagery stays in each Hexagram
+  tab's diagram.
+- Reason: manual §5 item 2 asks this tab for the Upper and Lower Trigrams,
+  not their imagery; Legge's long imagery misaligned the two columns.
+- Folded into: not yet

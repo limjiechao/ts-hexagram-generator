@@ -688,3 +688,8 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 2 (R-520, R-521); delegate rulings: 4 (R-519, R-522, R-523, and the tests' approval)
 - Landed: 11 commits ending d0efb13
 - Notes: CI on main failed after PR #66 when Ubuntu moved to Node 26 (tsx's DEP0205 warning on spawned bins' stderr); fixed by tsx 4.23.15 (8c6ba43), PR #67. A first cherry-pick of this slice was run newest-first and conflicted; aborted and redone oldest-first.
+
+### Landing — PR #67 — 2026-11-28
+
+- The owner said "land"; `main` fast-forwarded cf7e63d..8c6ba43 (tsx 4.23.15 for Node 26; R-519 to R-521). No delegate ruling overturned.
+- Owner touches: 2 (R-525, R-526, on M-013 slice 2's referrals).
