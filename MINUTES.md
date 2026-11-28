@@ -732,3 +732,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 - Owner touches: 4 (R-532, R-533, R-538, R-539); delegate rulings: 8 (R-531, R-534 to R-537, R-540, R-541, and test approvals)
 - Landed: 39 commits ending 44dad8a
 - Notes: tests landed before the code (R-536 (7)), so the tester's 5f53dd8 and the implementer's first three commits do not type-check alone; from the `CommandIo` commit on, every commit does. Agents ran a read-only `git stash list` three times against their briefs. Scratch left for the owner: `overhaul/node_modules/.cache/eds.test.ts` and probe files in the M-014 worktree, `m014-probe-*` folders under $TMPDIR.
+
+### Iteration 48 — M-014 — 2026-11-28
+
+- Attempt: 1/2 (slice 2 of 2; R-058) · Outcome: landed; M-014 complete
+- Tests: `interactive-plain.test.ts` (typed Picks reproduce M-013's all-moving fixture byte for byte; refused Picks; Ctrl+C and stdin endings mid-Casting; port and stream failures; options before the welcome); `hexagram-interactive`'s frame and spawn rows; approved R-542 with three rows; the shared test helpers moved to one support file; rows for a Query that reads like an ending.
+- Build: one plain casting run for both commands; Virtual Division by typed Pick under R-401's whole-number rule; the Reading Preference check shared; a stdin error ends the run while stdin is still read (R-542). The implementer found and fixed a slice-1 bug no test covered: a Query typed as `ended`, `interrupted` or `unreadable` was taken for that ending (a084d32); its test bf41a4b came after the fix and was shown by the clerk to fail against the pre-fix code.
+- Review: `APPROVE`; R-543 (palette passed, `Ask`'s doc; manual §3 and §4 fold R-532: Divined At when the Casting is complete).
+- Verify: M-014's whole Acceptance · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46, on matters; no `consultations/` in the matters worktree
+- Owner touches: 0 this slice (4 in M-014: R-532, R-533, R-538, R-539); delegate rulings: 2 (R-542, R-543)
+- Landed: 13 commits ending f22e34b
+- Notes: scratch left for the owner: `../hexagram-wt-redcheck2` (a detached worktree). M-016 (Typst) carries the font-shipping question to the owner.
