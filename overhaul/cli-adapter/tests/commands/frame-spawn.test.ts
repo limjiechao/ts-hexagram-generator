@@ -136,7 +136,7 @@ const rows: readonly {
     command: 'hexagram-random',
     argv: [],
     env: {},
-    expected: queryPrompt + line(queryNotGivenLine('hexagram-random')),
+    expected: line(queryPrompt) + line(queryNotGivenLine('hexagram-random')),
   },
   {
     // A stdin that cannot be read ends the run before any Query.

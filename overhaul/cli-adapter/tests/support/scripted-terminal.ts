@@ -180,6 +180,8 @@ export function scriptedTerminal(options: {
   readonly stdoutFailsAfterWrite?: Error
   readonly stderrFailsAfterWrite?: Error
   readonly stdoutFailsLate?: Error
+  /** Whether stdin is a TTY, which echoes what is typed; not, by default. */
+  readonly stdinIsTTY?: boolean
 }): ScriptedTerminal {
   const stdout: string[] = []
   const stderr: string[] = []
@@ -264,7 +266,7 @@ export function scriptedTerminal(options: {
   )
   const io: CommandIo = {
     stdin: {
-      isTTY: false,
+      isTTY: options.stdinIsTTY ?? false,
       on: (event: 'data' | 'end' | 'error', listener: Listener) => {
         stdinListeners(event).add(listener)
         schedule()

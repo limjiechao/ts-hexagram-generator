@@ -170,10 +170,11 @@ const line = (text: string): string => `${text}\n`
 
 /**
  * `hexagram-random` in plain mode over a stdin that ends at once: the Query
- * prompt, then the Query-not-given line, before any port is touched.
+ * prompt and the newline the terminal did not echo, then the
+ * Query-not-given line, before any port is touched.
  */
 const randomPlainEnding =
-  queryPrompt + line(queryNotGivenLine('hexagram-random'))
+  line(queryPrompt) + line(queryNotGivenLine('hexagram-random'))
 
 /**
  * `--export-journal bundle.json` over the throwing ports: the Journal is read

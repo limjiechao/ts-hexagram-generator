@@ -332,6 +332,7 @@ interface RunOptions extends PortOptions {
   readonly stdoutFailsAfterWrite?: Error
   readonly stderrFailsAfterWrite?: Error
   readonly stdoutFailsLate?: Error
+  readonly stdinIsTTY?: boolean
   /** Called as the Store's keep begins, with the terminal. */
   readonly duringKeep?: (terminal: ScriptedTerminal) => void
 }
@@ -352,6 +353,7 @@ async function settleRandom(
     stdoutFailsAfterWrite: options.stdoutFailsAfterWrite,
     stderrFailsAfterWrite: options.stderrFailsAfterWrite,
     stdoutFailsLate: options.stdoutFailsLate,
+    stdinIsTTY: options.stdinIsTTY,
   })
   const touched: string[] = []
   const [outcome] = await Promise.allSettled([
@@ -413,6 +415,12 @@ function keptLine(
 }
 
 const prompt = queryPrompt
+/**
+ * The Query prompt with the newline the run writes when the terminal
+ * echoed none: after an answer from a stdin that is not a TTY, and when
+ * stdin ends at the prompt.
+ */
+const promptLine = line(queryPrompt)
 const blank = line(blankQueryLine)
 const notGiven = line(queryNotGivenLine('hexagram-random'))
 const catalogueFailed = line(
@@ -445,7 +453,7 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
       const expected = expectedConsultation()
       expect(ended.stdout).toBe(xZhiXFixture)
-      expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+      expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
       expect(ended.exitCode).toBe(0)
       expect(ended.pauses).toBeGreaterThan(0)
       expect(await filesIn(journalFolder)).toEqual([
@@ -469,7 +477,9 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(withoutColour(xZhiXFixture))
     expect(ended.stdout).not.toContain('\u001B')
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected, false))
+    expect(ended.stderr).toBe(
+      promptLine + keptLine(journalFolder, expected, false),
+    )
     expect(ended.exitCode).toBe(0)
   })
 
@@ -507,7 +517,7 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
     const expected = expectedConsultation(spaced)
     expect(ended.stdout).toBe(await readoutOf(expected))
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 
@@ -534,11 +544,11 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
     })
 
     expect(ended.stderr).toBe(
-      prompt +
+      promptLine +
         blank +
-        prompt +
+        promptLine +
         blank +
-        prompt +
+        promptLine +
         keptLine(journalFolder, expectedConsultation()),
     )
     expect(ended.stdout).toBe(xZhiXFixture)
@@ -565,7 +575,7 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
     expect(ended.stdout).toBe(xZhiXFixture)
     expect(ended.stderr).toBe(
-      prompt + keptLine(journalFolder, expectedConsultation()),
+      promptLine + keptLine(journalFolder, expectedConsultation()),
     )
     expect(ended.exitCode).toBe(0)
   })
@@ -578,7 +588,7 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
@@ -594,7 +604,7 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
@@ -602,16 +612,16 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
 
 describe('hexagram-random in plain mode: endings before the Query', () => {
   it.each([
-    { shown: 'at once', script: [stdinEnds], stderr: prompt + notGiven },
+    { shown: 'at once', script: [stdinEnds], stderr: promptLine + notGiven },
     {
       shown: 'after a blank line',
       script: [typed('\n'), stdinEnds],
-      stderr: prompt + blank + prompt + notGiven,
+      stderr: promptLine + blank + promptLine + notGiven,
     },
     {
       shown: 'after a whitespace-only last line with no newline',
       script: [typed('   '), stdinEnds],
-      stderr: prompt + blank + prompt + notGiven,
+      stderr: promptLine + blank + promptLine + notGiven,
     },
   ])(
     'stdin ends $shown: the Query-not-given line, exit 1, nothing kept, no port touched',
@@ -632,7 +642,7 @@ describe('hexagram-random in plain mode: endings before the Query', () => {
     {
       shown: 'after a blank Query',
       script: [typed('  \n'), ctrlC],
-      stderr: `${prompt}${blank}${prompt}\n`,
+      stderr: `${promptLine}${blank}${prompt}\n`,
     },
   ])(
     'Ctrl+C $shown quits: a newline on stderr, exit 0, nothing kept, no port touched',
@@ -658,7 +668,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
       draws: allDraws.slice(0, 5),
     })
 
-    expect(ended.stderr).toBe(prompt + randomFailed)
+    expect(ended.stderr).toBe(promptLine + randomFailed)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).not.toContain('Consultation Store')
@@ -672,7 +682,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
       draws: allDraws.slice(0, -1),
     })
 
-    expect(ended.stderr).toBe(prompt + randomFailed)
+    expect(ended.stderr).toBe(promptLine + randomFailed)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).not.toContain('Consultation Store')
@@ -688,7 +698,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
       },
     })
 
-    expect(ended.stderr).toBe(prompt + clockFailed)
+    expect(ended.stderr).toBe(promptLine + clockFailed)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).not.toContain('Consultation Store')
@@ -706,7 +716,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
       }),
     })
 
-    expect(ended.stderr).toBe(prompt + clockFailed)
+    expect(ended.stderr).toBe(promptLine + clockFailed)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).not.toContain('Consultation Store')
@@ -725,7 +735,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
 
     const expected = expectedConsultation()
     expect(ended.stderr).toBe(
-      prompt + catalogueFailed + keptLine(journalFolder, expected),
+      promptLine + catalogueFailed + keptLine(journalFolder, expected),
     )
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
@@ -737,7 +747,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
     const ended = await runRandom([], [asked()], { journalFolder })
 
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + journalFailed)
+    expect(ended.stderr).toBe(promptLine + journalFailed)
     expect(ended.exitCode).toBe(1)
   })
 
@@ -751,7 +761,7 @@ describe('hexagram-random in plain mode: a failing port', () => {
       },
     })
 
-    expect(ended.stderr).toBe(prompt + catalogueFailed + journalFailed)
+    expect(ended.stderr).toBe(promptLine + catalogueFailed + journalFailed)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
   })
@@ -811,7 +821,7 @@ describe('hexagram-random in plain mode: the Reading Preference options', () => 
           ...preference,
         }),
       )
-      expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+      expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
       expect(ended.exitCode).toBe(0)
     },
   )
@@ -930,7 +940,7 @@ describe('hexagram-random in plain mode: only a Catalogue port failure is the Ca
       bug,
     )
     expect(ended.stdout).toBe('')
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 
@@ -956,7 +966,7 @@ describe('hexagram-random in plain mode: only a Catalogue port failure is the Ca
 
       const expected = expectedConsultation()
       expect(ended.stderr).toBe(
-        prompt + catalogueFailed + keptLine(journalFolder, expected),
+        promptLine + catalogueFailed + keptLine(journalFolder, expected),
       )
       expect(ended.stdout).toBe('')
       expect(ended.exitCode).toBe(1)
@@ -1001,7 +1011,7 @@ describe('hexagram-random in plain mode: a carriage return at the very end of in
 
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
@@ -1012,7 +1022,7 @@ describe('hexagram-random in plain mode: a carriage return at the very end of in
       journalFolder,
     })
 
-    expect(ended.stderr).toBe(prompt + blank + prompt + notGiven)
+    expect(ended.stderr).toBe(promptLine + blank + promptLine + notGiven)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).toEqual([])
@@ -1058,7 +1068,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
 
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
     expect(ended.pauses).toBeGreaterThan(0)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
@@ -1074,7 +1084,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
     expect(ended.stderr).toBe(
-      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+      promptLine + keptLine(journalFolder, expected) + stdoutUnwritable,
     )
     expect(ended.exitCode).toBe(1)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
@@ -1091,7 +1101,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
 
     const expected = expectedConsultation()
     expect(ended.stderr).toBe(
-      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+      promptLine + keptLine(journalFolder, expected) + stdoutUnwritable,
     )
     expect(ended.exitCode).toBe(1)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
@@ -1104,7 +1114,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
       stdoutFailsAfterWrite: brokenPipe(),
     })
 
-    expect(ended.stderr).toBe(prompt + journalFailed + stdoutUnwritable)
+    expect(ended.stderr).toBe(promptLine + journalFailed + stdoutUnwritable)
     expect(ended.exitCode).toBe(1)
   })
 
@@ -1117,7 +1127,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
 
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
-    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
     expect(ended.exitCode).toBe(0)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
@@ -1164,7 +1174,7 @@ describe('hexagram-random in plain mode: a late stdout failure, a Catalogue read
     const expected = expectedConsultation()
     expect(ended.stdout).toBe(xZhiXFixture)
     expect(ended.stderr).toBe(
-      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+      promptLine + keptLine(journalFolder, expected) + stdoutUnwritable,
     )
     expect(ended.exitCode).toBe(1)
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
@@ -1188,7 +1198,7 @@ describe('hexagram-random in plain mode: a late stdout failure, a Catalogue read
 
       const expected = expectedConsultation()
       expect(ended.stdout).toBe(xZhiXFixture)
-      expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+      expect(ended.stderr).toBe(promptLine + keptLine(journalFolder, expected))
       expect(ended.exitCode).toBe(0)
     },
   )
@@ -1213,8 +1223,110 @@ describe('hexagram-random in plain mode: a late stdout failure, a Catalogue read
     )
     expect(ended.stdout).toBe('')
     expect(ended.stderr).toBe(
-      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+      promptLine + keptLine(journalFolder, expected) + stdoutUnwritable,
     )
     expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
+})
+
+describe('hexagram-random in plain mode: a newline wherever the terminal echoed none', () => {
+  it('stdin a TTY, the Query answered: the terminal echoed the line, so no newline follows the prompt', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom(['--plain'], [asked()], {
+      journalFolder,
+      isTTY: true,
+      stdinIsTTY: true,
+    })
+
+    expect(ended.stderr).toBe(
+      prompt + keptLine(journalFolder, expectedConsultation()),
+    )
+    expect(ended.exitCode).toBe(0)
+  })
+
+  it('stdin a TTY, a blank Query then the Query: no newline after either prompt', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom(['--plain'], [typed('\n'), asked()], {
+      journalFolder,
+      isTTY: true,
+      stdinIsTTY: true,
+    })
+
+    expect(ended.stderr).toBe(
+      prompt + blank + prompt + keptLine(journalFolder, expectedConsultation()),
+    )
+  })
+
+  it('stdin not a TTY, the Query answered: a newline after the prompt', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      stdinIsTTY: false,
+    })
+
+    expect(ended.stderr).toBe(
+      `${queryPrompt}\n${consultationKeptLine(
+        path.join(journalFolder, consultationFileName(expectedConsultation())),
+        paletteFor(true),
+      )}\n`,
+    )
+    expect(ended.exitCode).toBe(0)
+  })
+
+  it.each([
+    { shown: 'a TTY', stdinIsTTY: true },
+    { shown: 'not a TTY', stdinIsTTY: false },
+  ])(
+    'stdin $shown ends at the Query prompt: a newline, then the Query-not-given line',
+    async ({ stdinIsTTY }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom(['--plain'], [stdinEnds], {
+        journalFolder,
+        isTTY: true,
+        stdinIsTTY,
+      })
+
+      expect(ended.stderr).toBe(
+        `${queryPrompt}\n${queryNotGivenLine('hexagram-random')}\n`,
+      )
+      expect(ended.exitCode).toBe(1)
+      expect(ended.touched).toEqual([])
+    },
+  )
+
+  it.each([
+    { shown: 'a TTY', stdinIsTTY: true },
+    { shown: 'not a TTY', stdinIsTTY: false },
+  ])(
+    'stdin $shown, Ctrl+C at the Query prompt: one newline, never two',
+    async ({ stdinIsTTY }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom(['--plain'], [ctrlC], {
+        journalFolder,
+        isTTY: true,
+        stdinIsTTY,
+      })
+
+      expect(ended.stderr).toBe(`${queryPrompt}\n`)
+      expect(ended.exitCode).toBe(0)
+    },
+  )
+
+  it.each([
+    { shown: 'a TTY', stdinIsTTY: true, first: prompt },
+    { shown: 'not a TTY', stdinIsTTY: false, first: promptLine },
+  ])(
+    'stdin $shown, Ctrl+C after a blank Query: the second prompt gets one newline, never two',
+    async ({ stdinIsTTY, first }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom(['--plain'], [typed('  \n'), ctrlC], {
+        journalFolder,
+        isTTY: true,
+        stdinIsTTY,
+      })
+
+      expect(ended.stderr).toBe(`${first}${blank}${queryPrompt}\n`)
+      expect(ended.exitCode).toBe(0)
+    },
+  )
 })
