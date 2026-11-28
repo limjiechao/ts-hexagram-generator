@@ -44,7 +44,9 @@ import {
   ctrlC,
   scriptedTerminal,
   stdinEnds,
+  stdinFails,
   typed,
+  type ScriptedTerminal,
   type Step,
 } from '../support/scripted-terminal.js'
 
@@ -321,44 +323,74 @@ function portsOver(options: PortOptions, touched: string[]): CommandPorts {
   }
 }
 
-/** Runs `hexagram-random` to its end and checks it let go of the terminal. */
-async function runRandom(
+interface RunOptions extends PortOptions {
+  readonly isTTY?: boolean
+  readonly env?: { readonly NO_COLOR?: string; readonly CI?: string }
+  readonly stdoutFailsAfterWrite?: Error
+  readonly stderrFailsAfterWrite?: Error
+  /** Called as the Store's keep begins, with the terminal. */
+  readonly duringKeep?: (terminal: ScriptedTerminal) => void
+}
+
+/**
+ * Runs `hexagram-random` until it resolves or rejects, and checks it let
+ * go of the terminal either way.
+ */
+async function settleRandom(
   argv: readonly string[],
   script: readonly Step[],
-  options: PortOptions & {
-    readonly isTTY?: boolean
-    readonly env?: { readonly NO_COLOR?: string; readonly CI?: string }
-    /** Called as the Store's keep begins, with the terminal's interrupt. */
-    readonly duringKeep?: (interrupt: () => void) => void
-  },
+  options: RunOptions,
 ) {
   const terminal = scriptedTerminal({
     isTTY: options.isTTY ?? false,
     env: options.env,
     script,
+    stdoutFailsAfterWrite: options.stdoutFailsAfterWrite,
+    stderrFailsAfterWrite: options.stderrFailsAfterWrite,
   })
   const touched: string[] = []
-  const exitCode = await run(
-    argv,
-    terminal.io,
-    portsOver(
-      {
-        ...options,
-        onKeep: () => options.duringKeep?.(terminal.interruptNow),
-      },
-      touched,
+  const [outcome] = await Promise.allSettled([
+    run(
+      argv,
+      terminal.io,
+      portsOver(
+        {
+          ...options,
+          onKeep: () => options.duringKeep?.(terminal),
+        },
+        touched,
+      ),
     ),
-  )
-  // Before the run resolves, its listeners are removed (plain-casting.ts).
-  expect(terminal.listening()).toEqual({ data: 0, end: 0, interrupt: 0 })
+  ])
+  // Before the run ends, its listeners are removed (plain-casting.ts).
+  expect(terminal.listening()).toEqual({
+    data: 0,
+    end: 0,
+    stdinError: 0,
+    stdoutError: 0,
+    stderrError: 0,
+    interrupt: 0,
+  })
   expect(terminal.unheardInterrupts()).toBe(0)
+  expect(terminal.unheardErrors()).toBe(0)
   return {
-    exitCode,
+    outcome,
     stdout: terminal.stdout(),
     stderr: terminal.stderr(),
     pauses: terminal.pauses(),
     touched: [...new Set(touched)],
   }
+}
+
+/** Runs `hexagram-random` to its exit code and checks it let go of the terminal. */
+async function runRandom(
+  argv: readonly string[],
+  script: readonly Step[],
+  options: RunOptions,
+) {
+  const { outcome, ...ended } = await settleRandom(argv, script, options)
+  if (outcome.status === 'rejected') throw outcome.reason
+  return { exitCode: outcome.value, ...ended }
 }
 
 /** The kept line for a Consultation kept in this Journal folder. */
@@ -550,8 +582,8 @@ describe('hexagram-random in plain mode: the Readout and the keep', () => {
     const journalFolder = await temporaryJournal()
     const ended = await runRandom([], [asked()], {
       journalFolder,
-      duringKeep: (interrupt) => {
-        interrupt()
+      duringKeep: (terminal) => {
+        terminal.interruptNow()
       },
     })
 
@@ -851,5 +883,237 @@ describe('hexagram-random in plain mode: the Reading Preference options', () => 
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).toEqual(['Scripture Catalogue'])
     expect(await filesIn(path.dirname(journalFolder))).toEqual([])
+  })
+})
+
+const stdinUnreadable = line('hexagram-random: stdin cannot be read')
+const stdoutUnwritable = line('hexagram-random: stdout cannot be written')
+
+/** A closed pipe's write error, as Node reports it. */
+function brokenPipe(): Error {
+  return Object.assign(new Error('write EPIPE'), { code: 'EPIPE' })
+}
+
+/**
+ * A list that resolves as a value but throws `error` at any use: the
+ * failure comes after the port has answered, so no port failed.
+ */
+function throwingList(error: Error): never[] {
+  return new Proxy<never[]>([], {
+    get: (_target, key) => {
+      // Not thenable, so it resolves as a value.
+      if (key === 'then') return
+      throw error
+    },
+  })
+}
+
+describe('hexagram-random in plain mode: only a Catalogue port failure is the Catalogue line', () => {
+  it('an error from no port while the Readout is built: the keep still runs, then the run rejects with that error', async () => {
+    const bug = new Error('an invented bug in building the Readout')
+    const journalFolder = await temporaryJournal()
+    const ended = await settleRandom([], [asked()], {
+      journalFolder,
+      scriptureCatalogue: {
+        ...bundledScriptureCatalogue,
+        trigramNames: () => Promise.resolve(throwingList(bug)),
+      },
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.outcome.status === 'rejected' && ended.outcome.reason).toBe(
+      bug,
+    )
+    expect(ended.stdout).toBe('')
+    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it.each([
+    {
+      shown: 'throws a TypeError',
+      passageTexts: (): never => {
+        throw new TypeError('bug')
+      },
+    },
+    {
+      shown: 'rejects with a TypeError',
+      passageTexts: () => Promise.reject(new TypeError('bug')),
+    },
+  ])(
+    'a Catalogue port that $shown is still the Catalogue line, then the kept line, exit 1',
+    async ({ passageTexts }) => {
+      const journalFolder = await temporaryJournal()
+      const ended = await runRandom([], [asked()], {
+        journalFolder,
+        scriptureCatalogue: { ...bundledScriptureCatalogue, passageTexts },
+      })
+
+      const expected = expectedConsultation()
+      expect(ended.stderr).toBe(
+        prompt + catalogueFailed + keptLine(journalFolder, expected),
+      )
+      expect(ended.stdout).toBe('')
+      expect(ended.exitCode).toBe(1)
+      expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+    },
+  )
+
+  it('--translation legge-1882 with an error from no port while it is checked: the run rejects with that error, no Catalogue line', async () => {
+    const bug = new Error('an invented bug in checking the options')
+    const journalFolder = await temporaryJournal()
+    const ended = await settleRandom(
+      ['--translation', 'legge-1882'],
+      [asked()],
+      {
+        journalFolder,
+        scriptureCatalogue: {
+          ...bundledScriptureCatalogue,
+          editions: () => Promise.resolve(throwingList(bug)),
+        },
+      },
+    )
+
+    expect(ended.outcome.status === 'rejected' && ended.outcome.reason).toBe(
+      bug,
+    )
+    expect(ended.stderr).toBe('')
+    expect(ended.stdout).toBe('')
+    // The Editions are looked up to check the option; nothing else is.
+    expect(
+      ended.touched.filter((port) => port !== 'Scripture Catalogue'),
+    ).toEqual([])
+    expect(await filesIn(path.dirname(journalFolder))).toEqual([])
+  })
+})
+
+describe('hexagram-random in plain mode: a carriage return at the very end of input', () => {
+  it('a Query, then a CR, then stdin ends: the Query is kept without the CR', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [typed(`${xZhiX.query}\r`), stdinEnds], {
+      journalFolder,
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it('a lone CR, then stdin ends: a blank Query, asked again, then the Query-not-given line, exit 1', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [typed('\r'), stdinEnds], {
+      journalFolder,
+    })
+
+    expect(ended.stderr).toBe(prompt + blank + prompt + notGiven)
+    expect(ended.stdout).toBe('')
+    expect(ended.exitCode).toBe(1)
+    expect(ended.touched).toEqual([])
+  })
+
+  it('a CR inside a Query line is kept as typed', async () => {
+    const query = 'Will the invented ferry\rrun before the thaw?'
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked(query)], { journalFolder })
+
+    const expected = expectedConsultation(query)
+    expect(ended.stdout).toBe(await readoutOf(expected))
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+})
+
+describe('hexagram-random in plain mode: a stream that fails', () => {
+  it('stdin cannot be read before the Query: its line, exit 1, nothing kept, no port touched', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom(
+      [],
+      [stdinFails(new Error('EISDIR: illegal operation on a directory, read'))],
+      { journalFolder },
+    )
+
+    expect(ended.stderr).toBe(prompt + stdinUnreadable)
+    expect(ended.stdout).toBe('')
+    expect(ended.exitCode).toBe(1)
+    expect(ended.touched).toEqual([])
+    expect(ended.pauses).toBeGreaterThan(0)
+    expect(await filesIn(path.dirname(journalFolder))).toEqual([])
+  })
+
+  it('stdin fails after the Query: heard and ignored, the Consultation kept, exit 0', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      duringKeep: (terminal) => {
+        terminal.stdinFailsNow(new Error('an invented read error'))
+      },
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.exitCode).toBe(0)
+    expect(ended.pauses).toBeGreaterThan(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it('stdout fails (EPIPE) on the tick after the Readout: the keep completes, its line, then the stdout line, exit 1', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      stdoutFailsAfterWrite: brokenPipe(),
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(
+      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+    )
+    expect(ended.exitCode).toBe(1)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it('stdout fails (EPIPE) while the keep is pending: the keep completes, its line, then the stdout line, exit 1', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      duringKeep: (terminal) => {
+        terminal.stdoutFailsNow(brokenPipe())
+      },
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stderr).toBe(
+      prompt + keptLine(journalFolder, expected) + stdoutUnwritable,
+    )
+    expect(ended.exitCode).toBe(1)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
+  it('stdout fails (EPIPE) and the keep fails: the Journal line, then the stdout line, exit 1', async () => {
+    const journalFolder = await unwritableJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      stdoutFailsAfterWrite: brokenPipe(),
+    })
+
+    expect(ended.stderr).toBe(prompt + journalFailed + stdoutUnwritable)
+    expect(ended.exitCode).toBe(1)
+  })
+
+  it('stderr fails: heard and ignored, the Consultation kept, exit 0', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runRandom([], [asked()], {
+      journalFolder,
+      stderrFailsAfterWrite: brokenPipe(),
+    })
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(xZhiXFixture)
+    expect(ended.stderr).toBe(prompt + keptLine(journalFolder, expected))
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
   })
 })
