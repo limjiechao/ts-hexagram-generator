@@ -6663,3 +6663,36 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: R-403 has the values checked against the Catalogue; a typo must
   not silently show nothing.
 - Folded into: not yet
+
+### R-534: M-014's redrafted surface; Q-M-014-17 to -25
+
+- Date: 2026-11-28
+- Raised in: M-014 redraft (6838f6c, 295fe59, 3d3108d, 92486b8, 2865460)
+- Ruled by: delegate (R-423)
+- Ruling: ratify, with two amendments: (a) `readingPreferenceFrom` takes
+  `composeCli`'s `lookUpEditions` and calls `lookUpEditions('zhouyi')`, not
+  the Scripture Catalogue port (ADR-0037); (b) the glossary's **Consultation
+  Id** ("receives once, when first kept") should read "receives once, when
+  it is made, and keeps for ever" after R-532 — the glossary is Tier A, so
+  this goes to the owner. Questions, all (A): the new keep takes the name
+  `keepCastConsultation` (Q-17) and returns `Promise<void>` (Q-18);
+  `buildCastConsultation` is synchronous and throws (Q-19); a Catalogue
+  failure then a failed keep prints both lines, exit 1 (Q-20, read as one
+  line per error under R-350; for the owner's digest); `--translation` is
+  checked against the 周易 經's Translations only, a Chinese EditionId
+  refused (Q-21, for the digest); a repeated `--translation` or
+  `--commentary` is refused with the usage line (Q-22); a Catalogue failure
+  during the option check prints its line, exit 1, before any prompt (Q-23);
+  `consultationFileName` stays in the existing subpath (Q-24); the kept line
+  prints the absolute path (Q-25). The R-306 list is approved where
+  mechanical: the 13 calls in `keep-cast-consultation.test.ts` go through a
+  test-local async build-then-keep helper with titles and assertions
+  unchanged; new behaviour (build throws synchronously, never touches the
+  Store; keep reads no Clock or Random Source, resolves to undefined,
+  rejects with the Store's error unchanged; a type row for
+  `buildCastConsultation`) is new rows for approval; the spawn guard's
+  ending stdin is R-529's tester work; `processIo` must fit `CommandIo`
+  without assertion (R-388).
+- Reason: R-350, R-351, R-377, R-388, R-516, R-521, R-529, R-531 to R-533;
+  ADR-0037; manual §6.1, §6.3, §7; AGENTS.md §5 and §6.
+- Folded into: not yet
