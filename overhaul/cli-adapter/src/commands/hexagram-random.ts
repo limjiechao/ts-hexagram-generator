@@ -4,9 +4,13 @@ import {
   endWith,
   parseOptions,
   readingPreferenceRules,
+  type GivenOptions,
   type OptionRules,
 } from '#src/commands/frame.js'
 import { notBuiltLine } from '#src/commands/not-built.js'
+import { portFailureLine } from '#src/commands/plain-casting-wording.js'
+import { readingPreferenceFrom } from '#src/commands/reading-preference-options.js'
+import { composeCli } from '#src/composition-root.js'
 
 const rules = {
   '--plain': { value: 'flag', aliases: ['--no-ui'] },
@@ -22,10 +26,39 @@ const rules = {
 export const usage =
   'usage: hexagram-random [--plain | --no-ui] [--wrap-width <n>] [--numeric-input] [--slider-sweep-ms <n>] [--cast-bounce-ms <n>] [--cast-reveal-ms <n>] [--script traditional|simplified] [--translation <edition>]... [--commentary <work>]... [--yilin]'
 
+type ReadingOption = keyof typeof readingPreferenceRules
+
+/** The Reading Preference options among the options given. */
+function readingOptionsOf(
+  given: GivenOptions<typeof rules>,
+): GivenOptions<typeof readingPreferenceRules> {
+  return new Map(
+    [...given].filter((entry): entry is [ReadingOption, readonly string[]] =>
+      Object.keys(readingPreferenceRules).includes(entry[0]),
+    ),
+  )
+}
+
 /** `hexagram-random`: cast with Automatic Division. */
-export const run: Command = (argv, io) => {
+export const run: Command = async (argv, io, ports) => {
   const given = parseOptions(argv, rules)
   if (given === undefined) return endWith(io, usage)
+  let preference
+  try {
+    preference = await readingPreferenceFrom(
+      composeCli(ports),
+      readingOptionsOf(given),
+    )
+  } catch {
+    return endWith(
+      io,
+      portFailureLine(
+        'hexagram-random',
+        'the Scripture Catalogue cannot be read',
+      ),
+    )
+  }
+  if (preference === undefined) return endWith(io, usage)
   const mode = castingMode(io, {
     plain: given.has('--plain'),
     numericInput: given.has('--numeric-input'),
