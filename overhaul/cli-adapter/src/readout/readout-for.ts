@@ -1,7 +1,22 @@
+import {
+  lookUpHexagramNames,
+  lookUpReceivedSequenceNumber,
+  lookUpTrigramNames,
+} from '@hexagram/application/look-up-catalogue'
+import { resolveTransformation } from '@hexagram/application/resolve-transformation'
 import type { ScriptureCatalogue } from '@hexagram/application/scripture-catalogue'
 import type { Consultation } from '@hexagram/consultation-journal/consultation'
-import type { ConsultationReadout } from '@hexagram/presentation/readout'
+import {
+  consultationReadout,
+  hexagramsNamed,
+  trigramsNamed,
+} from '@hexagram/presentation/build-readout'
+import type {
+  ConsultationReadout,
+  NamedHexagram,
+} from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
+import type { TrigramName } from '@hexagram/scripture-catalogue/trigram-name'
 
 /**
  * A Consultation's Readout in the Reading Preference given: use case 3
@@ -12,10 +27,31 @@ import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-pr
  * from it before the Store exists. A Catalogue failure rejects the Promise
  * unchanged.
  */
-export function consultationReadoutFor(
+export async function consultationReadoutFor(
   ports: { readonly scriptureCatalogue: ScriptureCatalogue },
   consultation: Consultation,
   preference: ReadingPreference,
 ): Promise<ConsultationReadout> {
-  throw new Error('not built', { cause: { ports, consultation, preference } })
+  const resolved = await resolveTransformation(
+    ports,
+    consultation.transformation,
+    preference,
+  )
+  // One lookup at a time, as use case 3 does, so the first rejection stops
+  // every later lookup.
+  const hexagrams: NamedHexagram[] = []
+  for (const hexagram of hexagramsNamed(resolved.resolution)) {
+    hexagrams.push({
+      hexagram,
+      receivedSequenceNumber: await lookUpReceivedSequenceNumber(
+        ports,
+        hexagram,
+      ),
+      names: await lookUpHexagramNames(ports, hexagram, preference),
+    })
+  }
+  const trigrams: TrigramName[] = []
+  for (const trigram of trigramsNamed(resolved.resolution))
+    trigrams.push(...(await lookUpTrigramNames(ports, trigram, preference)))
+  return consultationReadout(consultation, resolved, { hexagrams, trigrams })
 }
