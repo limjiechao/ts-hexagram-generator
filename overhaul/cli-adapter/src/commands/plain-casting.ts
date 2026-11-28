@@ -64,32 +64,38 @@ export type PlainIo = Omit<CommandIo, 'stdin'> & {
  *    policy (ADR-0023); Virtual writes each Line's heading and a Pick
  *    prompt per Round on stderr and reads one line, re-asking after the
  *    invalid-Pick line until the Pick is valid.
- * 4. The keep, with Division Method Automatic or Virtual (ADR-0027). The
- *    Divined At is the keep's own Moment, and the Readout shows it (CLI
- *    manual, section 5), so the keep comes before the Readout. Then the kept line, on stderr.
- * 5. The Readout, built in the Reading Preference given and written to
+ * 4. The Cast Consultation, built with Division Method Automatic or
+ *    Virtual (ADR-0027): one Clock read gives its Divined At and its
+ *    Consultation Id's time (ADR-0046). Nothing is kept yet.
+ * 5. Its Readout, built in the Reading Preference given and written to
  *    stdout by `plainReadout`, with colour unless `NO_COLOR` (ADR-0044).
- *    Exit 0.
+ * 6. The keep, exactly as built, then the kept line on stderr. Exit 0.
  *
- * Its endings (CLI manual, sections 6.1 and 6.3), each
- * with nothing on stdout but a Readout already written:
+ * Its endings (CLI manual, sections 6.1 and 6.3), each with nothing on
+ * stdout but a Readout already written:
  *
  * - stdin ends before a Query is given: the Query-not-given line, exit 1,
- *   nothing kept, no port touched;
+ *   nothing kept;
  * - stdin ends mid-Casting (Virtual): the Casting-unfinished line, exit 1,
  *   nothing kept;
  * - `Ctrl+C` while a prompt waits, at the Query or at a Pick: a newline on
  *   stderr, so the shell's prompt starts its own line, exit 0, nothing
  *   kept. From the last line read to the end of the run, `Ctrl+C` is
  *   ignored, so a keep is never cut short;
- * - the Random Source or the Clock fails: its line, exit 1, nothing kept;
- * - the keep fails: the Journal line, exit 1; no Readout is written, since
- *   the Consultation has no Divined At;
- * - the Catalogue fails after the keep: the kept line is already written,
- *   then the Catalogue line, exit 1; the Consultation stays kept.
+ * - the Random Source or the Clock fails, in a Division or in building the
+ *   Consultation: its line, exit 1, nothing written to stdout, nothing
+ *   kept;
+ * - the Catalogue fails while the Readout is built: the Catalogue line,
+ *   then the keep and the kept line all the same, exit 1; nothing is on
+ *   stdout, since the Readout is written whole or not at all. Should that
+ *   keep fail too, the Journal line follows the Catalogue line, exit 1;
+ * - the keep fails: the Readout is already on stdout, then the Journal
+ *   line, exit 1.
  *
- * No port, and not the Journal's folder, is touched before a Query is
- * given. The `SIGINT` listener and stdin's listeners are removed, and
+ * Before a Query is given, no port is touched and not the Journal's
+ * folder; the Reading Preference, checked against the Scripture Catalogue
+ * before the run starts, is the only exception, and it never reaches the
+ * Journal. The `SIGINT` listener and stdin's listeners are removed, and
  * stdin paused, before the run resolves.
  */
 
