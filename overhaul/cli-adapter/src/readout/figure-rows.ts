@@ -39,7 +39,7 @@ export const lineColour = (line: FigureLine, palette: Palette): string =>
   line.change === 'moving' ? palette.moving : palette.emphasis
 
 /** The Lines top-down, as they are drawn. */
-export const topDown = (figure: HexagramFigure): readonly FigureLine[] =>
+const topDown = (figure: HexagramFigure): readonly FigureLine[] =>
   figure.lines.toReversed()
 
 /**

@@ -4,7 +4,16 @@
  * anything else one. Only text without escape codes is measured.
  */
 
-/** Code point ranges a terminal draws two columns wide (East Asian Wide and Fullwidth). */
+/**
+ * Code point ranges a terminal draws two columns wide, one per line below:
+ * Hangul Jamo; the CJK radicals, description characters, symbols and
+ * punctuation; kana, Bopomofo, Hangul Compatibility Jamo, Kanbun, CJK
+ * strokes, enclosed CJK letters and CJK compatibility; CJK Extension A; the
+ * CJK Unified Ideographs; Yi; Hangul syllables; the CJK Compatibility
+ * Ideographs; vertical forms; the CJK compatibility and small form variants;
+ * the fullwidth forms; the fullwidth signs; and the supplementary
+ * ideographic planes 2 and 3.
+ */
 const wideRanges: readonly (readonly [number, number])[] = [
   [0x11_00, 0x11_5f],
   [0x2e_80, 0x30_3e],
