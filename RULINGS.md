@@ -7031,3 +7031,20 @@ scriptureCatalogue }, filter, preference)` lists through use case 4's
   committed in the bundled Catalogue and in M-013's fixtures (R-549); the
   layout tests stay faithful to real names.
 - Folded into: not yet
+
+### R-553: M-016 slice 2's tests; Q-M-016-30 to -35
+
+- Date: 2026-11-28
+- Raised in: M-016 slice 2 (tester's ac09957, 5c9f4cd, bdd55c1, 1cea1c7)
+- Ruled by: delegate (R-423)
+- Ruling: approve, no amendments. Q-30 A (`exportFontFolder`'s doc names
+  `overhaul/cli-adapter/fonts/`). Q-31 A (only the coverage row skips on
+  LFS pointers; compile rows fail). Q-32 A (one `<Stem>-OFL.txt` per
+  family). Q-33 A. Q-34 A (no PDF hashes pinned now; cross-machine identity
+  is an open gap against R-347 and R-544, revisited on CI). Q-35 A (the
+  reviewer confirms lazy loading by reading `typst-pdf.ts`). The
+  implementer records the fonts' versions from their name tables in the
+  commit; the reviewer runs `test:stress:once` (about twelve compiler
+  instances may each start the WebAssembly build).
+- Reason: R-347, R-521, R-544 to R-552; AGENTS.md §6.
+- Folded into: not yet
