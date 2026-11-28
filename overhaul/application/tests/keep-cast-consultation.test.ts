@@ -122,13 +122,13 @@ function stubPorts(
 async function buildThenKeep(
   ports: Parameters<typeof buildCastConsultation>[0] &
     Parameters<typeof keepCastConsultation>[0],
-  query: Query,
+  written: Query,
   casting: CompleteCasting,
   divisionMethod: DivisionMethod,
 ): Promise<CastConsultation> {
   const consultation = buildCastConsultation(
     ports,
-    query,
+    written,
     casting,
     divisionMethod,
   )
