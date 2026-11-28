@@ -6718,3 +6718,32 @@ edition, name, imagery }` behind `trigramNames`. (Q-4) A — names labelled
 - Reason: R-350, R-351, R-377, R-521, R-529, R-531 to R-534; ADR-0044;
   manual §6.1, §6.3, §7.
 - Folded into: not yet
+
+### R-536: M-014 slice 1's review items
+
+- Date: 2026-11-28
+- Raised in: M-014 slice 1 review (6eafc54 to d720f4e)
+- Ruled by: delegate (R-423)
+- Ruling: (1) fix now: the Scripture Catalogue port is wrapped so its
+  failures are tagged, as the Random Source's are; only a tagged failure
+  gets the Catalogue line; an untagged error while building the Readout
+  still lets the keep run, then is rethrown; an untagged error from the
+  option check propagates. (2) fix now: a `\r` at the very end of input is
+  dropped like one before a newline. (3) the reader's rescan is accepted.
+  (4) `afterAnswer` is held until the owner answers Q-M-014-28, then given
+  its value or removed. (5) applying R-350: a stdin read error ends the run
+  with `<command>: stdin cannot be read`, exit 1, nothing kept; after the
+  Query it is heard and ignored; `CommandInput.on` gains `'error'`. (6)
+  applying R-350: a stdout error (EPIPE) never cuts the keep short; the keep
+  completes, its line, then `<command>: stdout cannot be written`, exit 1;
+  a stderr error is heard and ignored; `CommandOutput.on` gains `'error'`;
+  later slices apply the same rule to every command that writes stdout. (7)
+  the tests-first commit order is accepted and recorded in the Minutes; no
+  folding. A tester pins (1), (2), (5) and (6) first. For the owner's
+  digest: exit 1 with a line on a broken stdout pipe rather than a quiet
+  exit; the two new error lines and the widened stream interfaces.
+- Reason: R-350, R-377, R-388, R-500, R-521, R-532, R-534 Q-20; manual §6.1,
+  §9; AGENTS.md §5 and §6. Pending with the owner: Q-M-014-28 (a newline
+  after a prompt nothing echoed) and the glossary's Consultation Id wording
+  (R-534).
+- Folded into: not yet
