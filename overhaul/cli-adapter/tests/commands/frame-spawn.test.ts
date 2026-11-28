@@ -145,7 +145,7 @@ const rows: readonly {
     argv: ['--plain'],
     env: {},
     stdin: 'unreadable',
-    expected: `${queryPrompt}hexagram-random: stdin cannot be read\n`,
+    expected: `${line(queryPrompt)}hexagram-random: stdin cannot be read\n`,
   },
   {
     case: 'hexagram-manual refuses with stdout not a TTY',

@@ -1049,7 +1049,7 @@ describe('hexagram-random in plain mode: a stream that fails', () => {
       { journalFolder },
     )
 
-    expect(ended.stderr).toBe(prompt + stdinUnreadable)
+    expect(ended.stderr).toBe(promptLine + stdinUnreadable)
     expect(ended.stdout).toBe('')
     expect(ended.exitCode).toBe(1)
     expect(ended.touched).toEqual([])
