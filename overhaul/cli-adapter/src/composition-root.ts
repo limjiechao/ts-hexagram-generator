@@ -6,7 +6,10 @@ import { deleteConsultation } from '@hexagram/application/delete-consultation'
 import { divide } from '@hexagram/application/divide'
 import { drawAutomaticPick } from '@hexagram/application/draw-automatic-pick'
 import { importLegacyFiles } from '@hexagram/application/import-legacy-files'
-import { keepCastConsultation } from '@hexagram/application/keep-cast-consultation'
+import {
+  buildCastConsultation,
+  keepCastConsultation,
+} from '@hexagram/application/keep-cast-consultation'
 import {
   lookUpEditions,
   lookUpHexagramNames,
@@ -36,10 +39,10 @@ type PortsSupplied<UseCase> = UseCase extends (
 
 /**
  * The CLI's composition root (ADR-0037): it takes the driven ports and returns
- * use case 8's lookups, use case 1's Automatic Division step and last step,
- * keep, use case 2, record, use case 3, resolve, use case 4, browse,
- * use case 5, open, use case 6, delete, use case 7, import, and use case
- * 10's export and merge, with those ports supplied, and use case 1's steps
+ * use case 8's lookups, use case 1's Automatic Division step and its last
+ * step, build and keep, use case 2, record, use case 3, resolve, use case 4,
+ * browse, use case 5, open, use case 6, delete, use case 7, import, and use
+ * case 10's export and merge, with those ports supplied, and use case 1's steps
  * for a Division by Pick and a Physical Division, which take no ports and
  * so pass through unchanged.
  */
@@ -61,6 +64,7 @@ export function composeCli(ports: {
   readonly drawAutomaticPick: PortsSupplied<typeof drawAutomaticPick>
   readonly divide: typeof divide
   readonly transcribe: typeof transcribe
+  readonly buildCastConsultation: PortsSupplied<typeof buildCastConsultation>
   readonly keepCastConsultation: PortsSupplied<typeof keepCastConsultation>
   readonly recordConsultation: PortsSupplied<typeof recordConsultation>
   readonly resolveTransformation: PortsSupplied<typeof resolveTransformation>
@@ -87,8 +91,10 @@ export function composeCli(ports: {
       drawAutomaticPick(ports, remainderGroups),
     divide,
     transcribe,
-    keepCastConsultation: (query, casting, divisionMethod) =>
-      keepCastConsultation(ports, query, casting, divisionMethod),
+    buildCastConsultation: (query, casting, divisionMethod) =>
+      buildCastConsultation(ports, query, casting, divisionMethod),
+    keepCastConsultation: (consultation) =>
+      keepCastConsultation(ports, consultation),
     recordConsultation: (query, divinedAt, transformation) =>
       recordConsultation(ports, query, divinedAt, transformation),
     resolveTransformation: (transformation, preference) =>

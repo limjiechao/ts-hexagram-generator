@@ -8,47 +8,10 @@ import { buildConsultationId } from '#src/consultation-id-builder.js'
 import type { ConsultationStore } from '#src/consultation-store.js'
 import type { RandomSource } from '#src/random-source.js'
 
-/**
- * Use case 1's last step: keeps the Cast Consultation and returns it. It
- * takes only a complete Casting and does no replay (ADR-0026). Its
- * Consultation Id is a ULID built from the Clock and the Random Source
- * (ADR-0046), its Divined At is the Clock's Moment, and its Transformation
- * is copied from the Casting. A Store failure rejects the Promise unchanged.
- * It trusts the caller's Division Method, because the Casting does not
- * record who divided it (ADR-0027). It reads the Clock once, so the Id's time
- * and Divined At are the same Moment, and a Clock or Random Source failure, or
- * a Moment a ULID cannot hold, rejects the Promise before anything is kept.
- */
-export async function keepCastConsultation(
-  ports: {
-    readonly consultationStore: ConsultationStore
-    readonly clock: Clock
-    readonly randomSource: RandomSource
-  },
-  query: Query,
-  casting: CompleteCasting,
-  divisionMethod: DivisionMethod,
-): Promise<CastConsultation> {
-  const divinedAt = ports.clock.now()
-  const consultation: CastConsultation = {
-    origin: 'cast',
-    id: buildConsultationId(divinedAt.epochMilliseconds, ports.randomSource),
-    query,
-    divinedAt,
-    transformation: casting.transformation,
-    casting,
-    divisionMethod,
-  }
-  await ports.consultationStore.keep(consultation)
-  return consultation
-}
-
 /*
  * Use case 1's last step, split in two so the Cast Consultation exists
  * before it is kept: a Readout can show it, Divined At included, before the
- * Journal is written, and stays shown when the keep fails. Once ratified,
- * the two below replace `keepCastConsultation` above, and the second takes
- * its name.
+ * Journal is written, and stays shown when the keep fails.
  */
 
 /**
@@ -69,9 +32,16 @@ export function buildCastConsultation(
   casting: CompleteCasting,
   divisionMethod: DivisionMethod,
 ): CastConsultation {
-  throw new Error('not built', {
-    cause: { ports, query, casting, divisionMethod },
-  })
+  const divinedAt = ports.clock.now()
+  return {
+    origin: 'cast',
+    id: buildConsultationId(divinedAt.epochMilliseconds, ports.randomSource),
+    query,
+    divinedAt,
+    transformation: casting.transformation,
+    casting,
+    divisionMethod,
+  }
 }
 
 /**
@@ -81,9 +51,9 @@ export function buildCastConsultation(
  * unchanged. Keeping it again is keeping an Id the Journal already holds,
  * which does nothing, so a failed keep may be retried.
  */
-export function keepBuiltCastConsultation(
+export async function keepCastConsultation(
   ports: { readonly consultationStore: ConsultationStore },
   consultation: CastConsultation,
 ): Promise<void> {
-  throw new Error('not built', { cause: { ports, consultation } })
+  await ports.consultationStore.keep(consultation)
 }
