@@ -14,9 +14,10 @@ import type { TypstFontResolverBuilder } from '@myriaddreamin/typst-ts-web-compi
 
 /**
  * Compiles one Typst source to the bytes of a PDF. It rejects with an
- * `ExportFontsError` when a font cannot be loaded, and with a
- * `TypstCompileError` when Typst refuses the source; either way nothing is
- * written anywhere.
+ * `ExportFontsError` when a font cannot be loaded, with a `TypstLoadError`
+ * when Typst's WebAssembly build cannot be read or started, and with a
+ * `TypstCompileError` when Typst refuses the source; in each case nothing
+ * is written anywhere.
  */
 export type CompilePdf = (typst: string) => Promise<Uint8Array>
 
@@ -71,6 +72,18 @@ export class ExportFontsError extends Error {
     super(`the export's font ${file} cannot be loaded`, { cause })
     this.file = file
     this.reason = reason
+  }
+}
+
+/**
+ * Typst's WebAssembly build could not be read or started, so no PDF is
+ * made. What failed is kept as the cause, never shown to the user.
+ */
+export class TypstLoadError extends Error {
+  override readonly name = 'TypstLoadError'
+
+  constructor(cause: unknown) {
+    super("Typst's WebAssembly build cannot be loaded", { cause })
   }
 }
 
@@ -147,22 +160,9 @@ async function exportFonts(
  */
 async function loadedCompiler(fontFolder: string): Promise<CompilePdf> {
   const fonts = await exportFonts(fontFolder)
-  const [typst, { createTypstCompiler, CompileFormatEnum }, wrapper] =
-    await Promise.all([
-      import('@myriaddreamin/typst.ts'),
-      import('@myriaddreamin/typst.ts/compiler'),
-      import('@myriaddreamin/typst-ts-web-compiler'),
-    ])
-  const compiler = createTypstCompiler()
-  await compiler.init({
-    // The pinned WebAssembly module, which reads its own `.wasm` file from
-    // beside itself when initialised.
-    getWrapper: () => Promise.resolve(wrapper),
-    beforeBuild: [
-      typst.initOptions.disableDefaultFontAssets(),
-      typst.loadFonts(fonts.map(({ bytes }) => bytes)),
-    ],
-  })
+  const { compiler, CompileFormatEnum, wrapper } = await startedTypst(
+    fonts.map(({ bytes }) => bytes),
+  )
   // Typst drops a font it cannot parse without a word, and would set the
   // text in another face; asking its own parser for each file's faces
   // finds the one it dropped.
@@ -186,6 +186,35 @@ async function loadedCompiler(fontFolder: string): Promise<CompilePdf> {
     })
     if (result === undefined) throw new TypstCompileError(diagnostics ?? [])
     return result
+  }
+}
+
+/**
+ * Typst's WebAssembly build, imported and started over `fonts`, the
+ * default font assets off. Any failure on the way rejects as a
+ * `TypstLoadError`.
+ */
+async function startedTypst(fonts: Uint8Array[]) {
+  try {
+    const [typst, { createTypstCompiler, CompileFormatEnum }, wrapper] =
+      await Promise.all([
+        import('@myriaddreamin/typst.ts'),
+        import('@myriaddreamin/typst.ts/compiler'),
+        import('@myriaddreamin/typst-ts-web-compiler'),
+      ])
+    const compiler = createTypstCompiler()
+    await compiler.init({
+      // The pinned WebAssembly module, which reads its own `.wasm` file
+      // from beside itself when initialised.
+      getWrapper: () => Promise.resolve(wrapper),
+      beforeBuild: [
+        typst.initOptions.disableDefaultFontAssets(),
+        typst.loadFonts(fonts),
+      ],
+    })
+    return { compiler, CompileFormatEnum, wrapper }
+  } catch (error) {
+    throw new TypstLoadError(error)
   }
 }
 

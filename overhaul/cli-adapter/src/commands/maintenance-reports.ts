@@ -275,6 +275,17 @@ export function exportFontsLine(file: string): string {
 }
 
 /**
+ * `--export`'s failure, on stderr before exit 1, when Typst's WebAssembly
+ * build cannot be read or started:
+ * `hexagram-history: Typst's WebAssembly build cannot be loaded`. What
+ * failed is not printed. No file is written; a `.typ` export needs no
+ * Typst and never meets it.
+ */
+export function typstUnloadableLine(): string {
+  return "hexagram-history: Typst's WebAssembly build cannot be loaded"
+}
+
+/**
  * `--export`'s failure, on stderr before exit 1, when Typst refuses the
  * source, which is a renderer's error, not the user's:
  * `hexagram-history: Typst cannot compile the export`. No file is written.

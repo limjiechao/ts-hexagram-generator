@@ -21,6 +21,7 @@ import {
   nothingToExportLine,
   targetUnwritableLine,
   typstRefusedLine,
+  typstUnloadableLine,
 } from '#src/commands/maintenance-reports.js'
 import {
   reportingJournalFailure,
@@ -33,6 +34,7 @@ import {
 import {
   ExportFontsError,
   TypstCompileError,
+  TypstLoadError,
   type CompilePdf,
 } from '#src/typst-pdf.js'
 
@@ -71,8 +73,9 @@ export function exportFormatOf(target: string): 'typst' | 'pdf' | undefined {
  * 2. When nothing matches, `nothingToExportLine` on stderr, exit 1, and no
  *    file is written.
  * 3. For a `.pdf`, `compilePdf` compiles the source. A font that cannot be
- *    loaded ends with `exportFontsLine`, and Typst refusing the source with
- *    `typstRefusedLine`, each exit 1, no file written.
+ *    loaded ends with `exportFontsLine`, Typst's WebAssembly build that
+ *    cannot be loaded with `typstUnloadableLine`, and Typst refusing the
+ *    source with `typstRefusedLine`, each exit 1, no file written.
  * 4. The bytes are written at the path only if no file holds it, whole or
  *    not at all, as `--export-journal` writes a bundle:
  *    `exportTargetExistsLine` when a file does, and
@@ -164,6 +167,7 @@ async function contentsOf(
     if (error instanceof ExportFontsError) {
       return { line: exportFontsLine(error.file) }
     }
+    if (error instanceof TypstLoadError) return { line: typstUnloadableLine() }
     if (error instanceof TypstCompileError) return { line: typstRefusedLine() }
     throw error
   }
