@@ -608,6 +608,28 @@ describe('hexagram-interactive in plain mode: the Readout and the keep', () => {
     expect(ended.exitCode).toBe(0)
   })
 
+  it('a last Pick then a CR, ended by stdin’s end, still counts: the fixture, one Consultation kept, exit 0', async () => {
+    const journalFolder = await temporaryJournal()
+    const ended = await runInteractive(
+      [],
+      [
+        asked(),
+        ...picked(allMovingPicks.slice(0, 17)),
+        typed('1\r'),
+        stdinEnds,
+      ],
+      { journalFolder },
+    )
+
+    const expected = expectedConsultation()
+    expect(ended.stdout).toBe(allMovingFixture)
+    expect(ended.stderr).toBe(
+      welcome + promptLine + allRounds + keptLine(journalFolder, expected),
+    )
+    expect(ended.exitCode).toBe(0)
+    expect(await keptConsultations(journalFolder)).toStrictEqual([expected])
+  })
+
   it('a Pick line ending in CR LF is read without the CR', async () => {
     const journalFolder = await temporaryJournal()
     const ended = await runInteractive(
@@ -626,13 +648,19 @@ describe('hexagram-interactive in plain mode: the Readout and the keep', () => {
     expect(ended.exitCode).toBe(0)
   })
 
-  it('a Pick with spaces around it is accepted: ` 12 ` is Pick 12', async () => {
+  it.each([
+    { shown: 'spaces around it', answer: ' 12 ' },
+    {
+      shown: 'a tab before it and a no-break space after it',
+      answer: '\t12\u00A0',
+    },
+  ])('a Pick with $shown is accepted as Pick 12', async ({ answer }) => {
     const picks = [12, ...allMovingPicks.slice(1)]
     const casting = castingOf(picks)
     const journalFolder = await temporaryJournal()
     const ended = await runInteractive(
       [],
-      [asked(), typed(' 12 \n'), ...picked(picks.slice(1))],
+      [asked(), typed(`${answer}\n`), ...picked(picks.slice(1))],
       { journalFolder },
     )
 
@@ -743,6 +771,9 @@ describe('hexagram-interactive in plain mode: a Pick that is refused is asked ag
     { shown: 'a word', answer: 'one' },
     { shown: 'full-width digits', answer: '１２' },
     { shown: 'two numbers', answer: '1 2' },
+    { shown: 'two numbers split by a tab', answer: '1\t2' },
+    { shown: 'a leading zero', answer: '01' },
+    { shown: 'a leading zero before two digits', answer: '047' },
   ])(
     '$shown ($answer) at Line 1’s first Round: the invalid-Pick line, the same prompt again',
     async ({ answer }) => {
