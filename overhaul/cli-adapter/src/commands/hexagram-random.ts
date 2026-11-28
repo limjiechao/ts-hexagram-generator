@@ -1,3 +1,7 @@
+import {
+  CatalogueFailureError,
+  namingCatalogueFailure,
+} from '#src/commands/catalogue-failure.js'
 import type { Command } from '#src/commands/entry-point.js'
 import {
   castingMode,
@@ -47,10 +51,18 @@ export const run: Command = async (argv, io, ports) => {
   let preference
   try {
     preference = await readingPreferenceFrom(
-      composeCli(ports),
+      // The four ports one by one: spreading `ports` would read the
+      // Journal's folder, which nothing before the Query may touch.
+      composeCli({
+        scriptureCatalogue: namingCatalogueFailure(ports.scriptureCatalogue),
+        randomSource: ports.randomSource,
+        consultationStore: ports.consultationStore,
+        clock: ports.clock,
+      }),
       readingOptionsOf(given),
     )
-  } catch {
+  } catch (error) {
+    if (!(error instanceof CatalogueFailureError)) throw error
     return endWith(
       io,
       portFailureLine(

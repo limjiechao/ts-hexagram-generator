@@ -9,6 +9,10 @@ import type { ConsultationReadout } from '@hexagram/presentation/readout'
 import type { ReadingPreference } from '@hexagram/scripture-catalogue/reading-preference'
 import { consultationFileName } from '@hexagram/store-markdown/markdown-consultation-store'
 
+import {
+  CatalogueFailureError,
+  namingCatalogueFailure,
+} from '#src/commands/catalogue-failure.js'
 import type {
   CommandInput,
   CommandIo,
@@ -267,25 +271,37 @@ async function showThenKeep(
   const colour = !isSet(io.env.NO_COLOR)
   let exitCode: ExitCode = 0
   let readout: ConsultationReadout | undefined
+  // An error that is no Catalogue failure is held until the keep is done,
+  // so it never costs the Consultation, then thrown.
+  let held: { readonly error: unknown } | undefined
   try {
-    readout = await consultationReadoutFor(ports, consultation, preference)
-  } catch {
-    io.stderr.write(
-      `${portFailureLine(command, 'the Scripture Catalogue cannot be read')}\n`,
+    readout = await consultationReadoutFor(
+      { scriptureCatalogue: namingCatalogueFailure(ports.scriptureCatalogue) },
+      consultation,
+      preference,
     )
-    exitCode = 1
+  } catch (error) {
+    if (error instanceof CatalogueFailureError) {
+      io.stderr.write(
+        `${portFailureLine(command, 'the Scripture Catalogue cannot be read')}\n`,
+      )
+      exitCode = 1
+    } else {
+      held = { error }
+    }
   }
   if (readout !== undefined) io.stdout.write(plainReadout(readout, { colour }))
   try {
     await cli.keepCastConsultation(consultation)
+    const file = path.resolve(
+      ports.journalFolder,
+      consultationFileName(consultation),
+    )
+    io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
   } catch {
-    return endWithLine(io, journalFailureLine(command, 'written'))
+    exitCode = endWithLine(io, journalFailureLine(command, 'written'))
   }
-  const file = path.resolve(
-    ports.journalFolder,
-    consultationFileName(consultation),
-  )
-  io.stderr.write(`${consultationKeptLine(file, paletteFor(colour))}\n`)
+  if (held !== undefined) throw held.error
   return exitCode
 }
 
