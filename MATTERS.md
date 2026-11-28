@@ -34,17 +34,17 @@ Two sets of figures sit side by side (ADR-0042, "Build order and budgets"):
 Phase 1 runs with no owner-touch cap and no brief-size cap. The owner sets both
 from its actual figures when it lands (R-006).
 
-| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)            | Owner touches (cap / used)                                                        | Brief cap (lines) | Entry gate                     | Status                      |
-| ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | --------------------------------------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
-| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                                                    | uncapped          | –                              | landed (M-001)              |
-| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                                | 1,500             | –                              | landed (M-002 to M-004)     |
-| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009)            | 1,500             | –                              | landed (M-005 to M-009)     |
-| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                                 | – (no brief)      | –                              | ratified (R-353)            |
-| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 4 (M-011), 2 (M-012), 4 (M-013), 4 (M-014), 3 (M-015) | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
-| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                                 | – (no brief)      | –                              | pending                     |
-| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                                 | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
-| 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                                 | – (no brief)      | –                              | pending (R-419)             |
-| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                                 | 1,500             | `docs/manual/pwa.md` ratified  | not yet broken into Matters |
+| Phase | Scope                                                     | Budget (Matters / weeks) | Estimate (clerk)            | Owner touches (cap / used)                                                                   | Brief cap (lines) | Entry gate                     | Status                      |
+| ----- | --------------------------------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------------------------------------------------- | ----------------- | ------------------------------ | --------------------------- |
+| 1     | Walking skeleton and incision code                        | 3 Matters / 2 weeks      | 1 Matter / 2 days (actual)  | uncapped / 125                                                                               | uncapped          | –                              | landed (M-001)              |
+| 2     | Drift-signal tooling (signals 1–4)                        | 3 Matters / 1 week       | 3 Matters / 4 days (actual) | 60 per Matter / 49 (M-002), 55 (M-003), 21 (M-004)                                           | 1,500             | –                              | landed (M-002 to M-004)     |
+| 3     | Oracle core                                               | 5 Matters / 3 weeks      | 5 Matters / 2 days (actual) | 60 per Matter / 7 (M-005), 6 (M-006), 5 (M-007), 6 (M-008), 13 (M-009)                       | 1,500             | –                              | landed (M-005 to M-009)     |
+| 4-pre | `docs/manual/cli.md` drafted and ratified (not a Matter)  | – / 2 weeks              | –                           | not set (R-138 is per Matter) / 0                                                            | – (no brief)      | –                              | ratified (R-353)            |
+| 4     | CLI at parity with today's app, on the new core           | 12 Matters / 8 weeks     | –                           | 60 per Matter / 33 (M-010), 4 (M-011), 2 (M-012), 4 (M-013), 4 (M-014), 3 (M-015), 6 (M-016) | 1,500             | `docs/manual/cli.md` ratified  | M-010 to M-021 (R-385)      |
+| 5-pre | `docs/manual/rest.md` drafted and ratified (not a Matter) | – / 1 week               | –                           | not set (R-138 is per Matter) / 0                                                            | – (no brief)      | –                              | pending                     |
+| 5     | REST engine (ADR-0038)                                    | 6 Matters / 4 weeks      | –                           | 60 per Matter / 0                                                                            | 1,500             | `docs/manual/rest.md` ratified | not yet broken into Matters |
+| 6-pre | `docs/manual/pwa.md`, with its UI design (not a Matter)   | – / budget not set       | –                           | not set (R-138 is per Matter) / 0                                                            | – (no brief)      | –                              | pending (R-419)             |
+| 6     | PWA (ADR-0037)                                            | 10 Matters / 8 weeks     | –                           | 60 per Matter / 0                                                                            | 1,500             | `docs/manual/pwa.md` ratified  | not yet broken into Matters |
 
 **Phase 4 broken into Matters 2026-11-26**: M-010 to M-021 (R-354 to R-385), from `docs/reviews/2026-11-26-phase-4-cli.md`. M-011 waits for the owner's 用九 and 用六 text (R-370), so M-012 runs first (R-422), then M-015 (R-492); ADR-0010 is consolidated with ADR-0011 and ADR-0043 before M-019 (R-384).
 
@@ -467,7 +467,7 @@ of spec holes when Phase 1 lands, together with the caps (R-009).
 
 ### M-016: Exporting to Typst and PDF
 
-- Status: in-progress
+- Status: landed
 - Phase: 4
 - Licensed by: ADR-0015, ADR-0037; manual sections 6.8, 7, 8; R-105, R-125,
   R-347

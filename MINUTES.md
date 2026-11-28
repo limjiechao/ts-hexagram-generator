@@ -748,3 +748,14 @@ ephemeral-tier material: it may be cited by people, never by source code.
 
 - The owner said "land"; `main` fast-forwarded c603b0c..0b3697e (M-014: plain casting). No delegate ruling overturned.
 - Owner touches: 3 (R-544 to R-546, M-016's Typst engine, fonts and PDF metadata, asked before it starts).
+
+### Iteration 49 — M-016 — 2026-11-28
+
+- Attempt: 1/2 (slices 1 and 2, landed together per R-551) · Outcome: landed; M-016 complete
+- Owner, before drafting: R-544 (Typst's WebAssembly build 0.7.0), R-545 (fonts through Git LFS; the owner installed git-lfs 3.8.1), R-546 (no Query in PDF metadata); during: R-548 (use case 9 reads the Journal and Catalogue, amending R-124 and R-125), R-549 (R-546 covers Typst fixtures only; no LFS cache), R-552 (fixtures may borrow the bundled names).
+- Slice 1: use case 9, the Typst renderer, `--export` to `.typ`; `consultationReadoutFor` into `application`; ○ ✕ into `presentation`; eight Typst fixtures over a fake Catalogue; a drift finding (`emerging.lines`) cleared by renaming the template parameter (R-551). Review `APPROVE`: no Query reaches title, metadata or headings; escaping holds against injection probes.
+- Slice 2: `@myriaddreamin/typst.ts` and `typst-ts-web-compiler` pinned at 0.7.0; five OFL fonts through LFS (Noto Serif CJK TC 2.003, Noto Sans Symbols 2 2.008, Libertinus Serif 7.051 ×3) with SHA-256 rows; a lazy in-process compiler that fetches nothing; CI's test job checks out LFS. Review `APPROVE` twice; R-554: every failure before a PDF exists ends in one line (an unreadable or dropped font; a failed WebAssembly load).
+- Verify: M-016's whole Acceptance · type:check · lint:check · format · drift:check · drift:prove · build and test forced 23/23 and 46/46 on matters; `TURBO_FORCE=true pnpm test:stress:once` 4×46 executed (an earlier unforced run replayed from cache and proved nothing — the clerk now forces it); fonts on matters are real font bytes; no `consultations/` in the matters worktree
+- Owner touches: 6 (R-544 to R-546, R-548, R-549, R-552); delegate rulings: 6 (R-547, R-550, R-551, R-553, R-554, and test approvals)
+- Landed: 34 commits ending dd13a07
+- Notes: the tester checked fixtures with the system `typst` 0.15.1 (harmless; briefs now say whether system tools may be used); the implementer changed one import line in six approved tests (licensed after the fact, R-551). Open for later: cross-machine PDF identity (R-553 Q-34); a truncated but parseable font slips through (Typst accepts it); `new TypstFontResolverBuilder()` sits outside the load wrapper; `--export-journal` is quieter on stream errors than R-536 (6). Pending with the owner: whether `test:stress:once` itself should force turbo (R-554 (2)).

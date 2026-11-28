@@ -7070,4 +7070,4 @@ test:stress:once`; whether the script itself changes is referred to the
   0.14.2, which the PDF names as its creator.
 - Reason: R-350, R-353, R-544, R-547, R-551 (4), R-553; ADR-0042; AGENTS.md
   §3, §6.
-- Folded into: `docs/manual/cli.md` §6.7, §6.8 (at landing)
+- Folded into: `docs/manual/cli.md` §6.7, §8 (the measured time was in §8)
