@@ -119,6 +119,7 @@ describe('hexagram-history --export-journal when its temporary file cannot be re
       consultationStore,
       journalFolder,
       moveToLegacy: unused,
+      rerenderBodies: unused,
     }
     const stdout: string[] = []
     const stderr: string[] = []

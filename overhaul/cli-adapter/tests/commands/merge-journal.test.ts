@@ -220,6 +220,7 @@ function portsOver(journalFolder: string): CommandPorts {
     consultationStore: markdownStore(journalFolder).consultationStore,
     journalFolder,
     moveToLegacy: unused,
+    rerenderBodies: unused,
   }
 }
 

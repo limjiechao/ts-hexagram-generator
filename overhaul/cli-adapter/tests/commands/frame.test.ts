@@ -29,6 +29,8 @@ import { notBuiltLine } from '#src/commands/not-built.js'
 // line to stderr, nothing to stdout, exits 1, and touches no port, save the
 // built maintenance runs: `--export-journal` reads the Store, whose
 // throwing ports make it the Journal that cannot be read;
+// `--rerender-bodies` calls the Markdown Store's `rerenderBodies`, whose
+// rejecting stub makes it the Journal that cannot be written;
 // `--merge-journal` of a missing file ends before any port; and
 // `--import-legacy` of paths that do not exist, or of the missing Journal
 // folder, skips each path, prints its summary and exits 0, touching no port.
@@ -106,6 +108,12 @@ function untouchablePorts(touched: string[]): CommandPorts {
     clock,
     journalFolder: neverReadJournalFolder,
     moveToLegacy: untouched('Markdown Consultation Store'),
+    rerenderBodies: () => {
+      touched.push('Markdown Consultation Store')
+      return Promise.reject(
+        new Error('the frame touched the Markdown Consultation Store'),
+      )
+    },
   }
 }
 
@@ -174,6 +182,25 @@ async function expectMergeJournalEnding(terminal: Terminal): Promise<void> {
     terminal,
     line(`hexagram-history: ${missingBundle} cannot be read`),
   )
+}
+
+/**
+ * `--rerender-bodies` over the throwing ports: the run reaches the Markdown
+ * Store's `rerenderBodies`, whose rejection is the Journal that cannot be
+ * written, having touched nothing else.
+ */
+async function expectRerenderBodiesEnding(terminal: Terminal): Promise<void> {
+  const result = await runCommand(
+    historyCommand.run,
+    ['--rerender-bodies'],
+    terminal,
+  )
+  expect(result.stderr.join('')).toBe(
+    line('hexagram-history: the Journal cannot be written'),
+  )
+  expect(result.stdout.join('')).toBe('')
+  expect(result.exitCode).toBe(1)
+  expect(result.portsTouched).toEqual(['Markdown Consultation Store'])
 }
 
 /** `--import-legacy`'s summary when nothing is kept, over `files` files. */
@@ -385,10 +412,6 @@ describe('the terminal table: each command with no options, in each column', () 
 describe('the terminal table: hexagram-history maintenance runs in every column', () => {
   const maintenance = [
     {
-      argv: ['--rerender-bodies'],
-      expected: line(notBuiltLine('hexagram-history', '--rerender-bodies')),
-    },
-    {
       argv: ['--export', 'out.pdf'],
       expected: line(notBuiltLine('hexagram-history', '--export')),
     },
@@ -421,6 +444,13 @@ describe('the terminal table: hexagram-history maintenance runs in every column'
     '--export-journal bundle.json, %s: the Journal cannot be read',
     async (column) => {
       await expectExportJournalEnding(columns[column])
+    },
+  )
+
+  it.each(columnNames)(
+    '--rerender-bodies, %s: the Journal cannot be written',
+    async (column) => {
+      await expectRerenderBodiesEnding(columns[column])
     },
   )
 
@@ -944,7 +974,6 @@ describe('a bad value, a repeat, an unknown option or a positional is a usage re
 
 describe('hexagram-history: the maintenance options and what applies to them', () => {
   const accepted = [
-    { argv: ['--rerender-bodies'], option: '--rerender-bodies' },
     { argv: ['--export', 'out.pdf'], option: '--export' },
     { argv: ['--export=-out.typ'], option: '--export' },
     {
@@ -1047,6 +1076,10 @@ describe('hexagram-history: the maintenance options and what applies to them', (
 
   it('runs --export-journal bundle.json to the Journal that cannot be read', async () => {
     await expectExportJournalEnding(tty())
+  })
+
+  it('runs --rerender-bodies to the Journal that cannot be written', async () => {
+    await expectRerenderBodiesEnding(tty())
   })
 
   it('runs --merge-journal <a missing file> to the file that cannot be read', async () => {
